@@ -107,7 +107,7 @@ andb-ui/
 ├── package.json       # Dependencies and scripts
 ├── vite.config.ts     # Vite configuration
 ├── tailwind.config.js # Tailwind CSS configuration
-└── tsconfig.json      # TypeScript configuration
+├── tsconfig.json      # TypeScript configuration
 ```
 
 ## 🎨 UI Components

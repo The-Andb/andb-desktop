@@ -1,6 +1,9 @@
 # Changelog
 
-All notable changes to the **andb-ui** project will be documented in this file.
+All notable changes to **The Andb UI** will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.3.0] - 2026-01-28
 
@@ -32,48 +35,30 @@ All notable changes to the **andb-ui** project will be documented in this file.
 
 ## [2.2.2] - 2026-01-19
 
-### ✨ UI/UX Refinements
+### Added
 
-- **Refined Header Layout**:
-  - Unified the header design across `GlobalSchemaView` and `Compare` views.
-  - Aligned the "Console" toggle to the far right.
-  - Grouped action buttons (Fetch, Compare) to the right side for cleaner separation.
-  - Converted the "Fetch" button to a minimal icon-only style to reduce visual clutter.
-  - Removed redundant vertical separators in the toolbar.
+- **DDL Type Filtering**: Filter comparison tree by object type.
+- **Landing Page Updates**: New version highlights and download links.
 
-### 🚀 Functionality
+### Fixed
 
-- **Compare View**:
-  - Added **DDL Type Filtering** (Tables, Views, Procedures, Functions, Triggers) to the Tree View mode.
-  - Synchronized filter state between List and Tree views to ensure consistency when switching modes.
+- **Build errors**: Resolved TypeScript compilation issues.
 
 ---
 
-## [2.2.1] - 2026-01-14
+## [2.2.0] - 2026-01-12
 
-### ✨ UI & Branding Refinements
+### Added
 
-- **Dynamic Versioning**: The application version is now automatically synchronized across all UI components (Splash Screen, About Modal).
-- **New Primary Home**: Updated all links and internal metadata to point to the new `The-Andb/andb` repository.
-- **License Update**: Officially transitioned to **GPL-3.0**.
-- **Sidebar Fix**: Resolved an issue where navigation items were clipped in vertical list mode.
-- **Landing Page Polish**: Fixed "black box" logo issue and improved text contrast in Light Mode.
-- **Project Settings Refactor**: Improved layout stability and fixed navigation bugs in the Project Settings view.
+- **Visual Diff Engine**: Side-by-side comparison with syntax highlighting and Rainbow brackets.
+- **Export Preview**: Live SQL preview with line numbers.
+- **Connection Pairs**: Select source ↔ target for compare/migrate operations.
+- **Auto-hide Sidebar**: Collapsible navigation with keyboard shortcuts (Ctrl+B).
 
----
+### Improved
 
-## [2.2.0] - 2026-01-14
-
-### ✨ New & Improved
-
-- **Context-Aware Dashboard**: The "Sync Mappings" list is now strictly intelligent. It filters connection pairs based on your **Active Project** and **Enabled Environments** (e.g. enabling/disabling UAT).
-- **Premium Visuals**: Completely redesigned "Switch Project" and "Settings" buttons in the dashboard with kinetic hover effects and premium styling.
-- **Interactive Global Blur**: The blurred sidebar in global views now acts as a click-to-close surface, improving navigation fluidity.
-
-### 🐛 Bug Fixes
-
-- **Zombie Project Fix**: Resolved a critical issue where duplicated projects inherited "System Protected" status (undeletable). Added auto-sanitization to fix existing corrupted projects on startup.
-- **Robust ID Generation**: Replaced UUID generator with a fail-safe implementation for reliable project creation/copying.
+- **Performance**: SQLite-backed metadata storage for faster operations.
+- **Theme Support**: Polished dark and light mode aesthetics.
 
 ---
 
@@ -88,6 +73,5 @@ All notable changes to the **andb-ui** project will be documented in this file.
 
 [2.3.0]: https://github.com/The-Andb/andb/releases/tag/v2.3.0
 [2.2.2]: https://github.com/The-Andb/andb/releases/tag/v2.2.2
-[2.2.1]: https://github.com/The-Andb/andb/releases/tag/v2.2.1
 [2.2.0]: https://github.com/The-Andb/andb/releases/tag/v2.2.0
 [2.0.0]: https://github.com/The-Andb/andb/releases/tag/v2.0.0
