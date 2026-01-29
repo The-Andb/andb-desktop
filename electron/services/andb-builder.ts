@@ -3,7 +3,7 @@ import path from 'path'
 
 // Import dependencies safely
 // @ts-ignore
-const { Container } = require('@the-andb/core')
+const { bootstrapCore } = require('@the-andb/core-nest')
 // @ts-ignore
 const Logger = require('andb-logger')
 
@@ -58,7 +58,7 @@ interface AndbConfig {
 }
 
 export class AndbBuilder {
-  // NEW: SQLiteStorage instance (shared across all operations)
+  private static nestApp: any = null
   private static sqliteStorage: any = null
 
   public static async getReportList() {
@@ -176,20 +176,16 @@ export class AndbBuilder {
   }
 
   public static async getDatabaseStats() {
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
     return await storage.getStats()
   }
 
   /**
-   * Get or create SQLiteStorage instance
+   * Get Storage service from NestJS
    */
-  public static getSQLiteStorage() {
-    if (!this.sqliteStorage) {
-      const { SQLiteStorage } = require('@the-andb/core')
-      const dbPath = path.join(app.getPath('userData'), 'andb-storage.db')
-      this.sqliteStorage = new SQLiteStorage(dbPath, app.getPath('userData'))
-    }
-    return this.sqliteStorage
+  public static async getSQLiteStorage() {
+    const nestAppCtx = await this.getNestApp();
+    return nestAppCtx.get('StorageService');
   }
 
   /**
@@ -370,6 +366,22 @@ export class AndbBuilder {
   }
 
   /**
+   * Get or bootstrap NestJS application context
+   */
+  public static async getNestApp() {
+    if (!this.nestApp) {
+      const { bootstrapCore } = require('@the-andb/core-nest');
+      this.nestApp = await bootstrapCore();
+
+      // Initialize Storage
+      const storageService = this.nestApp.get('StorageService');
+      const dbPath = path.join(app.getPath('userData'), 'andb-storage.db');
+      storageService.initialize(dbPath);
+    }
+    return this.nestApp;
+  }
+
+  /**
    * Build and execute andb-core operation
    */
   static async execute(
@@ -429,34 +441,59 @@ export class AndbBuilder {
         // Silently fail logger init
       }
 
-      // Create container with config
-      const container = new Container(config)
-      const services = container.getServices()
+      // Get Nest App
+      const nestAppCtx = await this.getNestApp();
+      const configService = nestAppCtx.get('ProjectConfigService');
+      const exporterService = nestAppCtx.get('ExporterService');
+      const comparatorService = nestAppCtx.get('ComparatorService');
+      const migratorService = nestAppCtx.get('MigratorService');
+      const driverFactory = nestAppCtx.get('DriverFactoryService');
+
+      // Inject connections into config service
+      const sEnv = sourceConn.environment.toUpperCase();
+      configService.setConnection(sEnv, {
+        host: sourceConn.host,
+        port: sourceConn.port,
+        database: sourceConn.database || sourceConn.name,
+        user: sourceConn.username,
+        password: sourceConn.password || '',
+      }, (sourceConn as any).type === 'dump' ? 'dump' as any : 'mysql' as any);
+
+      if (targetConn) {
+        const tEnv = targetConn.environment.toUpperCase();
+        configService.setConnection(tEnv, {
+          host: targetConn.host,
+          port: targetConn.port,
+          database: targetConn.database || targetConn.name,
+          user: targetConn.username,
+          password: targetConn.password || '',
+        }, (targetConn as any).type === 'dump' ? 'dump' as any : 'mysql' as any);
+      }
+
+      if (options.domainNormalization) {
+        configService.setDomainNormalization(
+          new RegExp(options.domainNormalization.pattern),
+          options.domainNormalization.replacement
+        );
+      }
+
+      const services = { exporterService, comparatorService, migratorService, driverFactory, configService };
 
       // Execute operation based on type
       switch (operation) {
         case 'export':
-          return await this.executeExport(services, options)
+          return await this.executeExport(services, options, sEnv);
 
         case 'compare':
-          if (!targetConn) throw new Error('Target connection is required for comparison')
-          return await this.executeCompare(services, options, config, targetConn.environment, sourceConn, targetConn)
+          if (!targetConn) throw new Error('Target connection is required for comparison');
+          return await this.executeCompare(services, options, sEnv, targetConn.environment.toUpperCase());
 
         case 'migrate':
-          if (!targetConn) throw new Error('Target connection is required for migration')
-
-          // DBA Rule: Cannot migrate into a static SQL Dump file
-          if ((targetConn as any).type === 'dump' || targetConn.host.includes('.sql')) {
-            throw new Error(`Migration forbidden: Target '${targetConn.name}' is a static SQL Dump file. You can only migrate INTO a live database server.`)
-          }
-
-          return await this.executeMigrate(services, options, targetConn.environment, sourceConn)
-
-        case 'generate':
-          throw new Error('Generate operation is only available via andb-cli')
+          if (!targetConn) throw new Error('Target connection is required for migration');
+          return await this.executeMigrate(services, options, targetConn.environment.toUpperCase(), sEnv);
 
         default:
-          throw new Error(`Unknown operation: ${operation}`)
+          throw new Error(`Unknown operation: ${operation}`);
       }
     } catch (error: any) {
       if ((global as any).logger) (global as any).logger.error('[AndbBuilder] execute error:', error)
@@ -477,22 +514,9 @@ export class AndbBuilder {
   /**
    * Execute export operation
    */
-  private static async executeExport(services: any, options: any) {
-    const {
-      type = 'tables',
-      environment,
-      name = null
-    } = options
-
-    const ddlType = type.toLowerCase()
-
-    try {
-      const exportFn = services.exporter(ddlType, name)
-      const result = await exportFn(environment)
-      return result
-    } catch (error: any) {
-      throw error
-    }
+  private static async executeExport(services: any, options: any, env: string) {
+    const { name = null } = options;
+    return await services.exporterService.exportSchema(env, name);
   }
 
   /**
@@ -501,67 +525,117 @@ export class AndbBuilder {
   private static async executeCompare(
     services: any,
     options: any,
-    config: any,
-    destEnv: string,
-    sourceConn: DatabaseConnection,
-    targetConn: DatabaseConnection
+    srcEnv: string,
+    destEnv: string
   ) {
-    const {
-      type = 'tables',
-      name = null
-    } = options
+    const { type = 'tables' } = options;
+    const ddlType = type.toLowerCase();
 
-    const ddlType = type.toLowerCase()
+    const srcConn = services.configService.getConnection(srcEnv);
+    const destConn = services.configService.getConnection(destEnv);
+
+    const srcDriver = await services.driverFactory.create(srcConn.type, srcConn.config);
+    const destDriver = await services.driverFactory.create(destConn.type, destConn.config);
 
     try {
-      // PROACTIVE: If source or target is a dump, we MUST re-export (re-parse) to avoid stale cache
-      const srcEnv = config.getSourceEnv(destEnv)
+      await srcDriver.connect();
+      await destDriver.connect();
 
-      if ((sourceConn as any).type === 'dump' || sourceConn.host.includes('.sql')) {
-        if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Auto-refreshing dump source: ${sourceConn.host}`)
-        await this.clearConnectionData(sourceConn)
-        await this.executeExport(services, { type: ddlType, environment: srcEnv, name })
-      }
+      const srcIntro = srcDriver.getIntrospectionService();
+      const destIntro = destDriver.getIntrospectionService();
+      const dbName = srcConn.config.database || 'default';
+      const destDbName = destConn.config.database || 'default';
 
-      if ((targetConn as any).type === 'dump' || targetConn.host.includes('.sql')) {
-        if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Auto-refreshing dump target: ${targetConn.host}`)
-        await this.clearConnectionData(targetConn)
-        await this.executeExport(services, { type: ddlType, environment: destEnv, name })
-      }
+      const diff = await services.comparatorService.compareSchema(srcIntro, destIntro, dbName);
 
-      const compareFn = services.comparator(ddlType, name)
-      // Use destEnv passed from execute(), which should be the *aliased* name if applicable
-      await compareFn(destEnv)
+      // Map ISchemaDiff to UI format
+      const results: any[] = [];
 
-      const dbName = config.getDBName(srcEnv)
+      if (ddlType === 'tables') {
+        // 1. Changed Tables
+        for (const name of Object.keys(diff.tables)) {
+          results.push({
+            name,
+            status: 'different',
+            type: 'TABLES',
+            ddl: services.migratorService.generateAlterSQL(diff.tables[name]),
+            diff: {
+              source: await srcIntro.getTableDDL(dbName, name),
+              target: await destIntro.getTableDDL(destDbName, name)
+            }
+          });
+        }
 
-      // Read and return results from SQLite
-      const storage = this.getSQLiteStorage();
-      const normalizedSrcEnv = srcEnv.toUpperCase();
-      const normalizedDestEnv = destEnv.toUpperCase();
-      const destDbName = config.getDBName(normalizedDestEnv);
+        // 2. Dropped Tables (Missing in Source)
+        for (const name of diff.droppedTables) {
+          results.push({
+            name,
+            status: 'missing_in_source',
+            type: 'TABLES',
+            ddl: [`DROP TABLE IF EXISTS \`${name}\`;`],
+            diff: {
+              source: null,
+              target: await destIntro.getTableDDL(destDbName, name)
+            }
+          });
+        }
 
-      const results = await storage.getComparisons(normalizedSrcEnv, normalizedDestEnv, dbName, ddlType);
-
-      const mapped = await Promise.all(results.map(async (res: any) => {
-        const itemName = res.name;
-        const alterStmts = res.ddl;
-
-        return {
-          name: itemName,
-          status: res.status,
-          type: res.type.toUpperCase(),
-          ddl: Array.isArray(alterStmts) ? alterStmts : (alterStmts ? [alterStmts] : []),
-          diff: {
-            source: await storage.getDDL(srcEnv, dbName, ddlType, itemName),
-            target: await storage.getDDL(destEnv, destDbName, ddlType, itemName)
+        // 3. New Tables (Missing in Target)
+        const srcTables = await srcIntro.listTables(dbName);
+        const destTables = await destIntro.listTables(destDbName);
+        for (const name of srcTables) {
+          if (!destTables.includes(name)) {
+            const ddl = await srcIntro.getTableDDL(dbName, name);
+            results.push({
+              name,
+              status: 'missing_in_target',
+              type: 'TABLES',
+              ddl: [ddl],
+              diff: {
+                source: ddl,
+                target: null
+              }
+            });
           }
-        };
-      }));
+        }
+      } else {
+        // Generic Objects
+        for (const obj of diff.objects) {
+          const typeMatch = obj.type.toLowerCase() + 's' === ddlType || (ddlType === 'procedures' && obj.type === 'PROCEDURE');
+          if (!typeMatch) continue;
 
-      return mapped
-    } catch (error: any) {
-      throw error
+          results.push({
+            name: obj.name,
+            status: obj.operation === 'DROP' ? 'missing_in_source' : (obj.operation === 'CREATE' ? 'missing_in_target' : 'different'),
+            type: obj.type + 'S',
+            ddl: services.migratorService.generateObjectSQL(obj),
+            diff: {
+              source: obj.operation === 'DROP' ? null : obj.definition,
+              target: obj.operation === 'CREATE' ? null : (await this._getObjectDDL(destIntro, destDbName, obj.type, obj.name))
+            }
+          });
+        }
+      }
+
+      return results;
+    } finally {
+      await srcDriver.disconnect();
+      await destDriver.disconnect();
+    }
+  }
+
+  private static async _getObjectDDL(intro: any, db: string, type: string, name: string): Promise<string | null> {
+    try {
+      switch (type) {
+        case 'VIEW': return await intro.getViewDDL(db, name);
+        case 'PROCEDURE': return await intro.getProcedureDDL(db, name);
+        case 'FUNCTION': return await intro.getFunctionDDL(db, name);
+        case 'TRIGGER': return await intro.getTriggerDDL(db, name);
+        case 'EVENT': return await intro.getEventDDL(db, name);
+        default: return null;
+      }
+    } catch (e) {
+      return null;
     }
   }
 
@@ -569,81 +643,62 @@ export class AndbBuilder {
   /**
    * Execute migrate operation
    */
-  private static async executeMigrate(services: any, options: any, destEnv: string, sourceConn: DatabaseConnection) {
+  private static async executeMigrate(services: any, options: any, destEnv: string, srcEnv: string) {
     const {
       type = 'tables',
-      status = 'NEW',
       name = null,
-      dryRun = false
-    } = options
+      dryRun = false,
+      ddl = null
+    } = options;
 
-    const ddlType = type.toLowerCase()
+    const sqls = Array.isArray(ddl) ? ddl : (ddl ? [ddl] : []);
 
-    // Optimization: Check comparison cache FIRST for dry-run of specific items
-    // This avoids redundant re-comparison in andb-core and addresses the "lấy từ map migrate" concern
-    if (dryRun && name) {
-      if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Dry-run for ${name}: Checking comparison cache...`)
-      try {
-        const storage = this.getSQLiteStorage()
-        const srcEnv = options.sourceEnv || sourceConn.environment
-        const dbName = sourceConn.database
-        const comparisons = await storage.getComparisons(srcEnv.toUpperCase(), destEnv.toUpperCase(), dbName, ddlType)
-        const match = comparisons.find((c: any) => c.name === name)
-
-        if (match && match.alterStatements && match.alterStatements !== '[]' && match.alterStatements !== '""') {
-          let statements = match.alterStatements
-          try {
-            if (typeof statements === 'string' && statements.startsWith('[') && statements.endsWith(']')) {
-              statements = JSON.parse(statements)
-            }
-          } catch (e) { }
-
-          if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Cache hit for ${name}, returning saved alter statements from database.`)
-          return statements
-        }
-        if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] No cached alter statements found for ${name} in database.`)
-      } catch (e) {
-        if ((global as any).logger) (global as any).logger.warn(`[AndbBuilder] Cache check failed for ${name}:`, e)
-      }
+    if (dryRun) {
+      return sqls.length > 0 ? sqls : ["-- No change detected or no DDL provided"];
     }
 
-    const migrateFn = services.migrator(ddlType, status.toUpperCase(), name)
+    // Real migration execution
+    const destConn = services.configService.getConnection(destEnv);
+    const destDriver = await services.driverFactory.create(destConn.type, destConn.config);
 
-    if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Executing native migrate for ${ddlType} ${name || 'ALL'} (status: ${status}, dryRun: ${!!dryRun})`)
-
-    const result = await migrateFn(destEnv, options)
-
-    if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Migrate raw result from core:`, result)
-
-    // DRY RUN fallback: If core returns nothing/0, try to fetch the alter statements from our comparisons table
-    if (options.dryRun && (result === 0 || result === '0' || !result)) {
-      if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Dry run returned nothing for ${name}, trying database fallback...`)
-      try {
-        const storage = this.getSQLiteStorage()
-        const srcEnv = options.sourceEnv || sourceConn.environment
-        const dbName = sourceConn.database
-        const comparisons = await storage.getComparisons(srcEnv.toUpperCase(), destEnv.toUpperCase(), dbName, ddlType)
-        const match = comparisons.find((c: any) => c.name === name)
-
-        if (match && match.alterStatements) {
-          if ((global as any).logger) (global as any).logger.info(`[AndbBuilder] Found cached alter statements for ${name} in database`)
-
-          let statements = match.alterStatements
-          try {
-            // It might be stored as a JSON array string
-            if (typeof statements === 'string' && statements.startsWith('[') && statements.endsWith(']')) {
-              statements = JSON.parse(statements)
-            }
-          } catch (e) { }
-
-          return statements
+    try {
+      await destDriver.connect();
+      for (const sql of sqls) {
+        if (sql && sql.trim()) {
+          await destDriver.query(sql);
         }
-      } catch (e) {
-        if ((global as any).logger) (global as any).logger.error(`[AndbBuilder] Database fallback failed:`, e)
       }
-    }
 
-    return result
+      // Log to history
+      const storage = await this.getSQLiteStorage();
+      await storage.saveMigration({
+        srcEnv,
+        destEnv,
+        database: destConn.config.database,
+        type,
+        name: name || 'batch',
+        operation: 'MIGRATE',
+        status: 'SUCCESS'
+      });
+
+      return { success: true, message: `Successfully migrated ${name || type}` };
+    } catch (error: any) {
+      // Log failure
+      const storage = await this.getSQLiteStorage();
+      await storage.saveMigration({
+        srcEnv,
+        destEnv,
+        database: destConn?.config?.database || 'unknown',
+        type,
+        name: name || 'batch',
+        operation: 'MIGRATE',
+        status: 'FAILED',
+        error: error.message
+      });
+      throw error;
+    } finally {
+      await destDriver.disconnect();
+    }
   }
 
   /**
@@ -655,7 +710,7 @@ export class AndbBuilder {
     type: string
   ): Promise<any> {
     const ddlType = type.toLowerCase()
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
 
     const srcEnv = sourceConn.environment
     const destEnv = targetConn.environment
@@ -692,7 +747,7 @@ export class AndbBuilder {
    * Clear cached data for a specific connection
    */
   static async clearConnectionData(connection: DatabaseConnection) {
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
     const result = await storage.clearDataForConnection(connection.environment, connection.database)
 
     if ((global as any).logger) {
@@ -708,7 +763,7 @@ export class AndbBuilder {
    * Fetch snapshots for an object
    */
   static async getSnapshots(environment: string, database: string, type: string, name: string) {
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
     return await storage.getSnapshots(environment, database, type.toUpperCase(), name)
   }
 
@@ -716,7 +771,7 @@ export class AndbBuilder {
    * Fetch migration history
    */
   static async getMigrationHistory(limit: number = 100) {
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
     return await storage.getMigrationHistory(limit)
   }
 
@@ -724,7 +779,7 @@ export class AndbBuilder {
    * Fetch all snapshots globally
    */
   static async getAllSnapshots(limit: number = 200) {
-    const storage = this.getSQLiteStorage()
+    const storage = await this.getSQLiteStorage()
     return await storage.getAllSnapshots(limit)
   }
 
@@ -734,99 +789,95 @@ export class AndbBuilder {
   static async createManualSnapshot(connection: DatabaseConnection, type: string, name: string) {
     if ((global as any).logger) (global as any).logger.info(`Starting manual snapshot for ${type}:${name}`)
 
-    const config = this.buildConfig(connection, null)
-    const container = new Container(config)
-    const services = container.getServices()
+    const nestAppCtx = await this.getNestApp();
+    const storageService = nestAppCtx.get('StorageService');
+    const driverFactory = nestAppCtx.get('DriverFactoryService');
 
-    // 1. Fetch current DDL from DB (this saves it into ddl_exports internal table)
-    await this.executeExport(services, { type, environment: connection.environment, name })
+    const env = connection.environment.toUpperCase();
+    const config = {
+      host: connection.host,
+      port: connection.port,
+      database: connection.database || connection.name,
+      user: connection.username,
+      password: connection.password || '',
+    };
+    const connType = (connection as any).type === 'dump' ? 'dump' : 'mysql';
 
-    const storage = this.getSQLiteStorage()
-    // 2. Read from our shared storage to get the fresh content
-    const ddl = await storage.getDDL(connection.environment, connection.database, type, name)
+    const driver = await driverFactory.create(connType as any, config);
+    try {
+      await driver.connect();
+      const intro = driver.getIntrospectionService();
+      const dbName = config.database || 'default';
 
-    if (ddl) {
-      if ((global as any).logger) (global as any).logger.info(`DDL fetched for ${name}, saving snapshot...`)
-      // 3. Save as snapshot in ddl_snapshots table
-      return await storage.saveSnapshot({
-        environment: connection.environment,
-        database: connection.database,
-        type: type.toUpperCase(),
-        name: name,
-        content: ddl,
-        versionTag: `manual-${new Date().getTime()}`
-      })
+      let ddl: string | null = null;
+      const upperType = type.toUpperCase();
+
+      if (upperType === 'TABLE' || upperType === 'TABLES') {
+        ddl = await intro.getTableDDL(dbName, name);
+      } else if (upperType === 'VIEW' || upperType === 'VIEWS') {
+        ddl = await intro.getViewDDL(dbName, name);
+      } else if (upperType === 'PROCEDURE' || upperType === 'PROCEDURES') {
+        ddl = await intro.getProcedureDDL(dbName, name);
+      } else if (upperType === 'FUNCTION' || upperType === 'FUNCTIONS') {
+        ddl = await intro.getFunctionDDL(dbName, name);
+      } else if (upperType === 'TRIGGER' || upperType === 'TRIGGERS') {
+        ddl = await intro.getTriggerDDL(dbName, name);
+      }
+
+      if (!ddl) {
+        throw new Error(`Could not fetch DDL for ${type} ${name}`);
+      }
+
+      await storageService.saveSnapshot(env, dbName, upperType, name, ddl, 'Manual Snapshot');
+      return { success: true, ddl };
+    } finally {
+      await driver.disconnect();
     }
-
-    if ((global as any).logger) (global as any).logger.error(`Could not find DDL in storage for ${connection.environment}:${connection.database}:${type}:${name}`)
-    throw new Error('Could not fetch DDL for snapshot (empty content in storage)')
   }
 
   /**
    * Restore a historical snapshot to the database
    */
   static async restoreSnapshot(connection: DatabaseConnection, snapshot: any) {
-    if ((global as any).logger) (global as any).logger.info(`Starting snapshot restore for ${snapshot.ddl_type}:${snapshot.ddl_name}`)
+    if ((global as any).logger) (global as any).logger.info(`Restoring snapshot for ${snapshot.ddl_name}`)
 
-    const { ddl_type, ddl_name, ddl_content } = snapshot
-    const config = this.buildConfig(connection, null)
-    const container = new Container(config)
-    const services = container.getServices()
+    const nestAppCtx = await this.getNestApp();
+    const driverFactory = nestAppCtx.get('DriverFactoryService');
 
-    // 1. Take a "pre-restore" snapshot just in case (SAFETY FIRST!)
-    try {
-      await this.createManualSnapshot(connection, ddl_type, ddl_name)
-    } catch (e) {
-      if ((global as any).logger) (global as any).logger.warn('Could not take safety snapshot before restore, continuing anyway...', e)
-    }
-
-    // 2. Prepare queries
-    let dropQuery = ''
-    const type = ddl_type.toUpperCase()
-
-    // SAFETY: Never DROP tables directly because we lose data!
-    if (type === 'TABLES' || type === 'TABLE') {
-      throw new Error('Direct restoration of TABLES is disabled to prevent permanent data loss. Please copy the DDL and run a manual ALTER statement instead.')
-    }
-
-    if (type === 'PROCEDURES' || type === 'PROCEDURE') dropQuery = `DROP PROCEDURE IF EXISTS \`${ddl_name}\`;`
-    else if (type === 'FUNCTIONS' || type === 'FUNCTION') dropQuery = `DROP FUNCTION IF EXISTS \`${ddl_name}\`;`
-    else if (type === 'VIEWS' || type === 'VIEW') dropQuery = `DROP VIEW IF EXISTS \`${ddl_name}\`;`
-    else if (type === 'TRIGGERS' || type === 'TRIGGER') dropQuery = `DROP TRIGGER IF EXISTS \`${ddl_name}\`;`
-
-    // 3. Get connection and execute
-    const mysql = require('mysql2/promise')
-    const conn = await mysql.createConnection({
+    const config = {
       host: connection.host,
       port: connection.port,
+      database: connection.database || connection.name,
       user: connection.username,
-      password: connection.password,
-      database: connection.database,
-      multipleStatements: true
-    })
+      password: connection.password || '',
+    };
+    const connType = (connection as any).type === 'dump' ? 'dump' : 'mysql';
 
+    const driver = await driverFactory.create(connType as any, config);
     try {
-      if (dropQuery) {
-        if ((global as any).logger) (global as any).logger.info(`Executing: ${dropQuery}`)
-        await conn.query(dropQuery)
-      }
+      await driver.connect();
+      const ddl = snapshot.ddl_content;
 
-      if ((global as any).logger) (global as any).logger.info(`Applying DDL content...`)
-      const finalDDL = services.replacer ? services.replacer.replaceWithEnv(ddl_content, connection.environment) : ddl_content
-      await conn.query(finalDDL)
+      if (!ddl) throw new Error('Snapshot has no DDL content');
 
-      // 4. Update the ddl_exports table so UI shows the new version
-      this.getSQLiteStorage().saveDDL({
-        environment: connection.environment,
-        database: connection.database,
-        type: type,
-        name: ddl_name,
-        content: finalDDL
-      })
+      // Execute restoration
+      await driver.query(ddl);
 
-      return { success: true }
+      // Log action
+      const storage = await this.getSQLiteStorage();
+      await storage.saveMigration({
+        srcEnv: 'SNAPSHOT',
+        destEnv: connection.environment.toUpperCase(),
+        database: config.database,
+        type: snapshot.ddl_type,
+        name: snapshot.ddl_name,
+        operation: 'RESTORE',
+        status: 'SUCCESS'
+      });
+
+      return { success: true };
     } finally {
-      await conn.end()
+      await driver.disconnect();
     }
   }
 
@@ -835,8 +886,8 @@ export class AndbBuilder {
    */
   static async test(): Promise<boolean> {
     try {
-      const { Container } = require('@the-andb/core')
-      return !!Container
+      const { bootstrapCore } = require('@the-andb/core-nest')
+      return !!bootstrapCore
     } catch (error) {
       return false
     }

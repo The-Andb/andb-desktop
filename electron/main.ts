@@ -14,17 +14,21 @@ const isTest = process.env.NODE_ENV === 'test'
 if (isTest) {
   app.name = 'The Andb Test'
   const userDataPath = app.getPath('userData')
-  if (!userDataPath.endsWith('_test')) {
-    app.setPath('userData', userDataPath + '_test')
+  if (!userDataPath.endsWith('_v3_test')) {
+    app.setPath('userData', userDataPath + '_v3_test')
   }
 } else if (isDev) {
   app.name = 'The Andb Dev'
   const userDataPath = app.getPath('userData')
-  if (!userDataPath.endsWith('_dev')) {
-    app.setPath('userData', userDataPath + '_dev')
+  if (!userDataPath.endsWith('_v3_dev')) {
+    app.setPath('userData', userDataPath + '_v3_dev')
   }
 } else {
   app.name = 'The Andb'
+  const userDataPath = app.getPath('userData')
+  if (!userDataPath.endsWith('_v3')) {
+    app.setPath('userData', userDataPath + '_v3')
+  }
 }
 
 // Initialize Logger early
@@ -456,7 +460,7 @@ ipcMain.handle('test-connection', async (event, connection: any) => {
  */
 ipcMain.handle('get-migration-history', async (event, limit: number = 50) => {
   try {
-    const storage = (AndbBuilder as any).getSQLiteStorage()
+    const storage = await (AndbBuilder as any).getSQLiteStorage()
     return { success: true, data: await storage.getMigrationHistory(limit) }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -493,7 +497,7 @@ ipcMain.handle('get-all-snapshots', async (event, limit: number = 200) => {
  */
 ipcMain.handle('get-comparison-history', async (event, limit: number = 50) => {
   try {
-    const storage = (AndbBuilder as any).getSQLiteStorage()
+    const storage = await (AndbBuilder as any).getSQLiteStorage()
     return { success: true, data: await storage.getLatestComparisons(limit) }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -505,10 +509,7 @@ ipcMain.handle('get-comparison-history', async (event, limit: number = 50) => {
  */
 ipcMain.handle('get-database-stats', async () => {
   try {
-    const storage = (AndbBuilder as any).getSQLiteStorage()
-    // stats might need special handling since core might not have exactly 'getStats'
-    // but let's assume we add it to AndbBuilder or it's similar
-    return { success: true, data: await (AndbBuilder as any).getDatabaseStats() }
+    return { success: true, data: await AndbBuilder.getDatabaseStats() }
   } catch (error: any) {
     return { success: false, error: error.message }
   }
@@ -744,7 +745,7 @@ ipcMain.handle('storage-clear', async () => {
  */
 ipcMain.handle('andb-get-schemas', async (event) => {
   try {
-    const storage = (AndbBuilder as any).getSQLiteStorage()
+    const storage = await (AndbBuilder as any).getSQLiteStorage()
     const environments = await storage.getEnvironments()
     const result: any[] = []
 
@@ -810,7 +811,7 @@ ipcMain.handle('andb-get-schemas', async (event) => {
  */
 ipcMain.handle('andb-clear-storage', async () => {
   try {
-    const storage = (AndbBuilder as any).getSQLiteStorage()
+    const storage = await (AndbBuilder as any).getSQLiteStorage()
     // Returns { ddl, comparison, snapshot, migration, actions }
     const result = await storage.clearAll()
     return { success: true, data: result }

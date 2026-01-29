@@ -1,7 +1,7 @@
 {
   "name": "@the-andb/ui",
-  "productName": "The Andb",
-  "version": "2.3.0",
+  "productName": "The Andb Next",
+  "version": "3.0.0",
   "description": "The Intelligent Database Orchestrator by ph4n4n",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -80,7 +80,7 @@
     "asarUnpack": [
       "**/node_modules/better-sqlite3/**/*"
     ],
-    "appId": "com.anph.andb",
+    "appId": "com.anph.andb.v3",
     "productName": "The Andb",
     "copyright": "Copyright © 2026 ph4n4n",
     "directories": {
@@ -123,7 +123,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@the-andb/core": "3.0.3",
+    "@the-andb/core-nest": "0.0.1",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",
