@@ -167,17 +167,18 @@ PROD_DB_PASS=prod_password
 - [Development Guide](docs/DEVELOPMENT.md) - Deep dive into architecture and status.
 - [Changelog](docs/CHANGELOG.md) - History of changes and updates.
 
+## 📄 License & Commercial
+
+**The Andb Public License (APL-1.0)**
+
+- ✅ **Source-Available**: View, Clone, Run locally for evaluation.
+- ❌ **No Commercial Use**: Production, SaaS, Redistribution are prohibited without a license.
+
+See [LICENSE](../LICENSE) for full terms.
+
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is not accepting public PRs at this time. Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
 
 ## 🙏 Acknowledgments
 
