@@ -28,15 +28,17 @@
 
       <!-- Version & Copyright -->
       <div class="absolute bottom-8 left-0 right-0 text-center space-y-2">
-        <p class="text-xs text-primary-300">
+        <p class="text-xs text-primary-300 font-medium">
           Version {{ version }}
         </p>
-        <p class="text-xs text-primary-400">
-          © 2024 {{ author }} | Licensed under {{ license }}
-        </p>
-        <p class="text-xs text-primary-400">
-          {{ $t('splash.builtWith') }}
-        </p>
+        <div class="flex flex-col items-center justify-center space-y-1">
+          <p class="text-xs text-primary-400 opacity-70">
+            © 2024 - 2026 {{ author }}
+          </p>
+          <p class="text-[10px] text-primary-500 uppercase tracking-widest font-bold">
+            DMCA Protected | Built for Engineers
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -53,7 +55,7 @@ const { t } = useI18n()
 // App metadata from package.json
 const version = __APP_VERSION__
 const author = 'The Andb'
-const license = 'GPL-3.0'
+const license = 'Proprietary'
 
 // Loading state
 const progress = ref(0)

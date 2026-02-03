@@ -1,14 +1,51 @@
-import { app, BrowserWindow, Menu, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { AndbBuilder } from './services/andb-builder'
 
-const serve = require('electron-serve')
-const loadURL = serve({ directory: 'dist' })
+// Resilient Electron API Loader
+const getElectron = () => {
+  let e = require('electron');
+  if (typeof e === 'string') {
+    console.warn('--- Shadowing detected, attempting bypass ---');
 
-let loadURL_unused: any; // Keep this to avoid breaking previous logic check
+    // Method 1: process.getBuiltinModule (Electron 30+)
+    try {
+      if ((process as any).getBuiltinModule) {
+        const builtIn = (process as any).getBuiltinModule('electron');
+        if (builtIn) return builtIn;
+      }
+    } catch (err) { }
+
+    // Method 2: global.require if available (Electron often has it)
+    if ((global as any).require) {
+      const ge = (global as any).require('electron');
+      if (typeof ge !== 'string') return ge;
+    }
+
+    // Method 3: Delete cache and re-require
+    if (typeof e === 'string') {
+      const resolved = require.resolve('electron');
+      delete require.cache[resolved];
+      e = require('electron');
+    }
+  }
+  return e;
+}
+
+const electron = getElectron();
+const { app, BrowserWindow, Menu, ipcMain, shell } = electron;
 
 const isDev = process.env.NODE_ENV === 'development'
 const isTest = process.env.NODE_ENV === 'test'
+
+let loadURL: any;
+if (!isDev) {
+  try {
+    const serve = require('electron-serve')
+    loadURL = serve({ directory: 'dist' })
+  } catch (e) {
+    // Ignore error in dev if not used
+  }
+}
 
 // Set separate app name and userData path to isolate data (DB, Logs)
 if (isTest) {
@@ -180,6 +217,15 @@ function createWindow() {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
+  // Initialize NestJS Core Engine
+  const { CoreBridge } = require('@the-andb/core')
+  try {
+    await CoreBridge.init(app.getPath('userData'))
+    if ((global as any).logger) (global as any).logger.info('Core Engine Initialized successfully')
+  } catch (e) {
+    if ((global as any).logger) (global as any).logger.error('Failed to initialize Core Engine', e)
+  }
+
   const mainWindow = createWindow()
 
   // Auto-load mock compare data in development mode
@@ -291,7 +337,7 @@ app.on('window-all-closed', () => {
 })
 
 // Security: Prevent new window creation
-app.on('web-contents-created', (event, contents) => {
+app.on('web-contents-created', (event: any, contents: any) => {
   contents.setWindowOpenHandler(() => {
     return { action: 'deny' }
   })
@@ -316,7 +362,7 @@ ipcMain.handle('open-backup-folder', async () => {
 /**
  * Open file dialog
  */
-ipcMain.handle('pick-file', async (event, options) => {
+ipcMain.handle('pick-file', async (event: any, options: any) => {
   const { dialog } = require('electron')
   const result = await dialog.showOpenDialog(options)
   if (result.canceled || result.filePaths.length === 0) return null

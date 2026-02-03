@@ -1,8 +1,8 @@
 {
-  "name": "@the-andb/ui",
-  "productName": "The Andb Next",
+  "name": "@the-andb/desktop",
+  "productName": "The Andb",
   "version": "3.0.0",
-  "description": "The Intelligent Database Orchestrator by ph4n4n",
+  "description": "Professional Database Migration Architecture",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,7 @@
     "electron:build": "npm run build && npm run build:electron && electron-builder",
     "electron:publish": "npm run build && npm run build:electron && electron-builder --publish always",
     "test:prod": "npm run build && npm run build:electron && NODE_ENV=production npx electron .",
-    "test:packaged": "open 'dist/The Andb-2.3.0-arm64.dmg'",
+    "test:packaged": "open 'dist/The Andb-3.0.0-arm64.dmg'",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore",
     "lint:fix": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .eslintignore",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css,scss,json}\"",
@@ -36,8 +36,8 @@
     "vue",
     "andb-core"
   ],
-  "author": "ph4n4n",
-  "license": "SEE LICENSE IN ../LICENSE",
+  "author": "The Andb",
+  "license": "Proprietary",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/The-Andb/andb/issues"
@@ -55,7 +55,7 @@
     "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
-    "electron": "34.0.0",
+    "electron": "^34.0.0",
     "electron-builder": "24.13.3",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
@@ -82,7 +82,7 @@
     ],
     "appId": "com.anph.andb.v3",
     "productName": "The Andb",
-    "copyright": "Copyright © 2026 ph4n4n",
+    "copyright": "Copyright © 2024 - 2026 The Andb",
     "directories": {
       "output": "dist",
       "buildResources": "public"
@@ -123,7 +123,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@the-andb/core-nest": "file:../core-nest",
+    "@the-andb/core": "*",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",

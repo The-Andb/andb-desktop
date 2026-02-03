@@ -79,12 +79,20 @@
               </div>
 
               <!-- Footer -->
-              <div class="text-center space-y-2 mb-8">
-                <p class="text-xs text-gray-400 dark:text-gray-500">
-                  {{ $t('about.builtWith') }}
+              <div class="text-center space-y-4 mb-8">
+                <div class="flex items-center justify-center space-x-3">
+                  <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-red-200 dark:border-red-800">
+                    DMCA Protected
+                  </span>
+                  <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-gray-200 dark:border-gray-700">
+                    Proprietary
+                  </span>
+                </div>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                   {{ license }} License &copy; 2024 - 2026 {{ author }}
                 </p>
-                <p class="text-[10px] text-gray-300 dark:text-gray-600">
-                   {{ license }} License &copy; 2024 {{ author }}
+                <p class="text-[9px] text-gray-400 dark:text-gray-600 leading-tight px-6 uppercase tracking-widest">
+                  Unauthorized reproduction or distribution of this software is strictly prohibited under DMCA guidelines.
                 </p>
               </div>
 
@@ -110,7 +118,7 @@ import { Github, Bug, Tag, User } from 'lucide-vue-next'
 // App metadata (Could be imported from package.json in a real setup, hardcoded for safety here)
 const version = __APP_VERSION__
 const author = 'The Andb'
-const license = 'GPL-3.0'
+const license = 'Proprietary'
 
 defineProps<{
   isOpen: boolean
