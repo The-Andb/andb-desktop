@@ -135,6 +135,8 @@ export const useProjectsStore = defineStore('projects', () => {
       projects.value.forEach(p => {
         p.isActive = p.id === selectedProjectId.value
       })
+      // 7. Auto-Cleanup: Deduplicate connections and pairs on startup
+      await cleanGarbageConnections()
     })()
 
     try {

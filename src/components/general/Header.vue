@@ -59,7 +59,7 @@
                  <select
                   v-model="selectedPairId"
                   @change="onPairChange"
-                  class="w-32 py-1.5 pl-2 pr-6 border-none bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer appearance-none truncate"
+                  class="w-32 py-1.5 pl-2 pr-6 border-none !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer appearance-none truncate"
                   :class="{'text-gray-400 font-normal': !selectedPairId}"
                   :title="$t('header.pairContext')"
                 >
@@ -80,15 +80,20 @@
           <!-- SINGLE DB SELECTOR (Available in Schema, History) -->
           <div v-if="route.path !== '/compare'" class="flex items-center space-x-2">
              <Database class="w-4 h-4 text-primary-500" />
-             <select
-              v-model="appStore.selectedConnectionId"
-              class="pr-8 py-1.5 border-none bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer"
-            >
-              <option value="" disabled>{{ $t('header.selectDatabase') }}</option>
-              <option v-for="conn in appStore.filteredConnections" :key="conn.id" :value="conn.id" class="bg-white dark:bg-gray-800">
-                {{ conn.environment }}: {{ conn.database || conn.name }}
-              </option>
-            </select>
+             <div class="relative flex items-center">
+                <select
+                  v-model="appStore.selectedConnectionId"
+                  class="pr-8 py-1.5 border-none !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer !appearance-none"
+                >
+                  <option value="" disabled>{{ $t('header.selectDatabase') }}</option>
+                  <option v-for="conn in appStore.filteredConnections" :key="conn.id" :value="conn.id" class="bg-white dark:bg-gray-800">
+                    {{ conn.environment }}: {{ conn.database || conn.name }}
+                  </option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
+                  <ChevronDown class="h-4 w-4 text-gray-400" />
+                </div>
+             </div>
           </div>
         </div>
 
@@ -137,22 +142,27 @@
           <!-- Project Selector -->
           <div 
             v-if="!appStore.projectManagerMode && route.path !== '/settings'" 
-            class="flex items-center bg-gray-100 dark:bg-gray-700/50 rounded-lg px-2 mr-2 border border-gray-200 dark:border-gray-600 transition-all duration-300"
+            class="flex items-center bg-gray-50 dark:bg-white/5 rounded-lg pl-2.5 mr-2 border border-gray-200 dark:border-white/10 transition-all duration-300"
             :class="{'opacity-0 pointer-events-none w-0 overflow-hidden pr-0 mr-0 border-0': appStore.projectManagerMode}"
           >
             <Folder class="w-4 h-4 text-gray-500 mr-2" />
-            <select 
-              v-model="selectedProjectModel"
-              class="bg-transparent border-none text-xs font-bold py-1.5 focus:ring-0 cursor-pointer text-gray-700 dark:text-gray-200 min-w-[100px]"
-            >
-              <option v-for="p in projectsStore.projects" :key="p.id" :value="p.id" class="bg-white dark:bg-gray-800">
-                {{ p.name }}
-              </option>
-              <hr />
-              <option value="__NEW__" class="bg-gray-50 dark:bg-gray-900 font-bold text-primary-500">
-                + {{ $t('projects.newProject') || 'New Base' }}
-              </option>
-            </select>
+            <div class="relative flex items-center">
+              <select 
+                v-model="selectedProjectModel"
+                class="!bg-transparent border-none text-xs font-bold py-1.5 pl-0 pr-7 focus:ring-0 cursor-pointer text-gray-700 dark:text-gray-200 min-w-[100px] !shadow-none !appearance-none"
+              >
+                <option v-for="p in projectsStore.projects" :key="p.id" :value="p.id" class="bg-white dark:bg-gray-800">
+                  {{ p.name }}
+                </option>
+                <hr />
+                <option value="__NEW__" class="bg-gray-50 dark:bg-gray-900 font-bold text-primary-500">
+                  + {{ $t('projects.newProject') || 'New Base' }}
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
+                <ChevronDown class="h-3.5 w-3.5 text-gray-400" />
+              </div>
+            </div>
           </div>
 
           <!-- Project Manager Shortcut (OOP improvement: next to selector) -->
@@ -236,7 +246,8 @@ import {
   Download,
   Folder,
   Layers,
-  LayoutGrid as LayoutGridIcon
+  LayoutGrid as LayoutGridIcon,
+  ChevronDown
 } from 'lucide-vue-next'
 
 import { useUpdaterStore } from '@/stores/updater'

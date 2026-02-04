@@ -72,8 +72,11 @@
 
     <!-- Basic Connection Info -->
     <div class="space-y-6">
-      <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
         <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t('connections.basicInfo') }}</h3>
+        
+        <!-- Setup Restricted User Trigger -->
+
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -112,6 +115,8 @@
         </div>
       </div>
     </div>
+
+
 
     <!-- Database Connection -->
     <div class="space-y-6 pt-4">
@@ -434,6 +439,7 @@ const showAdvanced = ref(false)
 const isTesting = ref(false)
 const isSaving = ref(false)
 const testResult = ref<{ success: boolean; message: string } | null>(null)
+
 const showTemplateCreate = ref(false)
 const newTemplateName = ref('')
 
@@ -597,6 +603,8 @@ const validateForm = () => {
            !!form.value.environment
   })
 
+
+
 // Test connection
 const testConnection = async () => {
   if (!validateForm()) return
@@ -688,6 +696,8 @@ const saveConnection = async () => {
     isSaving.value = false
   }
 }
+
+
 
 // Clear test result when form changes
 watch(form, () => {

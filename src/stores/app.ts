@@ -373,7 +373,20 @@ export const useAppStore = defineStore('app', () => {
     // Register to specified or current project
     const projectsStore = useProjectsStore()
     const targetProjectId = projectId || projectsStore.selectedProjectId
-    if (targetProjectId) {
+
+    if (!targetProjectId) {
+      console.error('FATAL: Attempted to create connection without a project context.')
+      // Fallback to default project if available, or throw
+      const defaultProject = projectsStore.projects.find(p => p.id === 'default')
+      if (defaultProject) {
+        console.warn('Redirecting orphan connection to Default Project')
+        projectsStore.addItemToProject('connection', newConnection.id, 'default')
+      } else {
+        // Rollback
+        connections.value.pop()
+        throw new Error('Cannot create connection: No active project context.')
+      }
+    } else {
       // Use a robust way to ensure we link to the right project even if it's new
       const project = projectsStore.projects.find(p => p.id === targetProjectId)
       if (project) {
@@ -418,13 +431,19 @@ export const useAppStore = defineStore('app', () => {
       }
     }
 
-    // 2. User requested NO Garbage Collection.
-    // Connections remain in the system even if no project claims them.
-    // They can be reclaimed by "The Base One" or future features.
-    // const isUsed = projectsStore.projects.some(p => p.connectionIds.includes(id))
-    // if (!isUsed) {
-    //   connections.value = connections.value.filter(conn => conn.id !== id)
-    // }
+    // 2. Prevent Orphaned Connections: Garbage Collect immediately
+    // If we are deleting explicitly, we should remove it from the system OR check usage.
+    // Given the objective "Prevent connections from existing independently", we should remove it.
+
+    // Check if this connection is used by ANY other project
+    const isUsed = projectsStore.projects.some(p => p.id !== currentProjectId && p.connectionIds.includes(id))
+
+    if (isUsed) {
+      console.log(`Connection ${id} is still used by other projects. Unlinking from current only.`)
+    } else {
+      console.log(`Connection ${id} is now orphaned. Removing from global registry.`)
+      connections.value = connections.value.filter(conn => conn.id !== id)
+    }
   }
 
   const testConnection = async (id: string) => {

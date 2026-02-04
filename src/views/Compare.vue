@@ -771,7 +771,8 @@ const filteredTotalChanges = computed(() => filteredResults.value.filter(i => i.
 const resultsByCategory = computed(() => {
   const categories = ['tables', 'views', 'procedures', 'functions', 'triggers']
   return categories.map(cat => {
-    const items = allResults.value.filter(i => i.type === cat)
+    // Use filteredResults to respect search and status filters
+    const items = filteredResults.value.filter(i => i.type === cat)
     return {
       type: cat,
       items,

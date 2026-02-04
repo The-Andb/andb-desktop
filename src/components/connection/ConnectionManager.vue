@@ -70,15 +70,7 @@
               </button>
             </div>
             
-            <!-- Global Maintenance -->
-            <button 
-              @click="handleCleanup"
-              class="btn btn-secondary flex items-center gap-2 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 dark:hover:bg-amber-900/20"
-              title="Clean redundant / duplicate connections and pairs"
-            >
-              <Sparkles class="w-4 h-4" />
-              <span class="hidden md:inline text-xs uppercase font-black tracking-widest">Clean Redundant Data</span>
-            </button>
+
 
             <button @click="showAddForm = true"
                     class="btn btn-primary flex items-center">
@@ -283,7 +275,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Plus, Database, ShieldQuestion, Edit, Trash2, X, Copy, LayoutGrid, List, RefreshCw, CheckCircle2, AlertCircle, Sparkles } from 'lucide-vue-next'
+import { Plus, Database, ShieldQuestion, Edit, Trash2, X, Copy, LayoutGrid, List, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
@@ -431,25 +423,18 @@ const deleteConnection = (id: string) => {
       appStore.updateConnection(editingConnection.value.id, connectionData)
     } else {
       // Respect the environment selected in the form
+      // EXPLICITLY pass the current project ID to prevent orphans
+      const targetProjectId = projectsStore.selectedProjectId || undefined
+      if (!targetProjectId) console.warn("ConnectionManager: No project selected, relying on store fallback enabled.")
+      
       appStore.addConnection({ 
         ...connectionData
-      })
+      }, targetProjectId)
     }
     closeForm()
   }
 
-const handleCleanup = async () => {
-  if (confirm("This will merge duplicate connections and pairs across all your projects. This action is safe but will permanently consolidate redundant items. Proceed?")) {
-    await projectsStore.cleanGarbageConnections()
-    // Refresh to ensure all stores reflect changes
-    await Promise.all([
-      appStore.reloadData(),
-      connectionPairsStore.reloadData(),
-      projectsStore.reloadData()
-    ])
-    alert("Cleanup completed successfully. Redundant items have been merged.")
-  }
-}
+
 
 const closeForm = () => {
   showAddForm.value = false

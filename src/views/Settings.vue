@@ -2,8 +2,15 @@
   <MainLayout>
     <template #toolbar>
       <div class="flex items-center gap-2">
-        <SettingsIcon class="w-4 h-4 text-primary-500" />
-        <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500">{{ $t('settings.title') }}</span>
+        <span class="text-xs font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer select-none" @click="activeCategory = 'interface'">{{ $t('settings.title') }}</span>
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+        <div v-if="activeCategoryInfo" class="flex items-center gap-2 group cursor-default">
+           <component :is="activeCategoryInfo.icon" class="w-8 h-8 p-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg" />
+           <div class="flex flex-col">
+              <span class="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white leading-none mb-0.5">{{ activeCategoryInfo.label }}</span>
+              <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 leading-none">{{ activeCategoryInfo.subtitle }}</span>
+           </div>
+        </div>
       </div>
     </template>
 
@@ -59,19 +66,11 @@
         
         <!-- Category Detail Pane -->
         <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
-          <div class="max-w-4xl mx-auto">
+          <div :class="activeCategory === 'templates' ? 'w-full' : 'max-w-4xl mx-auto'">
             
             <!-- INTERFACE & TYPOGRAPHY SECTION -->
             <div v-if="activeCategory === 'interface'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-10">
-                <div class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shadow-inner">
-                  <MonitorSmartphone class="w-6 h-6 text-primary-600 dark:text-primary-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.interface.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.interface.subtitle') }}</p>
-                </div>
-              </div>
+
 
               <!-- Main UI Settings -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -403,30 +402,13 @@
             </div>
 
             <!-- CONNECTION TEMPLATES SECTION -->
-            <div v-if="activeCategory === 'templates'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shadow-inner">
-                  <LayoutTemplate class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.templates.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.templates.subtitle') }}</p>
-                </div>
-              </div>
-              <ConnectionTemplateManager />
+            <div v-if="activeCategory === 'templates'" class="animate-in fade-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
+              <ConnectionTemplateManager class="flex-1 min-h-0" />
             </div>
 
             <!-- ENGINE SECTION -->
             <div v-if="activeCategory === 'engine'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shadow-inner">
-                  <Cpu class="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Engine Configuration</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Core behavior settings</p>
-                </div>
-              </div>
+
 
                <div class="space-y-8">
                  <!-- Domain Normalization -->
@@ -491,15 +473,7 @@
 
             <!-- SECURITY SECTION -->
             <div v-if="activeCategory === 'security'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shadow-inner">
-                  <Shield class="w-6 h-6 text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.security.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.security.subtitle') }}</p>
-                </div>
-              </div>
+
               
               <div class="space-y-6">
                  <!-- Public Key Display -->
@@ -543,29 +517,13 @@
 
             <!-- BACKUP SECTION -->
             <div v-if="activeCategory === 'backup'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shadow-inner">
-                  <Database class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.backup.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.backup.subtitle') }}</p>
-                </div>
-              </div>
+
               <BackupManager />
             </div>
 
             <!-- UPDATE SECTION -->
             <div v-if="activeCategory === 'update'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shadow-inner">
-                  <DownloadCloud class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.update.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.update.subtitle') }}</p>
-                </div>
-              </div>
+
 
                  <div class="space-y-6">
                  <!-- Status Card -->
@@ -736,6 +694,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { 
   ChevronDown, 
   ChevronLeft,
+  ChevronRight,
   Zap, 
   Check, 
   MousePointer2, 
@@ -856,14 +815,19 @@ watch(activeCategory, (newVal) => {
 
 const categories = computed(() => {
   const appCats = [
-    { id: 'interface', label: t('settings.categories.interface'), icon: MonitorSmartphone },
-    { id: 'templates', label: t('settings.categories.templates'), icon: LayoutTemplate },
-    { id: 'security', label: t('settings.categories.security'), icon: Shield },
-    { id: 'backup', label: t('settings.categories.backup'), icon: Database },
-    { id: 'update', label: t('settings.categories.update'), icon: DownloadCloud }
+    { id: 'interface', label: t('settings.categories.interface'), icon: MonitorSmartphone, subtitle: t('settings.interface.subtitle') },
+    { id: 'templates', label: t('settings.categories.templates'), icon: LayoutTemplate, subtitle: t('settings.templates.subtitle') },
+    { id: 'engine', label: 'Engine', icon: Cpu, subtitle: 'Core behavior settings' },
+    { id: 'security', label: t('settings.categories.security'), icon: Shield, subtitle: t('settings.security.subtitle') },
+    { id: 'backup', label: t('settings.categories.backup'), icon: Database, subtitle: t('settings.backup.subtitle') },
+    { id: 'update', label: t('settings.categories.update'), icon: DownloadCloud, subtitle: t('settings.update.subtitle') }
   ]
 
   return appCats.map(c => ({ ...c, type: 'app' }))
+})
+
+const activeCategoryInfo = computed(() => {
+   return categories.value.find(c => c.id === activeCategory.value)
 })
 
 const appSettings = computed(() => categories.value)

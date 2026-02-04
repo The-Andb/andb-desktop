@@ -38,7 +38,11 @@
     <!-- Database Connection -->
     <div class="space-y-6">
         <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-            <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t('connections.databaseConnection') }}</h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t('connections.databaseConnection') }}</h3>
+                
+
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -48,7 +52,7 @@
                     <select 
                         :value="modelValue.type"
                         @change="updateField('type', ($event.target as HTMLSelectElement).value)"
-                        class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none outline-none"
+                        class="w-full pl-4 pr-10 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none outline-none"
                     >
                         <option value="mysql">{{ $t('connections.types.mysql') }}</option>
                         <option value="postgres">{{ $t('connections.types.postgres') }}</option>
@@ -69,7 +73,7 @@
                         @input="updateField('host', ($event.target as HTMLInputElement).value)"
                         type="text" 
                         :placeholder="modelValue.type === 'dump' ? $t('connections.dumpPathPlaceholder') : $t('connections.hostPlaceholder')"
-                        class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
+                        class="w-full px-4 py-3 text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
                     />
                     <button 
                         v-if="modelValue.type === 'dump'" 
@@ -88,7 +92,7 @@
                     :value="modelValue.port"
                     @input="updateField('port', Number(($event.target as HTMLInputElement).value))"
                     type="number" 
-                    class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
+                    class="w-full px-4 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
                 />
             </div>
 
@@ -99,7 +103,7 @@
                     @input="updateField('database', ($event.target as HTMLInputElement).value)"
                     type="text" 
                     :placeholder="$t('connections.databasePlaceholder')" 
-                    class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
+                    class="w-full px-4 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
                 />
             </div>
 
@@ -109,7 +113,7 @@
                     :value="modelValue.username"
                     @input="updateField('username', ($event.target as HTMLInputElement).value)"
                     type="text" 
-                    class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
+                    class="w-full px-4 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
                 />
             </div>
 
@@ -121,7 +125,7 @@
                         @input="updateField('password', ($event.target as HTMLInputElement).value)"
                         :type="showPassword ? 'text' : 'password'" 
                         placeholder="••••••" 
-                        class="w-full px-4 py-3 pr-12 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
+                        class="w-full px-4 py-3 pr-12 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none" 
                     />
                      <button @click="showPassword = !showPassword" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500 transition-colors">
                         <Eye v-if="!showPassword" class="w-4 h-4" />
@@ -145,7 +149,7 @@
                     @input="updateField('productSettings', { ...(modelValue.productSettings || {}), domain: ($event.target as HTMLInputElement).value })"
                     type="text"
                     placeholder="e.g. abc.com"
-                    class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                    class="w-full px-4 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
                 />
             </div>
             <div class="space-y-2">
@@ -155,11 +159,13 @@
                     @input="updateField('productSettings', { ...(modelValue.productSettings || {}), emailServer: ($event.target as HTMLInputElement).value })"
                     type="text"
                     placeholder="e.g. @abc.net"
-                    class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
+                    class="w-full px-4 py-3 h-auto text-sm leading-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
                 />
             </div>
         </div>
     </div>
+
+
   </div>
 </template>
 
@@ -219,4 +225,6 @@ const pickDumpFile = async () => {
         console.error('Failed to pick file:', error)
     }
 }
+
+
 </script>

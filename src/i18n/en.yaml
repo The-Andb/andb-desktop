@@ -151,8 +151,8 @@ dashboard:
     relative: 'Relative'
 
 splash:
-  tagline: 'Keep Going. Keep Syning.'
-  builtWith: 'Built with ❤️ for backend developers'
+  tagline: 'Keep Going. Keep Syncing.'
+  builtWith: 'Built with ❤️ for developers'
   status:
     init: 'Initializing application...'
     loadingDrivers: 'Loading database drivers...'
@@ -190,7 +190,7 @@ about:
   copyright: '© 2024 - 2026 {author}. All rights reserved.'
   dmca: 'DMCA Protected | Proprietary Software'
   dmcaNotice: 'Unauthorized reproduction or distribution of this software is strictly prohibited under DMCA guidelines.'
-  builtWith: 'Built with ❤️ for backend developers'
+  builtWith: 'Built with ❤️ for developers'
   github: 'GitHub'
   issue: 'Report Issue'
   close: 'Close'
@@ -684,3 +684,60 @@ connectionPairs:
     default: 'Set a pair as default to auto-select in workflows'
     test: 'Test connections to verify accessibility'
     enabledOnly: 'Only enabled environments are available for selection'
+
+restrictedUserSetup:
+  title: 'Secure Connection Setup'
+  description: 'Create a dedicated account with limited permissions.'
+  reassurance: 'Secure: Admin access is used once for setup and never stored. Passwords remain in memory only.'
+  safetyBadge: 'Secure'
+  permissions:
+    title: 'Select Permissions'
+    read:
+      label: 'Read Only (Required)'
+      desc: 'View database structure only. No data modification.'
+    writeAlter:
+      label: 'Allow Schema Changes'
+      desc: 'Allow modifying tables (ALTER TABLE).'
+    writeView:
+      label: 'Manage Views'
+      desc: 'Allow creating or updating views.'
+    writeRoutine:
+      label: 'Manage Routines'
+      desc: 'Allow creating or updating stored procedures and functions.'
+  modes:
+    auto: 'Automatic'
+    manual: 'Manual'
+    autoDesc: 'We create the user and assign permissions automatically.'
+    manualDesc: 'We generate a script for you to run manually.'
+  execution:
+    setupNow: 'Start Setup'
+    running: 'Setting up...'
+    copySql: 'Copy SQL'
+    downloadSql: 'Download .sql'
+    manualInstructions: 'Review and run this script on your server.'
+  verification:
+    btn: 'Verify'
+    pass: 'OK'
+    fail: 'Check'
+    baseConn: 'Connection'
+    schemaRead: 'Read Access'
+    sandboxTest: 'Write Test'
+  success:
+    title: 'Success!'
+    msg: 'The user is configured and ready.'
+    finish: 'Done'
+  levels:
+    readonly: 'Read Only'
+    alter: 'Alter Support'
+    full: 'Full Access'
+  logs:
+    connecting: 'Connecting to {host}...'
+    adminOk: 'Connected.'
+    creatingUser: 'Creating user: {user}...'
+    userOk: 'User created.'
+    applyingPerms: 'Applying {level} permissions...'
+    permsOk: 'Permissions applied.'
+    discardingAdmin: 'Cleaning up...'
+    done: 'Done.'
+    verifying: 'Verifying...'
+    clickVerify: 'Click verify to continue'

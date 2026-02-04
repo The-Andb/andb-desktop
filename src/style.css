@@ -34,17 +34,15 @@
   --primary-800: #122b50;
   --primary-900: #0a1f3d;
   --primary-950: #061529;
-
-  /* Code Colors - Standard Light */
-  --code-text: #333333;
-  --code-keyword: #0000ff;
-  --code-string: #a31515;
-  --code-comment: #008000;
-  --code-function: #795e26;
-  --code-number: #098658;
-  --code-operator: #000000;
-  --code-punctuation: #000000;
-  --code-punctuation: #000000;
+  /* Code Colors - Modern Light Theme */
+  --code-text: #1e293b;       /* slate-800 */
+  --code-keyword: #2563eb;    /* blue-600 */
+  --code-string: #059669;     /* emerald-600 */
+  --code-comment: #64748b;    /* slate-500 */
+  --code-function: #b45309;   /* amber-700 */
+  --code-number: #ea580c;     /* orange-600 */
+  --code-operator: #475569;   /* slate-600 */
+  --code-punctuation: #64748b; /* slate-500 */
 }
 
 /* Vertical Writing Mode for Collapsed Headers */
@@ -63,21 +61,20 @@
 
 :root[class~='dark'] {
   /* Dark Mode Overrides for Primary Tint Scale */
-  /* Reverses/Darkens the lightest shades so they aren't "white" in dark mode */
-  --primary-50: #0f172a; /* deep slate/blue background */
-  --primary-100: #1e293b; /* slightly lighter surface */
+  --primary-50: #0f172a;
+  --primary-100: #1e293b;
   --primary-200: #334155;
   --primary-300: #475569;
 
-  /* Code Colors - Default Dark */
-  --code-text: #c9d1d9;
-  --code-keyword: #569cd6;
-  --code-string: #ce9178;
-  --code-comment: #6a9955;
-  --code-function: #dcdcaa;
-  --code-number: #b5cea8;
-  --code-operator: #8b949e;
-  --code-punctuation: #8b949e;
+  /* Code Colors - Premium Dark Mode (High Contrast) */
+  --code-text: #e2e8f0; /* slate-200 */
+  --code-keyword: #7dd3fc; /* sky-300 (Brighter blue/cyan) */
+  --code-string: #a7f3d0; /* emerald-200 */
+  --code-comment: #64748b; /* slate-500 */
+  --code-function: #fde047; /* yellow-300 */
+  --code-number: #fb923c; /* orange-400 */
+  --code-operator: #94a3b8; /* slate-400 */
+  --code-punctuation: #cbd5e1; /* slate-300 */
 }
 
 :root.solarized-dark {

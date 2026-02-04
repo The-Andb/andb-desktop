@@ -285,7 +285,7 @@ export class AndbBuilder {
   static async execute(
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
-    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects',
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection',
     options: any = {}
   ): Promise<any> {
     const fs = require('fs')
@@ -425,6 +425,59 @@ export class AndbBuilder {
         status: 'RESTORE'
       }]
     });
+  }
+
+  /**
+   * Setup Restricted User
+   */
+  static async setupRestrictedUser(args: {
+    adminConnection: DatabaseConnection,
+    restrictedUser: any,
+    permissions: any,
+    script: string
+  }) {
+    await CoreBridge.init(app.getPath('userData'))
+    const { adminConnection, restrictedUser, permissions, script } = args
+
+    // Ensure admin connection type is set
+    if (!(adminConnection as any).type) (adminConnection as any).type = 'mysql'
+
+    return await CoreBridge.execute('setup-restricted-user', {
+      adminConnection,
+      restrictedUser,
+      permissions,
+      script
+    })
+  }
+
+  static async probeRestrictedUser(args: {
+    connection: any,
+    permissions: any
+  }) {
+    await CoreBridge.init(app.getPath('userData'))
+    const { connection, permissions } = args
+    if (!connection.type) connection.type = 'mysql'
+
+    return await CoreBridge.execute('probe-restricted-user', {
+      connection,
+      permissions
+    })
+  }
+
+  static async generateUserSetupScript(args: {
+    adminConnection: DatabaseConnection,
+    restrictedUser: any,
+    permissions: any
+  }) {
+    await CoreBridge.init(app.getPath('userData'))
+    const { adminConnection, restrictedUser, permissions } = args
+    if (!(adminConnection as any).type) (adminConnection as any).type = 'mysql'
+
+    return await CoreBridge.execute('generate-user-setup-script', {
+      adminConnection,
+      restrictedUser,
+      permissions
+    })
   }
 
   static async test(): Promise<boolean> {

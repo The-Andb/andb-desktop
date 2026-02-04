@@ -33,7 +33,6 @@ const getElectron = () => {
 
 const electron = getElectron();
 const { app, BrowserWindow, Menu, ipcMain, shell } = electron;
-
 const isDev = process.env.NODE_ENV === 'development'
 const isTest = process.env.NODE_ENV === 'test'
 
@@ -429,6 +428,65 @@ ipcMain.handle('andb-restore-snapshot', async (event, args) => {
   }
 })
 
+/**
+ * Restricted User Management
+ */
+ipcMain.handle('setup-restricted-user', async (event, args) => {
+  try {
+    const result = await AndbBuilder.setupRestrictedUser(args)
+    return { success: true, data: result }
+  } catch (error: any) {
+    if ((global as any).logger) (global as any).logger.error('setup-restricted-user error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('probe-restricted-user', async (event, args) => {
+  try {
+    const result = await AndbBuilder.probeRestrictedUser(args)
+    return { success: true, data: result }
+  } catch (error: any) {
+    if ((global as any).logger) (global as any).logger.error('probe-restricted-user error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('generate-user-setup-script', async (event, args) => {
+  const fs = require('fs')
+  const logFile = '/Volumes/FlexibleWorkplace/The-Andb/debug.log'
+  const log = (msg: string) => fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`)
+
+  try {
+    log('IPC: generate-user-setup-script called')
+    log(`Args: ${JSON.stringify(args)}`)
+
+    if (!(AndbBuilder as any).generateUserSetupScript) {
+      log('Error: AndbBuilder.generateUserSetupScript is missing!')
+      throw new Error('Internal Error: generateUserSetupScript method missing on AndbBuilder')
+    }
+
+    const result = await AndbBuilder.generateUserSetupScript(args)
+    log(`Result type: ${typeof result}`)
+    log(`Result sample: ${String(result).substring(0, 50)}`)
+
+    return { success: true, data: result }
+  } catch (error: any) {
+    let errorMessage = 'Script generation failed';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = JSON.stringify(error);
+    }
+
+    log(`Error caught in main.ts: ${errorMessage}`)
+    if (error.stack) log(`Stack: ${error.stack}`)
+    if ((global as any).logger) (global as any).logger.error('generate-user-setup-script error:', error)
+    return { success: false, error: errorMessage }
+  }
+})
+
 // ========================================
 // IPC Handlers for andb-core CLI
 // ========================================
@@ -462,34 +520,13 @@ ipcMain.handle('execute-andb-operation', async (
  */
 ipcMain.handle('test-connection', async (event, connection: any) => {
   try {
-    // Special handling for SQL Dump files
-    if (connection.type === 'dump') {
-      const fs = require('fs')
-      if (fs.existsSync(connection.host)) {
-        return { success: true, message: 'Source file found' }
-      } else {
-        return { success: false, message: `File not found: ${connection.host}` }
-      }
-    }
+    if ((global as any).logger) (global as any).logger.info(`IPC: test-connection for ${connection.host}`)
 
-    const mysql = require('mysql2/promise')
-
-    // Create test connection
-    const conn = await mysql.createConnection({
-      host: connection.host,
-      port: connection.port,
-      database: connection.database,
-      user: connection.username,
-      password: connection.password || '',
-      connectTimeout: 5000
-    })
-
-    // Test query
-    await conn.query('SELECT 1')
-    await conn.end()
-
-    return { success: true, message: 'Connection successful' }
+    // Use AndbBuilder.execute to leverage Core Engine
+    const result = await AndbBuilder.execute(connection, null, 'test-connection');
+    return result;
   } catch (error: any) {
+    if ((global as any).logger) (global as any).logger.error('test-connection error:', error)
     return {
       success: false,
       message: error.message || 'Connection failed'
@@ -1135,3 +1172,5 @@ ipcMain.handle('debug-test-update', (event, status) => {
   }
 })
 
+
+// End of file

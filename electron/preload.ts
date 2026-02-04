@@ -147,6 +147,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Load mock compare data for testing
   loadMockCompareData: () => ipcRenderer.invoke('load-mock-compare-data'),
 
+  setupRestrictedUser: (args: {
+    adminConnection: any,
+    restrictedUser: any,
+    permissions: any
+  }) => ipcRenderer.invoke('setup-restricted-user', args),
+
+  generateUserSetupScript: (args: {
+    adminConnection: any,
+    restrictedUser: any,
+    permissions: any
+  }) => ipcRenderer.invoke('generate-user-setup-script', args),
+
+  probeRestrictedUser: (args: {
+    connection: any,
+    permissions: any
+  }) => ipcRenderer.invoke('probe-restricted-user', args),
+
   // Auto Updater
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),

@@ -500,34 +500,20 @@ onUnmounted(() => {
 
 <style scoped>
 .ddl-code {
-  color: #3b3b3b; /* VS Code Light text */
-}
-/* Navicat-inspired Dark SQL Syntax (Muted & Balanced) */
-:global(.dark) .ddl-code {
-  color: #c9d1d9; /* Softer, matte gray (GitHub Dark Dim style) to reduce glare */
+  color: var(--code-text);
 }
 
-:global(.dark) :deep(.token.keyword) { color: #569cd6; font-weight: bold; }
-:global(.dark) :deep(.token.string) { color: #ce9178; }
-:global(.dark) :deep(.token.comment) { color: #6a9955; }
-:global(.dark) :deep(.token.function) { color: #dcdcaa; }
-:global(.dark) :deep(.token.number) { color: #b5cea8; }
-:global(.dark) :deep(.token.operator) { color: #8b949e; }
-:global(.dark) :deep(.token.punctuation) { color: #8b949e; } /* Softer gray for brackets/punctuation */
-:global(.dark) :deep(.token.boolean) { color: #569cd6; }
-:global(.dark) :deep(.token.property) { color: #9cdcfe; }
-:global(.dark) :deep(.token.comment *) { color: inherit !important; }
-
-/* Navicat-inspired Light SQL Syntax */
-:deep(.token.keyword) { color: #0000ff; font-weight: 600; }
-:deep(.token.string) { color: #a31515; }
-:deep(.token.comment) { color: #008000; font-style: italic; opacity: 0.7; }
-:deep(.token.function) { color: #795e26; }
-:deep(.token.number) { color: #098658; }
-:deep(.token.operator) { color: #333333; }
-:deep(.token.punctuation) { color: #333333; }
-:deep(.token.boolean) { color: #0000ff; }
-:deep(.token.property) { color: #001080; }
+/* Syntax Highlighting Styles using Theme Variables */
+:deep(.token.keyword) { color: var(--code-keyword); font-weight: bold; }
+:deep(.token.string) { color: var(--code-string); }
+:deep(.token.comment) { color: var(--code-comment); font-style: italic; }
+:deep(.token.function) { color: var(--code-function); }
+:deep(.token.number) { color: var(--code-number); }
+:deep(.token.operator) { color: var(--code-operator); }
+:deep(.token.punctuation) { color: var(--code-punctuation); }
+:deep(.token.boolean) { color: var(--code-keyword); }
+:deep(.token.property) { color: var(--code-function); }
+:deep(.token.comment *) { color: inherit !important; }
 
 .line-row {
   transition: background 0.1s ease;

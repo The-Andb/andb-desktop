@@ -7,6 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        "panel-dark": "#111621",
+        "background-dark": "#0a0e17",
+        "conflict": "#f59e0b",
         primary: {
           50: 'var(--primary-50)',
           100: 'var(--primary-100)',
@@ -33,11 +36,12 @@ export default {
           900: '#1e1e1e', // VS Code Dark Background
           950: '#121212',
         }
-      }
+      },
     },
   },
   plugins: [
     require('@tailwindcss/typography'),
+    require("tailwindcss-animate"),
   ],
   darkMode: 'class',
 }

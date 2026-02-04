@@ -193,47 +193,59 @@
     </div>
 
     <!-- View: Template Form (Inline) -->
-    <div v-else class="animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
-        <!-- Form Header -->
-        <div class="px-8 pt-8 pb-4 flex items-center justify-between shrink-0 border-b border-gray-100 dark:border-gray-800">
-            <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/30 flex items-center justify-center shadow-inner">
-                <LayoutTemplate class="w-6 h-6 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div>
-                <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-                {{ editingTemplate ? $t('settings.templates.edit') : $t('settings.templates.create') }}
-                </h3>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest opacity-60">Global Connection Configuration</p>
-            </div>
-            </div>
-            <button @click="closeForm" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 transition-colors flex items-center gap-2">
-                <span class="text-xs font-bold uppercase">{{ $t('common.cancel') }}</span>
-                <X class="w-5 h-5" />
-            </button>
+    <div v-else class="animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm h-full flex flex-col">
+        
+        <!-- MySQL Secure Assistant Mode (ONLY for NEW connections) -->
+        <div v-if="form.type === 'mysql' && !editingTemplate" class="flex-1 flex flex-col min-h-0">
+           <SetupUserTemplate 
+              :initialData="editingTemplate"
+              @cancel="closeForm"
+              @complete="handleSetupComplete"
+           />
         </div>
 
-        <!-- Form Body -->
-        <!-- Form Body -->
-        <div class="px-8 py-6 space-y-8">
-            <ConnectionConfigForm v-model="form" />
-
-            <!-- Actions -->
-            <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <button
-                @click="closeForm"
-                class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                >
-                {{ $t('common.cancel') }}
-                </button>
-                <button
-                @click="saveTemplate"
-                class="flex items-center justify-center px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95"
-                >
-                {{ $t('common.save') }}
+        <!-- Standard Form Mode (For non-MySQL OR Editing) -->
+        <template v-else>
+            <!-- Form Header -->
+            <div class="px-8 pt-8 pb-4 flex items-center justify-between shrink-0 border-b border-gray-100 dark:border-gray-800">
+                <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/30 flex items-center justify-center shadow-inner">
+                    <LayoutTemplate class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                    {{ editingTemplate ? $t('settings.templates.edit') : $t('settings.templates.create') }}
+                    </h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest opacity-60">Global Connection Configuration</p>
+                </div>
+                </div>
+                <button @click="closeForm" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 transition-colors flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase">{{ $t('common.cancel') }}</span>
+                    <X class="w-5 h-5" />
                 </button>
             </div>
-        </div>
+
+            <!-- Form Body -->
+            <div class="px-8 py-6 space-y-8">
+                <ConnectionConfigForm v-model="form" />
+
+                <!-- Actions -->
+                <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <button
+                    @click="closeForm"
+                    class="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                    {{ $t('common.cancel') }}
+                    </button>
+                    <button
+                    @click="saveTemplate"
+                    class="flex items-center justify-center px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95"
+                    >
+                    {{ $t('common.save') }}
+                    </button>
+                </div>
+            </div>
+        </template>
     </div>
   </div>
 </template>
@@ -246,6 +258,7 @@ import {
 } from 'lucide-vue-next'
 import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
 import ConnectionConfigForm from '@/components/connection/ConnectionConfigForm.vue'
+import SetupUserTemplate from '@/components/connection/SetupUserTemplate.vue'
 import { useI18n } from 'vue-i18n'
 import Andb from '@/utils/andb'
 import type { DatabaseConnection } from '@/stores/app'
@@ -306,7 +319,14 @@ const form = ref({
     database: '',
     username: 'root',
     password: '',
-    type: 'mysql' as 'mysql' | 'postgres' | 'sqlite' | 'dump'
+    type: 'mysql' as 'mysql' | 'postgres' | 'sqlite' | 'dump',
+    // Global templates usually don't have productSettings in the base form interface yet, 
+    // but the store handles '...rest'. SetupUserTemplate emits productSettings.
+    // We should ensure form carries it if we use standard form, but for now standard form is legacy/other.
+    productSettings: {
+        domain: '',
+        emailServer: ''
+    }
 })
 
 const openForm = (template?: ConnectionTemplate) => {
@@ -319,7 +339,8 @@ const openForm = (template?: ConnectionTemplate) => {
             database: template.database || '',
             username: template.username,
             password: template.password || '',
-            type: template.type
+            type: template.type,
+            productSettings: (template as any).productSettings || { domain: '', emailServer: '' }
         }
     } else {
         editingTemplate.value = null
@@ -330,7 +351,8 @@ const openForm = (template?: ConnectionTemplate) => {
             database: '',
             username: 'root',
             password: '',
-            type: 'mysql'
+            type: 'mysql',
+            productSettings: { domain: '', emailServer: '' }
         }
     }
     showAddForm.value = true
@@ -350,6 +372,24 @@ const saveTemplate = () => {
             store.updateTemplate(editingTemplate.value.id, form.value)
         } else {
             store.addTemplate(form.value)
+        }
+        closeForm()
+    } catch (e: any) {
+        if (e.message === 'DUPLICATE_CONNECTION') {
+            alert(t('connections.template.duplicateError'))
+        } else {
+            console.error(e)
+            alert(t('common.error'))
+        }
+    }
+}
+
+const handleSetupComplete = (data: any) => {
+    try {
+        if (editingTemplate.value) {
+            store.updateTemplate(editingTemplate.value.id, data)
+        } else {
+            store.addTemplate(data)
         }
         closeForm()
     } catch (e: any) {

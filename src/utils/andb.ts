@@ -315,6 +315,42 @@ export class Andb {
   }
 
   /**
+   * Setup restricted user automatically (Admin operation)
+   */
+  static async setupRestrictedUser(args: {
+    adminConnection: any
+    restrictedUser: any
+    permissions: any
+    script?: string | string[]
+  }): Promise<any> {
+    if (!isElectron) throw new Error('Not in Electron')
+    try {
+      const result = await (window as any).electronAPI.setupRestrictedUser(this.sanitize(args))
+      if (result.success) return result.data
+      throw new Error(result.error || 'Setup failed')
+    } catch (error: any) {
+      throw new Error(`Setup failed: ${error.message}`)
+    }
+  }
+
+  static async generateUserSetupScript(args: {
+    adminConnection: any
+    restrictedUser: any
+    permissions: any
+  }): Promise<string> {
+    if (!isElectron) throw new Error('Not in Electron')
+    try {
+      const result = await (window as any).electronAPI.generateUserSetupScript(this.sanitize(args))
+      if (result.success) return result.data
+      throw new Error(result.error || 'The backend returned a failure without an error message.')
+    } catch (error: any) {
+      // Re-throw with more context to avoid "Generation failed: Generation failed"
+      const msg = error.message.includes('Generation failed') ? error.message : `Generation failed: ${error.message}`
+      throw new Error(msg)
+    }
+  }
+
+  /**
    * Open backup folder in system explorer
    */
   static async openBackupFolder(): Promise<boolean> {
@@ -324,6 +360,22 @@ export class Andb {
       return result.success
     } catch (error) {
       return false
+    }
+  }
+  /**
+   * Probes the restricted user permissions
+   */
+  static async probeRestrictedUser(args: {
+    connection: any
+    permissions: any
+  }): Promise<any> {
+    if (!isElectron) throw new Error('Not in Electron')
+    try {
+      const result = await (window as any).electronAPI.probeRestrictedUser(this.sanitize(args))
+      if (result.success) return result.data
+      throw new Error(result.error || 'Probing failed')
+    } catch (error: any) {
+      throw new Error(`Probing failed: ${error.message}`)
     }
   }
 }

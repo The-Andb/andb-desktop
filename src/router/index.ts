@@ -24,6 +24,11 @@ const routes = [
     component: () => import('@/views/Compare.vue')
   },
   {
+    path: '/compare/resolve/:sessionId?',
+    name: 'SchemaResolve',
+    component: () => import('@/views/compare/ResolveView.vue')
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/Settings.vue')
