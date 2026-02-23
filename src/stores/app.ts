@@ -5,6 +5,17 @@ import { storage } from '../utils/storage-ipc'
 import { useProjectsStore } from './projects'
 
 
+export interface SshConfig {
+  enabled: boolean
+  host: string
+  port: number
+  username: string
+  password?: string
+  privateKeyPath?: string
+  passphrase?: string
+  jumpHost?: string
+}
+
 export interface DatabaseConnection {
   id: string
   name: string
@@ -26,6 +37,7 @@ export interface DatabaseConnection {
   }
   type?: 'mysql' | 'postgres' | 'sqlite' | 'dump'
   templateId?: string // Optional link to a ConnectionTemplate
+  ssh?: SshConfig
 }
 
 export interface ConnectionPair {

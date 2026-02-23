@@ -95,8 +95,8 @@
                   <Cpu class="w-6 h-6 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Engine Configuration</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Core behavior settings for this project</p>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.engine.title') }}</h2>
+                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.engine.subtitle') }}</p>
                 </div>
               </div>
 
@@ -107,9 +107,9 @@
                         <GitCompare class="w-32 h-32" />
                      </div>
                      <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Domain Normalization</h3>
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
                         <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                           Use this to ignore differences that vary by environment (like hardcoded email domains). This ensures the comparison tool focuses on <strong>structure</strong> changes.
+                           {{ $t('settings.engine.domainNormalization.desc') }}
                         </p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,9 +143,9 @@
                         <Shield class="w-32 h-32" />
                      </div>
                      <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Migration Exclusions</h3>
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
                         <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                           Prevent accidental deployment of temporary or test objects. Any table, procedure, or view matching this pattern will be <strong>strictly skipped</strong>.
+                           {{ $t('settings.engine.migrationExclusions.desc') }}
                         </p>
 
                         <div class="space-y-2">

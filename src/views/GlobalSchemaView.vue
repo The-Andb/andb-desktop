@@ -251,7 +251,7 @@
                             :class="viewMode === 'visual' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
                         >
                             <LayoutTemplate class="w-3 h-3" />
-                            Visual
+                            {{ $t('schema.visual') }}
                         </button>
 
                           <button 
@@ -260,7 +260,7 @@
                             :class="viewMode === 'code' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
                         >
                             <Code2 class="w-3 h-3" />
-                            Code
+                            {{ $t('schema.code') }}
                         </button>
                     </div>
 
@@ -268,14 +268,14 @@
                       @click="takeSnapshot"
                       :disabled="loading"
                       class="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
-                      title="Take Manual Snapshot"
+                      :title="$t('schema.takeSnapshot')"
                     >
                       <Camera class="w-4 h-4" />
                     </button>
                     <button 
                       @click="viewHistory"
                       class="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
-                      title="View Snapshots History"
+                      :title="$t('schema.viewHistory')"
                     >
                       <History class="w-4 h-4" />
                     </button>
@@ -284,7 +284,7 @@
                     <button 
                       @click="downloadDDL"
                       class="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
-                      title="Download SQL"
+                      :title="$t('common.download')"
                     >
                       <Download class="w-4 h-4" />
                     </button>
@@ -489,11 +489,8 @@ const filteredResults = computed(() => {
 const selectedDbLastUpdated = ref<string | null>(null)
 
 const formatTimeAgo = (dateString: string) => {
-  if (!dateString) return 'Never'
+  if (!dateString) return t('schema.never')
   try {
-    // SQLite returns 'YYYY-MM-DD HH:MM:SS' in UTC
-    // JS Date.parse assumes local time for this format
-    // We explicitly format it to ISO UTC string 'YYYY-MM-DDTHH:MM:SSZ'
     let utcString = dateString
     if (!dateString.endsWith('Z')) {
       utcString = dateString.replace(' ', 'T') + 'Z'
@@ -504,15 +501,13 @@ const formatTimeAgo = (dateString: string) => {
     const diffMs = now.getTime() - date.getTime()
     const diffSec = Math.floor(diffMs / 1000)
     
-    // Future date guard (drift/clocks)
-    if (diffSec < 0) return 'Just now'
-    
-    if (diffSec < 60) return 'Just now'
-    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`
-    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`
+    if (diffSec < 0) return t('common.timeAgo.justNow')
+    if (diffSec < 60) return t('common.timeAgo.justNow')
+    if (diffSec < 3600) return t('common.timeAgo.minAgo', { n: Math.floor(diffSec / 60) })
+    if (diffSec < 86400) return t('common.timeAgo.hourAgo', { n: Math.floor(diffSec / 3600), s: Math.floor(diffSec / 3600) > 1 ? 's' : '' })
     return date.toLocaleDateString()
   } catch (e) {
-    return 'Unknown'
+    return t('common.info')
   }
 }
 
@@ -542,12 +537,13 @@ const fetchButtonText = computed(() => {
         const type = selectedItem.value.type.toLowerCase()
         let singularType = type.endsWith('s') ? type.slice(0, -1) : type
         if (type === 'procedures') singularType = 'procedure'
-        return `FETCH THIS ${singularType.toUpperCase()}`
+        return t('schema.fetchThis', { type: singularType.toUpperCase() })
     }
     
     // If category filtered
     if (selectedFilterType.value && selectedFilterType.value !== 'all') {
-        return `FETCH ALL ${selectedFilterType.value.toUpperCase()}`
+        const type = selectedFilterType.value.toLowerCase()
+        return t('schema.fetchAll', { type: type.toUpperCase() })
     }
 
     if (appStore.buttonStyle === 'full') return t('schema.fetchFromDB')

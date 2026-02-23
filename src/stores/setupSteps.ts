@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export enum SetupStep {
-  STRATEGY = 1,
+  INPUT = 1,
   CAPABILITIES = 2,
-  INPUT = 3,
+  STRATEGY = 3,
   ACTION = 4,
   VERIFICATION = 5
 }
@@ -25,7 +25,14 @@ export const useSetupStepsStore = defineStore('setupSteps', () => {
     port: 3306,
     database: '',
     username: '',
-    password: ''
+    password: '',
+    ssh: {
+      enabled: false,
+      host: '',
+      port: 22,
+      username: '',
+      privateKeyPath: ''
+    }
   })
 
   const restrictedUser = ref({
@@ -54,7 +61,14 @@ export const useSetupStepsStore = defineStore('setupSteps', () => {
       port: 3306,
       database: '',
       username: '',
-      password: ''
+      password: '',
+      ssh: {
+        enabled: false,
+        host: '',
+        port: 22,
+        username: '',
+        privateKeyPath: ''
+      }
     }
     restrictedUser.value = {
       username: 'the_andb',

@@ -369,9 +369,31 @@ ipcMain.handle('pick-file', async (event: any, options: any) => {
 })
 
 /**
+ * Check file permissions (especially for SSH keys)
+ */
+ipcMain.handle('check-file-permissions', async (event: any, filePath: string) => {
+  const fs = require('fs')
+  try {
+    const stats = fs.statSync(filePath)
+    // On Unix, we want to check if it's too open (anything in group or others)
+    // Stats.mode contains both file type and permissions.
+    // We mask with 0o077 to check group/other bits.
+    const isTooOpen = process.platform !== 'win32' && (stats.mode & 0o077) !== 0
+    return {
+      success: true,
+      mode: stats.mode.toString(8),
+      isTooOpen,
+      platform: process.platform
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+/**
  * Copy file to internal uploads directory
  */
-ipcMain.handle('save-dump-file', async (event, sourcePath: string) => {
+ipcMain.handle('save-dump-file', async (event: any, sourcePath: string) => {
   const fs = require('fs')
   const path = require('path')
   const { app } = require('electron')
@@ -401,7 +423,7 @@ ipcMain.handle('save-dump-file', async (event, sourcePath: string) => {
 /**
  * Create a manual DDL snapshot
  */
-ipcMain.handle('andb-create-snapshot', async (event, args) => {
+ipcMain.handle('andb-create-snapshot', async (event: any, args: any) => {
   const { connection, type, name } = args
   try {
     if ((global as any).logger) (global as any).logger.info(`IPC: andb-create-snapshot for ${type}:${name}`)
@@ -416,7 +438,7 @@ ipcMain.handle('andb-create-snapshot', async (event, args) => {
 /**
  * Restore a snapshot
  */
-ipcMain.handle('andb-restore-snapshot', async (event, args) => {
+ipcMain.handle('andb-restore-snapshot', async (event: any, args: any) => {
   const { connection, snapshot } = args
   try {
     if ((global as any).logger) (global as any).logger.info(`IPC: andb-restore-snapshot for ${snapshot.ddl_type}:${snapshot.ddl_name}`)
@@ -431,7 +453,7 @@ ipcMain.handle('andb-restore-snapshot', async (event, args) => {
 /**
  * Restricted User Management
  */
-ipcMain.handle('setup-restricted-user', async (event, args) => {
+ipcMain.handle('setup-restricted-user', async (event: any, args: any) => {
   try {
     const result = await AndbBuilder.setupRestrictedUser(args)
     return { success: true, data: result }
@@ -441,7 +463,7 @@ ipcMain.handle('setup-restricted-user', async (event, args) => {
   }
 })
 
-ipcMain.handle('probe-restricted-user', async (event, args) => {
+ipcMain.handle('probe-restricted-user', async (event: any, args: any) => {
   try {
     const result = await AndbBuilder.probeRestrictedUser(args)
     return { success: true, data: result }
@@ -451,7 +473,7 @@ ipcMain.handle('probe-restricted-user', async (event, args) => {
   }
 })
 
-ipcMain.handle('generate-user-setup-script', async (event, args) => {
+ipcMain.handle('generate-user-setup-script', async (event: any, args: any) => {
   const fs = require('fs')
   const logFile = '/Volumes/FlexibleWorkplace/The-Andb/debug.log'
   const log = (msg: string) => fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`)

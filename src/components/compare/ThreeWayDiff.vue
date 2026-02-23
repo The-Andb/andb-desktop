@@ -65,10 +65,10 @@ const getLineClass = (status: DiffLine['status'], side: 'source' | 'target') => 
       <!-- Source Pane -->
       <div class="flex-1 flex flex-col min-w-0 border-r border-slate-800">
          <div class="h-10 px-4 flex items-center justify-between bg-slate-900 border-b border-slate-800 shrink-0">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Source (Production)</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ $t('compare.source') }}</span>
             <div class="flex items-center gap-2">
                  <span class="size-2 rounded-full bg-emerald-500"></span>
-                 <span class="text-[10px] text-slate-400">New additions allowed</span>
+                 <span class="text-[10px] text-slate-400">{{ $t('compare.additionsAllowed') }}</span>
             </div>
          </div>
          <div class="flex-1 overflow-auto bg-[#0d1117] p-2 font-mono text-sm leading-6">
@@ -87,10 +87,10 @@ const getLineClass = (status: DiffLine['status'], side: 'source' | 'target') => 
       <!-- Target Pane -->
       <div class="flex-1 flex flex-col min-w-0">
          <div class="h-10 px-4 flex items-center justify-between bg-slate-900 border-b border-slate-800 shrink-0">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target (Staging)</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ $t('compare.target') }}</span>
             <div class="flex items-center gap-2">
                  <span class="size-2 rounded-full bg-slate-500"></span>
-                 <span class="text-[10px] text-slate-400">Missing = Deprecated (No Drop)</span>
+                 <span class="text-[10px] text-slate-400">{{ $t('compare.missingWarning') }}</span>
             </div>
          </div>
          <div class="flex-1 overflow-auto bg-[#0d1117] p-2 font-mono text-sm leading-6">
@@ -111,8 +111,8 @@ const getLineClass = (status: DiffLine['status'], side: 'source' | 'target') => 
      <div class="h-1/3 min-h-[200px] flex flex-col bg-panel-dark">
         <div class="h-10 px-4 flex items-center justify-between bg-slate-900 border-b border-slate-800 shrink-0">
             <div class="flex items-center gap-3">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Merged Result Preview</span>
-                <span class="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">Review Required</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ $t('compare.mergedPreview') }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">{{ $t('compare.reviewRequired') }}</span>
             </div>
         </div>
         <div class="flex-1 p-4 bg-[#0d1117] font-mono text-sm text-slate-300 overflow-auto">
@@ -121,11 +121,11 @@ const getLineClass = (status: DiffLine['status'], side: 'source' | 'target') => 
                 <div v-if="line.status === 'same'">{{ line.source }}</div>
                 <div v-else-if="line.status === 'source-only'" class="text-emerald-400">{{ line.source }}</div>
                 <div v-else-if="line.status === 'conflict'">
-                    <div class="text-amber-500/50">&lt;&lt;&lt;&lt; SOURCE</div>
+                    <div class="text-amber-500/50">&lt;&lt;&lt;&lt; {{ $t('compare.sourceLabel') }}</div>
                     <div class="text-emerald-400">{{ line.source }}</div>
                     <div class="text-amber-500/50">====</div>
                     <div class="text-amber-400">{{ line.target }}</div>
-                    <div class="text-amber-500/50">&gt;&gt;&gt;&gt; TARGET</div>
+                    <div class="text-amber-500/50">&gt;&gt;&gt;&gt; {{ $t('compare.targetLabel') }}</div>
                 </div>
             </template>
         </div>

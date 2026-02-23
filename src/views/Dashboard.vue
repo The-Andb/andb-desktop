@@ -58,7 +58,7 @@
             >
                 <div class="flex items-center gap-2 relative z-10">
                     <FileText class="w-3.5 h-3.5" />
-                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Reports</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{ $t('dashboard.reports') }}</span>
                 </div>
             </button>
 
@@ -243,12 +243,12 @@
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ pair }}</span>
                   <span class="text-xs font-semibold px-2 py-1 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
-                    {{ stats.count }} times
+                    {{ stats.count }} {{ $t('dashboard.times') }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>Avg Duration: {{ formatDuration(stats.avgDuration) }}</span>
-                  <span>Total: {{ formatDuration(stats.totalDuration) }}</span>
+                  <span>{{ $t('dashboard.avgDuration') }}: {{ formatDuration(stats.avgDuration) }}</span>
+                  <span>{{ $t('dashboard.total') }}: {{ formatDuration(stats.totalDuration) }}</span>
                 </div>
               </div>
               <div v-if="Object.keys(migratesByPair).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -283,7 +283,7 @@
                     <td class="py-4 px-6">
                       <div class="flex flex-col gap-0.5">
                         <div class="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary-500 transition-colors">{{ pair.name }}</div>
-                        <div class="text-[10px] text-gray-400 font-medium uppercase truncate max-w-[200px]">{{ pair.description || 'System mapped pair' }}</div>
+                        <div class="text-[10px] text-gray-400 font-medium uppercase truncate max-w-[200px]">{{ pair.description || $t('dashboard.systemMapped') }}</div>
                       </div>
                     </td>
                     <td class="py-4 px-6 text-sm">
@@ -368,6 +368,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   Database, 
   Layers, 
@@ -390,6 +391,7 @@ import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useOperationsStore } from '@/stores/operations'
 
+const { t } = useI18n()
 const router = useRouter()
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
@@ -468,13 +470,13 @@ const activePairs = computed(() => displayedPairs.value.filter(p => p.status ===
 const operationsToday = computed(() => operationsStore.operationsToday)
 const lastOperationTime = computed(() => {
   const recent = operationsStore.recentOperations[0]
-  if (!recent) return 'No operations yet'
+  if (!recent) return t('dashboard.noOpsHistory')
   const diff = Date.now() - new Date(recent.startTime).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 1) return t('common.timeAgo.justNow')
+  if (minutes < 60) return t('common.timeAgo.minAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  if (hours < 24) return t('common.timeAgo.hourAgo', { n: hours, s: hours > 1 ? 's' : '' })
   return new Date(recent.startTime).toLocaleDateString()
 })
 
@@ -631,12 +633,12 @@ const getActivityIcon = (type: string) => {
 
 const getActivityTitle = (op: any) => {
   const typeMap: any = {
-    compare: 'Database Comparison',
-    migrate: 'Database Migration',
-    export: 'DDL Export',
-    test: 'Connection Test'
+    compare: t('compare.compare'),
+    migrate: t('common.migrate'),
+    export: t('common.export'),
+    test: t('common.test')
   }
-  return typeMap[op.type] || 'Operation'
+  return typeMap[op.type] || t('common.info')
 }
 
 const getActivityDescription = (op: any) => {
@@ -652,10 +654,10 @@ const getActivityDescription = (op: any) => {
 const formatTimeAgo = (date: Date | string) => {
   const diff = Date.now() - new Date(date).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 1) return t('common.timeAgo.justNow')
+  if (minutes < 60) return t('common.timeAgo.minAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  if (hours < 24) return t('common.timeAgo.hourAgo', { n: hours, s: hours > 1 ? 's' : '' })
   return new Date(date).toLocaleDateString()
 }
 

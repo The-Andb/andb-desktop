@@ -49,69 +49,90 @@
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto px-8 py-4 custom-scrollbar bg-white dark:bg-gray-950">
       
-      <!-- STEP 1: Select Setup Mode -->
-      <div v-if="store.currentStep === SetupStep.STRATEGY" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-         <div class="text-center mb-6">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Choose Setup Strategy</h3>
-            <p class="text-sm text-gray-500">Select how you want to configure the restricted user access.</p>
-         </div>
+      <!-- STEP 1: Input Connection Details -->
+      <div v-if="store.currentStep === SetupStep.INPUT" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+         <!-- Shared Connection Form -->
+         <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+            <div class="col-span-2 space-y-2">
+              <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.connectionName') }}</label>
+              <input v-model="connectionName" @focus="selectAll" type="text" class="form-input" placeholder="e.g. Production Master" />
+            </div>
 
-         <div class="grid grid-cols-2 gap-6">
-            <!-- Automatic Mode -->
-            <button 
-              @click="store.setupMode = 'auto'"
-              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
-              :class="store.setupMode === 'auto' 
-                ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 ring-4 ring-blue-500/10' 
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'"
-            >
-              <div class="flex items-center justify-between w-full">
-                <div class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                  <Wand2 class="w-6 h-6" />
+            <div class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
+
+            <div class="space-y-2">
+               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.host') }}</label>
+               <input v-model="store.adminCredentials.host" @focus="selectAll" type="text" class="form-input" placeholder="localhost" />
+            </div>
+            <div class="space-y-2">
+               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.port') }}</label>
+               <input v-model.number="store.adminCredentials.port" @focus="selectAll" type="number" class="form-input" placeholder="3306" />
+            </div>
+            <div class="col-span-2 space-y-2">
+               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.database') }}</label>
+               <input v-model="store.adminCredentials.database" @focus="selectAll" type="text" class="form-input" placeholder="database_name" />
+            </div>
+            
+            <div class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
+
+            <div class="space-y-2">
+               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.username') }} (Admin)</label>
+               <input v-model="store.adminCredentials.username" @focus="selectAll" type="text" class="form-input" placeholder="root" />
+            </div>
+            <div class="space-y-2">
+               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.password') }} (Admin)</label>
+               <div class="relative">
+               <input v-model="store.adminCredentials.password" @focus="selectAll" :type="showPass ? 'text' : 'password'" class="form-input pr-10" placeholder="••••••••" />
+               <button @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
+                  <Eye v-if="!showPass" class="w-4 h-4" />
+                  <EyeOff v-else class="w-4 h-4" />
+               </button>
+               </div>
+            </div>
+
+            <!-- SSH TUNNEL SECTION -->
+            <div class="col-span-2 pt-4">
+              <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">
+                <div class="flex items-center gap-2">
+                  <ShieldCheck class="w-4 h-4 text-emerald-500" />
+                  <span class="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest">SSH Tunnel (Optional)</span>
                 </div>
-                <div v-if="store.setupMode === 'auto'" class="w-5 h-5 rounded-full bg-blue-500 shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
-                    <Check class="w-3 h-3 text-white" />
-                </div>
+                <label class="relative inline-flex items-center cursor-pointer group">
+                  <input type="checkbox" v-model="store.adminCredentials.ssh.enabled" class="sr-only peer">
+                  <div class="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded-full peer-checked:bg-emerald-500 transition-colors"></div>
+                  <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
+                </label>
               </div>
-              <div>
-                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Automatic Setup</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                  We’ll handle user creation and permission granting with precision. Recommended for most users.
+
+              <div v-if="store.adminCredentials.ssh.enabled" class="grid grid-cols-2 gap-x-8 gap-y-6 animate-in slide-in-from-top-2 duration-300 mb-6">
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SSH Host</label>
+                  <input v-model="store.adminCredentials.ssh.host" @focus="selectAll" type="text" class="form-input" placeholder="ssh.example.com" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SSH Port</label>
+                  <input v-model.number="store.adminCredentials.ssh.port" @focus="selectAll" type="number" class="form-input" placeholder="22" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SSH User</label>
+                  <input v-model="store.adminCredentials.ssh.username" @focus="selectAll" type="text" class="form-input" placeholder="root" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SSH Private Key</label>
+                  <div class="relative">
+                    <input v-model="store.adminCredentials.ssh.privateKeyPath" @focus="selectAll" type="text" class="form-input pr-10" placeholder="~/.ssh/id_rsa" />
+                    <button @click="pickSshKey" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500">
+                      <FolderOpen class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <p v-if="sshKeyWarning" class="col-span-2 text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1 flex items-start gap-1 p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800 animate-in fade-in slide-in-from-top-1">
+                  <ShieldQuestion class="w-3 h-3 shrink-0 mt-0.5" />
+                  {{ sshKeyWarning }}
                 </p>
-                <div class="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded inline-block">
-                    RECOMMENDED
-                </div>
               </div>
-            </button>
-
-            <!-- Manual Mode -->
-            <button 
-              @click="store.setupMode = 'manual'"
-              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
-              :class="store.setupMode === 'manual' 
-                ? 'bg-gray-50 dark:bg-gray-800 border-gray-900 dark:border-gray-400 ring-4 ring-gray-500/10' 
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
-            >
-              <div class="flex items-center justify-between w-full">
-                 <div class="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                  <Terminal class="w-6 h-6" />
-                </div>
-                <div v-if="store.setupMode === 'manual'" class="w-5 h-5 rounded-full bg-gray-900 dark:bg-white shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
-                    <Check class="w-3 h-3 text-white dark:text-black" />
-                </div>
-              </div>
-              <div>
-                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Manual Setup (DBA Mode)</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                  You maintain full control. We ensure the script is generated for you to review and execute.
-                </p>
-              </div>
-            </button>
-         </div>
-
-         <div class="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl text-xs text-blue-700 dark:text-blue-300">
-            <Info class="w-4 h-4 shrink-0" />
-            <p>{{ store.setupMode === 'auto' ? 'Admin credentials will be requested in a secure step later.' : 'Connection details will be requested in the next step to generate the appropriate script.' }}</p>
+            </div>
          </div>
       </div>
 
@@ -200,63 +221,74 @@
          </div>
       </div>
 
-      <div v-if="store.currentStep === SetupStep.INPUT" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-         
-         <!-- Security Warning (Important for Auto Mode) -->
-         <div v-if="store.setupMode === 'auto'" class="p-6 bg-blue-50 dark:bg-gray-900 border border-blue-200 dark:border-blue-500/30 rounded-2xl flex items-start gap-4 shadow-lg shadow-blue-900/5">
+      <!-- STEP 3: Select Setup Strategy -->
+      <div v-if="store.currentStep === SetupStep.STRATEGY" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+         <div class="text-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Choose Setup Strategy</h3>
+            <p class="text-sm text-gray-500">How should we apply these capabilities to your server?</p>
+         </div>
+
+         <div class="grid grid-cols-2 gap-6">
+            <!-- Automatic Mode -->
+            <button 
+              @click="store.setupMode = 'auto'"
+              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
+              :class="store.setupMode === 'auto' 
+                ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 ring-4 ring-blue-500/10' 
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'"
+            >
+              <div class="flex items-center justify-between w-full">
+                <div class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                  <Wand2 class="w-6 h-6" />
+                </div>
+                <div v-if="store.setupMode === 'auto'" class="w-5 h-5 rounded-full bg-blue-500 shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
+                    <Check class="w-3 h-3 text-white" />
+                </div>
+              </div>
+              <div>
+                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Automatic Setup</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                  The Andb will execute the configuration for you immediately.
+                </p>
+                <div class="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded inline-block">
+                    RECOMMENDED
+                </div>
+              </div>
+            </button>
+
+            <!-- Manual Mode -->
+            <button 
+              @click="store.setupMode = 'manual'"
+              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
+              :class="store.setupMode === 'manual' 
+                ? 'bg-gray-50 dark:bg-gray-800 border-gray-900 dark:border-gray-400 ring-4 ring-gray-500/10' 
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+            >
+              <div class="flex items-center justify-between w-full">
+                 <div class="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  <Terminal class="w-6 h-6" />
+                </div>
+                <div v-if="store.setupMode === 'manual'" class="w-5 h-5 rounded-full bg-gray-900 dark:bg-white shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
+                    <Check class="w-3 h-3 text-white dark:text-black" />
+                </div>
+              </div>
+              <div>
+                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Manual Setup</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                  We generate the SQL script for you to review and run yourself.
+                </p>
+              </div>
+            </button>
+         </div>
+
+         <!-- Security Warning -->
+         <div v-if="store.setupMode === 'auto'" class="p-5 bg-blue-50 dark:bg-gray-900 border border-blue-200 dark:border-blue-500/30 rounded-xl flex items-start gap-4 animate-in fade-in zoom-in duration-300">
             <ShieldCheck class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
             <div class="space-y-2">
             <p class="text-xs text-blue-800 dark:text-blue-100 leading-relaxed font-medium">
-               <strong class="text-blue-900 dark:text-blue-300 block mb-1">One-Time Use Credentials:</strong>
-               Your admin username and password are used <strong>strictly once</strong> to configure the environment and are <strong>never stored</strong>. The Andb processes them in volatile memory and discards them immediately after setup.
+               <strong class="text-blue-900 dark:text-blue-300 block mb-1">Volatile Memory Processing:</strong>
+               Admin credentials provided are processed <strong>strictly in memory</strong> and are <strong>wiped immediately</strong> after setup.
             </p>
-            <div class="flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 p-2 rounded-lg border border-blue-200 dark:border-blue-800">
-               <Info class="w-3.5 h-3.5 shrink-0 mt-0.5" />
-               <span>
-                  <strong class="block mb-0.5">Recommendation:</strong>
-                  For maximum security, we encourage you to rotate your admin password immediately after this setup is complete.
-               </span>
-            </div>
-            </div>
-         </div>
-
-         <!-- Shared Connection Form -->
-         <div class="grid grid-cols-2 gap-x-8 gap-y-6">
-            <div class="col-span-2 space-y-2">
-            <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.templateName') }}</label>
-            <input v-model="connectionName" @focus="selectAll" type="text" class="form-input" placeholder="e.g. Production Master" />
-            </div>
-
-            <div class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
-
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.host') }}</label>
-               <input v-model="store.adminCredentials.host" @focus="selectAll" type="text" class="form-input" placeholder="localhost" />
-            </div>
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.port') }}</label>
-               <input v-model.number="store.adminCredentials.port" @focus="selectAll" type="number" class="form-input" placeholder="3306" />
-            </div>
-            <div class="col-span-2 space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.database') }}</label>
-               <input v-model="store.adminCredentials.database" @focus="selectAll" type="text" class="form-input" placeholder="database_name" />
-            </div>
-            
-            <div class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
-
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ store.setupMode === 'auto' ? $t('connections.username') + ' (Admin)' : $t('connections.username') }}</label>
-               <input v-model="store.adminCredentials.username" @focus="selectAll" type="text" class="form-input" placeholder="root" />
-            </div>
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ store.setupMode === 'auto' ? $t('connections.password') + ' (Admin)' : $t('connections.password') }}</label>
-               <div class="relative">
-               <input v-model="store.adminCredentials.password" @focus="selectAll" :type="showPass ? 'text' : 'password'" class="form-input pr-10" placeholder="••••••••" />
-               <button @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
-                  <Eye v-if="!showPass" class="w-4 h-4" />
-                  <EyeOff v-else class="w-4 h-4" />
-               </button>
-               </div>
             </div>
          </div>
       </div>
@@ -484,9 +516,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
-  ShieldCheck, Check, Info, Eye, EyeOff, Wand2, Terminal, CheckCircle2, 
+  ShieldCheck, Check, Info, Eye, EyeOff, Terminal, CheckCircle2, 
   Copy, ChevronRight, ShieldBan, Search, Plug, Layers, Workflow, FileCode2,
-  ShieldQuestion, X
+  ShieldQuestion, X, FolderOpen
 } from 'lucide-vue-next'
 import { useSetupStepsStore, SetupStep } from '@/stores/setupSteps'
 import { Andb } from '@/utils/andb'
@@ -505,6 +537,7 @@ const isVerifying = ref(false)
 const verificationDone = ref(false)
 const isAdminTesting = ref(false)
 const adminTestResult = ref<'idle' | 'pass' | 'fail'>('idle')
+const sshKeyWarning = ref('')
 
 // Local form state
 const connectionName = ref('')
@@ -579,9 +612,13 @@ const levelName = computed(() => {
 })
 
 const canContinue = computed(() => {
-  // Step 1: Strategy Choice
-  if (store.currentStep === SetupStep.STRATEGY) {
-    return !!store.setupMode
+  // Step 1: Input Verification
+  if (store.currentStep === SetupStep.INPUT) {
+      return !!(connectionName.value &&
+             store.adminCredentials.host && 
+             store.adminCredentials.username && 
+             store.adminCredentials.password && 
+             store.adminCredentials.database)
   }
 
   // Step 2: Capabilities
@@ -589,13 +626,9 @@ const canContinue = computed(() => {
     return true
   }
 
-  // Step 3: Input Verification (Required for both)
-  if (store.currentStep === SetupStep.INPUT) {
-      return !!(connectionName.value &&
-             store.adminCredentials.host && 
-             store.adminCredentials.username && 
-             store.adminCredentials.password && 
-             store.adminCredentials.database)
+  // Step 3: Strategy Choice
+  if (store.currentStep === SetupStep.STRATEGY) {
+    return !!store.setupMode
   }
 
   // Step 4: Action (Execution for auto, Review for manual)
@@ -607,7 +640,7 @@ const canContinue = computed(() => {
 })
 
 const currentActionIsTest = computed(() => {
-  return store.currentStep === SetupStep.INPUT
+  return store.currentStep === SetupStep.INPUT || store.currentStep === SetupStep.STRATEGY
 })
 
 const primaryNextIcon = computed(() => {
@@ -643,6 +676,7 @@ const testAdminConnection = async () => {
       database: store.adminCredentials.database,
       username: store.adminCredentials.username,
       password: store.adminCredentials.password,
+      ssh: store.adminCredentials.ssh,
       id: 'temp-test',
       name: 'Temp Test',
       status: 'testing',
@@ -685,7 +719,7 @@ const next = async () => {
 }
 
 const prev = () => {
-  if (store.currentStep > SetupStep.STRATEGY) store.currentStep--
+  if (store.currentStep > SetupStep.INPUT) store.currentStep--
 }
 
 const startExecution = async () => {
@@ -786,6 +820,33 @@ const performVerification = async () => {
     store.verificationResults.baseConn = 'fail'
   } finally {
     isVerifying.value = false
+  }
+}
+
+
+const pickSshKey = async () => {
+  if ((window as any).electronAPI?.pickFile) {
+    const path = await (window as any).electronAPI.pickFile({
+      title: 'Select SSH Private Key',
+      filters: [
+        { name: 'Keys', extensions: ['pem', 'key', 'txt'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    if (path) {
+      store.adminCredentials.ssh.privateKeyPath = path
+      // Check permissions for security warning
+      try {
+        const check = await (window as any).electronAPI.invoke('check-file-permissions', path)
+        if (check.success && check.isTooOpen) {
+          sshKeyWarning.value = `Security Warning: Permissions for this key are too open (${check.mode}). SSH often rejects keys accessible by others. Run 'chmod 600 ${path}' to fix.`
+        } else {
+          sshKeyWarning.value = ''
+        }
+      } catch (e) {
+        sshKeyWarning.value = ''
+      }
+    }
   }
 }
 

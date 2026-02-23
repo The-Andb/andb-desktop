@@ -9,7 +9,7 @@
               class="py-4 px-1 border-b-2 font-black text-xs uppercase tracking-widest whitespace-nowrap flex items-center gap-2 transition-all border-primary-500 text-primary-600 dark:text-primary-400"
               >
               <List class="w-4 h-4" />
-              ALL TEMPLATES
+              DATABASE CONNECTIONS
               </button>
               <button
               class="py-4 px-1 border-b-2 border-transparent font-black text-xs uppercase tracking-widest whitespace-nowrap flex items-center gap-2 transition-all text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-not-allowed opacity-50"
@@ -25,7 +25,7 @@
       <div class="space-y-4 pt-4">
           <div class="flex items-center justify-between">
               <h3 class="text-base font-black text-gray-900 dark:text-white uppercase tracking-tight">
-              ALL TEMPLATES
+              DATABASE CONNECTIONS
               </h3>
               <div class="flex items-center gap-2">
                   <!-- Bulk Actions -->
@@ -48,7 +48,7 @@
                   </div>
                   <button @click="openForm()" class="btn btn-primary flex items-center">
                     <Plus class="w-4 h-4 mr-2" />
-                    {{ $t('settings.templates.add') }}
+                    {{ $t('settings.global_connections.add') }}
                   </button>
               </div>
           </div>
@@ -67,7 +67,7 @@
                         />
                       </th>
                       <th class="px-6 py-3 text-left text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {{ $t('connections.templateName') }}
+                      {{ $t('connections.connectionName') }}
                       </th>
                       <th class="px-6 py-3 text-left text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {{ $t('connections.host') }}
@@ -182,10 +182,10 @@
                   <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4 text-gray-300 dark:text-gray-600 shadow-inner">
                       <LayoutTemplate class="w-8 h-8" />
                   </div>
-                  <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider mb-1">{{ $t('settings.templates.emptyTitle') }}</h3>
-                  <p class="text-xs text-gray-500 max-w-xs mb-6">{{ $t('settings.templates.emptyDesc') }}</p>
+                  <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider mb-1">{{ $t('settings.global_connections.emptyTitle') }}</h3>
+                  <p class="text-xs text-gray-500 max-w-xs mb-6">{{ $t('settings.global_connections.emptyDesc') }}</p>
                   <button @click="openForm()" class="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:border-indigo-500 hover:text-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10 transition-all">
-                      {{ $t('settings.templates.createFirst') }}
+                      {{ $t('settings.global_connections.createFirst') }}
                   </button>
               </div>
           </div>
@@ -214,7 +214,7 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-                    {{ editingTemplate ? $t('settings.templates.edit') : $t('settings.templates.create') }}
+                    {{ editingTemplate ? $t('settings.global_connections.edit') : $t('settings.global_connections.create') }}
                     </h3>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest opacity-60">Global Connection Configuration</p>
                 </div>
@@ -226,8 +226,18 @@
             </div>
 
             <!-- Form Body -->
-            <div class="px-8 py-6 space-y-8">
-                <ConnectionConfigForm v-model="form" />
+            <div class="px-8 py-6 space-y-8 overflow-y-auto">
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.connectionName') }} *</label>
+                    <input
+                        v-model="form.name"
+                        type="text"
+                        :placeholder="$t('connections.connectionNamePlaceholder')"
+                        class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none font-bold"
+                    />
+                </div>
+
+                <BaseConnectionForm v-model="form" />
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
@@ -257,7 +267,7 @@ import {
     ShieldQuestion, RefreshCw, CheckCircle2, AlertCircle 
 } from 'lucide-vue-next'
 import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
-import ConnectionConfigForm from '@/components/connection/ConnectionConfigForm.vue'
+import BaseConnectionForm from '@/components/connection/BaseConnectionForm.vue'
 import SetupUserTemplate from '@/components/connection/SetupUserTemplate.vue'
 import { useI18n } from 'vue-i18n'
 import Andb from '@/utils/andb'
@@ -312,17 +322,21 @@ const showAddForm = ref(false)
 const showPassword = ref(false)
 const editingTemplate = ref<ConnectionTemplate | null>(null)
 
-const form = ref({
+const form = ref<Partial<ConnectionTemplate> & { productSettings?: any }>({
     name: '',
     host: 'localhost',
     port: 3306,
     database: '',
     username: 'root',
     password: '',
-    type: 'mysql' as 'mysql' | 'postgres' | 'sqlite' | 'dump',
-    // Global templates usually don't have productSettings in the base form interface yet, 
-    // but the store handles '...rest'. SetupUserTemplate emits productSettings.
-    // We should ensure form carries it if we use standard form, but for now standard form is legacy/other.
+    type: 'mysql',
+    ssh: {
+        enabled: false,
+        host: '',
+        port: 22,
+        username: '',
+        privateKeyPath: ''
+    },
     productSettings: {
         domain: '',
         emailServer: ''
@@ -340,6 +354,7 @@ const openForm = (template?: ConnectionTemplate) => {
             username: template.username,
             password: template.password || '',
             type: template.type,
+            ssh: template.ssh || { enabled: false, host: '', port: 22, username: '', privateKeyPath: '' },
             productSettings: (template as any).productSettings || { domain: '', emailServer: '' }
         }
     } else {
@@ -352,6 +367,7 @@ const openForm = (template?: ConnectionTemplate) => {
             username: 'root',
             password: '',
             type: 'mysql',
+            ssh: { enabled: false, host: '', port: 22, username: '', privateKeyPath: '' },
             productSettings: { domain: '', emailServer: '' }
         }
     }
@@ -371,7 +387,7 @@ const saveTemplate = () => {
         if (editingTemplate.value) {
             store.updateTemplate(editingTemplate.value.id, form.value)
         } else {
-            store.addTemplate(form.value)
+            store.addTemplate(form.value as any)
         }
         closeForm()
     } catch (e: any) {

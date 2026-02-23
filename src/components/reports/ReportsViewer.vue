@@ -11,9 +11,9 @@
           <ArrowLeft class="w-5 h-5 text-gray-500" />
         </button>
         <div class="flex flex-col">
-          <h2 class="text-sm font-bold uppercase tracking-wider">Reports Viewer</h2>
+          <h2 class="text-sm font-bold uppercase tracking-wider">{{ $t('reports.viewer') }}</h2>
           <span class="text-[10px] text-gray-500 font-mono">
-            {{ selectedReport ? selectedReport.name : 'Select a report' }}
+            {{ selectedReport ? selectedReport.name : $t('reports.selectReport') }}
           </span>
         </div>
       </div>
@@ -22,7 +22,7 @@
         <button 
           @click="refreshList"
           class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          title="Refresh list"
+          :title="$t('common.refresh')"
         >
           <RefreshCw class="w-4 h-4 text-gray-500" :class="{ 'animate-spin': isLoading }" />
         </button>
@@ -33,21 +33,21 @@
       <!-- Sidebar: Report List -->
       <div class="w-1/4 min-w-[280px] max-w-[350px] border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900">
         <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 sticky top-0 z-10">
-          <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Available Reports</h3>
+          <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">{{ $t('reports.available') }}</h3>
           <button 
             v-if="reports.length > 0"
             @click="clearAllReports"
             class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded font-bold uppercase transition-colors"
-            title="Delete all reports"
+            :title="$t('reports.clearAll')"
           >
-            Clear All
+            {{ $t('reports.clearAll') }}
           </button>
         </div>
 
         <div v-if="reports.length === 0" class="flex-1 flex flex-col items-center justify-center p-6 text-center opacity-60">
           <FileText class="w-12 h-12 mb-3 text-gray-300" />
-          <p class="text-sm">No reports found</p>
-          <p class="text-xs text-gray-400 mt-1">Generate a report to see it here</p>
+          <p class="text-sm">{{ $t('reports.noChanges') }}</p>
+          <p class="text-xs text-gray-400 mt-1">{{ $t('common.generateReportDesc') }}</p>
         </div>
 
         <div v-else class="flex-1 overflow-y-auto p-2 space-y-1">
@@ -88,7 +88,7 @@
       <div v-if="isLoadingContent" class="flex-1 flex items-center justify-center bg-gray-50 dark:bg-[#0B1121]">
         <div class="flex flex-col items-center gap-3">
           <RefreshCw class="w-8 h-8 text-blue-500 animate-spin" />
-          <p class="text-sm font-medium text-gray-500">Loading report data...</p>
+          <p class="text-sm font-medium text-gray-500">{{ $t('common.loadingReport') }}</p>
         </div>
       </div>
 
@@ -100,27 +100,27 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <!-- Status -->
                 <div class="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sync Status</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{{ $t('reports.syncStatus') }}</h4>
                     <div class="text-3xl font-black tracking-tight" :class="isSync ? 'text-emerald-500' : 'text-amber-500'">
-                        {{ isSync ? 'In Sync' : 'Divergent' }}
+                        {{ isSync ? $t('reports.inSync') : $t('reports.divergent') }}
                     </div>
                 </div>
 
                  <!-- New -->
                  <div class="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm group hover:border-emerald-500/50 transition-colors">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Created Objects</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{{ $t('reports.createdObjects') }}</h4>
                     <div class="text-3xl font-black tracking-tight text-emerald-500">{{ stats.new }}</div>
                 </div>
 
                 <!-- Updated -->
                 <div class="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm group hover:border-blue-500/50 transition-colors">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Modified Units</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{{ $t('reports.modifiedUnits') }}</h4>
                     <div class="text-3xl font-black tracking-tight text-blue-500">{{ stats.updated }}</div>
                 </div>
 
                 <!-- Deprecated -->
                 <div class="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm group hover:border-red-500/50 transition-colors">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Terminated</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{{ $t('reports.terminated') }}</h4>
                     <div class="text-3xl font-black tracking-tight text-red-500">{{ stats.deprecated }}</div>
                 </div>
             </div>
@@ -144,40 +144,40 @@
                         <!-- New -->
                         <div class="bg-emerald-500/5 rounded-xl p-4 border border-emerald-500/10">
                             <h4 class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-4 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> New
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ $t('common.status.newSource') }}
                             </h4>
                             <ul v-if="section.NEW && section.NEW.length" class="space-y-1">
                                 <li v-for="item in section.NEW" :key="item" class="text-xs font-mono py-1.5 px-2 bg-white/50 dark:bg-black/20 rounded border border-emerald-500/10 dark:border-emerald-500/20 truncate">
                                     {{ item }}
                                 </li>
                             </ul>
-                            <div v-else class="text-[10px] italic text-slate-400 p-2">No changes detected</div>
+                            <div v-else class="text-[10px] italic text-slate-400 p-2">{{ $t('reports.noChanges') }}</div>
                         </div>
 
                         <!-- Updated -->
                         <div class="bg-blue-500/5 rounded-xl p-4 border border-blue-500/10">
                             <h4 class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase mb-4 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Updated
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> {{ $t('common.status.modified') }}
                             </h4>
                              <ul v-if="section.UPDATED && section.UPDATED.length" class="space-y-1">
                                 <li v-for="item in section.UPDATED" :key="item" class="text-xs font-mono py-1.5 px-2 bg-white/50 dark:bg-black/20 rounded border border-blue-500/10 dark:border-blue-500/20 truncate">
                                     {{ item }}
                                 </li>
                             </ul>
-                            <div v-else class="text-[10px] italic text-slate-400 p-2">No changes detected</div>
+                            <div v-else class="text-[10px] italic text-slate-400 p-2">{{ $t('reports.noChanges') }}</div>
                         </div>
 
                          <!-- Deprecated -->
                          <div class="bg-red-500/5 rounded-xl p-4 border border-red-500/10">
                             <h4 class="text-xs font-bold text-red-600 dark:text-red-400 uppercase mb-4 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-red-500"></span> Deprecated
+                                <span class="w-2 h-2 rounded-full bg-red-500"></span> {{ $t('common.status.deprecatedTarget') }}
                             </h4>
                              <ul v-if="section.DEPRECATED && section.DEPRECATED.length" class="space-y-1">
                                 <li v-for="item in section.DEPRECATED" :key="item" class="text-xs font-mono py-1.5 px-2 bg-white/50 dark:bg-black/20 rounded border border-red-500/10 dark:border-red-500/20 truncate">
                                     {{ item }}
                                 </li>
                             </ul>
-                            <div v-else class="text-[10px] italic text-slate-400 p-2">No changes detected</div>
+                            <div v-else class="text-[10px] italic text-slate-400 p-2">{{ $t('reports.noChanges') }}</div>
                         </div>
                     </div>
                 </div>
@@ -188,8 +188,8 @@
       
       <div v-else-if="!isLoadingContent" class="flex-1 flex flex-col items-center justify-center text-gray-400">
          <FileX class="w-12 h-12 mb-3 opacity-50" />
-         <p class="text-sm font-medium">Unable to load report content</p>
-         <p class="text-xs opacity-70 mt-1">The file may be empty or missing.</p>
+         <p class="text-sm font-medium">{{ $t('common.unableLoadReport') }}</p>
+         <p class="text-xs opacity-70 mt-1">{{ $t('common.fileEmptyMissing') }}</p>
       </div>
     </div>
   </div>
@@ -197,8 +197,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeft, RefreshCw, FileText, FileX } from 'lucide-vue-next'
 import Highcharts from 'highcharts'
+
+const { t } = useI18n()
 
 defineEmits(['close'])
 
@@ -229,14 +232,14 @@ const formatSize = (bytes: number) => {
 
 const getSectionLabel = (key: string) => {
     const map: any = {
-        'tables': 'Core Storage',
-        'views': 'Virtual Schemas',
-        'procedures': 'Logic Units',
-        'functions': 'Atomic Logic',
-        'triggers': 'Event Hooks',
-        'events': 'Scheduler'
+        'tables': t('reports.coreStorage'),
+        'views': t('reports.virtualSchemas'),
+        'procedures': t('reports.logicUnits'),
+        'functions': t('reports.atomicLogic'),
+        'triggers': t('reports.eventHooks'),
+        'events': t('reports.scheduler')
     }
-    return map[key.toLowerCase()] || 'Database Object'
+    return map[key.toLowerCase()] || t('common.database')
 }
 
 const refreshList = async () => {
@@ -260,7 +263,7 @@ const refreshList = async () => {
 }
 
 const clearAllReports = async () => {
-  if (!confirm('Are you sure you want to delete all generated reports? This cannot be undone.')) return
+  if (!confirm(t('reports.clearAllConfirm'))) return
   
   isLoading.value = true
   try {
@@ -331,9 +334,9 @@ const processReportData = (data: any) => {
     return {
         categories: chartCategories,
         series: [
-            { name: 'New', data: chartNew, color: '#10B981' }, // emerald-500
-            { name: 'Updated', data: chartUpdated, color: '#3B82F6' }, // blue-500
-            { name: 'Deprecated', data: chartDeprecated, color: '#EF4444' } // red-500
+            { name: t('common.status.newSource'), data: chartNew, color: '#10B981' }, // emerald-500
+            { name: t('common.status.modified'), data: chartUpdated, color: '#3B82F6' }, // blue-500
+            { name: t('common.status.deprecatedTarget'), data: chartDeprecated, color: '#EF4444' } // red-500
         ]
     };
 }
@@ -359,7 +362,7 @@ const renderChart = (chartConfig: any) => {
         },
         yAxis: {
             min: 0,
-            title: { text: 'OBJECT COUNT', align: 'high', style: { color: '#94A3B8', fontSize: '10px', letterSpacing: '0.1em' } },
+            title: { text: t('reports.objectCount'), align: 'high', style: { color: '#94A3B8', fontSize: '10px', letterSpacing: '0.1em' } },
             gridLineWidth: 1,
             gridLineColor: 'rgba(128,128,128,0.1)'
         },

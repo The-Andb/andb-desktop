@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { storage } from '../utils/storage-ipc'
+import type { SshConfig } from './app'
 
 export interface ConnectionTemplate {
   id: string
@@ -11,6 +12,7 @@ export interface ConnectionTemplate {
   username: string
   password?: string
   type: 'mysql' | 'postgres' | 'sqlite' | 'dump'
+  ssh?: SshConfig
   createdAt: string
   updatedAt: string
 }

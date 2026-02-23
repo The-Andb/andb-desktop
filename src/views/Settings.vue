@@ -816,7 +816,7 @@ watch(activeCategory, (newVal) => {
 const categories = computed(() => {
   const appCats = [
     { id: 'interface', label: t('settings.categories.interface'), icon: MonitorSmartphone, subtitle: t('settings.interface.subtitle') },
-    { id: 'templates', label: t('settings.categories.templates'), icon: LayoutTemplate, subtitle: t('settings.templates.subtitle') },
+    { id: 'templates', label: t('settings.categories.connections'), icon: LayoutTemplate, subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: Cpu, subtitle: 'Core behavior settings' },
     { id: 'security', label: t('settings.categories.security'), icon: Shield, subtitle: t('settings.security.subtitle') },
     { id: 'backup', label: t('settings.categories.backup'), icon: Database, subtitle: t('settings.backup.subtitle') },
