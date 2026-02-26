@@ -46,10 +46,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
     try {
       const result = await Andb.getSchemas()
       if (result) {
-        environments.value = result
         lastFetchTime.value = Date.now()
       }
-      return environments.value
+      return result
     } catch (err) {
       console.error('Failed to load schemas in store:', err)
       return environments.value

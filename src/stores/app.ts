@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { Andb } from '@/utils/andb'
 import { storage } from '../utils/storage-ipc'
 import { useProjectsStore } from './projects'
+import { useConnectionTemplatesStore } from './connectionTemplates'
 
 
 export interface SshConfig {
@@ -38,6 +39,11 @@ export interface DatabaseConnection {
   type?: 'mysql' | 'postgres' | 'sqlite' | 'dump'
   templateId?: string // Optional link to a ConnectionTemplate
   ssh?: SshConfig
+  timeout?: number
+  useSSL?: boolean
+  allowSelfSigned?: boolean
+  charset?: string
+  timezone?: string
 }
 
 export interface ConnectionPair {
@@ -215,25 +221,66 @@ export const useAppStore = defineStore('app', () => {
   // Global selected connection for exploration (Schema view, etc)
   const selectedConnectionId = ref<string>('')
 
-  // Getters
-  const getConnectionById = computed(() => {
-    return (id: string) => connections.value.find(conn => conn.id === id)
-  })
-
-  const getConnectionsByEnvironment = computed(() => {
-    return (env: string) => filteredConnections.value.filter(conn => conn.environment === env)
-  })
-
   const filteredConnections = computed(() => {
     const projectsStore = useProjectsStore()
     const project = projectsStore.currentProject
 
     // Filter by both IDs assigned to the project AND the environments enabled for this project
     if (!project) return []
-    return connections.value.filter(conn =>
+    return resolvedConnections.value.filter(conn =>
       project.connectionIds.includes(conn.id) &&
       project.enabledEnvironmentIds.includes(conn.environment)
     )
+  })
+
+  /**
+   * RESOLVED CONNECTIONS (Single Source of Truth)
+   * This computed property dynamically merges global template credentials
+   * into project-level connections that reference them.
+   */
+  const resolvedConnections = computed<DatabaseConnection[]>(() => {
+    const templatesStore = useConnectionTemplatesStore()
+
+    return connections.value.map(conn => {
+      // 1. If explicit templateId exists, use it
+      let template = conn.templateId
+        ? templatesStore.templates.find(t => t.id === conn.templateId)
+        : null
+
+      // 2. Legacy Fallback: Match by infrastructure details if no templateId
+      if (!template && conn.host && conn.host !== 'localhost' && conn.host !== 'file') {
+        template = templatesStore.templates.find(t =>
+          t.host === conn.host &&
+          (t.port === conn.port || !conn.port) &&
+          t.username === conn.username
+        ) || null
+      }
+
+      if (!template) return { ...conn }
+
+      // 3. Resolve Connection (Template is Single Source of Truth for infrastructure)
+      return {
+        ...conn,
+        // Infrastructure: Template ALWAYS wins if it exists
+        host: template.host || conn.host,
+        port: template.port || conn.port,
+        username: template.username || conn.username,
+        password: template.password || conn.password,
+        ssh: template.ssh || conn.ssh,
+        type: template.type || conn.type || 'mysql',
+        // TemplateId is preserved
+        templateId: template.id
+      }
+    })
+  })
+
+  // Getters using resolved connections
+  const getConnectionById = computed(() => {
+    return (id: string) => resolvedConnections.value.find(conn => conn.id === id)
+  })
+
+  const getConnectionsByEnvironment = computed(() => {
+    return (env: string) => filteredConnections.value.filter(conn => conn.environment === env)
   })
 
 
@@ -530,6 +577,7 @@ export const useAppStore = defineStore('app', () => {
     await storage.saveConnections(connections.value)
   }
 
+
   const applyFontSizeProfile = (profileKey: 'small' | 'medium' | 'large' | 'custom') => {
     fontSizeProfile.value = profileKey
     if (profileKey === 'custom') {
@@ -561,6 +609,7 @@ export const useAppStore = defineStore('app', () => {
     fontFamilies,
     fontSizeProfile,
     connections,
+    resolvedConnections,
     filteredConnections,
     currentPair,
 

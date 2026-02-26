@@ -489,8 +489,8 @@ const openMigrateModal = async (item: any) => {
   
   try {
     const pair = item.pair
-    const source = appStore.connections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
-    const target = appStore.connections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
+    const source = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
+    const target = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
     
     if (source && target) {
       const result = await Andb.generate(source, target, {
@@ -524,8 +524,8 @@ const confirmMigration = async () => {
     try {
         const item = migratingItem.value
         const pair = item.pair
-        const source = appStore.connections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
-        const target = appStore.connections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
+        const source = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
+        const target = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
 
         if (source && target) {
             await Andb.migrate(source, target, {

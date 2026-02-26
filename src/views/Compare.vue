@@ -634,6 +634,7 @@ const searchFlags = ref({
   regex: false
 })
 const selectedStatusFilter = ref('all')
+const lastCompareTime = ref(0)
 
 const statusFilters = computed(() => [
   { label: t('common.all'), value: 'all' },
@@ -790,6 +791,10 @@ const countSummary = computed(() => {
 // Actions
 const runComparison = async (refresh: boolean = false) => {
   if (!activePair.value) return
+  // Debounce: prevent rapid re-clicks within 1.5 seconds
+  const now = Date.now()
+  if (now - lastCompareTime.value < 1500) return
+  lastCompareTime.value = now
   
   loading.value = true
   loadingAction.value = refresh ? 'fetch' : 'compare'

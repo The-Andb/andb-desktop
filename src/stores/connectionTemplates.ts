@@ -13,6 +13,11 @@ export interface ConnectionTemplate {
   password?: string
   type: 'mysql' | 'postgres' | 'sqlite' | 'dump'
   ssh?: SshConfig
+  permissions?: {
+    writeAlter: boolean
+    writeView: boolean
+    writeRoutine: boolean
+  }
   createdAt: string
   updatedAt: string
 }

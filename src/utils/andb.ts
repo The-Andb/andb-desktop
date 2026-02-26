@@ -15,6 +15,7 @@ const isElectron = typeof window !== 'undefined' && window.electronAPI !== undef
 export interface ExportOptions {
   type: 'tables' | 'procedures' | 'functions' | 'triggers' | 'views'
   environment?: string
+  env?: string
   outputPath?: string
   name?: string // Specific object name
 }
@@ -99,6 +100,15 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
+      // Diagnostic Log (Sensitive info masked)
+      console.log(`[Andb] Calling export for ${sourceConnection.environment}/${sourceConnection.database || sourceConnection.name}`, {
+        host: sourceConnection.host,
+        user: sourceConnection.username,
+        hasPassword: !!sourceConnection.password,
+        templateId: sourceConnection.templateId,
+        options
+      })
+
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
         targetConnection,
@@ -123,6 +133,15 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
+      // Diagnostic Log (Sensitive info masked)
+      console.log(`[Andb] Calling compare for ${sourceConnection.environment}/${sourceConnection.database || sourceConnection.name} -> ${targetConnection.environment}`, {
+        host: sourceConnection.host,
+        user: sourceConnection.username,
+        hasPassword: !!sourceConnection.password,
+        templateId: sourceConnection.templateId,
+        options
+      })
+
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
         targetConnection,
@@ -170,6 +189,15 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
+      // Diagnostic Log (Sensitive info masked)
+      console.log(`[Andb] Calling migrate for ${targetConnection.environment}/${targetConnection.database || targetConnection.name}`, {
+        host: targetConnection.host,
+        user: targetConnection.username,
+        hasPassword: !!targetConnection.password,
+        templateId: targetConnection.templateId,
+        options
+      })
+
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
         targetConnection,
@@ -337,6 +365,7 @@ export class Andb {
     adminConnection: any
     restrictedUser: any
     permissions: any
+    isReconfigure?: boolean
   }): Promise<string> {
     if (!isElectron) throw new Error('Not in Electron')
     try {

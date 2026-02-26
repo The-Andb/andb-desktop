@@ -37,7 +37,7 @@
       - generic [ref=e52]:
         - navigation [ref=e53]:
           - generic [ref=e54]:
-            - link "Dashboard" [ref=e55] [cursor=pointer]:
+            - link "Dashboard" [active] [ref=e55] [cursor=pointer]:
               - /url: "#/"
               - img [ref=e57]
               - generic [ref=e60]: Dashboard
@@ -235,10 +235,10 @@
                       - columnheader "Condition" [ref=e388]
                       - columnheader "Actions" [ref=e389]
                   - rowgroup [ref=e390]:
-                    - row "E2E Sync Flow Development to staging migration DEV STAGE testing Compare" [ref=e391]:
-                      - cell "E2E Sync Flow Development to staging migration" [ref=e392]:
+                    - row "DEV to STAGE Development to staging migration DEV STAGE testing Compare" [ref=e391]:
+                      - cell "DEV to STAGE Development to staging migration" [ref=e392]:
                         - generic [ref=e393]:
-                          - generic [ref=e394]: E2E Sync Flow
+                          - generic [ref=e394]: DEV to STAGE
                           - generic [ref=e395]: Development to staging migration
                       - cell "DEV STAGE" [ref=e396]:
                         - generic [ref=e397]:

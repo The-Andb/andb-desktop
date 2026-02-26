@@ -1,4 +1,3 @@
-import { app } from 'electron'
 import path from 'path'
 
 // Import dependencies safely
@@ -31,6 +30,8 @@ interface DatabaseConnection {
     domain?: string
     emailServer?: string
   }
+  sshConfig?: any
+  ssh?: any
 }
 
 interface ConnectionPair {
@@ -59,12 +60,19 @@ interface AndbConfig {
 
 export class AndbBuilder {
   private static bridgeInitialized = false
+  public static userDataPath: string = ''
+  public static appPath: string = ''
+
+  public static initialize(userDataPath: string, appPath: string) {
+    this.userDataPath = userDataPath
+    this.appPath = appPath
+  }
 
   public static async getReportList() {
     // We prefer JSON reports now
     const fs = require('fs')
     const path = require('path')
-    const reportDir = path.join(app.getPath('userData'), 'reports')
+    const reportDir = path.join(AndbBuilder.userDataPath, 'reports')
     const jsonReportDir = path.join(reportDir, 'json')
 
     let reports: any[] = []
@@ -96,7 +104,7 @@ export class AndbBuilder {
   public static async getReportContent(filename: string) {
     const fs = require('fs')
     const path = require('path')
-    const reportDir = path.join(app.getPath('userData'), 'reports')
+    const reportDir = path.join(AndbBuilder.userDataPath, 'reports')
 
     let filePath = path.join(reportDir, filename)
 
@@ -133,7 +141,7 @@ export class AndbBuilder {
   public static async deleteAllReports() {
     const fs = require('fs')
     const path = require('path')
-    const reportDir = path.join(app.getPath('userData'), 'reports')
+    const reportDir = path.join(AndbBuilder.userDataPath, 'reports')
 
     if (!fs.existsSync(reportDir)) return
 
@@ -154,7 +162,7 @@ export class AndbBuilder {
    * Get Storage service from NestJS via Bridge
    */
   public static async getSQLiteStorage() {
-    await CoreBridge.init(app.getPath('userData'));
+    await CoreBridge.init(AndbBuilder.userDataPath);
     return await CoreBridge.getStorage();
   }
 
@@ -195,7 +203,7 @@ export class AndbBuilder {
         const isDump = (conn as any).type === 'dump' || (host && host.toLowerCase().endsWith('.sql')) || (host && host.includes('.sql'))
 
         if (isDump && (host.startsWith('./') || !path.isAbsolute(host))) {
-          const appPath = app.getAppPath()
+          const appPath = AndbBuilder.appPath
           const directPath = path.resolve(appPath, host)
           const publicPath = path.resolve(appPath, 'public', host)
 
@@ -261,10 +269,10 @@ export class AndbBuilder {
       },
 
       ENVIRONMENTS,
-      baseDir: app.getPath('userData'),
+      baseDir: AndbBuilder.userDataPath,
       logName: 'andb',
       storage: 'sqlite',
-      storagePath: require('path').join(app.getPath('userData'), 'andb-storage.db'),
+      storagePath: require('path').join(AndbBuilder.userDataPath, 'andb-storage.db'),
       enableFileOutput: false,
       ...extraConfig
     }
@@ -274,7 +282,7 @@ export class AndbBuilder {
    * Ensure CoreBridge is ready
    */
   public static async getNestApp() {
-    await CoreBridge.init(app.getPath('userData'));
+    await CoreBridge.init(AndbBuilder.userDataPath);
     this.bridgeInitialized = true;
     return true;
   }
@@ -290,7 +298,7 @@ export class AndbBuilder {
   ): Promise<any> {
     const fs = require('fs')
     const originalCwd = process.cwd()
-    const userDataDir = app.getPath('userData')
+    const userDataDir = AndbBuilder.userDataPath
 
     try {
       if (targetConn && sourceConn?.environment?.toUpperCase() === targetConn?.environment?.toUpperCase()) {
@@ -300,10 +308,14 @@ export class AndbBuilder {
       if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true })
       process.chdir(userDataDir)
 
-      await CoreBridge.init(app.getPath('userData'));
+      await CoreBridge.init(AndbBuilder.userDataPath);
 
       const sEnv = sourceConn.environment.toUpperCase();
       const sType = (sourceConn as any).type === 'dump' || sourceConn.host === 'file' ? 'dump' : 'mysql';
+
+      // Only pass sshConfig if it has a valid host
+      const isValidSsh = (cfg: any) => cfg && typeof cfg === 'object' && !!cfg.host;
+      const sourceSsh = sourceConn.sshConfig || (sourceConn as any).ssh;
 
       const payload: any = {
         ...options,
@@ -317,22 +329,45 @@ export class AndbBuilder {
           database: sourceConn.database || sourceConn.name,
           user: sourceConn.username,
           password: sourceConn.password || '',
-          type: sType
+          type: sType,
+          ...(isValidSsh(sourceSsh) ? { sshConfig: sourceSsh } : {})
         }
       };
 
+      if ((global as any).logger) {
+        const scope = options.name ? ` (Object: ${options.name})` : (options.type ? ` (Category: ${options.type})` : '');
+        (global as any).logger.info(`[AndbBuilder] Executing ${operation} for ${sEnv}${scope}`, {
+          host: payload.sourceConfig.host,
+          user: payload.sourceConfig.user,
+          hasPassword: !!payload.sourceConfig.password,
+          db: payload.sourceConfig.database,
+          hasSsh: !!payload.sourceConfig.sshConfig,
+          ...(options.name ? { object: options.name } : {}),
+          ...(options.type ? { type: options.type } : {})
+        });
+      }
+
       if (targetConn) {
+        const targetSsh = targetConn.sshConfig || (targetConn as any).ssh;
         payload.targetConfig = {
           host: targetConn.host,
           port: targetConn.port,
           database: targetConn.database || targetConn.name,
           user: targetConn.username,
           password: targetConn.password || '',
-          type: (targetConn as any).type === 'dump' || targetConn.host === 'file' ? 'dump' : 'mysql'
+          type: (targetConn as any).type === 'dump' || targetConn.host === 'file' ? 'dump' : 'mysql',
+          ...(isValidSsh(targetSsh) ? { sshConfig: targetSsh } : {})
         };
       }
 
-      return await CoreBridge.execute(operation, payload);
+      let result = await CoreBridge.execute(operation, payload);
+
+      // Normalize result for consistent IPC response
+      if (!result || typeof result !== 'object' || !('success' in result)) {
+        result = { success: true, data: result };
+      }
+
+      return result;
     } catch (error: any) {
       if ((global as any).logger) (global as any).logger.error('[AndbBuilder] execute error:', error)
       return { success: false, error: error.message || 'Unknown error occurred' }
@@ -402,12 +437,12 @@ export class AndbBuilder {
   }
 
   static async createManualSnapshot(connection: DatabaseConnection, type: string, name: string) {
-    await CoreBridge.init(app.getPath('userData'));
+    await CoreBridge.init(AndbBuilder.userDataPath);
     return { success: true, message: 'Snapshot feature simplified' };
   }
 
   static async restoreSnapshot(connection: DatabaseConnection, snapshot: any) {
-    await CoreBridge.init(app.getPath('userData'));
+    await CoreBridge.init(AndbBuilder.userDataPath);
     return await CoreBridge.execute('migrate', {
       destEnv: connection.environment.toUpperCase(),
       targetConfig: {
@@ -436,7 +471,7 @@ export class AndbBuilder {
     permissions: any,
     script: string
   }) {
-    await CoreBridge.init(app.getPath('userData'))
+    await CoreBridge.init(AndbBuilder.userDataPath)
     const { adminConnection, restrictedUser, permissions, script } = args
 
     // Ensure admin connection type is set
@@ -454,7 +489,7 @@ export class AndbBuilder {
     connection: any,
     permissions: any
   }) {
-    await CoreBridge.init(app.getPath('userData'))
+    await CoreBridge.init(AndbBuilder.userDataPath)
     const { connection, permissions } = args
     if (!connection.type) connection.type = 'mysql'
 
@@ -467,22 +502,24 @@ export class AndbBuilder {
   static async generateUserSetupScript(args: {
     adminConnection: DatabaseConnection,
     restrictedUser: any,
-    permissions: any
+    permissions: any,
+    isReconfigure?: boolean
   }) {
-    await CoreBridge.init(app.getPath('userData'))
-    const { adminConnection, restrictedUser, permissions } = args
+    await CoreBridge.init(AndbBuilder.userDataPath)
+    const { adminConnection, restrictedUser, permissions, isReconfigure } = args
     if (!(adminConnection as any).type) (adminConnection as any).type = 'mysql'
 
     return await CoreBridge.execute('generate-user-setup-script', {
       adminConnection,
       restrictedUser,
-      permissions
+      permissions,
+      isReconfigure
     })
   }
 
   static async test(): Promise<boolean> {
     try {
-      await CoreBridge.init(app.getPath('userData'));
+      await CoreBridge.init(AndbBuilder.userDataPath);
       return true
     } catch (error) {
       return false

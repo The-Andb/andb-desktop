@@ -145,117 +145,117 @@
                   - img [ref=e258]
                   - generic [ref=e262]:
                     - generic [ref=e263]: Active
-                    - generic [ref=e264]: 3 / 4
+                    - generic [ref=e264]: 0 / 4
                 - generic [ref=e265]:
                   - paragraph [ref=e266]: Connections
                   - paragraph [ref=e267]: "4"
-              - generic [ref=e271] [cursor=pointer]:
-                - generic [ref=e272]:
-                  - img [ref=e274]
-                  - generic [ref=e278]: Configured
-                - generic [ref=e279]:
-                  - paragraph [ref=e280]: Environments
-                  - paragraph [ref=e281]: "3"
-                - generic [ref=e282]:
-                  - generic [ref=e283]: DEV
-                  - generic [ref=e284]: STAGE
-                  - generic [ref=e285]: PROD
-              - generic [ref=e286] [cursor=pointer]:
-                - generic [ref=e287]:
-                  - img [ref=e289]
-                  - generic [ref=e294]:
-                    - generic [ref=e295]: Sync Pairs
-                    - generic [ref=e296]: 0 / 1
-                - generic [ref=e297]:
-                  - paragraph [ref=e298]: Mappings
-                  - paragraph [ref=e299]: "1"
-                - generic [ref=e300]:
-                  - generic [ref=e301]: Ready for Sync
-                  - img [ref=e302]
-              - generic [ref=e305] [cursor=pointer]:
-                - generic [ref=e306]:
-                  - img [ref=e308]
-                  - generic [ref=e310]: Live Feed
-                - generic [ref=e311]:
-                  - paragraph [ref=e312]: Ops Today
-                  - generic [ref=e313]:
-                    - paragraph [ref=e314]: "0"
-                    - generic [ref=e315]: "+0"
-                - generic [ref=e317]:
-                  - img [ref=e318]
+              - generic [ref=e270] [cursor=pointer]:
+                - generic [ref=e271]:
+                  - img [ref=e273]
+                  - generic [ref=e277]: Configured
+                - generic [ref=e278]:
+                  - paragraph [ref=e279]: Environments
+                  - paragraph [ref=e280]: "3"
+                - generic [ref=e281]:
+                  - generic [ref=e282]: DEV
+                  - generic [ref=e283]: STAGE
+                  - generic [ref=e284]: PROD
+              - generic [ref=e285] [cursor=pointer]:
+                - generic [ref=e286]:
+                  - img [ref=e288]
+                  - generic [ref=e293]:
+                    - generic [ref=e294]: Sync Pairs
+                    - generic [ref=e295]: 0 / 1
+                - generic [ref=e296]:
+                  - paragraph [ref=e297]: Mappings
+                  - paragraph [ref=e298]: "1"
+                - generic [ref=e299]:
+                  - generic [ref=e300]: Ready for Sync
+                  - img [ref=e301]
+              - generic [ref=e304] [cursor=pointer]:
+                - generic [ref=e305]:
+                  - img [ref=e307]
+                  - generic [ref=e309]: Live Feed
+                - generic [ref=e310]:
+                  - paragraph [ref=e311]: Ops Today
+                  - generic [ref=e312]:
+                    - paragraph [ref=e313]: "0"
+                    - generic [ref=e314]: "+0"
+                - generic [ref=e316]:
+                  - img [ref=e317]
                   - text: "Last: No operations yet"
-            - generic [ref=e321]:
-              - generic [ref=e322]:
-                - img [ref=e324]
-                - generic [ref=e329]:
-                  - generic [ref=e330]: Total Changes
-                  - generic [ref=e331]:
-                    - generic [ref=e332]: "0"
-                    - generic [ref=e333]: Objects
-              - generic [ref=e334]:
-                - img [ref=e336]
-                - generic [ref=e339]:
-                  - generic [ref=e340]: Migrations
-                  - generic [ref=e341]:
-                    - generic [ref=e342]: "0"
-                    - generic [ref=e343]: Records
-              - generic [ref=e344]:
-                - img [ref=e346]
-                - generic [ref=e349]:
-                  - generic [ref=e350]: Avg Speed
-                  - generic [ref=e351]:
-                    - generic [ref=e352]: 0ms
-                    - generic [ref=e353]: ms
-              - generic [ref=e354]:
-                - img [ref=e356]
-                - generic [ref=e359]:
-                  - generic [ref=e360]: Success Rate
-                  - generic [ref=e361]:
-                    - generic [ref=e362]: 0%
-                    - generic [ref=e363]: Relative
-            - generic [ref=e364]:
-              - generic [ref=e365]:
-                - heading "DDL Changes by Connection" [level=2] [ref=e366]
-                - generic [ref=e368]: No DDL changes tracked yet
-              - generic [ref=e369]:
-                - heading "Migration Statistics" [level=2] [ref=e370]
-                - generic [ref=e372]: No migrations performed yet
-            - generic [ref=e373]:
-              - generic [ref=e374]:
-                - generic [ref=e375]:
-                  - heading "Sync Mappings" [level=2] [ref=e376]:
-                    - img [ref=e377]
+            - generic [ref=e320]:
+              - generic [ref=e321]:
+                - img [ref=e323]
+                - generic [ref=e328]:
+                  - generic [ref=e329]: Total Changes
+                  - generic [ref=e330]:
+                    - generic [ref=e331]: "0"
+                    - generic [ref=e332]: Objects
+              - generic [ref=e333]:
+                - img [ref=e335]
+                - generic [ref=e338]:
+                  - generic [ref=e339]: Migrations
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: "0"
+                    - generic [ref=e342]: Records
+              - generic [ref=e343]:
+                - img [ref=e345]
+                - generic [ref=e348]:
+                  - generic [ref=e349]: Avg Speed
+                  - generic [ref=e350]:
+                    - generic [ref=e351]: 0ms
+                    - generic [ref=e352]: ms
+              - generic [ref=e353]:
+                - img [ref=e355]
+                - generic [ref=e358]:
+                  - generic [ref=e359]: Success Rate
+                  - generic [ref=e360]:
+                    - generic [ref=e361]: 0%
+                    - generic [ref=e362]: Relative
+            - generic [ref=e363]:
+              - generic [ref=e364]:
+                - heading "DDL Changes by Connection" [level=2] [ref=e365]
+                - generic [ref=e367]: No DDL changes tracked yet
+              - generic [ref=e368]:
+                - heading "Migration Statistics" [level=2] [ref=e369]
+                - generic [ref=e371]: No migrations performed yet
+            - generic [ref=e372]:
+              - generic [ref=e373]:
+                - generic [ref=e374]:
+                  - heading "Sync Mappings" [level=2] [ref=e375]:
+                    - img [ref=e376]
                     - text: Sync Mappings
-                  - button "Manage Pairs" [ref=e382] [cursor=pointer]
-                - table [ref=e384]:
-                  - rowgroup [ref=e385]:
-                    - row "Mapping Pair Topology Condition Actions" [ref=e386]:
-                      - columnheader "Mapping Pair" [ref=e387]
-                      - columnheader "Topology" [ref=e388]
-                      - columnheader "Condition" [ref=e389]
-                      - columnheader "Actions" [ref=e390]
-                  - rowgroup [ref=e391]:
-                    - row "DEV to STAGE Development to staging migration DEV STAGE testing Compare" [ref=e392]:
-                      - cell "DEV to STAGE Development to staging migration" [ref=e393]:
-                        - generic [ref=e394]:
-                          - generic [ref=e395]: DEV to STAGE
-                          - generic [ref=e396]: Development to staging migration
-                      - cell "DEV STAGE" [ref=e397]:
-                        - generic [ref=e398]:
-                          - generic [ref=e399]: DEV
-                          - img [ref=e400]
-                          - generic [ref=e403]: STAGE
-                      - cell "testing" [ref=e404]:
-                        - generic [ref=e407]: testing
-                      - cell "Compare" [ref=e408]:
-                        - button "Compare" [ref=e409] [cursor=pointer]
-              - generic [ref=e410]:
-                - generic [ref=e411]:
-                  - heading "Operational Feed" [level=2] [ref=e412]:
-                    - img [ref=e413]
+                  - button "Manage Pairs" [ref=e381] [cursor=pointer]
+                - table [ref=e383]:
+                  - rowgroup [ref=e384]:
+                    - row "Mapping Pair Topology Condition Actions" [ref=e385]:
+                      - columnheader "Mapping Pair" [ref=e386]
+                      - columnheader "Topology" [ref=e387]
+                      - columnheader "Condition" [ref=e388]
+                      - columnheader "Actions" [ref=e389]
+                  - rowgroup [ref=e390]:
+                    - row "E2E Sync Flow Development to staging migration DEV STAGE testing Compare" [ref=e391]:
+                      - cell "E2E Sync Flow Development to staging migration" [ref=e392]:
+                        - generic [ref=e393]:
+                          - generic [ref=e394]: E2E Sync Flow
+                          - generic [ref=e395]: Development to staging migration
+                      - cell "DEV STAGE" [ref=e396]:
+                        - generic [ref=e397]:
+                          - generic [ref=e398]: DEV
+                          - img [ref=e399]
+                          - generic [ref=e402]: STAGE
+                      - cell "testing" [ref=e403]:
+                        - generic [ref=e406]: testing
+                      - cell "Compare" [ref=e407]:
+                        - button "Compare" [ref=e408] [cursor=pointer]
+              - generic [ref=e409]:
+                - generic [ref=e410]:
+                  - heading "Operational Feed" [level=2] [ref=e411]:
+                    - img [ref=e412]
                     - text: Operational Feed
-                  - button "Clear Feed" [ref=e415] [cursor=pointer]
-                - generic [ref=e419]:
-                  - img [ref=e421]
-                  - paragraph [ref=e423]: No Operational History
+                  - button "Clear Feed" [ref=e414] [cursor=pointer]
+                - generic [ref=e418]:
+                  - img [ref=e420]
+                  - paragraph [ref=e422]: No Operational History
 ```

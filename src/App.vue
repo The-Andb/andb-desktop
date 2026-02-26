@@ -26,14 +26,14 @@ const sidebarStore = useSidebarStore()
 // Global Refresh Handlers
 const handleDatabaseRefreshRequested = async (e: any) => {
   const { env, db } = e.detail
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
   try {
-    consoleStore.addLog(`Global Refresh: Full database ${db}`, 'info')
+    consoleStore.addLog(`Database Refresh: ${db}`, 'info')
     consoleStore.setVisibility(true)
     
     // Clear data first for full refresh
@@ -55,14 +55,14 @@ const handleDatabaseRefreshRequested = async (e: any) => {
 
 const handleCategoryRefreshRequested = async (e: any) => {
   const { type, env, db } = e.detail
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
   try {
-    consoleStore.addLog(`Global Refresh: Category ${type} in ${db}`, 'info')
+    consoleStore.addLog(`Category Refresh: ${type} in ${db}`, 'info')
     consoleStore.setVisibility(true)
     
     await Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
@@ -77,14 +77,14 @@ const handleCategoryRefreshRequested = async (e: any) => {
 
 const handleObjectRefreshRequested = async (e: any) => {
   const { name, type, env, db } = e.detail
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
   try {
-    consoleStore.addLog(`Global Refresh: Object ${name} (${type})`, 'info')
+    consoleStore.addLog(`Object Refresh: ${name} (${type})`, 'info')
     consoleStore.setVisibility(true)
     
     await Andb.export(conn, null as any, { type: type as any, environment: conn.environment, name })

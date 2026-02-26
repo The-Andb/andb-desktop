@@ -431,7 +431,7 @@ const vFocus = {
 
 const displayedConnections = computed(() => {
   if (!currentProject.value) return []
-  return appStore.connections.filter(c => currentProject.value?.connectionIds.includes(c.id))
+  return appStore.resolvedConnections.filter(c => currentProject.value?.connectionIds.includes(c.id))
 })
 
 const activeProjectEnvironments = computed(() => {
@@ -584,7 +584,7 @@ const getStatusClassText = (status: string) => {
 }
 
 const getConnectionName = (connId: string) => {
-  const conn = appStore.connections.find(c => c.id === connId)
+  const conn = appStore.getConnectionById(connId)
   return conn ? conn.name : `Connection ${connId}`
 }
 

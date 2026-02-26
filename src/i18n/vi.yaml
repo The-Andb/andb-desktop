@@ -378,6 +378,7 @@ connections:
   connectionsFor: 'Kết nối cho {environment}'
   noConnectionsForEnvironment: 'Không có kết nối cho {environment}'
   addFirstConnection: 'Thêm kết nối đầu tiên để bắt đầu'
+  manageGlobal: 'Quản lý kết nối toàn cục'
   utf8mb4Recommended: 'utf8mb4 (Khuyên dùng)'
   utc: 'UTC (+00:00)'
   ho_chi_minh: 'Hồ Chí Minh (+07:00)'
@@ -386,6 +387,7 @@ connections:
     source: 'Nguồn kết nối toàn cục'
     custom: 'Tùy chỉnh (Không dùng kết nối toàn cục)'
     detach: 'Ngắt kết nối toàn cục'
+    manage: 'Quản lý Mẫu'
     createFrom: 'Lưu thành kết nối toàn cục'
     createFromDesc: 'Tạo một kết nối toàn cục có thể tái sử dụng từ các cài đặt này'
     namePrompt: 'Tên kết nối'
@@ -713,8 +715,14 @@ connectionPairs:
     enabledOnly: 'Chỉ các môi trường đã bật mới có sẵn để chọn'
 
 restrictedUserSetup:
-  title: 'Trợ lý thiết lập Bảo mật Tuyệt đối'
-  description: 'Bảo vệ hạ tầng của bạn bằng cách sử dụng tài khoản chuyên dụng với quyền hạn tối thiểu (Least Privilege).'
+  title: 'Thiết lập Tài khoản Vận hành'
+  description: 'The Andb sẽ dùng tài khoản này để làm việc với database của bạn. Hãy đảm bảo tài khoản có đủ các quyền cần thiết cho nhu cầu bảo mật của bạn.'
+  reconfigure:
+    title: 'Cấu hình lại quyền hạn'
+    adminNote: 'Nhập thông tin Admin để cập nhật quyền cho user {username}. Thông tin này sẽ không được lưu lại.'
+  restrictedUsername:
+    label: 'Tên người dùng quản lý (Andb)'
+    placeholder: 'the_andb'
   reassurance: 'An tâm tuyệt đối: Quyền Admin chỉ được dùng một lần duy nhất để chuẩn bị môi trường. Mật khẩu này được xử lý trong bộ nhớ tạm và biến mất ngay sau khi xong việc. The Andb cam kết không bao giờ lưu trữ thông tin nhạy cảm này.'
   safetyBadge: 'Tiêu chuẩn An toàn Cao'
   permissions:

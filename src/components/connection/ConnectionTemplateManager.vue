@@ -121,10 +121,11 @@
                       </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex flex-col">
-                          <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                              <Server class="w-3.5 h-3.5 text-gray-400" />
-                              {{ template.host }}:{{ template.port }}
+                      <div class="flex flex-col max-w-[220px]">
+                          <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 overflow-hidden">
+                              <Server class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <span class="truncate" :title="template.host">{{ template.host }}</span>
+                              <span class="shrink-0">:{{ template.port }}</span>
                           </div>
                           <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
                               <User class="w-3 h-3 opacity-70" />
@@ -154,6 +155,11 @@
                             <CheckCircle2 v-else-if="testResults[template.id]?.success" class="w-4 h-4" />
                             <AlertCircle v-else-if="testResults[template.id] && !testResults[template.id].success" class="w-4 h-4" />
                             <ShieldQuestion v-else class="w-4 h-4" />
+                          </button>
+                          <button @click="openReconfigure(template)"
+                                  class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 p-1 rounded-lg transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                  title="Reconfigure Privileges">
+                          <ShieldCheck class="w-4 h-4" />
                           </button>
                           <button @click="openForm(template)" 
                                   class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
@@ -196,7 +202,7 @@
     <div v-else class="animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm h-full flex flex-col">
         
         <!-- MySQL Secure Assistant Mode (ONLY for NEW connections) -->
-        <div v-if="form.type === 'mysql' && !editingTemplate" class="flex-1 flex flex-col min-h-0">
+        <div v-if="form.type === 'mysql' && (!editingTemplate || reconfigureMode)" class="flex-1 flex flex-col min-h-0">
            <SetupUserTemplate 
               :initialData="editingTemplate"
               @cancel="closeForm"
@@ -264,7 +270,7 @@
 import { ref, computed, watch } from 'vue'
 import { 
     Plus, LayoutTemplate, Edit2, Trash2, Server, User, LayoutGrid, List, Database, X, Copy, 
-    ShieldQuestion, RefreshCw, CheckCircle2, AlertCircle 
+    ShieldQuestion, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle 
 } from 'lucide-vue-next'
 import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
 import BaseConnectionForm from '@/components/connection/BaseConnectionForm.vue'
@@ -321,6 +327,7 @@ const bulkDeleteTemplates = () => {
 const showAddForm = ref(false)
 const showPassword = ref(false)
 const editingTemplate = ref<ConnectionTemplate | null>(null)
+const reconfigureMode = ref(false)
 
 const form = ref<Partial<ConnectionTemplate> & { productSettings?: any }>({
     name: '',
@@ -377,7 +384,24 @@ const openForm = (template?: ConnectionTemplate) => {
 const closeForm = () => {
     showAddForm.value = false
     editingTemplate.value = null
+    reconfigureMode.value = false
     showPassword.value = false
+}
+
+const openReconfigure = (template: ConnectionTemplate) => {
+    editingTemplate.value = template
+    form.value = {
+        name: template.name,
+        host: template.host,
+        port: template.port,
+        database: template.database || '',
+        username: 'root',    // Admin credentials needed for REVOKE/GRANT
+        password: '',        // Never pre-fill — must re-enter each time
+        type: template.type,
+        ssh: template.ssh || { enabled: false, host: '', port: 22, username: '', privateKeyPath: '' },
+    }
+    reconfigureMode.value = true
+    showAddForm.value = true
 }
 
 const saveTemplate = () => {
@@ -403,7 +427,10 @@ const saveTemplate = () => {
 const handleSetupComplete = (data: any) => {
     try {
         if (editingTemplate.value) {
-            store.updateTemplate(editingTemplate.value.id, data)
+            store.updateTemplate(editingTemplate.value.id, {
+                ...data,
+                permissions: data.permissions ? { ...data.permissions } : undefined
+            })
         } else {
             store.addTemplate(data)
         }

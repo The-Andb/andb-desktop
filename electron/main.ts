@@ -1,38 +1,57 @@
 import { join } from 'path'
-import { AndbBuilder } from './services/andb-builder'
 
 // Resilient Electron API Loader
 const getElectron = () => {
-  let e = require('electron');
-  if (typeof e === 'string') {
-    console.warn('--- Shadowing detected, attempting bypass ---');
+  let e;
+  try {
+    e = require('electron');
+  } catch (err) { }
 
-    // Method 1: process.getBuiltinModule (Electron 30+)
+  if (e && typeof e !== 'string') return e;
+
+  // Shadowing bypass 1: Module._load
+  try {
+    const Module = require('module');
+    const fe = (Module as any)._load('electron', null, true);
+    if (fe && typeof fe !== 'string') return fe;
+  } catch (err) { }
+
+  // Shadowing bypass 2: Builtin Module
+  if (typeof (process as any).getBuiltinModule === 'function') {
     try {
-      if ((process as any).getBuiltinModule) {
-        const builtIn = (process as any).getBuiltinModule('electron');
-        if (builtIn) return builtIn;
-      }
+      const be = (process as any).getBuiltinModule('electron');
+      if (be && typeof be !== 'string') return be;
     } catch (err) { }
-
-    // Method 2: global.require if available (Electron often has it)
-    if ((global as any).require) {
-      const ge = (global as any).require('electron');
-      if (typeof ge !== 'string') return ge;
-    }
-
-    // Method 3: Delete cache and re-require
-    if (typeof e === 'string') {
-      const resolved = require.resolve('electron');
-      delete require.cache[resolved];
-      e = require('electron');
-    }
   }
+
+  // Shadowing bypass 3: Global Require
+  const globalReq = (global as any).require || (process as any).mainModule?.require;
+  if (typeof globalReq === 'function') {
+    try {
+      const ge = globalReq('electron');
+      if (ge && typeof ge !== 'string') return ge;
+    } catch (err) { }
+  }
+
   return e;
 }
 
 const electron = getElectron();
-const { app, BrowserWindow, Menu, ipcMain, shell } = electron;
+// Resilient destructuring
+const app = electron?.app || (global as any).app || (process as any).app || {
+  name: '',
+  getPath: () => '',
+  setPath: () => { },
+  getAppPath: () => '',
+  whenReady: () => Promise.resolve(),
+  on: () => { },
+  quit: () => { }
+};
+const BrowserWindow = electron?.BrowserWindow || (global as any).BrowserWindow || class { };
+const Menu = electron?.Menu || (global as any).Menu || { setApplicationMenu: () => { } };
+const ipcMain = electron?.ipcMain || (global as any).ipcMain || { on: () => { }, handle: () => { } };
+const shell = electron?.shell || (global as any).shell || { openExternal: () => { } };
+const { AndbBuilder } = require('./services/andb-builder')
 const isDev = process.env.NODE_ENV === 'development'
 const isTest = process.env.NODE_ENV === 'test'
 
@@ -85,6 +104,16 @@ try {
 
   if (loggerInstance) {
     (global as any).logger = loggerInstance;
+    // Compatibility shim: andb-logger uses .dev() instead of .debug()
+    if (typeof (global as any).logger.debug !== 'function') {
+      (global as any).logger.debug = (...args: any[]) => {
+        if (typeof (global as any).logger.dev === 'function') {
+          (global as any).logger.dev(...args);
+        } else {
+          console.debug(...args);
+        }
+      };
+    }
   }
 } catch (e) {
   // Silent fail
@@ -216,6 +245,9 @@ function createWindow() {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
+  // Initialize AndbBuilder early
+  AndbBuilder.initialize(app.getPath('userData'), app.getAppPath())
+
   // Initialize NestJS Core Engine
   const { CoreBridge } = require('@the-andb/core')
   try {
@@ -361,7 +393,7 @@ ipcMain.handle('open-backup-folder', async () => {
 /**
  * Open file dialog
  */
-ipcMain.handle('pick-file', async (event: any, options: any) => {
+ipcMain.handle('pick-file', async (_event: any, options: any) => {
   const { dialog } = require('electron')
   const result = await dialog.showOpenDialog(options)
   if (result.canceled || result.filePaths.length === 0) return null
@@ -371,7 +403,7 @@ ipcMain.handle('pick-file', async (event: any, options: any) => {
 /**
  * Check file permissions (especially for SSH keys)
  */
-ipcMain.handle('check-file-permissions', async (event: any, filePath: string) => {
+ipcMain.handle('check-file-permissions', async (_event: any, filePath: string) => {
   const fs = require('fs')
   try {
     const stats = fs.statSync(filePath)
@@ -393,7 +425,7 @@ ipcMain.handle('check-file-permissions', async (event: any, filePath: string) =>
 /**
  * Copy file to internal uploads directory
  */
-ipcMain.handle('save-dump-file', async (event: any, sourcePath: string) => {
+ipcMain.handle('save-dump-file', async (_event: any, sourcePath: string) => {
   const fs = require('fs')
   const path = require('path')
   const { app } = require('electron')
@@ -423,7 +455,7 @@ ipcMain.handle('save-dump-file', async (event: any, sourcePath: string) => {
 /**
  * Create a manual DDL snapshot
  */
-ipcMain.handle('andb-create-snapshot', async (event: any, args: any) => {
+ipcMain.handle('andb-create-snapshot', async (_event: any, args: any) => {
   const { connection, type, name } = args
   try {
     if ((global as any).logger) (global as any).logger.info(`IPC: andb-create-snapshot for ${type}:${name}`)
@@ -438,7 +470,7 @@ ipcMain.handle('andb-create-snapshot', async (event: any, args: any) => {
 /**
  * Restore a snapshot
  */
-ipcMain.handle('andb-restore-snapshot', async (event: any, args: any) => {
+ipcMain.handle('andb-restore-snapshot', async (_event: any, args: any) => {
   const { connection, snapshot } = args
   try {
     if ((global as any).logger) (global as any).logger.info(`IPC: andb-restore-snapshot for ${snapshot.ddl_type}:${snapshot.ddl_name}`)
@@ -453,7 +485,7 @@ ipcMain.handle('andb-restore-snapshot', async (event: any, args: any) => {
 /**
  * Restricted User Management
  */
-ipcMain.handle('setup-restricted-user', async (event: any, args: any) => {
+ipcMain.handle('setup-restricted-user', async (_event: any, args: any) => {
   try {
     const result = await AndbBuilder.setupRestrictedUser(args)
     return { success: true, data: result }
@@ -463,7 +495,7 @@ ipcMain.handle('setup-restricted-user', async (event: any, args: any) => {
   }
 })
 
-ipcMain.handle('probe-restricted-user', async (event: any, args: any) => {
+ipcMain.handle('probe-restricted-user', async (_event: any, args: any) => {
   try {
     const result = await AndbBuilder.probeRestrictedUser(args)
     return { success: true, data: result }
@@ -473,23 +505,19 @@ ipcMain.handle('probe-restricted-user', async (event: any, args: any) => {
   }
 })
 
-ipcMain.handle('generate-user-setup-script', async (event: any, args: any) => {
-  const fs = require('fs')
-  const logFile = '/Volumes/FlexibleWorkplace/The-Andb/debug.log'
-  const log = (msg: string) => fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`)
-
+ipcMain.handle('generate-user-setup-script', async (_event: any, args: any) => {
   try {
-    log('IPC: generate-user-setup-script called')
-    log(`Args: ${JSON.stringify(args)}`)
+    if ((global as any).logger) (global as any).logger.info('IPC: generate-user-setup-script called')
+    if ((global as any).logger) (global as any).logger.debug(`Args: ${JSON.stringify(args)}`)
 
     if (!(AndbBuilder as any).generateUserSetupScript) {
-      log('Error: AndbBuilder.generateUserSetupScript is missing!')
+      if ((global as any).logger) (global as any).logger.error('Error: AndbBuilder.generateUserSetupScript is missing!')
       throw new Error('Internal Error: generateUserSetupScript method missing on AndbBuilder')
     }
 
     const result = await AndbBuilder.generateUserSetupScript(args)
-    log(`Result type: ${typeof result}`)
-    log(`Result sample: ${String(result).substring(0, 50)}`)
+    if ((global as any).logger) (global as any).logger.info(`Result type: ${typeof result}`)
+    if ((global as any).logger) (global as any).logger.debug(`Result sample: ${String(result).substring(0, 50)}`)
 
     return { success: true, data: result }
   } catch (error: any) {
@@ -502,8 +530,8 @@ ipcMain.handle('generate-user-setup-script', async (event: any, args: any) => {
       errorMessage = JSON.stringify(error);
     }
 
-    log(`Error caught in main.ts: ${errorMessage}`)
-    if (error.stack) log(`Stack: ${error.stack}`)
+    if ((global as any).logger) (global as any).logger.error(`Error caught in main.ts: ${errorMessage}`)
+    if (error.stack && (global as any).logger) (global as any).logger.debug(`Stack: ${error.stack}`)
     if ((global as any).logger) (global as any).logger.error('generate-user-setup-script error:', error)
     return { success: false, error: errorMessage }
   }
@@ -517,7 +545,7 @@ ipcMain.handle('generate-user-setup-script', async (event: any, args: any) => {
  * Execute andb-core operation (direct import, no subprocess)
  */
 ipcMain.handle('execute-andb-operation', async (
-  event,
+  _event: any,
   sourceConn: any,
   targetConn: any,
   operation: string,
@@ -540,7 +568,7 @@ ipcMain.handle('execute-andb-operation', async (
 /**
  * Test database connection (direct MySQL test)
  */
-ipcMain.handle('test-connection', async (event, connection: any) => {
+ipcMain.handle('test-connection', async (_event: any, connection: any) => {
   try {
     if ((global as any).logger) (global as any).logger.info(`IPC: test-connection for ${connection.host}`)
 
@@ -563,7 +591,7 @@ ipcMain.handle('test-connection', async (event, connection: any) => {
 /**
  * Get migration history
  */
-ipcMain.handle('get-migration-history', async (event, limit: number = 50) => {
+ipcMain.handle('get-migration-history', async (_event: any, limit: number = 50) => {
   try {
     const storage = await (AndbBuilder as any).getSQLiteStorage()
     return { success: true, data: await storage.getMigrationHistory(limit) }
@@ -575,7 +603,7 @@ ipcMain.handle('get-migration-history', async (event, limit: number = 50) => {
 /**
  * Get snapshots for an object
  */
-ipcMain.handle('get-snapshots', async (event, environment: string, database: string, type: string, name: string) => {
+ipcMain.handle('get-snapshots', async (_event: any, environment: string, database: string, type: string, name: string) => {
   try {
     const data = await AndbBuilder.getSnapshots(environment, database, type, name)
     return { success: true, data }
@@ -587,7 +615,7 @@ ipcMain.handle('get-snapshots', async (event, environment: string, database: str
 /**
  * Get all snapshots globally
  */
-ipcMain.handle('get-all-snapshots', async (event, limit: number = 200) => {
+ipcMain.handle('get-all-snapshots', async (_event: any, limit: number = 200) => {
   try {
     const data = await AndbBuilder.getAllSnapshots(limit)
     return { success: true, data }
@@ -600,7 +628,7 @@ ipcMain.handle('get-all-snapshots', async (event, limit: number = 200) => {
 /**
  * Get comparison history
  */
-ipcMain.handle('get-comparison-history', async (event, limit: number = 50) => {
+ipcMain.handle('get-comparison-history', async (_event: any, limit: number = 50) => {
   try {
     const storage = await (AndbBuilder as any).getSQLiteStorage()
     return { success: true, data: await storage.getLatestComparisons(limit) }
@@ -639,7 +667,7 @@ ipcMain.handle('andb-get-report-list', async () => {
 /**
  * Get report content
  */
-ipcMain.handle('andb-get-report-content', async (event, filename) => {
+ipcMain.handle('andb-get-report-content', async (_event: any, filename: any) => {
   try {
     const content = await AndbBuilder.getReportContent(filename)
     return { success: true, data: content }
@@ -667,7 +695,7 @@ ipcMain.handle('andb-delete-all-reports', async () => {
  * Execute andb-core operation with selected pair
  * Replaces old subprocess approach with programmatic API
  */
-ipcMain.handle('andb-execute', async (event, args) => {
+ipcMain.handle('andb-execute', async (_event: any, args: any) => {
   const { sourceConnection, targetConnection, operation, options } = args
 
   try {
@@ -685,7 +713,7 @@ ipcMain.handle('andb-execute', async (event, args) => {
   }
 })
 
-ipcMain.handle('andb-get-saved-comparison-results', async (event, args) => {
+ipcMain.handle('andb-get-saved-comparison-results', async (_event: any, args: any) => {
   const { sourceConnection, targetConnection, type } = args
   try {
     return {
@@ -711,7 +739,7 @@ import { SecurityService } from './services/security'
 /**
  * Generic Storage Get
  */
-ipcMain.handle('storage-get', async (event, key: string) => {
+ipcMain.handle('storage-get', async (_event: any, key: string) => {
   try {
     let data = store.get(key)
 
@@ -735,7 +763,7 @@ ipcMain.handle('storage-get', async (event, key: string) => {
 /**
  * Generic Storage Set
  */
-ipcMain.handle('storage-set', async (event, key: string, value: any) => {
+ipcMain.handle('storage-set', async (_event: any, key: string, value: any) => {
   try {
     // Encrypt passwords if connections or templates
     if ((key === 'connections' || key === 'connectionTemplates') && Array.isArray(value)) {
@@ -777,7 +805,7 @@ ipcMain.handle('security-regenerate-keys', async () => {
   }
 })
 
-ipcMain.handle('backup-encrypt', async (event, data: string, password: string) => {
+ipcMain.handle('backup-encrypt', async (_event: any, data: string, password: string) => {
   try {
     const crypto = require('crypto');
     const algorithm = 'aes-256-cbc';
@@ -792,7 +820,7 @@ ipcMain.handle('backup-encrypt', async (event, data: string, password: string) =
   }
 });
 
-ipcMain.handle('backup-decrypt', async (event, encryptedData: string, password: string) => {
+ipcMain.handle('backup-decrypt', async (_event: any, encryptedData: string, password: string) => {
   try {
     const crypto = require('crypto');
     const algorithm = 'aes-256-cbc';
@@ -813,7 +841,7 @@ ipcMain.handle('backup-decrypt', async (event, encryptedData: string, password: 
 /**
  * Generic Storage Delete
  */
-ipcMain.handle('storage-delete', async (event, key: string) => {
+ipcMain.handle('storage-delete', async (_event: any, key: string) => {
   try {
     store.delete(key)
     return { success: true }
@@ -825,7 +853,7 @@ ipcMain.handle('storage-delete', async (event, key: string) => {
 /**
  * Generic Storage Has
  */
-ipcMain.handle('storage-has', async (event, key: string) => {
+ipcMain.handle('storage-has', async (_event: any, key: string) => {
   try {
     return { success: true, data: store.has(key) }
   } catch (error: any) {
@@ -848,7 +876,7 @@ ipcMain.handle('storage-clear', async () => {
 /**
  * Get all schemas from SQLite storage (replaces filesystem scanning)
  */
-ipcMain.handle('andb-get-schemas', async (event) => {
+ipcMain.handle('andb-get-schemas', async (_event: any) => {
   try {
     const storage = await (AndbBuilder as any).getSQLiteStorage()
     const environments = await storage.getEnvironments()
@@ -870,16 +898,25 @@ ipcMain.handle('andb-get-schemas', async (event) => {
           procedures: [] as any[],
           functions: [] as any[],
           triggers: [] as any[],
+          events: [] as any[],
           totalCount: 0
         }
 
-        const ddlTypes = ['tables', 'views', 'procedures', 'functions', 'triggers']
+        const ddlTypes = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
         for (const type of ddlTypes) {
-          const objects = await storage.getDDLObjects(env, db, type)
+          const typeKey = type.toLowerCase()
+          const objects = await storage.getDDLObjects(env, db, typeKey)
+
+          // Silent per-type find - too noisy for users
+          // if (objects.length > 0) {
+          //   console.log(`[SQLITE-CACHE] Found ${objects.length} ${typeKey} for ${db} in ${env}`)
+          // }
 
           for (const obj of objects) {
             // @ts-ignore
-            dbObj[type.toLowerCase()].push({
+            if (!dbObj[typeKey]) dbObj[typeKey] = []
+            // @ts-ignore
+            dbObj[typeKey].push({
               name: obj.name,
               content: obj.content,
               updated_at: obj.updated_at,
@@ -888,11 +925,7 @@ ipcMain.handle('andb-get-schemas', async (event) => {
           }
         }
 
-        dbObj.totalCount = dbObj.tables.length + dbObj.views.length + dbObj.procedures.length + dbObj.functions.length + dbObj.triggers.length
-
-        // Add last updated timestamp
-        // @ts-ignore
-        dbObj.lastUpdated = await storage.getLastUpdated(env, db)
+        dbObj.totalCount = dbObj.tables.length + dbObj.views.length + dbObj.procedures.length + dbObj.functions.length + dbObj.triggers.length + dbObj.events.length
 
         if (dbObj.totalCount > 0) {
           envObj.databases.push(dbObj)
@@ -903,6 +936,9 @@ ipcMain.handle('andb-get-schemas', async (event) => {
         result.push(envObj)
       }
     }
+
+    const totalDBs = result.reduce((acc, env) => acc + env.databases.length, 0)
+    console.log(`[SQLITE-CACHE] Loaded ${result.length} environments, ${totalDBs} databases total`)
 
     return { success: true, data: result }
   } catch (error: any) {
@@ -928,7 +964,7 @@ ipcMain.handle('andb-clear-storage', async () => {
 /**
  * Clear specific connection data
  */
-ipcMain.handle('andb-clear-connection-data', async (event, connection) => {
+ipcMain.handle('andb-clear-connection-data', async (_event: any, connection: any) => {
   try {
     const result = await AndbBuilder.clearConnectionData(connection)
     return { success: true, data: result }
@@ -1098,7 +1134,7 @@ END;`
 // IPC Handlers for Logger (Cross-Process)
 // ========================================
 
-ipcMain.handle('app-log', (event, { level, message, data }) => {
+ipcMain.handle('app-log', (_event: any, { level, message, data }: any) => {
   const logger = (global as any).logger;
   if (!logger) {
     if (isDev) console.log(`[Renderer-${level}] ${message}`, data || '');
@@ -1123,7 +1159,7 @@ ipcMain.handle('app-log', (event, { level, message, data }) => {
   }
 })
 
-ipcMain.handle('app-log-write', (event, content) => {
+ipcMain.handle('app-log-write', (_event: any, content: any) => {
   const logger = (global as any).logger;
   if (logger && typeof logger.write === 'function') {
     try {
@@ -1170,9 +1206,9 @@ ipcMain.handle('download-update', async () => {
 })
 
 // Mock Update Events for Debugging
-ipcMain.handle('debug-test-update', (event, status) => {
+ipcMain.handle('debug-test-update', (_event: any, status: any) => {
   if (!isDev) return
-  const contents = event.sender
+  const contents = _event.sender
 
   if (status === 'available') {
     contents.send('update-status', { status: 'available', info: { version: '9.9.9', releaseNotes: 'Test Update' } })

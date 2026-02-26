@@ -274,7 +274,7 @@ const isContextTesting = computed(() => {
   if (route.path === '/compare') {
     return connectionPairsStore.selectedPair?.status === 'testing'
   } else {
-    const conn = appStore.connections.find(c => c.id === appStore.selectedConnectionId)
+    const conn = appStore.resolvedConnections.find(c => c.id === appStore.selectedConnectionId)
     return (conn?.status as string) === 'testing'
   }
 })
@@ -283,7 +283,7 @@ const contextTestResult = computed(() => {
   if (route.path === '/compare') {
     return connectionPairsStore.selectedPair?.status
   } else {
-    const conn = appStore.connections.find(c => c.id === appStore.selectedConnectionId)
+    const conn = appStore.resolvedConnections.find(c => c.id === appStore.selectedConnectionId)
     // Map internal status to UI status
     if (conn?.status === 'connected') return 'success'
     if (conn?.status === 'failed') return 'failed'
@@ -306,12 +306,6 @@ const handleContextualTest = async () => {
 
 // Initialize store
 onMounted(() => {
-  // Initialize is now automatic in the store
-  // Initial test on mount if we have a pair
-  if (connectionPairsStore.selectedPairId) {
-    testConnections()
-  }
-
   // Auto-pick source for schema explorer if nothing selected
   if (route.path === '/schema' && !appStore.selectedConnectionId && connectionPairsStore.activePair) {
     appStore.selectedConnectionId = connectionPairsStore.activePair.source?.id || ''
@@ -325,10 +319,10 @@ watch(() => route.path, (newPath) => {
   }
 })
 
-// Watch for pair changes to update auto-pick (optional, but requested "auto pick source in default pair")
+// Watch for pair changes to update auto-pick
 watch(() => connectionPairsStore.selectedPairId, (newId) => {
   if (newId) {
-    // Reset status before testing
+    // Reset status
     const pair = connectionPairsStore.connectionPairs.find(p => p.id === newId)
     if (pair) {
       pair.status = 'idle'
@@ -337,8 +331,6 @@ watch(() => connectionPairsStore.selectedPairId, (newId) => {
         appStore.selectedConnectionId = connectionPairsStore.activePair.source?.id || ''
       }
     }
-    
-    testConnections()
   }
 })
 
@@ -398,13 +390,6 @@ const currentPageTitle = computed(() => {
 
 
 
-const testConnections = async () => {
-  // Test current selected pair
-  const selectedPair = connectionPairsStore.selectedPair
-  if (selectedPair) {
-    await connectionPairsStore.testConnectionPair(selectedPair.id)
-  }
-}
 
 const onPairChange = () => {
 }

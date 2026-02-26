@@ -70,7 +70,7 @@ export const useProjectNavigation = () => {
         } else if (item.id === 'connections') {
           nextType = 'connection'
           title = 'Connections'
-          items = appStore.connections
+          items = appStore.resolvedConnections
             .filter(c => project?.connectionIds.includes(c.id))
             .map(c => ({
               id: c.id,
@@ -101,7 +101,7 @@ export const useProjectNavigation = () => {
       case 'environments':
         nextType = 'databases'
         title = item.name + ' Bases'
-        items = appStore.connections
+        items = appStore.resolvedConnections
           .filter(c => project?.connectionIds.includes(c.id) && (c.environment === item.id || c.environment === item.name))
           .map(c => ({
             id: c.id,
@@ -121,7 +121,8 @@ export const useProjectNavigation = () => {
           { id: item.id + '_views', name: 'Views', icon: Eye, type: 'types', typeId: 'views', parentConn: item.rawData },
           { id: item.id + '_pointers', name: 'Functions', icon: Variable, type: 'types', typeId: 'functions', parentConn: item.rawData },
           { id: item.id + '_triggers', name: 'Triggers', icon: Zap, type: 'types', typeId: 'triggers', parentConn: item.rawData },
-          { id: item.id + '_procedures', name: 'Procedures', icon: Play, type: 'types', typeId: 'procedures', parentConn: item.rawData }
+          { id: item.id + '_procedures', name: 'Procedures', icon: Play, type: 'types', typeId: 'procedures', parentConn: item.rawData },
+          { id: item.id + '_events', name: 'Events', icon: Database, type: 'types', typeId: 'events', parentConn: item.rawData }
         ]
         break
 
@@ -133,7 +134,8 @@ export const useProjectNavigation = () => {
           { id: item.id + '_views', name: 'Views', icon: Eye, type: 'pair_types', typeId: 'views', pair: item.rawData },
           { id: item.id + '_functions', name: 'Functions', icon: Variable, type: 'pair_types', typeId: 'functions', pair: item.rawData },
           { id: item.id + '_triggers', name: 'Triggers', icon: Zap, type: 'pair_types', typeId: 'triggers', pair: item.rawData },
-          { id: item.id + '_procedures', name: 'Procedures', icon: Play, type: 'pair_types', typeId: 'procedures', pair: item.rawData }
+          { id: item.id + '_procedures', name: 'Procedures', icon: Play, type: 'pair_types', typeId: 'procedures', pair: item.rawData },
+          { id: item.id + '_events', name: 'Events', icon: Database, type: 'pair_types', typeId: 'events', pair: item.rawData }
         ]
         break
 
@@ -144,8 +146,8 @@ export const useProjectNavigation = () => {
           // Fetch existing comparison results
           const appStore = useAppStore()
           const pair = item.pair
-          const sourceConn = appStore.connections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
-          const targetConn = appStore.connections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
+          const sourceConn = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId || c.environment === pair.sourceEnv)
+          const targetConn = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId || c.environment === pair.targetEnv)
 
           if (sourceConn && targetConn) {
             const results = await Andb.getSavedComparisonResults(sourceConn, targetConn, item.typeId)

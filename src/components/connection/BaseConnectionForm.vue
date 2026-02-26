@@ -308,10 +308,12 @@ import {
   ShieldCheck
 } from 'lucide-vue-next'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: any
   readOnlyFields?: string[]
-}>()
+}>(), {
+  readOnlyFields: () => []
+})
 
 const emit = defineEmits(['update:modelValue'])
 

@@ -41,6 +41,9 @@
             <Check v-if="store.currentStep > step" class="w-3 h-3" />
             <span v-else>{{ step }}</span>
           </div>
+          <span class="text-[10px] font-black uppercase tracking-wider hidden md:block" :class="store.currentStep === step ? 'text-gray-900 dark:text-white' : 'text-gray-400'">
+            {{ step === 1 ? 'Connection' : (step === 2 ? 'Configuration' : 'Execution') }}
+          </span>
         </div>
         <div v-if="step < totalSteps" class="w-8 h-0.5 rounded-full" :class="store.currentStep > step ? 'bg-blue-600/30' : 'bg-gray-100 dark:bg-gray-800'"></div>
       </template>
@@ -73,22 +76,15 @@
                <input v-model="store.adminCredentials.database" @focus="selectAll" type="text" class="form-input" placeholder="database_name" />
             </div>
             
-            <div class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
+             <div v-if="!reconfigureMode" class="col-span-2 h-px bg-gray-100 dark:bg-gray-800/50 my-2"></div>
 
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.username') }} (Admin)</label>
-               <input v-model="store.adminCredentials.username" @focus="selectAll" type="text" class="form-input" placeholder="root" />
-            </div>
-            <div class="space-y-2">
-               <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.password') }} (Admin)</label>
-               <div class="relative">
-               <input v-model="store.adminCredentials.password" @focus="selectAll" :type="showPass ? 'text' : 'password'" class="form-input pr-10" placeholder="••••••••" />
-               <button @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
-                  <Eye v-if="!showPass" class="w-4 h-4" />
-                  <EyeOff v-else class="w-4 h-4" />
-               </button>
-               </div>
-            </div>
+             <div v-if="!reconfigureMode" class="col-span-2 space-y-2">
+                <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('restrictedUserSetup.restrictedUsername.label') }}</label>
+                <input v-model="store.restrictedUser.username" @focus="selectAll" type="text" class="form-input" placeholder="the_andb" />
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 ml-1 italic leading-relaxed">
+                  {{ $t('restrictedUserSetup.description') }}
+                </p>
+             </div>
 
             <!-- SSH TUNNEL SECTION -->
             <div class="col-span-2 pt-4">
@@ -136,322 +132,328 @@
          </div>
       </div>
 
-      <!-- STEP 2: Access Capabilities -->
-      <div v-if="store.currentStep === SetupStep.CAPABILITIES" class="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-          <div class="flex items-baseline justify-between">
-            <h3 class="font-black text-gray-900 dark:text-white text-lg">Access Capabilities</h3>
-            <span class="text-xs font-bold px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400">
-              {{ securityLevelLabel }}
-            </span>
-          </div>
-         
-         <div class="space-y-3">
-            <!-- Read Only (Locked) -->
-            <div class="flex items-center justify-between p-5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 opacity-80 cursor-not-allowed">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                        <Eye class="w-5 h-5" />
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-gray-900 dark:text-white">Read-Only Core</span>
-                            <span class="text-xs font-black px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-500 uppercase">Mandatory</span>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">Allows The Andb to understand your database structure without modifying data.</p>
-                    </div>
-                </div>
-                <div class="relative inline-flex h-5 w-9 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-emerald-500">
-                    <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
-                </div>
+      <!-- STEP 2: Configuration (Capabilities + Strategy) -->
+      <div v-if="store.currentStep === SetupStep.CONFIG" class="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
+          
+          <!-- 1. Access Capabilities -->
+          <div class="space-y-6">
+            <div class="flex items-baseline justify-between">
+              <h3 class="font-black text-gray-900 dark:text-white text-lg">1. Access Capabilities</h3>
+              <span class="text-xs font-bold px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400">
+                {{ securityLevelLabel }}
+              </span>
             </div>
-
-            <!-- Write/Alter -->
-            <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                :class="store.permissions.writeAlter ? 'border-indigo-500 bg-indigo-50/10' : 'border-gray-200 dark:border-gray-700'">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeAlter ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
-                        <FileCode2 class="w-5 h-5" />
-                    </div>
-                    <div>
-                        <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Schema Change Support (ALTER TABLE)</span>
-                        <p class="text-xs text-gray-500 mt-1">Allow The Andb to suggest and apply table modifications for synchronization.</p>
-                    </div>
-                </div>
-                 <input type="checkbox" v-model="store.permissions.writeAlter" class="sr-only" />
-                 <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeAlter ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-gray-700'">
-                    <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeAlter ? 'translate-x-4' : 'translate-x-0'"></div>
-                 </div>
-            </label>
-
-            <!-- View Management -->
-            <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                :class="store.permissions.writeView ? 'border-purple-500 bg-purple-50/10' : 'border-gray-200 dark:border-gray-700'">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeView ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
-                        <Layers class="w-5 h-5" />
-                    </div>
-                    <div>
-                         <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">View Management</span>
-                        <p class="text-xs text-gray-500 mt-1">Allow updating view definitions when differences are detected across environments.</p>
-                    </div>
-                </div>
-                <input type="checkbox" v-model="store.permissions.writeView" class="sr-only" />
-                 <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeView ? 'bg-purple-500' : 'bg-gray-200 dark:bg-gray-700'">
-                    <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeView ? 'translate-x-4' : 'translate-x-0'"></div>
-                 </div>
-            </label>
-
-            <!-- Routine Management -->
-            <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                :class="store.permissions.writeRoutine ? 'border-pink-500 bg-pink-50/10' : 'border-gray-200 dark:border-gray-700'">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeRoutine ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
-                        <Workflow class="w-5 h-5" />
-                    </div>
-                    <div>
-                         <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">Routine Management</span>
-                         <p class="text-xs text-gray-500 mt-1">Allow updating Stored Procedures and Functions to ensure consistent business logic.</p>
-                    </div>
-                </div>
-                <input type="checkbox" v-model="store.permissions.writeRoutine" class="sr-only" />
-                 <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeRoutine ? 'bg-pink-500' : 'bg-gray-200 dark:bg-gray-700'">
-                    <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeRoutine ? 'translate-x-4' : 'translate-x-0'"></div>
-                 </div>
-            </label>
-         </div>
-      </div>
-
-      <!-- STEP 3: Select Setup Strategy -->
-      <div v-if="store.currentStep === SetupStep.STRATEGY" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-         <div class="text-center mb-6">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Choose Setup Strategy</h3>
-            <p class="text-sm text-gray-500">How should we apply these capabilities to your server?</p>
-         </div>
-
-         <div class="grid grid-cols-2 gap-6">
-            <!-- Automatic Mode -->
-            <button 
-              @click="store.setupMode = 'auto'"
-              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
-              :class="store.setupMode === 'auto' 
-                ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 ring-4 ring-blue-500/10' 
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'"
-            >
-              <div class="flex items-center justify-between w-full">
-                <div class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                  <Wand2 class="w-6 h-6" />
-                </div>
-                <div v-if="store.setupMode === 'auto'" class="w-5 h-5 rounded-full bg-blue-500 shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
-                    <Check class="w-3 h-3 text-white" />
-                </div>
-              </div>
-              <div>
-                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Automatic Setup</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                  The Andb will execute the configuration for you immediately.
-                </p>
-                <div class="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded inline-block">
-                    RECOMMENDED
-                </div>
-              </div>
-            </button>
-
-            <!-- Manual Mode -->
-            <button 
-              @click="store.setupMode = 'manual'"
-              class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
-              :class="store.setupMode === 'manual' 
-                ? 'bg-gray-50 dark:bg-gray-800 border-gray-900 dark:border-gray-400 ring-4 ring-gray-500/10' 
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
-            >
-              <div class="flex items-center justify-between w-full">
-                 <div class="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                  <Terminal class="w-6 h-6" />
-                </div>
-                <div v-if="store.setupMode === 'manual'" class="w-5 h-5 rounded-full bg-gray-900 dark:bg-white shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
-                    <Check class="w-3 h-3 text-white dark:text-black" />
-                </div>
-              </div>
-              <div>
-                <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Manual Setup</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                  We generate the SQL script for you to review and run yourself.
-                </p>
-              </div>
-            </button>
-         </div>
-
-         <!-- Security Warning -->
-         <div v-if="store.setupMode === 'auto'" class="p-5 bg-blue-50 dark:bg-gray-900 border border-blue-200 dark:border-blue-500/30 rounded-xl flex items-start gap-4 animate-in fade-in zoom-in duration-300">
-            <ShieldCheck class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
-            <div class="space-y-2">
-            <p class="text-xs text-blue-800 dark:text-blue-100 leading-relaxed font-medium">
-               <strong class="text-blue-900 dark:text-blue-300 block mb-1">Volatile Memory Processing:</strong>
-               Admin credentials provided are processed <strong>strictly in memory</strong> and are <strong>wiped immediately</strong> after setup.
-            </p>
-            </div>
-         </div>
-      </div>
-
-      <!-- STEP 4 -->
-      <div v-if="store.currentStep === SetupStep.ACTION" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <!-- CASE: AUTOMATIC MODE -> EXECUTION UI -->
-            <template v-if="store.setupMode === 'auto'">
-               <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                 <div class="flex flex-col space-y-6 py-2" v-if="!isExecuting && !executionDone">
-                   <div class="flex items-center gap-4 px-2">
-                      <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center text-primary-500 shrink-0">
-                         <FileCode2 class="w-6 h-6" />
+          
+            <div class="space-y-3">
+              <!-- Read Only (Locked) -->
+              <div class="flex items-center justify-between p-5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 opacity-80 cursor-not-allowed">
+                  <div class="flex items-center gap-4">
+                      <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                          <Eye class="w-5 h-5" />
                       </div>
                       <div>
-                         <h4 class="text-lg font-bold text-gray-900 dark:text-white">Review Commands</h4>
-                         <p class="text-xs text-gray-500">The following SQL commands will be executed to configure your environment.</p>
+                          <div class="flex items-center gap-2">
+                              <span class="text-sm font-bold text-gray-900 dark:text-white">Read-Only Core</span>
+                              <span class="text-xs font-black px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-500 uppercase">Mandatory</span>
+                          </div>
+                          <p class="text-xs text-gray-500 mt-1">Reads all schema definitions: Tables, Views, Procedures, Functions, Triggers, and Events — without modifying data.</p>
                       </div>
-                   </div>
-                   
-                   <div class="relative group mx-2">
-                       <div class="absolute right-3 top-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border border-white/5" @click="copyScript" title="Copy to clipboard">
-                           <Copy class="w-3.5 h-3.5 text-gray-400 group-hover:text-white" />
-                       </div>
-                       <pre class="bg-gray-900 text-gray-300 p-5 rounded-2xl text-xs leading-relaxed font-mono overflow-x-auto border border-gray-800 shadow-inner custom-scrollbar max-h-72">{{ generatedScript }}</pre>
-                   </div>
-
-                   <div class="px-2">
-                     <button 
-                       @click="startExecution"
-                       class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30 transition-all active:scale-95 group"
-                     >
-                       <span>Approve & Execute Configuration</span>
-                       <Check class="w-4 h-4 group-hover:scale-125 transition-transform" />
-                     </button>
-                     <p class="text-xs text-gray-400 text-center mt-3">By clicking above, you authorize The Andb to execute these commands using the provided admin credentials.</p>
-                   </div>
-                 </div>
-
-                 <div v-else class="space-y-4">
-                   <!-- Progress Indicator -->
-                   <div class="flex items-center gap-3 mb-6">
-                      <div v-if="isExecuting" class="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                      <CheckCircle2 v-else-if="executionDone" class="w-6 h-6 text-green-500" />
-                      <span class="font-bold text-gray-900 dark:text-white">
-                         {{ executionDone ? 'Configuration Complete' : 'Configuring Environment...' }}
-                      </span>
-                   </div>
-
-                   <!-- Logs Terminal -->
-                   <div class="bg-black/90 rounded-xl p-4 font-mono text-xs h-64 overflow-y-auto border border-gray-800 shadow-inner custom-scrollbar">
-                     <div v-for="(log, i) in store.executionLogs" :key="i" class="text-gray-300 mb-1 break-all">
-                       <span class="text-gray-600 mr-2">[{{ new Date().toLocaleTimeString() }}]</span>
-                       <span :class="log.includes('Error') ? 'text-red-400' : 'text-gray-300'">> {{ log }}</span>
-                     </div>
-                      <div v-if="isExecuting" class="animate-pulse text-primary-400 mt-2">_</div>
-                   </div>
-                 </div>
-               </div>
-            </template>
-
-            <!-- CASE: MANUAL MODE -> SCRIPT REVIEW UI -->
-            <template v-else>
-               <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                  <div class="flex items-center justify-between mb-4">
-                     <h4 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Terminal class="w-5 h-5 text-gray-500" />
-                        Generated SQL Script
-                     </h4>
-                     <button @click="copyScript" class="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                        <Copy class="w-3 h-3" /> Copy
-                     </button>
                   </div>
-                  <div class="relative group">
-                     <pre class="bg-gray-900 text-gray-300 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-gray-800 shadow-inner custom-scrollbar min-h-48">{{ generatedScript }}</pre>
+                  <div class="relative inline-flex h-5 w-9 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-emerald-500">
+                      <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4"></span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-4 flex items-start gap-2">
-                     <Info class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                     Please execute this script on your database server manually using your preferred tool. Once executed, proceed to the final verification step.
-                  </p>
-               </div>
-            </template>
+              </div>
+
+              <!-- Write/Alter -->
+              <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  :class="store.permissions.writeAlter ? 'border-indigo-500 bg-indigo-50/10' : 'border-gray-200 dark:border-gray-700'">
+                  <div class="flex items-center gap-4">
+                      <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeAlter ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
+                          <FileCode2 class="w-5 h-5" />
+                      </div>
+                      <div>
+                          <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Schema Change Support (ALTER TABLE)</span>
+                          <p class="text-xs text-gray-500 mt-1">Allow The Andb to suggest and apply table modifications for synchronization.</p>
+                      </div>
+                  </div>
+                  <input type="checkbox" v-model="store.permissions.writeAlter" class="sr-only" />
+                  <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeAlter ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-gray-700'">
+                      <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeAlter ? 'translate-x-4' : 'translate-x-0'"></div>
+                  </div>
+              </label>
+
+              <!-- View Management -->
+              <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  :class="store.permissions.writeView ? 'border-purple-500 bg-purple-50/10' : 'border-gray-200 dark:border-gray-700'">
+                  <div class="flex items-center gap-4">
+                      <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeView ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
+                          <Layers class="w-5 h-5" />
+                      </div>
+                      <div>
+                          <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">View Management</span>
+                          <p class="text-xs text-gray-500 mt-1">Allow updating view definitions when differences are detected across environments.</p>
+                      </div>
+                  </div>
+                  <input type="checkbox" v-model="store.permissions.writeView" class="sr-only" />
+                  <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeView ? 'bg-purple-500' : 'bg-gray-200 dark:bg-gray-700'">
+                      <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeView ? 'translate-x-4' : 'translate-x-0'"></div>
+                  </div>
+              </label>
+
+              <!-- Routine Management -->
+              <label class="flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  :class="store.permissions.writeRoutine ? 'border-pink-500 bg-pink-50/10' : 'border-gray-200 dark:border-gray-700'">
+                  <div class="flex items-center gap-4">
+                      <div class="p-2 rounded-lg transition-colors" :class="store.permissions.writeRoutine ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
+                          <Workflow class="w-5 h-5" />
+                      </div>
+                      <div>
+                          <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">Routine Management</span>
+                          <p class="text-xs text-gray-500 mt-1">Allow updating Stored Procedures and Functions to ensure consistent business logic.</p>
+                      </div>
+                  </div>
+                  <input type="checkbox" v-model="store.permissions.writeRoutine" class="sr-only" />
+                  <div class="w-10 h-6 rounded-full transition-colors flex items-center p-1" :class="store.permissions.writeRoutine ? 'bg-pink-500' : 'bg-gray-200 dark:bg-gray-700'">
+                      <div class="w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform" :class="store.permissions.writeRoutine ? 'translate-x-4' : 'translate-x-0'"></div>
+                  </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+
+          <!-- 2. Setup Strategy -->
+          <div class="space-y-6">
+            <h3 class="font-black text-gray-900 dark:text-white text-lg">2. Setup Strategy</h3>
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Automatic Mode -->
+                <button 
+                  @click="store.setupMode = 'auto'"
+                  class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
+                  :class="store.setupMode === 'auto' 
+                    ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 ring-4 ring-blue-500/10' 
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'"
+                >
+                  <div class="flex items-center justify-between w-full">
+                    <div class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                      <Wand2 class="w-6 h-6" />
+                    </div>
+                    <div v-if="store.setupMode === 'auto'" class="w-5 h-5 rounded-full bg-blue-500 shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
+                        <Check class="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Automatic Setup</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                      The Andb will execute the configuration for you immediately.
+                    </p>
+                    <div class="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded inline-block">
+                        RECOMMENDED
+                    </div>
+                  </div>
+                </button>
+
+                <!-- Manual Mode -->
+                <button 
+                  @click="store.setupMode = 'manual'"
+                  class="relative p-6 rounded-2xl border-2 transition-all text-left flex flex-col gap-4 group"
+                  :class="store.setupMode === 'manual' 
+                    ? 'bg-gray-50 dark:bg-gray-800 border-gray-900 dark:border-gray-400 ring-4 ring-gray-500/10' 
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
+                >
+                  <div class="flex items-center justify-between w-full">
+                    <div class="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                      <Terminal class="w-6 h-6" />
+                    </div>
+                    <div v-if="store.setupMode === 'manual'" class="w-5 h-5 rounded-full bg-gray-900 dark:bg-white shadow-sm ring-2 ring-white dark:ring-gray-900 flex items-center justify-center">
+                        <Check class="w-3 h-3 text-white dark:text-black" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Manual Setup</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                      We generate the SQL script for you to review and run yourself.
+                    </p>
+                  </div>
+                </button>
+            </div>
+
+            <!-- Security Warning -->
+            <div v-if="store.setupMode === 'auto'" class="p-5 bg-blue-50 dark:bg-gray-900 border border-blue-200 dark:border-blue-500/30 rounded-xl flex items-start gap-4 animate-in fade-in zoom-in duration-300">
+                <ShieldCheck class="w-6 h-6 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div class="space-y-2">
+                <p class="text-xs text-blue-800 dark:text-blue-100 leading-relaxed font-medium">
+                  <strong class="text-blue-900 dark:text-blue-300 block mb-1">Volatile Memory Processing:</strong>
+                  Admin credentials provided are processed <strong>strictly in memory</strong> and are <strong>wiped immediately</strong> after setup.
+                </p>
+                </div>
+            </div>
+          </div>
+
+          <div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+
+          <!-- 3. Admin Authentication (Required for Automatic Setup or Reconfigure) -->
+          <div v-if="reconfigureMode || store.setupMode === 'auto'" class="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+            <h3 class="font-black text-gray-900 dark:text-white text-lg">
+              3. Admin Authentication
+            </h3>
+            <div class="p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl flex items-start gap-2.5">
+               <Info class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+               <p class="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed font-medium">
+                 <template v-if="reconfigureMode">
+                   {{ $t('restrictedUserSetup.reconfigure.adminNote', { username: store.restrictedUser.username }) }}
+                 </template>
+                 <template v-else>
+                   Admin credentials are required to create the restricted user. They are used only for this step and are <strong>not saved</strong>.
+                 </template>
+               </p>
+            </div>
+            <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+                <div class="space-y-2">
+                  <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.username') }} (Admin)</label>
+                  <input v-model="store.adminCredentials.username" @focus="selectAll" type="text" class="form-input" placeholder="root" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.password') }} (Admin)</label>
+                  <div class="relative">
+                    <input v-model="store.adminCredentials.password" @focus="selectAll" :type="showPass ? 'text' : 'password'" class="form-input pr-10" placeholder="••••••••" />
+                    <button @click="showPass = !showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-500">
+                        <Eye v-if="!showPass" class="w-4 h-4" />
+                        <EyeOff v-else class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+            </div>
+          </div>
       </div>
 
-      <!-- STEP 5 -->
-      <div v-if="store.currentStep === SetupStep.VERIFICATION" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-         <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
-            <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-               <div>
-                  <h4 class="font-bold text-gray-900 dark:text-white text-lg">Verification Suite</h4>
-                  <p class="text-xs text-gray-500 mt-1">Ensuring the restricted user works exactly as strictly defined.</p>
-               </div>
-               <button 
-                  @click="performVerification" 
-                  :disabled="isVerifying"
-                  class="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-bold shadow hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-               >
-                  <span v-if="isVerifying" class="flex items-center gap-2">
-                  <div class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                  Verifying...
-                  </span>
-                  <span v-else>Run Checks</span>
-               </button>
+      <!-- STEP 3: Execution (Review + Action + Verification) -->
+      <div v-if="store.currentStep === SetupStep.EXECUTION" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+          <!-- SQL Review Section -->
+          <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Terminal class="w-5 h-5 text-gray-500" />
+                  Generated SQL Script
+                </h4>
+                <button @click="copyScript" class="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
+                  <Copy class="w-3 h-3" /> Copy
+                </button>
             </div>
             
-            <div class="divide-y divide-gray-100 dark:divide-gray-800">
-               <!-- Check 1: Connection -->
-               <div class="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                  <div class="flex items-center gap-4">
-                     <div class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
-                        <Plug class="w-4 h-4" />
-                     </div>
-                     <div>
-                        <h5 class="text-sm font-bold text-gray-900 dark:text-white">Connection Establishment</h5>
-                        <p class="text-xs text-gray-500">Can connect with new credentials</p>
-                     </div>
-                  </div>
-                  <div class="flex items-center">
-                     <span v-if="store.verificationResults.baseConn === 'pass'" class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold uppercase">Pass</span>
-                     <span v-else-if="store.verificationResults.baseConn === 'fail'" class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold uppercase">Fail</span>
-                     <span v-else class="px-2 py-1 bg-gray-100 text-gray-400 rounded text-xs font-bold uppercase">Pending</span>
-                  </div>
-               </div>
-
-               <!-- Check 2: Schema Read -->
-               <div class="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                  <div class="flex items-center gap-4">
-                     <div class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
-                        <Search class="w-4 h-4" />
-                     </div>
-                     <div>
-                        <h5 class="text-sm font-bold text-gray-900 dark:text-white">Schema Reading</h5>
-                        <p class="text-xs text-gray-500">Can read tables and definitions</p>
-                     </div>
-                  </div>
-                  <div class="flex items-center">
-                     <span v-if="store.verificationResults.schemaRead === 'pass'" class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold uppercase">Pass</span>
-                     <span v-else-if="store.verificationResults.schemaRead === 'fail'" class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold uppercase">Fail</span>
-                     <span v-else class="px-2 py-1 bg-gray-100 text-gray-400 rounded text-xs font-bold uppercase">Pending</span>
-                  </div>
-               </div>
-
-               <!-- Check 3: Permission Enforcement -->
-               <div class="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-                  <div class="flex items-center gap-4">
-                     <div class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
-                        <ShieldBan class="w-4 h-4" />
-                     </div>
-                     <div>
-                        <h5 class="text-sm font-bold text-gray-900 dark:text-white">Permission Boundaries</h5>
-                        <p class="text-xs text-gray-500">
-                        {{ store.permissions.writeAlter ? 'Verifying write access is granted' : 'Verifying write access is strictly blocked' }}
-                        </p>
-                     </div>
-                  </div>
-                  <div class="flex items-center">
-                     <span v-if="store.verificationResults.sandboxTest === 'pass'" class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold uppercase">Pass</span>
-                     <span v-else-if="store.verificationResults.sandboxTest === 'fail'" class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold uppercase">Fail</span>
-                     <span v-else class="px-2 py-1 bg-gray-100 text-gray-400 rounded text-xs font-bold uppercase">Pending</span>
-                  </div>
-               </div>
+            <div class="relative group">
+                <div class="absolute right-3 top-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border border-white/5" @click="copyScript" title="Copy to clipboard">
+                    <Copy class="w-3.5 h-3.5 text-gray-400 group-hover:text-white" />
+                </div>
+                <pre class="bg-gray-900 text-gray-300 p-5 rounded-2xl text-xs leading-relaxed font-mono overflow-x-auto border border-gray-800 shadow-inner custom-scrollbar max-h-48">{{ generatedScript }}</pre>
             </div>
-         </div>
+
+            <div v-if="store.setupMode === 'auto' && !executionDone" class="mt-6">
+                <button 
+                  @click="startExecution"
+                  :disabled="isExecuting"
+                  class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30 transition-all active:scale-95 group disabled:opacity-50"
+                >
+                  <span v-if="isExecuting" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                  <span v-else>Approve & Execute Configuration</span>
+                  <Check v-if="!isExecuting" class="w-4 h-4 group-hover:scale-125 transition-transform" />
+                </button>
+                <p class="text-[10px] text-gray-400 text-center mt-3">By clicking above, you authorize The Andb to execute these commands using the provided admin credentials.</p>
+            </div>
+            
+            <div v-if="store.setupMode === 'manual'" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl flex items-start gap-3">
+                <Info class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <p class="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed font-medium">
+                  Please execute the script above on your database server manually. Once finished, run the verification suite below to confirm connection.
+                </p>
+            </div>
+          </div>
+
+          <!-- Logs & Verification Section -->
+          <div v-if="isExecuting || executionDone || store.setupMode === 'manual'" class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+            
+            <!-- Logs Terminal (Only for Auto) -->
+            <div v-if="store.setupMode === 'auto'" class="space-y-3">
+              <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Execution Status</h5>
+              <div class="bg-black/90 rounded-2xl p-4 font-mono text-[10px] h-64 overflow-y-auto border border-gray-800 shadow-inner custom-scrollbar">
+                <div v-for="(log, i) in store.executionLogs" :key="i" class="text-gray-300 mb-1 break-all">
+                  <span class="text-gray-600 mr-2">[{{ new Date().toLocaleTimeString() }}]</span>
+                  <span :class="log.includes('Error') ? 'text-red-400' : 'text-gray-300'">> {{ log }}</span>
+                </div>
+                <div v-if="isExecuting" class="animate-pulse text-primary-400 mt-2">_</div>
+              </div>
+            </div>
+
+            <!-- Verification Suite -->
+            <div class="space-y-3" :class="store.setupMode === 'manual' ? 'md:col-span-2' : ''">
+              <div class="flex items-center justify-between ml-1">
+                <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Verification Suite</h5>
+                <button 
+                  v-if="store.setupMode === 'manual' || executionDone"
+                  @click="performVerification" 
+                  :disabled="isVerifying"
+                  class="text-[10px] font-black text-primary-600 hover:text-primary-500 uppercase tracking-wider flex items-center gap-1 transition-colors"
+                >
+                  <RefreshCw v-if="!isVerifying" class="w-3 h-3" />
+                  <span v-else class="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></span>
+                  Re-Verify
+                </button>
+              </div>
+
+              <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm divide-y divide-gray-100 dark:divide-gray-800">
+                <!-- Check 1: Connection -->
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
+                          <Plug class="w-3.5 h-3.5" />
+                      </div>
+                      <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Connection</span>
+                    </div>
+                    <div>
+                      <span v-if="store.verificationResults.baseConn === 'pass'" class="text-[10px] font-black text-green-500 uppercase">Passed</span>
+                      <span v-else-if="store.verificationResults.baseConn === 'fail'" class="text-[10px] font-black text-red-500 uppercase">Failed</span>
+                      <span v-else class="text-[10px] font-black text-gray-300 uppercase">Pending</span>
+                    </div>
+                </div>
+
+                <!-- Check 2: Schema -->
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
+                          <Search class="w-3.5 h-3.5" />
+                      </div>
+                      <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Introspection</span>
+                    </div>
+                    <div>
+                      <span v-if="store.verificationResults.schemaRead === 'pass'" class="text-[10px] font-black text-green-500 uppercase">Passed</span>
+                      <span v-else-if="store.verificationResults.schemaRead === 'fail'" class="text-[10px] font-black text-red-500 uppercase">Failed</span>
+                      <span v-else class="text-[10px] font-black text-gray-300 uppercase">Pending</span>
+                    </div>
+                </div>
+
+                <!-- Check 3: Boundaries -->
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500">
+                          <ShieldBan class="w-3.5 h-3.5" />
+                      </div>
+                      <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Safety Guard</span>
+                    </div>
+                    <div>
+                      <span v-if="store.verificationResults.sandboxTest === 'pass'" class="text-[10px] font-black text-green-500 uppercase">Active</span>
+                      <span v-else-if="store.verificationResults.sandboxTest === 'fail'" class="text-[10px] font-black text-red-500 uppercase">Bypassed</span>
+                      <span v-else class="text-[10px] font-black text-gray-300 uppercase">Pending</span>
+                    </div>
+                </div>
+              </div>
+
+              <div v-if="verificationDone && !allChecksPassed" class="p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl">
+                 <p class="text-[10px] text-red-600 dark:text-red-400 font-bold leading-tight">
+                   Verification failed. Please check if the script was executed correctly and the user has required permissions.
+                 </p>
+              </div>
+            </div>
+          </div>
       </div>
     </div>
 
@@ -516,15 +518,16 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
-  ShieldCheck, Check, Info, Eye, EyeOff, Terminal, CheckCircle2, 
+  ShieldCheck, Check, Info, Eye, EyeOff, Terminal, 
   Copy, ChevronRight, ShieldBan, Search, Plug, Layers, Workflow, FileCode2,
-  ShieldQuestion, X, FolderOpen
+  ShieldQuestion, X, FolderOpen, RefreshCw, Wand2
 } from 'lucide-vue-next'
 import { useSetupStepsStore, SetupStep } from '@/stores/setupSteps'
 import { Andb } from '@/utils/andb'
 
 const props = defineProps<{
   initialData?: any
+  reconfigureMode?: boolean
 }>()
 
 const { t: $t } = useI18n()
@@ -564,9 +567,9 @@ onMounted(() => {
   // Set helpful defaults for new connections
   store.adminCredentials.host = 'localhost'
   store.adminCredentials.port = 3306
-  store.adminCredentials.username = 'root'
+  store.adminCredentials.username = 'root' 
 
-  // Generate a random 16-character alphanumeric password
+  // Generate a random 16-character alphanumeric password for the RESTRICTED user
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
   let pass = ""
   for (let i = 0; i < 16; i++) {
@@ -574,13 +577,28 @@ onMounted(() => {
   }
   store.restrictedUser.password = pass
   
+  if (props.reconfigureMode) {
+    store.adminCredentials.username = 'root' // Still needed for reconfigure
+    store.currentStep = SetupStep.CONFIG
+  }
+
   if (props.initialData) {
     if (props.initialData.name) connectionName.value = props.initialData.name
     if (props.initialData.host) store.adminCredentials.host = props.initialData.host
     if (props.initialData.port) store.adminCredentials.port = props.initialData.port
     if (props.initialData.database) store.adminCredentials.database = props.initialData.database
-    if (props.initialData.username) store.adminCredentials.username = props.initialData.username
+    if (props.initialData.username) store.adminCredentials.username = (props.reconfigureMode ? 'root' : props.initialData.username)
     
+    // Pre-fill restricted user username if editing/duplicating
+    if (!props.reconfigureMode && props.initialData.username) {
+        store.restrictedUser.username = props.initialData.username
+    }
+
+    // Pre-fill permissions if available
+    if (props.initialData.permissions) {
+      store.permissions = { ...props.initialData.permissions }
+    }
+
     if (props.initialData.productSettings) {
       productSettings.value = { ...props.initialData.productSettings }
     }
@@ -589,7 +607,7 @@ onMounted(() => {
 
 const emit = defineEmits(['cancel', 'complete'])
 
-const totalSteps = computed(() => SetupStep.VERIFICATION)
+const totalSteps = computed(() => SetupStep.EXECUTION)
 
 const securityLevelLabel = computed(() => {
   if (store.permissions.writeAlter && store.permissions.writeView && store.permissions.writeRoutine) return 'Advanced'
@@ -612,35 +630,51 @@ const levelName = computed(() => {
 })
 
 const canContinue = computed(() => {
-  // Step 1: Input Verification
+  // Step 1: Input Verification (No longer needs Admin U/P)
   if (store.currentStep === SetupStep.INPUT) {
       return !!(connectionName.value &&
              store.adminCredentials.host && 
-             store.adminCredentials.username && 
-             store.adminCredentials.password && 
-             store.adminCredentials.database)
+             store.adminCredentials.port &&
+             store.adminCredentials.database &&
+             store.restrictedUser.username)
   }
 
-  // Step 2: Capabilities
-  if (store.currentStep === SetupStep.CAPABILITIES) {
+  // Step 2: Config Verification (Admin Auth needed ONLY for Automatic Setup or Reconfigure)
+  if (store.currentStep === SetupStep.CONFIG) {
+    if (!store.setupMode) return false
+    
+    // Admin credentials required for Automatic/Reconfigure
+    if (props.reconfigureMode || store.setupMode === 'auto') {
+      return !!(store.adminCredentials.username && store.adminCredentials.password)
+    }
+    
     return true
   }
 
-  // Step 3: Strategy Choice
-  if (store.currentStep === SetupStep.STRATEGY) {
-    return !!store.setupMode
-  }
-
-  // Step 4: Action (Execution for auto, Review for manual)
-  if (store.currentStep === SetupStep.ACTION) {
-      return store.setupMode === 'auto' ? executionDone.value : true
+  // Step 3: Execution (Final)
+  if (store.currentStep === SetupStep.EXECUTION) {
+      return verificationDone.value
   }
 
   return true
 })
 
+const allChecksPassed = computed(() => {
+  return store.verificationResults.baseConn === 'pass' && 
+         store.verificationResults.schemaRead === 'pass' &&
+         store.verificationResults.sandboxTest === 'pass'
+})
+
 const currentActionIsTest = computed(() => {
-  return store.currentStep === SetupStep.INPUT || store.currentStep === SetupStep.STRATEGY
+  // Step 1 is now just information, no test
+  if (store.currentStep === SetupStep.INPUT) return false
+  
+  // Step 2 is a test step ONLY if we have admin credentials to test
+  if (store.currentStep === SetupStep.CONFIG) {
+    return props.reconfigureMode || store.setupMode === 'auto'
+  }
+  
+  return false
 })
 
 const primaryNextIcon = computed(() => {
@@ -696,19 +730,20 @@ const next = async () => {
   if (store.currentStep < totalSteps.value) {
     store.currentStep++
     
-    // Check if we just entered the "Review Script" step
-    const isReviewStep = store.currentStep === SetupStep.ACTION
+    // Check if we just entered the "Execution" step
+    const isExecutionStep = store.currentStep === SetupStep.EXECUTION
 
-    if (isReviewStep) {
+    if (isExecutionStep) {
       try {
         generatedScript.value = 'Generating script...'
         const script = await Andb.generateUserSetupScript({
-          adminConnection: store.adminCredentials,
+          adminConnection: JSON.parse(JSON.stringify(store.adminCredentials)),
           restrictedUser: {
               username: store.restrictedUser.username,
               password: store.restrictedUser.password
           },
-          permissions: store.permissions
+          permissions: store.permissions,
+          isReconfigure: props.reconfigureMode
         })
         generatedScript.value = script
       } catch (e: any) {
@@ -731,6 +766,8 @@ const startExecution = async () => {
   }
 
   try {
+    verificationDone.value = false
+    executionDone.value = false
     addLog($t('restrictedUserSetup.execution.running'))
     
     addLog($t('restrictedUserSetup.logs.connecting', { host: store.adminCredentials.host, user: store.adminCredentials.username }))
@@ -746,14 +783,14 @@ const startExecution = async () => {
       environment: 'DEV'
     })
 
-    if (!testAdmin) throw new Error('Admin connection failed. Please check credentials.')
+    if (!testAdmin || !testAdmin.success) throw new Error('Admin connection failed. Please check credentials.')
     addLog($t('restrictedUserSetup.logs.adminOk'))
     
     addLog($t('restrictedUserSetup.logs.creatingUser', { user: store.restrictedUser.username }))
     
     // Call the actual setup IPC
     await Andb.setupRestrictedUser({
-      adminConnection: store.adminCredentials,
+      adminConnection: JSON.parse(JSON.stringify(store.adminCredentials)),
       restrictedUser: {
           username: store.restrictedUser.username,
           password: store.restrictedUser.password
@@ -770,6 +807,10 @@ const startExecution = async () => {
     
     addLog($t('restrictedUserSetup.logs.done'))
     executionDone.value = true
+
+    // AUTOMATIC VERIFICATION after successful execution
+    addLog('Starting verification suite...')
+    await performVerification()
   } catch (err: any) {
     addLog(`ERROR: ${err.message}`)
   } finally {
@@ -866,6 +907,7 @@ const complete = () => {
         type: 'mysql',
         username: store.restrictedUser.username,
         password: store.restrictedUser.password,
+        permissions: { ...store.permissions },
         productSettings: productSettings.value
     })
 }

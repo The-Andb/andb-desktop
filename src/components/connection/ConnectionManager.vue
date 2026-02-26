@@ -72,6 +72,10 @@
             
 
 
+            <router-link to="/settings?cat=templates" class="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all group">
+               <Settings class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-500" />
+               {{ $t('connections.manageGlobal') }}
+            </router-link>
             <button @click="showAddForm = true"
                     class="btn btn-primary flex items-center">
               <Plus class="w-4 h-4 mr-2" />
@@ -293,27 +297,8 @@ const templatesStore = useConnectionTemplatesStore()
 const connectionPairsStore = useConnectionPairsStore()
 
 onMounted(async () => {
-  // 1. Fetch latest templates to ensure we have fresh data for sync
+  // 1. Fetch latest templates to ensure we have fresh data for resolution
   await templatesStore.reloadData()
-
-  // 2. Sync connections that have templateId
-  appStore.connections.forEach((conn, index) => {
-    if (conn.templateId) {
-      const template = templatesStore.templates.find(t => t.id === conn.templateId)
-      if (template) {
-        // Sync fields from template
-        appStore.connections[index] = {
-          ...conn,
-          name: template.name, // Keep name in sync too? User might prefer local name, but usually template name is the "standard"
-          host: template.host,
-          port: template.port,
-          type: template.type,
-          username: template.username,
-          password: template.password || conn.password // Fallback to local if template has no pass
-        }
-      }
-    }
-  })
 
   // Deep link handling
   if (route.query.action === 'new') {
@@ -357,7 +342,7 @@ const clearSelection = () => {
 
 const bulkTestConnections = async () => {
   for (const id of selectedConnections.value) {
-    const conn = appStore.connections.find(c => c.id === id)
+    const conn = appStore.resolvedConnections.find(c => c.id === id)
     if (conn && conn.type !== 'dump') {
       await appStore.testConnection(id)
     }

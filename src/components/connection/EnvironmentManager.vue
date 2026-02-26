@@ -168,7 +168,7 @@ const showConnectionManager = (envName?: string) => {
 }
 
 const getConnectionCount = (environmentName: string) => {
-  return appStore.connections.filter(conn => conn.environment === environmentName).length
+  return appStore.resolvedConnections.filter(conn => conn.environment === environmentName).length
 }
 
 const defaultEnvironments = ['DEV', 'STAGE', 'UAT', 'PROD']

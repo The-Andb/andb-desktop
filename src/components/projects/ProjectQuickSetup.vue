@@ -218,10 +218,11 @@ const applySetup = async () => {
                 if (template) {
                      connectionData = {
                         ...connectionData,
-                        host: template.host,
-                        port: template.port,
-                        username: template.username,
-                        password: template.password,
+                        // Design: If using a template, don't clone the infra fields (SSoT)
+                        host: '',
+                        port: 0,
+                        username: '',
+                        password: '',
                         type: template.type,
                         templateId: template.id
                      }
@@ -233,7 +234,7 @@ const applySetup = async () => {
             // Let's create new ones for now, maybe append " (Setup)" or just rely on user management later.
             // Actually, better: if connection with name == env exists, use it.
             
-            const existing = appStore.connections.find(c => c.name === env && c.environment === env)
+            const existing = appStore.resolvedConnections.find(c => c.name === env && c.environment === env)
             if (existing) {
                 createdConnectionIds[env] = existing.id
             } else {

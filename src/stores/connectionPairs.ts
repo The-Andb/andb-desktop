@@ -178,7 +178,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     const sortedEnvs = [...environments.value]
       .filter(env => project.enabledEnvironmentIds.includes(env.id))
       .filter(env => project.connectionIds.some(cid => {
-        const conn = appStore.connections.find(c => c.id === cid)
+        const conn = appStore.resolvedConnections.find(c => c.id === cid)
         return conn && conn.environment === env.id
       }))
       .sort((a, b) => a.order - b.order)
@@ -196,12 +196,12 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
       // Auto-pick connections ONLY from the current project
       const autoSourceConn = project.connectionIds.find(cid => {
-        const conn = appStore.connections.find(c => c.id === cid)
+        const conn = appStore.resolvedConnections.find(c => c.id === cid)
         return conn && conn.environment === source.id
       }) || ''
 
       const autoTargetConn = project.connectionIds.find(cid => {
-        const conn = appStore.connections.find(c => c.id === cid)
+        const conn = appStore.resolvedConnections.find(c => c.id === cid)
         return conn && conn.environment === target.id
       }) || ''
 
@@ -239,7 +239,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
   })
 
   const selectedPair = computed(() => {
-    return connectionPairs.value.find(pair => pair.id === selectedPairId.value)
+    return availablePairs.value.find(pair => pair.id === selectedPairId.value)
   })
 
   const getPairsBySource = computed(() => {
@@ -252,29 +252,29 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   const activePair = computed(() => {
     try {
-      if (!connectionPairs.value) return null
+      if (!availablePairs.value) return null
       if (!selectedPairId || !selectedPairId.value) return null
 
-      const pair = connectionPairs.value.find(p => p.id === selectedPairId.value)
+      const pair = availablePairs.value.find(p => p.id === selectedPairId.value)
       if (!pair) return null
 
       const appStore = useAppStore()
-      if (!appStore || !appStore.connections) return null
+      if (!appStore || !appStore.resolvedConnections) return null
 
       let source = null
       if (pair.sourceConnectionId) {
-        source = appStore.connections.find(c => c.id === pair.sourceConnectionId)
+        source = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId)
       }
       if (!source) {
-        source = appStore.connections.find(c => c.environment === pair.sourceEnv)
+        source = appStore.resolvedConnections.find(c => c.environment === pair.sourceEnv)
       }
 
       let target = null
       if (pair.targetConnectionId) {
-        target = appStore.connections.find(c => c.id === pair.targetConnectionId)
+        target = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId)
       }
       if (!target) {
-        target = appStore.connections.find(c => c.environment === pair.targetEnv)
+        target = appStore.resolvedConnections.find(c => c.environment === pair.targetEnv)
       }
 
       if (!source || !target) return null
@@ -294,7 +294,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   // Actions
   const setSelectedPair = (pairId: string) => {
-    const pair = connectionPairs.value.find(p => p.id === pairId)
+    const pair = availablePairs.value.find(p => p.id === pairId)
     if (pair) {
       selectedPairId.value = pairId
     } else {
@@ -394,7 +394,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
   }
 
   const testConnectionPair = async (pairId: string) => {
-    const pair = connectionPairs.value.find(p => p.id === pairId)
+    const pair = availablePairs.value.find(p => p.id === pairId)
     if (!pair) return
 
     pair.status = 'testing'
@@ -405,18 +405,18 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       // Find actual connections for this pair's environments
       let sourceConn = null
       if (pair.sourceConnectionId) {
-        sourceConn = appStore.connections.find(c => c.id === pair.sourceConnectionId)
+        sourceConn = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId)
       }
       if (!sourceConn) {
-        sourceConn = appStore.connections.find(c => c.environment === pair.sourceEnv)
+        sourceConn = appStore.resolvedConnections.find(c => c.environment === pair.sourceEnv)
       }
 
       let targetConn = null
       if (pair.targetConnectionId) {
-        targetConn = appStore.connections.find(c => c.id === pair.targetConnectionId)
+        targetConn = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId)
       }
       if (!targetConn) {
-        targetConn = appStore.connections.find(c => c.environment === pair.targetEnv)
+        targetConn = appStore.resolvedConnections.find(c => c.environment === pair.targetEnv)
       }
 
       if (!sourceConn || !targetConn) {

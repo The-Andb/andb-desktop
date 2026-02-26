@@ -239,7 +239,7 @@ const ddlTypes = [
 ]
 
 const projectConnections = computed(() => {
-   return appStore.connections.filter(c => currentProject.value?.connectionIds.includes(c.id))
+   return appStore.resolvedConnections.filter(c => currentProject.value?.connectionIds.includes(c.id))
 })
 
 const getDatabaseData = (connectionId: string) => {

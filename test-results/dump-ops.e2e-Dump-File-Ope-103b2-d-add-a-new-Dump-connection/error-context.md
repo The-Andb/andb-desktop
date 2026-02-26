@@ -1,0 +1,215 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8] [cursor=pointer]:
+          - img "The Andb" [ref=e9]
+          - generic [ref=e10]: The Andb
+        - generic [ref=e11]:
+          - heading "Dashboard" [level=1] [ref=e12]
+          - navigation [ref=e14]:
+            - list [ref=e15]:
+              - listitem [ref=e16]:
+                - button "Dashboard" [ref=e17] [cursor=pointer]
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - img [ref=e21]
+            - combobox [ref=e23] [cursor=pointer]:
+              - option "The Base One" [selected]
+              - option "+ New Base"
+          - button "Project Manager" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - 'button "Theme: system" [ref=e31] [cursor=pointer]':
+            - img [ref=e33]
+          - button "EN" [ref=e36] [cursor=pointer]:
+            - img [ref=e37]
+            - generic [ref=e40]: EN
+        - button "Settings" [ref=e42] [cursor=pointer]:
+          - img [ref=e43]
+        - button "About" [ref=e46] [cursor=pointer]:
+          - img [ref=e47]
+  - generic [ref=e49]:
+    - complementary [ref=e50]:
+      - generic [ref=e51]:
+        - navigation [ref=e52]:
+          - generic [ref=e53]:
+            - link "Dashboard" [ref=e54] [cursor=pointer]:
+              - /url: "#/"
+              - img [ref=e56]
+              - generic [ref=e59]: Dashboard
+            - link "Schema" [ref=e60] [cursor=pointer]:
+              - /url: "#/schema"
+              - img [ref=e62]
+              - generic [ref=e66]: Schema
+            - link "Diff & Sync" [ref=e67] [cursor=pointer]:
+              - /url: "#/compare"
+              - img [ref=e69]
+              - generic [ref=e74]: Diff & Sync
+            - link "History & Rollback" [ref=e75] [cursor=pointer]:
+              - /url: "#/history"
+              - img [ref=e77]
+              - generic [ref=e81]: History & Rollback
+            - link "Project Settings" [ref=e82] [cursor=pointer]:
+              - /url: "#/project-settings"
+              - img [ref=e84]
+              - generic [ref=e88]: Project Settings
+              - img [ref=e89]
+        - generic [ref=e91]:
+          - generic [ref=e92]: Schema Explorer
+          - generic [ref=e93]:
+            - button "Refresh" [ref=e94] [cursor=pointer]:
+              - img [ref=e95]
+            - button "Expand All" [ref=e100] [cursor=pointer]:
+              - img [ref=e101]
+            - button "Collapse All" [ref=e103] [cursor=pointer]:
+              - img [ref=e104]
+        - generic [ref=e107]:
+          - generic:
+            - img
+          - textbox "Search" [ref=e108]
+          - generic [ref=e109]:
+            - button "Match Case" [ref=e110] [cursor=pointer]:
+              - img [ref=e111]
+            - button "Match Whole Word" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+            - button "Use Regular Expression" [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - generic [ref=e127] [cursor=pointer]:
+              - img [ref=e129]
+              - img [ref=e131]
+              - generic [ref=e135]: DEV
+              - generic [ref=e136]: SRC
+            - generic [ref=e140] [cursor=pointer]:
+              - img [ref=e142]
+              - img [ref=e144]
+              - generic [ref=e148]: dev_database
+              - button "Force Refresh Schema" [ref=e149]:
+                - img [ref=e150]
+          - generic [ref=e155]:
+            - generic [ref=e156] [cursor=pointer]:
+              - img [ref=e158]
+              - img [ref=e160]
+              - generic [ref=e163]: STAGE
+            - generic [ref=e167] [cursor=pointer]:
+              - img [ref=e169]
+              - img [ref=e171]
+              - generic [ref=e175]: stage_database
+              - button "Force Refresh Schema" [ref=e176]:
+                - img [ref=e177]
+          - generic [ref=e182]:
+            - generic [ref=e183] [cursor=pointer]:
+              - img [ref=e185]
+              - img [ref=e187]
+              - generic [ref=e190]: PROD
+            - generic [ref=e194] [cursor=pointer]:
+              - img [ref=e196]
+              - img [ref=e198]
+              - generic [ref=e202]: prod_database
+              - button "Force Refresh Schema" [ref=e203]:
+                - img [ref=e204]
+    - main [ref=e209]:
+      - generic [ref=e210]:
+        - generic [ref=e211]:
+          - heading "Project Settings" [level=1] [ref=e212]:
+            - img [ref=e213]
+            - text: Project Settings
+          - paragraph [ref=e217]: The Base One
+        - generic [ref=e219]:
+          - heading "Project Settings" [level=3] [ref=e220]
+          - button "Environments" [ref=e221] [cursor=pointer]:
+            - img [ref=e222]
+            - generic [ref=e227]: Environments
+          - button "Connections" [ref=e228] [cursor=pointer]:
+            - img [ref=e229]
+            - generic [ref=e232]: Connections
+          - button "Sync Pairs" [ref=e233] [cursor=pointer]:
+            - img [ref=e234]
+            - generic [ref=e239]: Sync Pairs
+          - button "Engine" [ref=e240] [cursor=pointer]:
+            - img [ref=e241]
+            - generic [ref=e244]: Engine
+        - button "Reset All Data" [ref=e246] [cursor=pointer]:
+          - img [ref=e247]
+          - text: Reset All Data
+      - generic [ref=e252]:
+        - generic [ref=e253]:
+          - img [ref=e255]
+          - generic [ref=e258]:
+            - heading "Access Control & Credentials" [level=2] [ref=e259]
+            - paragraph [ref=e260]: Manage server endpoints and secure database entry
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - generic [ref=e264]:
+              - img [ref=e266]
+              - generic [ref=e270]:
+                - heading "Add New Connection" [level=3] [ref=e271]
+                - paragraph [ref=e272]: Database Endpoint Configuration
+            - button "Cancel" [ref=e273] [cursor=pointer]:
+              - generic [ref=e274]: Cancel
+              - img [ref=e275]
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - generic [ref=e281]:
+                - img [ref=e282]
+                - text: Global Connection Source
+              - generic [ref=e286]:
+                - generic [ref=e287]:
+                  - combobox [ref=e288]:
+                    - option "Custom (No Global Connection)" [selected]
+                  - generic:
+                    - img
+                  - img
+                - button "Save as Global Connection" [ref=e290] [cursor=pointer]:
+                  - img [ref=e291]
+                  - generic [ref=e295]: Save as Global Connection
+            - generic [ref=e296]:
+              - heading "Basic Information" [level=3] [ref=e298]
+              - generic [ref=e299]:
+                - generic [ref=e300]:
+                  - generic [ref=e301]: Connection Name *
+                  - textbox "Enter connection name" [active] [ref=e302]: /Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/assets/demo-dump.sql
+                - generic [ref=e303]:
+                  - generic [ref=e304]: Environment *
+                  - generic [ref=e305]:
+                    - combobox [ref=e306]:
+                      - option "Select"
+                      - option "Development" [selected]
+                      - option "Staging"
+                      - option "Production"
+                    - img
+            - generic [ref=e307]:
+              - heading "Database Connection" [level=3] [ref=e309]
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - generic [ref=e312]: Database Type *
+                  - generic [ref=e313]:
+                    - combobox [ref=e314]:
+                      - option "MySQL / MariaDB"
+                      - option "SQL Dump File" [selected]
+                      - option "PostgreSQL (Coming Soon)" [disabled]
+                      - option "SQLite (Coming Soon)" [disabled]
+                    - img
+                - generic [ref=e315]:
+                  - generic [ref=e316]: Dump File Path *
+                  - generic [ref=e317]:
+                    - textbox "Select or enter path to .sql file" [ref=e318]
+                    - button [ref=e319] [cursor=pointer]:
+                      - img [ref=e320]
+                - generic [ref=e322]:
+                  - generic [ref=e323]: Connection Timeout
+                  - generic [ref=e324]:
+                    - spinbutton [ref=e325]: "30"
+                    - paragraph [ref=e326]: Timeout in seconds
+            - button "Advanced Settings" [ref=e328] [cursor=pointer]:
+              - generic [ref=e329]: Advanced Settings
+              - img [ref=e330]
+            - generic [ref=e333]:
+              - button "Cancel" [ref=e334] [cursor=pointer]
+              - button "Save" [ref=e335] [cursor=pointer]
+```

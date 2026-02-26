@@ -102,6 +102,7 @@ navigation:
     procedures: 'Procedures'
     functions: 'Functions'
     triggers: 'Triggers'
+    events: 'Events'
 
 dashboard:
   title: 'Dashboard'
@@ -177,6 +178,7 @@ splash:
     procedures: 'Procedures'
     functions: 'Functions'
     triggers: 'Triggers'
+    events: 'Events'
 
 header:
   pairContext: 'Global Connection Pair Context'
@@ -403,14 +405,16 @@ connections:
   connectionsFor: 'Connections for {environment}'
   noConnectionsForEnvironment: 'No connections for {environment}'
   addFirstConnection: 'Add your first connection to get started'
+  manageGlobal: 'Manage Global Connections'
   utf8mb4Recommended: 'utf8mb4 (Recommended)'
   utc: 'UTC (+00:00)'
   ho_chi_minh: 'Ho Chi Minh (+07:00)'
   singapore: 'Singapore/Shanghai (+08:00)'
-  global:
+  template:
     source: 'Global Connection Source'
     custom: 'Custom (No Global Connection)'
     detach: 'Detach from Global Connection'
+    manage: 'Manage Templates'
     createFrom: 'Save as Global Connection'
     createFromDesc: 'Create a reusable global connection from these settings'
     namePrompt: 'Connection Name'
@@ -738,8 +742,14 @@ connectionPairs:
     enabledOnly: 'Only enabled environments are available for selection'
 
 restrictedUserSetup:
-  title: 'Secure Connection Setup'
-  description: 'Create a dedicated account with limited permissions.'
+  title: 'Operational Account Setup'
+  description: 'The Andb uses this dedicated account to safely interact with your database. Please ensure the permissions align with your security requirements.'
+  reconfigure:
+    title: 'Reconfigure Privileges'
+    adminNote: 'Enter admin credentials to update privileges for user {username}. These credentials are not saved.'
+  restrictedUsername:
+    label: 'Andb Manager Username'
+    placeholder: 'the_andb'
   reassurance: 'Secure: Admin access is used once for setup and never stored. Passwords remain in memory only.'
   safetyBadge: 'Secure'
   permissions:

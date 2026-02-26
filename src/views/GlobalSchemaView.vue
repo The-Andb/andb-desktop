@@ -387,7 +387,8 @@ watch(() => projectsStore.selectedProjectId, () => {
     procedures: [],
     functions: [],
     views: [],
-    triggers: []
+    triggers: [],
+    events: []
   }
 })
 
@@ -416,7 +417,7 @@ const selectedConnectionId = computed({
 })
 
 const activeConnectionName = computed(() => {
-  const conn = appStore.connections.find(c => c.id === appStore.selectedConnectionId)
+  const conn = appStore.getConnectionById(appStore.selectedConnectionId)
   return conn ? `${conn.environment}: ${conn.database || conn.name}` : t('schema.noConnection')
 })
 const selectedFilterType = ref('all')
@@ -433,7 +434,8 @@ const schemaData = ref({
   procedures: [] as any[],
   functions: [] as any[],
   views: [] as any[],
-  triggers: [] as any[]
+  triggers: [] as any[],
+  events: [] as any[]
 })
 
 const allResults = computed(() => {
@@ -442,7 +444,8 @@ const allResults = computed(() => {
     ...schemaData.value.procedures.map(i => ({ ...i, type: 'procedures' })),
     ...schemaData.value.functions.map(i => ({ ...i, type: 'functions' })),
     ...schemaData.value.views.map(i => ({ ...i, type: 'views' })),
-    ...schemaData.value.triggers.map(i => ({ ...i, type: 'triggers' }))
+    ...schemaData.value.triggers.map(i => ({ ...i, type: 'triggers' })),
+    ...schemaData.value.events.map(i => ({ ...i, type: 'events' }))
   ]
   const hasData = base.length > 0
   if (hasData) {
@@ -713,7 +716,7 @@ const parseColumnsFromDDL = (ddl: string): Column[] | null => {
 
 
 const resultsByCategory = computed(() => {
-  const categories = ['tables', 'views', 'procedures', 'functions', 'triggers']
+  const categories = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
   const base = categories.map(cat => ({
     type: cat,
     items: allResults.value.filter(i => i.type === cat)
@@ -756,7 +759,7 @@ const stopResize = () => {
 const loadSchema = async (forceRefresh = false) => {
   if (!selectedConnectionId.value) return
   
-  const conn = appStore.connections.find(c => c.id === selectedConnectionId.value)
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
   if (!conn) return
 
   loading.value = true
@@ -799,53 +802,43 @@ const loadSchema = async (forceRefresh = false) => {
         
         // Helper to run export
         const runExports = async () => {
-             for (const type of objTypes) {
-                const cmd = `andb export --source ${conn.environment} --type ${type}` + (exportName ? ` --name ${exportName}` : '')
-                consoleStore.addLog(cmd, 'cmd')
-              }
-        
-              await Promise.all(objTypes.map(type => 
-                Andb.export(conn, null as any, { 
-                  type: type as any, 
-                  environment: conn.environment, 
-                  name: exportName 
-                })
-                  .then(res => {
-                    consoleStore.addLog(`Fetched ${res.data?.length || 0} ${type}`, 'success')
-                    return res
-                  })
-              ))
+          const env = conn.environment
+          const cmd = `andb export --source ${env}` + (exportName ? ` --name ${exportName}` : '')
+          consoleStore.addLog(cmd, 'cmd')
+         
+          await Andb.export(conn, null as any, { 
+            type: objTypes[0], // Pass specific type (e.g., 'procedures') for targeted refresh
+            env, 
+            name: exportName 
+          })
+            .then(res => {
+              const summary = res.data || {}
+              Object.entries(summary).forEach(([type, count]) => {
+                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
+              })
+              return res
+            })
         }
         await runExports()
 
       } else if (selectedFilterType.value && selectedFilterType.value !== 'all') {
         // 2. Refresh specific category
-        // Clear category data? No API for clearing just category yet. Connection clear is safest for "power full".
-        // But if user asks for full power, maybe full clear is what they expect even for filtered view? 
-        // User said: "khi click phải dọn sạch sqlite và fetch từ db thật về lưu mới toanh"
-        // Implicitly probably refers to the main "Fetch from DB" button which usually fetches all.
-        // But let's apply it generally if it's a full fetch.
+        const env = conn.environment
+        const type = selectedFilterType.value as any
+        const cmd = `andb export --source ${env} --type ${type}`
+        consoleStore.addLog(cmd, 'cmd')
         
-        let objTypes: any[] = [selectedFilterType.value.toLowerCase()]
-        consoleStore.addLog(`Refreshing category: ${selectedFilterType.value}`, 'info')
-        
-        // ... export loop ...
-        for (const type of objTypes) {
-          const cmd = `andb export --source ${conn.environment} --type ${type}`
-          consoleStore.addLog(cmd, 'cmd')
-        }
-        
-         await Promise.all(objTypes.map(type => 
-            // @ts-ignore
-            Andb.export(conn, null as any, { 
-              type: type as any, 
-              environment: conn.environment
+        await Andb.export(conn, null as any, { 
+            type,
+            env
+        })
+          .then(res => {
+            const summary = res.data || {}
+            Object.entries(summary).forEach(([type, count]) => {
+                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
             })
-              .then(res => {
-                consoleStore.addLog(`Fetched ${res.count || 0} ${type}`, 'success')
-                return res
-              })
-          ))
+            return res
+          })
 
       } else {
         // 3. FULL REFRESH
@@ -859,24 +852,21 @@ const loadSchema = async (forceRefresh = false) => {
         }
         
         consoleStore.addLog(t('schema.refreshed'), 'info')
-        let objTypes: any[] = ['tables', 'procedures', 'functions', 'triggers', 'views']
         
-        for (const type of objTypes) {
-           const cmd = `andb export --source ${conn.environment} --type ${type}`
-           consoleStore.addLog(cmd, 'cmd')
-         }
+        const cmd = `andb export --source ${conn.environment}`
+        consoleStore.addLog(cmd, 'cmd')
    
-         await Promise.all(objTypes.map(type => 
-           // @ts-ignore
-           Andb.export(conn, null as any, { 
-             type: type as any, 
-             environment: conn.environment 
-           })
-             .then(res => {
-               consoleStore.addLog(`Fetched ${res.data?.length || 0} ${type}`, 'success')
-               return res
-             })
-         ))
+        await Andb.export(conn, null as any, { 
+          type: 'all' as any,
+          environment: conn.environment 
+        })
+          .then(res => {
+            const summary = res.data || {}
+            Object.entries(summary).forEach(([type, count]) => {
+                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
+            })
+            return res
+          })
       }
 
       // Update cache logic stays same - we just refreshed SQLite state.
@@ -933,7 +923,8 @@ const loadSchema = async (forceRefresh = false) => {
           procedures: dbData.procedures || [],
           functions: dbData.functions || [],
           views: dbData.views || [],
-          triggers: dbData.triggers || []
+          triggers: dbData.triggers || [],
+          events: dbData.events || []
         }
         
         // No need to manually assign to allResults (it's computed!)
@@ -946,7 +937,8 @@ const loadSchema = async (forceRefresh = false) => {
           procedures: [],
           functions: [],
           views: [],
-          triggers: []
+          triggers: [],
+          events: []
         }
         
         if (conn.status === 'connected') {
@@ -1005,7 +997,7 @@ const selectItem = async (item: any) => {
 const takeSnapshot = async () => {
   if (!selectedItem.value || !selectedConnectionId.value) return
   
-  const conn = appStore.connections.find(c => c.id === selectedConnectionId.value)
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
   if (!conn) return
 
   loading.value = true
@@ -1032,7 +1024,7 @@ const takeSnapshot = async () => {
 const viewHistory = () => {
   if (!selectedItem.value || !selectedConnectionId.value) return
   
-  const conn = appStore.connections.find(c => c.id === selectedConnectionId.value)
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
   if (!conn) return
 
   router.push({
@@ -1059,7 +1051,7 @@ const downloadDDL = () => {
 const handleCategorySelected = (e: any) => {
   const { type, env, db } = e.detail
   // SUPPORT DUMP: Flexible matching for database name/connection name
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )
@@ -1073,7 +1065,7 @@ const handleCategorySelected = (e: any) => {
 const handleObjectSelected = (e: any) => {
   const { name, type, env, db } = e.detail
   // SUPPORT DUMP: Flexible matching
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )
@@ -1111,7 +1103,7 @@ const handleObjectSelected = (e: any) => {
 
 const handleDatabaseSelected = (e: any) => {
   const { env, db } = e.detail
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === env && 
     (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
   )

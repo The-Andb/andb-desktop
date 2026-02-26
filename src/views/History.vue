@@ -249,13 +249,13 @@ const filters = ref({
 const historyTypes = ['', 'TABLES', 'VIEWS', 'PROCEDURES', 'FUNCTIONS', 'TRIGGERS']
 
 const currentConnection = computed(() => {
-  return appStore.connections.find(c => c.id === appStore.selectedConnectionId)
+  return appStore.resolvedConnections.find(c => c.id === appStore.selectedConnectionId)
 })
 
 const projectConnections = computed(() => {
   if (!projectsStore.currentProject) return []
   const ids = projectsStore.currentProject.connectionIds || []
-  return appStore.connections.filter(c => ids.includes(c.id))
+  return appStore.resolvedConnections.filter(c => ids.includes(c.id))
 })
 
 const filteredSnapshots = computed(() => {
@@ -334,7 +334,7 @@ const restoreVersion = async () => {
   if (!selectedSnapshot.value) return
   
   const snapshot = selectedSnapshot.value
-  const conn = appStore.connections.find(c => 
+  const conn = appStore.resolvedConnections.find(c => 
     c.environment === snapshot.environment && 
     c.database === snapshot.database_name
   )
@@ -395,7 +395,7 @@ onMounted(async () => {
     const { env, type, db } = e.detail
     
     // Update global store if needed
-    const conn = appStore.connections.find(c => c.environment === env && c.database === db)
+    const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
     if (conn) {
       appStore.selectedConnectionId = conn.id
     }
@@ -411,7 +411,7 @@ onMounted(async () => {
     const { env, name, type, db } = e.detail
     
     // Update global store if needed
-    const conn = appStore.connections.find(c => c.environment === env && c.database === db)
+    const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
     if (conn) {
       appStore.selectedConnectionId = conn.id
     }

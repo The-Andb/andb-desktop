@@ -2,10 +2,16 @@
   <div class="space-y-6">
     <!-- Template Selection - MANDATORY -->
     <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
-        <label class="block text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <LayoutTemplate class="w-4 h-4" />
-            {{ $t('connections.template.source') }}
-        </label>
+        <div class="flex items-center justify-between mb-3">
+            <label class="block text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                <LayoutTemplate class="w-4 h-4" />
+                {{ $t('connections.template.source') }}
+            </label>
+            <router-link to="/settings?cat=templates" class="text-[9px] font-black text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 uppercase tracking-wider flex items-center gap-1 transition-colors">
+                <Settings class="w-3 h-3" />
+                {{ $t('connections.template.manage') }}
+            </router-link>
+        </div>
         
         <div class="relative">
             <select
@@ -191,12 +197,10 @@ import {
 } from 'lucide-vue-next'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
-import { useAppStore } from '@/stores/app'
-import type { DatabaseConnection } from '@/stores/app'
+import type { DatabaseConnection, SshConfig } from '@/stores/app'
 import Andb from '@/utils/andb'
 
 const { t: $t } = useI18n()
-const appStore = useAppStore()
 const connectionPairsStore = useConnectionPairsStore()
 const templatesStore = useConnectionTemplatesStore()
 
@@ -237,8 +241,8 @@ const form = ref({
     host: '',
     port: 22,
     username: '',
-    privateKeyPath: ''
-  }
+    privateKeyPath: undefined
+  } as SshConfig
 })
 
 // UI state
@@ -351,18 +355,23 @@ const saveConnection = async () => {
   isSaving.value = true
   
   try {
+    const isReference = !!form.value.templateId
+    
     const connectionData: Omit<DatabaseConnection, 'id'> = {
       name: form.value.name,
-      host: form.value.host,
-      port: form.value.port,
+      // Design: If using a template, don't clone the infra fields.
+      // SSoT (Single Source of Truth) means these are resolved dynamically.
+      host: isReference ? '' : form.value.host,
+      port: isReference ? 0 : form.value.port,
+      username: isReference ? '' : form.value.username,
+      password: isReference ? undefined : (form.value.password || undefined),
+      
       database: form.value.database,
-      username: form.value.username,
-      password: form.value.password || undefined,
       environment: form.value.environment as any,
       status: 'testing',
       type: form.value.type as any,
       templateId: form.value.templateId,
-      ssh: form.value.ssh as any,
+      ssh: isReference ? undefined : (form.value.ssh as any),
       timeout: form.value.timeout,
       useSSL: form.value.useSSL,
       allowSelfSigned: form.value.allowSelfSigned,

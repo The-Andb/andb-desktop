@@ -179,7 +179,7 @@ onMounted(() => {
 
 const connectionPairs = computed(() => connectionPairsStore.availablePairs)
 const enabledEnvironments = computed(() => connectionPairsStore.enabledEnvironments)
-const connections = computed(() => appStore.connections)
+const connections = computed(() => appStore.resolvedConnections)
 
 const defaultPair = computed(() => connectionPairsStore.defaultPair)
 

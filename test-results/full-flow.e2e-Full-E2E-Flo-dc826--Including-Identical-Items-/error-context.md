@@ -1,0 +1,175 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8] [cursor=pointer]:
+          - img "The Andb" [ref=e9]
+          - generic [ref=e10]: The Andb
+        - generic [ref=e11]:
+          - heading "Diff & Sync" [level=1] [ref=e12]
+          - navigation [ref=e14]:
+            - list [ref=e15]:
+              - listitem [ref=e16]:
+                - button "Dashboard" [ref=e17] [cursor=pointer]
+              - listitem [ref=e18]:
+                - generic [ref=e19]: /
+                - button "E2E Sync Flow" [ref=e20] [cursor=pointer]
+              - listitem [ref=e21]:
+                - generic [ref=e22]: /
+                - button "Diff & Sync" [disabled] [ref=e23]
+      - generic [ref=e24]:
+        - generic [ref=e26]:
+          - img [ref=e27]
+          - generic [ref=e32]:
+            - combobox "Global Connection Pair Context" [ref=e33] [cursor=pointer]:
+              - option "Select Pair" [disabled]
+              - option "E2E Sync Flow" [selected]
+              - option "STAGE to UAT"
+              - option "UAT to PROD"
+              - option "New Pair"
+              - option "STAGE to PROD"
+            - generic:
+              - img
+        - generic [ref=e34]:
+          - button "Verify connection pair" [ref=e35] [cursor=pointer]:
+            - img [ref=e36]
+          - button "Reload configuration and cache" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+          - button "Manage Connection Pairs" [ref=e45] [cursor=pointer]:
+            - img [ref=e46]
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - combobox [ref=e55] [cursor=pointer]:
+              - option "The Base One" [selected]
+              - option "+ New Base"
+          - button "Project Manager" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+          - 'button "Theme: system" [ref=e63] [cursor=pointer]':
+            - img [ref=e65]
+          - button "EN" [ref=e68] [cursor=pointer]:
+            - img [ref=e69]
+            - generic [ref=e72]: EN
+        - button "Settings" [ref=e74] [cursor=pointer]:
+          - img [ref=e75]
+        - button "About" [ref=e78] [cursor=pointer]:
+          - img [ref=e79]
+  - generic [ref=e81]:
+    - complementary [ref=e83]:
+      - generic [ref=e84]:
+        - navigation [ref=e85]:
+          - generic [ref=e86]:
+            - link "Dashboard" [ref=e87] [cursor=pointer]:
+              - /url: "#/"
+              - img [ref=e89]
+              - generic [ref=e92]: Dashboard
+            - link "Schema" [ref=e93] [cursor=pointer]:
+              - /url: "#/schema"
+              - img [ref=e95]
+              - generic [ref=e99]: Schema
+            - link "Diff & Sync" [ref=e100] [cursor=pointer]:
+              - /url: "#/compare"
+              - img [ref=e102]
+              - generic [ref=e107]: Diff & Sync
+              - img [ref=e108]
+            - link "History & Rollback" [ref=e110] [cursor=pointer]:
+              - /url: "#/history"
+              - img [ref=e112]
+              - generic [ref=e116]: History & Rollback
+            - link "Project Settings" [ref=e117] [cursor=pointer]:
+              - /url: "#/project-settings"
+              - img [ref=e119]
+              - generic [ref=e123]: Project Settings
+        - generic [ref=e124]:
+          - generic [ref=e125]: Source Explorer
+          - generic [ref=e126]:
+            - button "Refresh" [ref=e127] [cursor=pointer]:
+              - img [ref=e128]
+            - button "Expand All" [ref=e133] [cursor=pointer]:
+              - img [ref=e134]
+            - button "Collapse All" [ref=e136] [cursor=pointer]:
+              - img [ref=e137]
+        - generic [ref=e140]:
+          - generic:
+            - img
+          - textbox "Search" [ref=e141]
+          - generic [ref=e142]:
+            - button "Match Case" [ref=e143] [cursor=pointer]:
+              - img [ref=e144]
+            - button "Match Whole Word" [ref=e147] [cursor=pointer]:
+              - img [ref=e148]
+            - button "Use Regular Expression" [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+    - generic [ref=e160]:
+      - generic [ref=e161]:
+        - generic [ref=e163]:
+          - generic [ref=e165]:
+            - heading "Diff & Sync" [level=1] [ref=e166]:
+              - img [ref=e167]
+              - text: Diff & Sync
+            - generic [ref=e171]:
+              - generic [ref=e172]: DEV
+              - img [ref=e173]
+              - generic [ref=e176]: STAGE
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - button "List" [ref=e180] [cursor=pointer]:
+                  - img [ref=e181]
+                  - generic [ref=e182]: List
+                - button "Tree" [ref=e183] [cursor=pointer]:
+                  - img [ref=e184]
+                  - generic [ref=e188]: Tree
+              - button "Fetch from DB" [ref=e190] [cursor=pointer]:
+                - img [ref=e191]
+              - button "Compare" [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+                - generic [ref=e202]: Compare
+            - button "Toggle Console Panel" [ref=e203] [cursor=pointer]
+        - button "Toggle Console Panel" [ref=e205] [cursor=pointer]:
+          - img [ref=e206]
+      - generic [ref=e208]:
+        - main [ref=e209]:
+          - main [ref=e212]:
+            - generic [ref=e213]:
+              - generic [ref=e214]:
+                - generic [ref=e216]:
+                  - img [ref=e218]
+                  - generic [ref=e223]: Database Overview
+                - generic [ref=e225]:
+                  - img [ref=e226]
+                  - paragraph [ref=e233]: No history found
+              - generic [ref=e237]:
+                - img [ref=e238]
+                - paragraph [ref=e240]: Select an object
+        - generic [ref=e243]:
+          - generic [ref=e244]:
+            - generic [ref=e245]:
+              - img [ref=e246]
+              - generic [ref=e248]: Execution Log
+            - generic [ref=e249]:
+              - button "Clear logs" [ref=e250] [cursor=pointer]:
+                - img [ref=e251]
+              - button "Auto-scroll" [ref=e254] [cursor=pointer]:
+                - img [ref=e255]
+              - button "Close Console" [ref=e258] [cursor=pointer]:
+                - img [ref=e259]
+          - generic [ref=e262]:
+            - generic [ref=e263]: "[10:25:32]Starting comparison between DEV (127.0.0.1) and STAGE (127.0.0.1)"
+            - generic [ref=e264]: "[10:25:32]Cleaning up local cache for fresh fetch..."
+            - generic [ref=e265]: "[10:25:32]$ andb export --source DEV --type tables"
+            - generic [ref=e266]: "[10:25:32]$ andb export --source STAGE --type tables"
+            - generic [ref=e267]: "[10:25:32]$ andb export --source DEV --type procedures"
+            - generic [ref=e268]: "[10:25:32]$ andb export --source STAGE --type procedures"
+            - generic [ref=e269]: "[10:25:32]$ andb export --source DEV --type functions"
+            - generic [ref=e270]: "[10:25:32]$ andb export --source STAGE --type functions"
+            - generic [ref=e271]: "[10:25:32]$ andb export --source DEV --type triggers"
+            - generic [ref=e272]: "[10:25:32]$ andb export --source STAGE --type triggers"
+            - generic [ref=e273]: "[10:25:32]$ andb export --source DEV --type views"
+            - generic [ref=e274]: "[10:25:32]$ andb export --source STAGE --type views"
+            - generic [ref=e275]: "[10:25:33]Comparison completed successfully"
+```

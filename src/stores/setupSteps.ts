@@ -3,10 +3,8 @@ import { ref } from 'vue'
 
 export enum SetupStep {
   INPUT = 1,
-  CAPABILITIES = 2,
-  STRATEGY = 3,
-  ACTION = 4,
-  VERIFICATION = 5
+  CONFIG = 2,
+  EXECUTION = 3
 }
 
 export const useSetupStepsStore = defineStore('setupSteps', () => {

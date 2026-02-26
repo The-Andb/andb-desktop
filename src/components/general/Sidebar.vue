@@ -513,7 +513,8 @@ const ddlTypes = computed(() => [
   { key: 'views', label: t('navigation.ddl.views'), icon: Layers, colorClass: 'text-indigo-600 dark:text-indigo-400' },
   { key: 'procedures', label: t('navigation.ddl.procedures'), icon: Hammer, colorClass: 'text-purple-600 dark:text-purple-400' },
   { key: 'functions', label: t('navigation.ddl.functions'), icon: Hammer, colorClass: 'text-purple-600 dark:text-purple-400' },
-  { key: 'triggers', label: t('navigation.ddl.triggers'), icon: Zap, colorClass: 'text-amber-600 dark:text-amber-400' }
+  { key: 'triggers', label: t('navigation.ddl.triggers'), icon: Zap, colorClass: 'text-amber-600 dark:text-amber-400' },
+  { key: 'events', label: t('navigation.ddl.events'), icon: RefreshCw, colorClass: 'text-cyan-600 dark:text-cyan-400' }
 ])
 
 // Actions
@@ -669,6 +670,7 @@ const refreshSchemas = async (force = false) => {
           procedures: [],
           functions: [],
           triggers: [],
+          events: [],
           totalCount: 0,
           lastUpdated: null
         })
@@ -691,7 +693,7 @@ const refreshSchemas = async (force = false) => {
           // 2. Normalize and check empty DB names for Dump files
           
           const projectConn = conns.find(c => {
-             const envMatch = c.environment.toLowerCase() === remoteEnv.name.toLowerCase()
+             const envMatch = (c.environment || '').toLowerCase() === (remoteEnv.name || '').toLowerCase()
              
              // 1. Strict ID Match (if remoteDb has connectionId, which it often doesn't from backend, but let's check)
              if (remoteDb.connectionId && c.id === remoteDb.connectionId) return true;
@@ -710,7 +712,7 @@ const refreshSchemas = async (force = false) => {
 
                 // Fallback: If remoteDb.name is empty OR matches cached name OR matches connection name
                 const cDbName = (c.database || '').toLowerCase()
-                const cName = c.name.toLowerCase()
+                const cName = (c.name || '').toLowerCase()
                 const rDbName = (remoteDb.name || '').toLowerCase()
                 
                 const isMatch = cDbName === rDbName || rDbName === '' || cName === rDbName
@@ -720,7 +722,7 @@ const refreshSchemas = async (force = false) => {
              }
 
              // 3. Standard Logic
-             return envMatch && c.database.toLowerCase() === remoteDb.name.toLowerCase()
+             return envMatch && (c.database || '').toLowerCase() === (remoteDb.name || '').toLowerCase()
           })
           
           if (!projectConn) {
@@ -737,7 +739,7 @@ const refreshSchemas = async (force = false) => {
             let localDb = localEnv.databases.find((db: any) => 
                db.name === remoteDb.name || 
                (db.connectionId === projectConn.id) ||
-               (db.name.toLowerCase() === remoteDb.name.toLowerCase())
+               ((db.name || '').toLowerCase() === (remoteDb.name || '').toLowerCase())
             )
             
             // Critical Fix: If localDb exists (created from config), merge data.
@@ -752,6 +754,7 @@ const refreshSchemas = async (force = false) => {
                  procedures: remoteDb.procedures,
                  functions: remoteDb.functions,
                  triggers: remoteDb.triggers,
+                 events: remoteDb.events,
                  totalCount: remoteDb.totalCount || 0
                  // Do NOT overwrite name or connectionId as local config is source of truth
               })
@@ -784,12 +787,12 @@ watch(activePair, (newPair) => {
   }
 }, { immediate: true })
 
-watch(() => appStore.connections, () => {
+watch(() => appStore.resolvedConnections, () => {
   refreshSchemas(false) // Use cache if available, don't force re-parse
 }, { deep: true })
 
 watch(() => sidebarStore.refreshKey, () => {
-  refreshSchemas(false) // Use cache if available
+  refreshSchemas(true) // Force fresh fetch from SQLite since we know it just updated
 })
 
 watch(() => sidebarStore.refreshRequestKey, () => {
