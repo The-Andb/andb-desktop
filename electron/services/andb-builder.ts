@@ -336,15 +336,7 @@ export class AndbBuilder {
 
       if ((global as any).logger) {
         const scope = options.name ? ` (Object: ${options.name})` : (options.type ? ` (Category: ${options.type})` : '');
-        (global as any).logger.info(`[AndbBuilder] Executing ${operation} for ${sEnv}${scope}`, {
-          host: payload.sourceConfig.host,
-          user: payload.sourceConfig.user,
-          hasPassword: !!payload.sourceConfig.password,
-          db: payload.sourceConfig.database,
-          hasSsh: !!payload.sourceConfig.sshConfig,
-          ...(options.name ? { object: options.name } : {}),
-          ...(options.type ? { type: options.type } : {})
-        });
+        (global as any).logger.info(`[AndbBuilder] ${operation} → ${sEnv}/${payload.sourceConfig.database}${scope}`);
       }
 
       if (targetConn) {

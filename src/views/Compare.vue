@@ -68,10 +68,11 @@
           <button 
             @click="runComparison(true)" 
             :disabled="loading || !activePair"
-             class="hidden md:flex items-center justify-center p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all disabled:opacity-50"
+             class="hidden md:flex items-center justify-center gap-1.5 px-3 py-1.5 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all disabled:opacity-50 text-xs font-medium"
             :title="fetchButtonText"
           >
-            <RefreshCw class="w-5 h-5" :class="{ 'animate-spin': loading && loadingAction === 'fetch' }" />
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading && loadingAction === 'fetch' }" />
+            <span>Fetch</span>
           </button>
 
           <button 

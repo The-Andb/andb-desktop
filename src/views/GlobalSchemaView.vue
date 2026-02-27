@@ -36,10 +36,11 @@
               <button 
                 @click="loadSchema(true)" 
                 :disabled="loading || !selectedConnectionId"
-                class="p-2 text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-all disabled:opacity-50"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-all disabled:opacity-50 text-xs font-medium"
                 :title="fetchButtonText"
               >
-                <RefreshCw class="w-5 h-5" :class="{ 'animate-spin': loading }" />
+                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+                <span>Fetch</span>
               </button>
            </div>
            

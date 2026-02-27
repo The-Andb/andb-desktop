@@ -706,7 +706,9 @@ ipcMain.handle('andb-execute', async (_event: any, args: any) => {
       options
     )
 
-    return { success: true, data: result }
+    // AndbBuilder.execute() already returns { success, data } or { success: false, error }
+    // so we return it directly to avoid double-wrapping
+    return result
   } catch (error: any) {
     if ((global as any).logger) (global as any).logger.error('andb-execute error:', error)
     return { success: false, error: error.message }
