@@ -24,23 +24,65 @@
 
         <!-- Right Actions Area -->
         <div class="flex items-center gap-4">
-           <!-- Fetch Group -->
+            <!-- Safe Mode Toggle -->
+            <div class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none">
+               <ShieldCheck class="w-4 h-4" :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'" />
+               
+               <div class="flex items-center gap-1">
+                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help" :title="$t('common.tooltips.safeMode', 'Safe Mode prevents potentially destructive actions during comparisons and migrations.')">{{ $t('schema.safeMode') }}</span>
+                 <button @click="showSafeModeInfo = !showSafeModeInfo" class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                   <Info class="w-3 h-3" />
+                 </button>
+               </div>
+               
+               <button 
+                 @click="appStore.safeMode = !appStore.safeMode"
+                 class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
+                 :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
+               >
+                 <span 
+                   class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                   :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"
+                 ></span>
+               </button>
+
+               <!-- Info Popover -->
+               <div v-if="showSafeModeInfo" class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+                 <div class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                   <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest">
+                     <ShieldCheck class="w-4 h-4 text-green-500"/> {{ $t('schema.safeMode') }} Info
+                   </h3>
+                   <button @click="showSafeModeInfo = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X class="w-3.5 h-3.5"/></button>
+                 </div>
+                 <div class="text-gray-600 dark:text-gray-300 space-y-3 text-xs leading-relaxed">
+                   <p>
+                     <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry Run)</span>
+                     Simulates changes without affecting your database. Generates SQL for preview only. <span class="text-gray-400 italic">Recommended.</span>
+                   </p>
+                   <p>
+                     <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span>
+                     Executes actual CREATE, ALTER, and DROP statements directly on the database. <span class="text-red-400 font-bold">Use with extreme caution!</span>
+                   </p>
+                 </div>
+               </div>
+            </div>
+
+            <!-- Fetch Group -->
            <div class="flex items-center gap-3">
-              <div v-if="error" class="text-red-500 text-[10px] font-bold uppercase tracking-wider max-w-[150px] truncate px-2" :title="error">{{ error }}</div>
               
-              <div v-if="selectedDbLastUpdated" class="hidden sm:flex flex-col items-end px-2 border-r border-gray-200 dark:border-gray-700">
+              <div v-if="selectedDbLastUpdated && !appStore.isSchemaFetching" class="hidden sm:flex flex-col items-end px-2 border-r border-gray-200 dark:border-gray-700">
                 <span class="text-[9px] text-gray-400 uppercase tracking-tighter">{{ $t('schema.lastSynced') }}</span>
                 <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
               </div>
 
               <button 
                 @click="loadSchema(true)" 
-                :disabled="loading || !selectedConnectionId"
-                class="flex items-center gap-1.5 px-3 py-1.5 text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20 rounded-lg transition-all disabled:opacity-50 text-xs font-medium"
+                :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-primary-600 dark:bg-gray-800 dark:hover:bg-primary-900/30 dark:text-primary-400 rounded-lg shadow border border-gray-200 dark:border-gray-700 transition-all disabled:opacity-50 text-xs font-medium"
                 :title="fetchButtonText"
               >
-                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-                <span>Fetch</span>
+                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': appStore.isSchemaFetching || loading }" />
+                <span>{{ appStore.isSchemaFetching ? $t('schema.fetching') : fetchButtonText }}</span>
               </button>
            </div>
            
@@ -55,6 +97,45 @@
             </button>
         </div>
     </div>
+    <!-- Breadcrumbs -->
+    <div class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
+      <button 
+        @click="resetNavigation"
+        class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary-500 transition-colors shrink-0"
+      >
+        <Database class="w-3 h-3" />
+        {{ $t('schema.overview') }}
+      </button>
+      
+
+
+      <template v-if="selectedItem">
+        <ChevronRight class="w-3 h-3 text-gray-300 shrink-0" />
+        <span class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-white truncate shrink-0">
+          <component :is="getIconForType(selectedItem.type)" class="w-3 h-3" />
+          {{ selectedItem.name }}
+        </span>
+      </template>
+
+      <!-- Expand / Collapse All (moved here from panel header) -->
+      <div v-if="hasResults" class="flex items-center gap-0.5 ml-auto shrink-0">
+        <button
+          @click="expandCmd = { action: 'expand', ts: Date.now() }"
+          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          title="Expand All"
+        >
+          <Plus class="w-3 h-3" />
+        </button>
+        <button
+          @click="expandCmd = { action: 'collapse', ts: Date.now() }"
+          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          title="Collapse All"
+        >
+          <Minus class="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden relative">
       <main class="flex-1 flex overflow-hidden relative">
@@ -74,32 +155,6 @@
         <div class="flex-1 flex overflow-hidden relative">
           <!-- Left: Object Categories & List -->
           <div :style="{ width: resultsWidth + 'px' }" class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative">
-            <div class="p-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-10 flex items-center shrink-0">
-                <button 
-                  v-if="selectedFilterType !== 'all'"
-                  @click="selectedFilterType = 'all'"
-                  class="p-1 hover:bg-white dark:hover:bg-gray-700 rounded mr-2 transition-colors text-gray-500"
-                >
-                  <ChevronLeft class="w-4 h-4" />
-                </button>
-                <div class="flex items-center min-w-0 flex-1">
-                  <span class="text-primary-600 dark:text-primary-400 mr-1.5 shrink-0">
-                    <Database v-if="selectedFilterType === 'all'" class="w-3.5 h-3.5" />
-                    <component v-else :is="getIconForType(selectedFilterType)" class="w-3.5 h-3.5" />
-                  </span>
-                  <div class="flex flex-col min-w-0">
-                    <span 
-                      class="truncate font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300"
-                      :style="{ fontSize: (appStore.fontSizes.schema - 2) + 'px' }"
-                    >
-                      {{ selectedFilterType === 'all' ? $t('schema.overview') : translateDDLType(selectedFilterType) }}
-                    </span>
-                    <span v-if="hasResults" :style="{ fontSize: (appStore.fontSizes.schema - 4) + 'px' }" class="text-gray-400 uppercase tracking-tighter">
-                      {{ filteredResults.length }} {{ $t('schema.items') }}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
               <!-- Search Bar -->
               <div v-if="hasResults" class="p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
@@ -158,57 +213,15 @@
                   <p class="text-xs uppercase tracking-widest font-bold">{{ $t('schema.noSchema') }}</p>
                   <p class="text-[10px] opacity-60 mt-1">{{ $t('schema.selectDbFetch') }}</p>
                 </div>
+                <SchemaTreeMode 
+                  v-if="hasResults"
+                  :results="filteredResults"
+                  :selected-item-name="selectedItem?.name"
+                  :focus-type="focusType"
+                  :expand-cmd="expandCmd"
+                  @select="selectItem"
+                />
 
-                <!-- OVERVIEW MODE -->
-                <div v-else-if="selectedFilterType === 'all'" class="space-y-2">
-                  <div 
-                    v-for="cat in resultsByCategory" :key="cat.type"
-                    @click="selectedFilterType = cat.type"
-                    class="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-primary-500/30 transition-all cursor-pointer group"
-                  >
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center">
-                        <div class="p-2 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 mr-3 group-hover:scale-110 transition-transform">
-                          <component :is="getIconForType(cat.type)" class="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div class="font-bold text-gray-900 dark:text-white uppercase tracking-widest" :style="{ fontSize: (appStore.fontSizes.schema - 1) + 'px' }">{{ cat.type }}</div>
-                          <div class="text-gray-400" :style="{ fontSize: (appStore.fontSizes.schema - 3) + 'px' }">{{ cat.items.length }} {{ $t('schema.items') }}</div>
-                        </div>
-                      </div>
-                      <ChevronRight class="w-3 h-3 text-gray-300 group-hover:text-primary-500" />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- LIST MODE -->
-                <div v-else class="space-y-1">
-                  <div v-for="item in filteredResults" :key="item.name" 
-                    @click="selectItem(item)"
-                    class="p-2.5 cursor-pointer rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all flex items-center justify-between group"
-                    :class="{ 'bg-white dark:bg-gray-800 shadow-sm border border-primary-500/20 ring-1 ring-primary-500/10': selectedItem?.name === item.name }"
-                  >
-                    <div class="min-w-0 pr-2 flex-1">
-                      <div class="flex items-center">
-                        <!-- Icon -->
-                        <component 
-                          :is="getIconForType(item.type)" 
-                          class="w-3.5 h-3.5 mr-2 shrink-0 transition-colors"
-                          :class="selectedItem?.name === item.name ? 'text-primary-500' : 'text-gray-400 group-hover:text-primary-400'"
-                        />
-                        
-                        <div class="font-mono truncate text-gray-900 dark:text-gray-100 flex-1" :class="{ 'font-bold': selectedItem?.name === item.name }" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">
-                          {{ item.name }}
-                        </div>
-                        
-                        <span v-if="item.updated_at" class="text-[9px] text-gray-400 shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {{ formatTimeAgo(item.updated_at).replace(' ago', '') }}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight class="w-3 h-3 text-gray-300 group-hover:text-primary-500 shrink-0" v-show="selectedItem?.name !== item.name" />
-                  </div>
-                </div>
               </div>
               
               <!-- Resize Handle -->
@@ -292,26 +305,39 @@
                   </div>
                 </div>
 
-                <SchemaDiagram 
-                  v-if="selectedItem.type === 'diagrams'"
-                  :tables="schemaData.tables"
-                />
+                <!-- 1. Schema Diagram Mode -->
+                <div v-if="selectedItem.type === 'diagrams'" class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
+                  <SchemaDiagram :tables="schemaData.tables" />
+                </div>
                 
-                <template v-else>
+                <!-- 2. Raw SQL Viewer Mode -->
+                <div v-else-if="viewMode === 'code' || (selectedItem.type !== 'tables' && selectedItem.type !== 'table')" class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
                     <DDLViewer 
-                        v-if="viewMode === 'code' || (selectedItem.type !== 'tables' && selectedItem.type !== 'table')"
                         :content="formattedDDL" 
                         :font-size="appStore.fontSizes.code" 
                         :font-family="appStore.fontFamilies.code"
                     />
-                    <div v-else class="flex-1 overflow-hidden bg-gray-50/50 dark:bg-gray-900/50 relative">
-                        <DDLVisualizer 
-                            :table-name="selectedItem.name"
-                            :columns="parsedColumns"
-                        />
+                </div>
+                
+                <!-- 3. Detailed Table View Mode (MySQL Workbench style) -->
+                <div v-else class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative bg-gray-50/50 dark:bg-gray-900/50">
+                    <TableDetailedView 
+                        v-if="detailedTableData && selectedItem"
+                        :key="'table-detail-' + selectedItem.name"
+                        :table-name="selectedItem.name"
+                        :columns="detailedTableData.columns"
+                        :indexes="detailedTableData.indexes"
+                        :foreign-keys="detailedTableData.foreignKeys"
+                        :options="detailedTableData.options"
+                        :partitions="detailedTableData.partitions"
+                        :triggers="schemaData.triggers"
+                    ></TableDetailedView>
+                    
+                    <div v-else class="flex items-center justify-center h-full w-full">
+                      <RefreshCw class="w-8 h-8 text-primary-500 animate-spin opacity-20" />
                     </div>
-                </template>
-                              </div>
+                </div>
+              </div>
               
               <div v-else class="flex-1 flex flex-col items-center justify-center p-12 text-center text-gray-400 grayscale opacity-40">
                 <div class="relative mb-6">
@@ -329,7 +355,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -345,12 +371,6 @@ import {
   ScanSearch, 
   MousePointer2,
   ChevronRight,
-  Database,
-  Table,
-  Layers,
-  Hammer,
-  Zap,
-  ChevronLeft,
   Search, 
   Download,
   Camera,
@@ -363,11 +383,23 @@ import {
   CaseSensitive,
   WholeWord,
   Regex,
-  X
+  X,
+  Sigma,
+  ShieldCheck,
+  Plus,
+  Minus,
+  Database,
+  Grid3X3,
+  Eye,
+  Cpu,
+  CalendarClock,
+  Zap,
+  Info
 } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
-import DDLVisualizer from '@/components/ddl/DDLVisualizer.vue'
+import TableDetailedView from '@/components/ddl/TableDetailedView.vue'
+import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
 
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
@@ -395,11 +427,12 @@ watch(() => projectsStore.selectedProjectId, () => {
 
 
 const typeIcons = {
-  tables: Table,
-  views: Layers,
-  procedures: Hammer,
-  functions: Hammer,
+  tables: Grid3X3,
+  views: Eye,
+  procedures: Cpu,
+  functions: Sigma,
   triggers: Zap,
+  events: CalendarClock,
   diagrams: Network
 }
 
@@ -409,6 +442,7 @@ const getIconForType = (type: string) => {
 }
 
 // State
+const showSafeModeInfo = ref(false)
 const loading = ref(false)
 const statusMessage = ref('')
 const error = ref<string | null>(null)
@@ -421,6 +455,12 @@ const activeConnectionName = computed(() => {
   const conn = appStore.getConnectionById(appStore.selectedConnectionId)
   return conn ? `${conn.environment}: ${conn.database || conn.name}` : t('schema.noConnection')
 })
+
+const resetNavigation = () => {
+  selectedFilterType.value = 'all'
+  selectedItem.value = null
+}
+
 const selectedFilterType = ref('all')
 const searchQuery = ref('')
 const searchFlags = ref({
@@ -429,6 +469,8 @@ const searchFlags = ref({
   regex: false
 })
 const selectedItem = ref<any>(null)
+const focusType = ref<string | undefined>(undefined)
+const expandCmd = ref<{ action: 'expand' | 'collapse', ts: number } | null>(null)
 
 const schemaData = ref({
   tables: [] as any[],
@@ -492,6 +534,16 @@ const filteredResults = computed(() => {
 
 const selectedDbLastUpdated = ref<string | null>(null)
 
+watch(selectedItem, () => {
+    // Reset to code view when finding a new item
+    // But default to visual if it's a TABLE and we prefer visual
+    if (selectedItem.value?.type === 'tables' || selectedItem.value?.type === 'table') {
+        viewMode.value = 'visual' 
+    } else {
+        viewMode.value = 'code'
+    }
+})
+
 const formatTimeAgo = (dateString: string) => {
   if (!dateString) return t('schema.never')
   try {
@@ -530,11 +582,53 @@ const formattedDDL = computed(() => {
   return ddl
 })
 
+const detailedTableData = shallowRef<any>(null)
+
+watch(selectedItem, async (newVal) => {
+    detailedTableData.value = null
+    if (newVal && (newVal.type === 'tables' || newVal.type === 'table')) {
+        const targetName = newVal.name
+        if (formattedDDL.value) {
+          try {
+            const result = await (window as any).electronAPI.andbParseTable(formattedDDL.value)
+            // Race condition guard: check if table is still selected
+            if (result.success && selectedItem.value?.name === targetName) {
+              await nextTick()
+              detailedTableData.value = result.data
+            }
+          } catch (e) {
+            console.error('Failed to parse table detailed:', e)
+          }
+        }
+    }
+})
+
+watch(formattedDDL, async (newVal) => {
+    if (newVal && selectedItem.value && (selectedItem.value.type === 'tables' || selectedItem.value.type === 'table')) {
+        const targetName = selectedItem.value.name
+        if (!detailedTableData.value) {
+            try {
+                const result = await (window as any).electronAPI.andbParseTable(newVal)
+                // Race condition guard: check if table is still selected
+                if (result.success && selectedItem.value?.name === targetName) {
+                  await nextTick()
+                  detailedTableData.value = result.data
+                }
+            } catch (e) {
+                console.error('Failed to parse table detailed (from DDL watch):', e)
+            }
+        }
+    }
+})
+
 
 const hasResults = computed(() => allResults.value.length > 0)
 
 // Visual View Logic
 const fetchButtonText = computed(() => {
+    if (appStore.isSchemaFetching) {
+      return t('schema.fetching')
+    }
     if (loading.value) return t('schema.fetching')
     
     if (selectedItem.value && selectedItem.value.type !== 'diagrams') {
@@ -566,171 +660,6 @@ watch(selectedItem, () => {
     }
 })
 
-// Visual Parsing Logic - Reuse from DDLDetailModal logic approximately
-interface Column {
-  name: string
-  type: string
-  pk?: boolean
-  notNull?: boolean
-  unique?: boolean
-  unsigned?: boolean
-  autoIncrement?: boolean
-  default?: string | null
-  comment?: string
-}
-
-const parsedColumns = computed(() => {
-    if (!formattedDDL.value) return []
-    return parseColumnsFromDDL(formattedDDL.value) || []
-})
-
-const parseColumnsFromDDL = (ddl: string): Column[] | null => {
-    if (!ddl) return null
-    if (!ddl.toUpperCase().includes('CREATE TABLE')) return null
-    
-    // Normalize logic
-    const content = ddl
-        .replace(/\n/g, ' ')
-        .replace(/\s+/g, ' ')
-    
-    // Simple regex for extracting inside parenthesis
-    const match = content.match(/CREATE TABLE.*?\((.*)\)(?:\s|$)/i) || content.match(/CREATE TABLE.*?\((.*)\)/i)
-    
-    if (!match) return null
-    
-    const body = match[1]
-    
-    // Improved split taking into account parentheses for types like DECIMAL(10,2) or ENUM('a','b')
-    // and ensuring we don't split inside comments
-    const parts: string[] = []
-    let current = ''
-    let parenLevel = 0
-    let inQuote = false
-    let quoteChar = ''
-    
-    for (let i = 0; i < body.length; i++) {
-        const char = body[i]
-        
-        if (inQuote) {
-            current += char
-            if (char === quoteChar && body[i-1] !== '\\') {
-                inQuote = false
-            }
-        } else {
-            if (char === "'" || char === '"' || char === '`') {
-                inQuote = true
-                quoteChar = char
-                current += char
-            } else if (char === '(') {
-                parenLevel++
-                current += char
-            } else if (char === ')') {
-                parenLevel--
-                current += char
-            } else if (char === ',' && parenLevel === 0) {
-                parts.push(current.trim())
-                current = ''
-            } else {
-                current += char
-            }
-        }
-    }
-    if (current.trim()) parts.push(current.trim())
-    
-    const columns: Column[] = []
-    const pkColumns = new Set<string>()
-    
-    for (const p of parts) {
-        if (!p) continue
-        
-        const up = p.toUpperCase()
-        
-        // Handle PRIMARY KEY Definitions (End of table)
-        if (up.startsWith('PRIMARY KEY') || (up.startsWith('CONSTRAINT') && up.includes('PRIMARY KEY'))) {
-            const pkMatch = p.match(/PRIMARY KEY\s*\((.*?)\)/i)
-            if (pkMatch) {
-                // Split composite keys
-                const cols = pkMatch[1].split(',').map(c => c.trim().replace(/^[`"]|[`"]$/g, ''))
-                cols.forEach(c => pkColumns.add(c))
-            }
-            continue
-        }
-
-        // Skip other keys definitions lines (starting with these keywords)
-        if (/^(KEY|UNIQUE KEY|CONSTRAINT|FOREIGN KEY|FULLTEXT|SPATIAL|INDEX)/i.test(p)) continue
-        
-        // Match column name (backticked or plain) and type
-        // Regex: start with optional backtick, capture name, optional backtick, whitespace, capture type (chars, digits, parens, dots for enum/set/decimal)
-        const colMatch = p.match(/^`?([a-zA-Z0-9_]+)`?\s+([a-zA-Z0-9_().,'"\s]+?)(?=\s|$)/)
-        
-        if (colMatch) {
-            const name = colMatch[1]
-            const fullType = colMatch[2]
-            
-            // Extract attributes
-            let isPk = up.includes('PRIMARY KEY')
-            if (isPk) pkColumns.add(name)
-
-            const isNotNull = up.includes('NOT NULL')
-            const isUnsigned = up.includes('UNSIGNED')
-            const isAutoInc = up.includes('AUTO_INCREMENT')
-            const isUnique = up.includes('UNIQUE')
-            
-            // Default value extraction
-            let defVal = null
-            const defMatch = p.match(/DEFAULT\s+('([^']*)'|([^,\s]+))/)
-            if (defMatch) {
-                defVal = defMatch[2] || defMatch[3]
-                if (defVal === 'NULL') defVal = 'NULL'
-            }
-            
-            // Comment extraction
-            let comment = ''
-            const commentMatch = p.match(/COMMENT\s+'([^']*)'/)
-            if (commentMatch) {
-                comment = commentMatch[1]
-            }
-
-            // Clean type (remove UNSIGNED etc if caught in type group)
-            let type = fullType.replace(/UNSIGNED/i, '').replace(/ZEROFILL/i, '').trim()
-            
-            columns.push({
-                name,
-                type,
-                pk: false, // Updated in return statement (see below)
-                notNull: isNotNull,
-                unique: isUnique,
-                unsigned: isUnsigned,
-                autoIncrement: isAutoInc,
-                default: defVal,
-                comment
-            })
-        }
-    }
-    
-    // Post-process to mark PKs
-    return columns.map(col => ({
-        ...col,
-        pk: pkColumns.has(col.name)
-    }))
-}
-
-
-const resultsByCategory = computed(() => {
-  const categories = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
-  const base = categories.map(cat => ({
-    type: cat,
-    items: allResults.value.filter(i => i.type === cat)
-  })).filter(c => c.items.length > 0)
-  
-  if (hasResults.value) {
-    base.unshift({
-      type: 'diagrams',
-      items: [{ name: 'Interactive ERD', type: 'diagrams' }]
-    })
-  }
-  return base
-})
 
 // Resize Logic
 const resultsWidth = ref(256)
@@ -765,6 +694,8 @@ const loadSchema = async (forceRefresh = false) => {
 
   loading.value = true
   if (forceRefresh) {
+    appStore.isSchemaFetching = true; // Lock global fetch state
+    appStore.schemaFetchProgress = null;
     consoleStore.setVisibility(true) // Open console only on manual refresh
     statusMessage.value = t('schema.fetchingFromDb')
     consoleStore.clearLogs()
@@ -959,6 +890,8 @@ const loadSchema = async (forceRefresh = false) => {
     })
   } finally {
     loading.value = false
+    appStore.isSchemaFetching = false; // Release global fetch state
+    appStore.schemaFetchProgress = null;
   }
 }
 
@@ -987,6 +920,7 @@ watch(() => sidebarStore.refreshKey, () => {
 })
 
 const selectItem = async (item: any) => {
+  if (!item) return
   selectedItem.value = item
   // If DDL is not already in item, we might need to fetch it (but compare usually returns it)
   // Ensure we are showing the correct filter type
@@ -1059,6 +993,9 @@ const handleCategorySelected = (e: any) => {
   if (conn) {
     selectedConnectionId.value = conn.id
     selectedFilterType.value = type
+    // Auto-expand: pulse focusType to trigger watch in SchemaTreeMode
+    focusType.value = undefined
+    setTimeout(() => { focusType.value = type }, 50)
     loadSchema(false)
   }
 }
@@ -1124,6 +1061,20 @@ onMounted(() => {
   window.addEventListener('category-selected', handleCategorySelected)
   window.addEventListener('object-selected', handleObjectSelected)
   window.addEventListener('database-selected', handleDatabaseSelected)
+
+  // Global IPC progress listener
+  if (window.electronAPI && window.electronAPI.onAndbProgress) {
+    window.electronAPI.onAndbProgress((_event: any, data: any) => {
+      if (data.operation === 'export') {
+        appStore.schemaFetchProgress = {
+          current: data.current || 0,
+          total: data.total || 0,
+          type: data.type || '',
+          objectName: data.objectName || ''
+        }
+      }
+    })
+  }
 })
 
 onUnmounted(() => {
@@ -1132,16 +1083,6 @@ onUnmounted(() => {
   window.removeEventListener('database-selected', handleDatabaseSelected)
 })
 
-const translateDDLType = (type: string) => {
-  const map: Record<string, string> = {
-    'tables': t('navigation.ddl.tables'),
-    'views': t('navigation.ddl.views'),
-    'procedures': t('navigation.ddl.procedures'),
-    'functions': t('navigation.ddl.functions'),
-    'triggers': t('navigation.ddl.triggers')
-  }
-  return map[type.toLowerCase()] || type
-}
 </script>
 
 <style scoped>

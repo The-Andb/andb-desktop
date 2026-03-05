@@ -5,6 +5,26 @@ All notable changes to **The Andb UI** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0-beta.1] - 2026-03-05
+
+### Added
+
+- **Telemetry & Crash Reporting**: Integrated `@sentry/electron` for robust crash reporting in both main and renderer processes.
+- **Product Analytics**: Added `posthog-js` integration with automatic `$pageview` tracking and anonymous device identification.
+- **Pro UI Sidebar**: Upgraded sidebar connection icons to Pro-style "Icon Chips" and replaced generic category folders with content-specific icons.
+- **Git Token Guide**: Added an instructional "How to get a token?" guide in the Integrations Hub.
+
+### Improved
+
+- **UI Typography**: Synchronized and scaled down DDL font sizes across Global and Tree views for better readability.
+- **Testing Infrastructure**: Restored E2E testing integrity by fixing Docker MySQL configuration for `sandbox.playground.spec.ts`.
+
+### Fixed
+
+- **Sidebar Bugs**: Resolved intermittent Sidebar Focus/Collapse state desynchronization.
+- **ABI Mismatches**: Persistently resolved the `better-sqlite3` ABI mismatch that blocked unit tests.
+- **Comparison Operations**: Fixed the "Comparison within the same environment 'undefined' is not permitted" connection error by correctly passing environment strings to `Andb.compare`.
+
 ## [2.3.0] - 2026-01-28
 
 ### Added

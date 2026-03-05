@@ -2,150 +2,169 @@
   <div class="mirror-diff-view flex h-full min-h-0 min-w-0 max-w-full overflow-hidden bg-white dark:bg-gray-950 group/view border-t border-gray-200 dark:border-gray-800 relative" :style="{ fontFamily: appStore.fontFamilies.code, fontSize: appStore.fontSizes.code + 'px' }">
     <!-- SPLIT VIEW MODE -->
     <template v-if="viewType === 'split'">
-      <!-- Source Pane (Left) -->
-      <div 
-        :style="{ width: leftPaneWidth + '%' }"
-        class="shrink-0 flex flex-col min-h-0 min-w-0 max-w-full overflow-hidden border-r border-gray-200 dark:border-[#30363d] relative"
-      >
-        <div class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-900 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0 h-10">
-          <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.source', { label: sourceLabel }) }}</span>
-          <span v-if="isEmptySource" class="text-[10px] bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-800/50 font-bold uppercase">{{ $t('compare.diffView.deleted') }}</span>
-        </div>
-        
-        <div ref="sourcePane" @scroll="handleScroll('source')" class="flex-1 overflow-auto custom-scrollbar-diff relative bg-gray-50 dark:bg-gray-950">
-          <div v-if="isEmptySource" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
-            {{ $t('compare.diffView.sourceEmpty') }}
+      <div class="flex-1 flex flex-col min-h-0 min-w-0 max-w-full overflow-hidden relative">
+        <!-- Headers -->
+        <div class="flex shrink-0 h-10 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative">
+          <!-- Source Header -->
+          <div :style="{ width: leftPaneWidth + '%' }" class="px-4 py-2 flex justify-between items-center border-r border-gray-200 dark:border-[#30363d] shrink-0">
+            <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.source', { label: sourceLabel }) }}</span>
+            <span v-if="isEmptySource" class="text-[10px] bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-800/50 font-bold uppercase">{{ $t('compare.diffView.deleted') }}</span>
           </div>
-          <div v-else class="ddl-container py-2" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
-            <div 
-              v-for="(row, idx) in alignedRows" 
-              :key="'src-' + idx"
-              class="flex line-row group"
-              :class="getLineClass(row.source.type)"
-            >
-              <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
-                {{ row.source.line || '' }}
-              </div>
-              <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
-                {{ row.source.type === 'added' ? '+' : '' }}
-              </div>
-              <div 
-                class="line-content px-2 py-0.5 grow ddl-code"
-                :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
-                v-html="row.source.highlighted || row.source.content"
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Resize Handle -->
-      <div 
-        @mousedown="startResize"
-        class="resize-handle w-[2px] hover:w-1 hover:bg-primary-500 cursor-col-resize z-20 bg-gray-200 dark:bg-[#30363d] transition-all duration-200"
-        :class="{ 'bg-primary-600 w-1': isResizing }"
-      ></div>
-
-      <!-- Target Pane (Right) -->
-      <div 
-        class="flex-1 flex flex-col min-h-0 min-w-0 max-w-full overflow-hidden relative"
-      >
-        <div class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-900 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0 h-10">
-          <span class="font-bold text-emerald-600 dark:text-emerald-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.target', { label: targetLabel }) }}</span>
-          
-          <div class="flex items-center gap-3">
-            <span v-if="isEmptyTarget" class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">{{ $t('compare.diffView.new') }}</span>
-            
-            <!-- Settings inside header for perfect alignment -->
-            <div class="relative" ref="settingsRef">
-              <button 
-                @click="showSettings = !showSettings"
-                class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-                :class="{ 'text-primary-500 bg-gray-200 dark:bg-gray-700': showSettings }"
-              >
-                <Settings class="w-3.5 h-3.5" />
-              </button>
-
-              <!-- Dropdown -->
-              <div v-if="showSettings" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-600 dark:text-gray-300 pointer-events-auto">
-                <h3 class="font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.settings') }}</h3>
-                
-                <div class="space-y-4 text-left">
-                  <!-- Whitespace -->
-                  <div>
-                    <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.whitespace') }}</h4>
-                    <label class="flex items-start cursor-pointer group">
-                      <div class="relative flex items-center mt-0.5">
-                        <input type="checkbox" v-model="hideWhitespace" class="sr-only" />
-                        <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': hideWhitespace }">
-                          <Check v-show="hideWhitespace" class="w-3 h-3 text-white" />
+          <!-- Target Header -->
+          <div class="flex-1 px-4 py-2 flex justify-between items-center">
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.target', { label: targetLabel }) }}</span>
+            <div class="flex items-center gap-3">
+              <span v-if="isEmptyTarget" class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">{{ $t('compare.diffView.new') }}</span>
+              <!-- Settings Component -->
+              <div class="relative" ref="settingsRef">
+                <button 
+                  @click="showSettings = !showSettings"
+                  class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                  :class="{ 'text-primary-500 bg-gray-200 dark:bg-gray-700': showSettings }"
+                >
+                  <Settings class="w-3.5 h-3.5" />
+                </button>
+                <!-- Dropdown -->
+                <div v-if="showSettings" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-600 dark:text-gray-300 pointer-events-auto">
+                  <h3 class="font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.settings') }}</h3>
+                  <div class="space-y-4 text-left">
+                    <!-- Whitespace -->
+                    <div>
+                      <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.whitespace') }}</h4>
+                      <label class="flex items-start cursor-pointer group">
+                        <div class="relative flex items-center mt-0.5">
+                          <input type="checkbox" v-model="hideWhitespace" class="sr-only" />
+                          <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': hideWhitespace }">
+                            <Check v-show="hideWhitespace" class="w-3 h-3 text-white" />
+                          </div>
                         </div>
-                      </div>
-                      <div class="ml-2">
-                        <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.hideWhitespace') }}</div>
-                        <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <!-- Line Wrapping -->
-                  <div>
-                    <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.display') }}</h4>
-                    <label class="flex items-start cursor-pointer group">
-                      <div class="relative flex items-center mt-0.5">
-                        <input type="checkbox" v-model="wrapLines" class="sr-only" />
-                        <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': wrapLines }">
-                          <Check v-show="wrapLines" class="w-3 h-3 text-white" />
+                        <div class="ml-2">
+                          <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.hideWhitespace') }}</div>
+                          <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
                         </div>
-                      </div>
-                      <div class="ml-2">
-                        <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.wrapLines') }}</div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <!-- Diff display -->
-                  <div>
-                    <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.diffDisplay') }}</h4>
-                    <div class="space-y-2">
-                      <label v-for="mode in ['Unified', 'Split']" :key="mode" class="flex items-center cursor-pointer group">
-                        <input type="radio" :value="mode.toLowerCase()" v-model="viewType" class="sr-only" />
-                        <div class="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center p-1" :class="{ 'border-primary-500': viewType === mode.toLowerCase() }">
-                          <div v-show="viewType === mode.toLowerCase()" class="w-2 h-2 rounded-full bg-primary-500"></div>
-                        </div>
-                        <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.' + mode.toLowerCase() + 'Mode') }}</span>
                       </label>
+                    </div>
+                    <!-- Line Wrapping -->
+                    <div>
+                      <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.display') }}</h4>
+                      <label class="flex items-start cursor-pointer group">
+                        <div class="relative flex items-center mt-0.5">
+                          <input type="checkbox" v-model="wrapLines" class="sr-only" />
+                          <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': wrapLines }">
+                            <Check v-show="wrapLines" class="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                        <div class="ml-2">
+                          <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.wrapLines') }}</div>
+                        </div>
+                      </label>
+                    </div>
+                    <!-- Diff display -->
+                    <div>
+                      <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.diffDisplay') }}</h4>
+                      <div class="space-y-2">
+                        <label v-for="mode in ['Unified', 'Split']" :key="mode" class="flex items-center cursor-pointer group">
+                          <input type="radio" :value="mode.toLowerCase()" v-model="viewType" class="sr-only" />
+                          <div class="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center p-1" :class="{ 'border-primary-500': viewType === mode.toLowerCase() }">
+                            <div v-show="viewType === mode.toLowerCase()" class="w-2 h-2 rounded-full bg-primary-500"></div>
+                          </div>
+                          <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.' + mode.toLowerCase() + 'Mode') }}</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          
+          <!-- Resize Handle Layer over Headers -->
+          <div 
+            @mousedown="startResize"
+            class="resize-handle w-[4px] -ml-[2px] hover:bg-primary-500 cursor-col-resize z-20 absolute top-0 bottom-0 transition-colors duration-200"
+            :style="{ left: leftPaneWidth + '%' }"
+            :class="{ 'bg-primary-600': isResizing }"
+          ></div>
         </div>
 
-        <div ref="targetPane" @scroll="handleScroll('target')" class="flex-1 overflow-auto custom-scrollbar-diff relative bg-gray-50 dark:bg-gray-950">
-          <div v-if="isEmptyTarget" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
-            {{ $t('compare.diffView.targetEmpty') }}
+        <!-- Scrollable Content -->
+        <div class="flex-1 flex flex-col overflow-auto custom-scrollbar-diff relative bg-gray-50 dark:bg-gray-950">
+          <div v-if="isEmptySource && isEmptyTarget" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
+            {{ $t('compare.diffView.sourceEmpty') }}
           </div>
-          <div v-else class="ddl-container py-2" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
-            <div 
-              v-for="(row, idx) in alignedRows" 
-              :key="'tgt-' + idx"
-              class="flex line-row group"
-              :class="getLineClass(row.target.type)"
-            >
-              <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
-                {{ row.target.line || '' }}
+          <div v-else class="ddl-container py-2 pb-8 flex flex-col" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
+            <template v-for="(chunk, cIdx) in alignedChunks" :key="'sp-chk-' + chunk.id">
+              
+              <!-- VISIBLE ROWS: Render Both Panes Side-by-Side per row -->
+              <template v-if="chunk.type === 'visible'">
+                <div 
+                  v-for="(row, idx) in chunk.rows" 
+                  :key="'sp-row-' + chunk.id + '-' + idx"
+                  class="flex w-full"
+                >
+                  <!-- Source Side -->
+                  <div 
+                    :style="{ width: leftPaneWidth + '%' }"
+                    class="shrink-0 flex line-row group border-r border-gray-200 dark:border-[#30363d]"
+                    :class="getLineClass(row.source.type)"
+                  >
+                    <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
+                      {{ row.source.line || '' }}
+                    </div>
+                    <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
+                      {{ row.source.type === 'added' ? '+' : '' }}
+                    </div>
+                    <div 
+                      class="line-content px-2 py-0.5 grow ddl-code overflow-hidden"
+                      :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
+                      v-html="row.source.highlighted || row.source.content"
+                    ></div>
+                  </div>
+
+                  <!-- Target Side -->
+                  <div 
+                    class="flex-1 flex line-row group min-w-0"
+                    :class="getLineClass(row.target.type)"
+                  >
+                    <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
+                      {{ row.target.line || '' }}
+                    </div>
+                    <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
+                      {{ row.target.type === 'removed' ? '-' : '' }}
+                    </div>
+                    <div 
+                      class="line-content px-2 py-0.5 grow ddl-code overflow-hidden"
+                      :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
+                      v-html="row.target.highlighted || row.target.content"
+                    ></div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- COLLAPSED BLOCK: Full width across both panes -->
+              <div v-else class="w-full flex flex-col items-stretch bg-blue-50/10 dark:bg-[#1f2937]/30 border-y border-blue-100/50 dark:border-[#30363d]/50 text-blue-500/80 dark:text-blue-400/60 relative group/expandbtn" style="height: 48px">
+                 <button class="flex-1 flex items-center justify-center border-b border-transparent hover:border-blue-200 dark:hover:border-gray-700 hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromTop(cIdx)" v-if="cIdx > 0" title="Expand Down">
+                   <ChevronDown class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
+                 </button>
+                 <div v-else class="flex-1 border-b border-transparent"></div>
+                 <button class="flex-1 flex items-center justify-center hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromBottom(cIdx)" v-if="cIdx < alignedChunks.length - 1" title="Expand Up">
+                   <ChevronUp class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
+                 </button>
+                 <div v-else class="flex-1"></div>
+                 
+                 <!-- Vertical Split Line continuation behind the badge -->
+                 <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-[#30363d] pointer-events-none z-0" :style="{ left: leftPaneWidth + '%' }"></div>
+                 
+                 <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
+                    <button class="bg-blue-50 dark:bg-gray-900 px-3 py-1 rounded-md text-[10px] font-bold border border-blue-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors pointer-events-auto flex items-center text-blue-600 dark:text-blue-400 shadow-sm" @click.stop="expandAll(cIdx)" title="Expand All">
+                      <ChevronsUpDown class="w-3 h-3 mr-1.5" />
+                      Expand {{ chunk.rows.length }} unchanged lines
+                    </button>
+                 </div>
               </div>
-              <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
-                {{ row.target.type === 'removed' ? '-' : '' }}
-              </div>
-              <div 
-                class="line-content px-2 py-0.5 grow ddl-code"
-                :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
-                v-html="row.target.highlighted || row.target.content"
-              ></div>
-            </div>
+
+            </template>
           </div>
         </div>
       </div>
@@ -223,29 +242,50 @@
       </div>
 
       <div class="flex-1 overflow-auto custom-scrollbar-diff relative ddl-container py-2">
-          <div 
-            v-for="(row, index) in unifiedRows" 
-            :key="index"
-            class="flex line-row group"
-            :class="getLineClass(row.type)"
-          >
-            <div class="line-numbers w-24 shrink-0 flex border-r border-gray-100 dark:border-[#30363d] select-none text-[10px]">
-              <div class="w-12 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 border-r border-gray-50 dark:border-gray-800/50">
-                {{ row.sourceLine || '' }}
+          <template v-for="(chunk, cIdx) in unifiedChunks" :key="'uni-chk-' + chunk.id">
+            <template v-if="chunk.type === 'visible'">
+              <div 
+                v-for="(row, idx) in chunk.rows" 
+                :key="'uni-' + chunk.id + '-' + idx"
+                class="flex line-row group"
+                :class="getLineClass(row.type)"
+              >
+                <div class="line-numbers w-24 shrink-0 flex border-r border-gray-100 dark:border-[#30363d] select-none text-[10px]">
+                  <div class="w-12 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 border-r border-gray-50 dark:border-gray-800/50">
+                    {{ row.sourceLine || '' }}
+                  </div>
+                  <div class="w-12 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600">
+                    {{ row.targetLine || '' }}
+                  </div>
+                </div>
+                <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
+                  {{ row.type === 'added' ? '+' : (row.type === 'removed' ? '-' : '') }}
+                </div>
+                <div 
+                  class="line-content px-2 py-0.5 grow ddl-code"
+                  :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
+                  v-html="row.highlighted || row.content"
+                ></div>
               </div>
-              <div class="w-12 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600">
-                {{ row.targetLine || '' }}
-              </div>
+            </template>
+            <div v-else class="flex flex-col items-stretch bg-blue-50/10 dark:bg-[#1f2937]/30 border-y border-blue-100/50 dark:border-[#30363d]/50 text-blue-500/80 dark:text-blue-400/60 relative group/expandbtn" style="height: 48px">
+               <button class="flex-1 flex items-center justify-center border-b border-transparent hover:border-blue-200 dark:hover:border-gray-700 hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromTop(cIdx)" v-if="cIdx > 0" title="Expand Down">
+                 <ChevronDown class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
+               </button>
+               <div v-else class="flex-1 border-b border-transparent"></div>
+               <button class="flex-1 flex items-center justify-center hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromBottom(cIdx)" v-if="cIdx < unifiedChunks.length - 1" title="Expand Up">
+                 <ChevronUp class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
+               </button>
+               <div v-else class="flex-1"></div>
+               
+               <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+                  <button class="bg-blue-50 dark:bg-gray-900 px-3 py-1 rounded-md text-[10px] font-bold border border-blue-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors pointer-events-auto flex items-center text-blue-600 dark:text-blue-400 shadow-sm" @click.stop="expandAll(cIdx)" title="Expand All">
+                    <ChevronsUpDown class="w-3 h-3 mr-1.5" />
+                    Expand {{ chunk.rows.length }} unchanged lines
+                  </button>
+               </div>
             </div>
-            <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
-              {{ row.type === 'added' ? '+' : (row.type === 'removed' ? '-' : '') }}
-            </div>
-            <div 
-              class="line-content px-2 py-0.5 grow ddl-code"
-              :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
-              v-html="row.highlighted || row.content"
-            ></div>
-          </div>
+          </template>
       </div>
     </div>
   </div>
@@ -255,7 +295,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
-import { Settings, Check } from 'lucide-vue-next'
+import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 
 const appStore = useAppStore()
@@ -266,11 +306,12 @@ const props = defineProps<{
   sourceLabel: string
   targetLabel: string
   status: string
+  diffOptions?: any
 }>()
 
 const sourcePane = ref<HTMLElement | null>(null)
 const targetPane = ref<HTMLElement | null>(null)
-const isSyncing = ref(false)
+
 const leftPaneWidth = ref(50)
 const isResizing = ref(false)
 
@@ -284,59 +325,19 @@ const wrapLines = ref(false)
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
 const isEmptyTarget = computed(() => !props.targetDdl || props.status === 'missing_in_target' || props.status === 'missing')
 
-// Aligned Diff Rows
-const alignedRows = computed(() => {
-  const oldLines = props.sourceDdl ? props.sourceDdl.split('\n') : []
-  const newLines = props.targetDdl ? props.targetDdl.split('\n') : []
+// Expand Config
+const MathMin = Math.min;
+const CONTEXT_LINES = 3;
+const EXPAND_STEP = 20;
 
-  if (props.status === 'equal' || props.status === 'same') {
-    return oldLines.map((line, i) => ({
-      source: { line: i + 1, content: line, highlighted: highlightedSourceLines.value[i], type: 'equal' },
-      target: { line: i + 1, content: line, highlighted: highlightedTargetLines.value[i], type: 'equal' }
-    }))
-  }
+interface ViewChunk {
+  id: string;
+  type: 'visible' | 'collapsed';
+  rows: any[];
+}
 
-  // Need alignment if different
-  return computeAlignedDiff(oldLines, newLines)
-})
-
-const unifiedRows = computed(() => {
-  const result: any[] = []
-  
-  alignedRows.value.forEach(row => {
-    if (row.source.type === 'equal' && row.target.type === 'equal') {
-      result.push({
-        sourceLine: row.source.line,
-        targetLine: row.target.line,
-        content: row.source.content,
-        highlighted: row.source.highlighted,
-        type: 'equal'
-      })
-    } else {
-      // In unified mode, show removed lines then added lines
-      if (row.source.type !== 'empty') {
-        result.push({
-          sourceLine: row.source.line,
-          targetLine: null,
-          content: row.source.content,
-          highlighted: row.source.highlighted,
-          type: 'removed' // This should be 'removed' for source-only lines
-        })
-      }
-      if (row.target.type !== 'empty') {
-        result.push({
-          sourceLine: null,
-          targetLine: row.target.line,
-          content: row.target.content,
-          highlighted: row.target.highlighted,
-          type: 'added' // This should be 'added' for target-only lines
-        })
-      }
-    }
-  })
-  
-  return result
-})
+const alignedChunks = ref<ViewChunk[]>([]);
+let chunkIdCounter = 0;
 
 const highlightedSourceLines = computed(() => {
   if (!props.sourceDdl) return []
@@ -351,6 +352,164 @@ const highlightedTargetLines = computed(() => {
   const html = Prism.highlight(normalize(props.targetDdl), Prism.languages.sql, 'sql')
   return html.split('\n')
 })
+
+watch([() => props.sourceDdl, () => props.targetDdl, () => props.diffOptions?.showChangesOnly], () => {
+  const oldLines = props.sourceDdl ? props.sourceDdl.split('\n') : []
+  const newLines = props.targetDdl ? props.targetDdl.split('\n') : []
+
+  let baseRows = [];
+  if (props.status === 'equal' || props.status === 'same') {
+    baseRows = oldLines.map((line, i) => ({
+      source: { line: i + 1, content: line, highlighted: highlightedSourceLines.value[i], type: 'equal' },
+      target: { line: i + 1, content: line, highlighted: highlightedTargetLines.value[i], type: 'equal' }
+    }))
+  } else {
+    baseRows = computeAlignedDiff(oldLines, newLines)
+  }
+  
+  const segments: { isDiff: boolean, rows: any[] }[] = [];
+  let currentSegment: { isDiff: boolean, rows: any[] } | null = null;
+  
+  for (const row of baseRows) {
+    const isDiff = row.source.type !== 'equal' || row.target.type !== 'equal';
+    if (!currentSegment) {
+      currentSegment = { isDiff, rows: [row] };
+    } else if (currentSegment.isDiff === isDiff) {
+      currentSegment.rows.push(row);
+    } else {
+      segments.push(currentSegment);
+      currentSegment = { isDiff, rows: [row] };
+    }
+  }
+  if (currentSegment) segments.push(currentSegment);
+  
+  const chunks: ViewChunk[] = [];
+  
+  const hideUnchanged = props.diffOptions?.showChangesOnly !== false; // Default to true if undefined
+  
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg.isDiff || !hideUnchanged) {
+      chunks.push({ id: `c${chunkIdCounter++}`, type: 'visible', rows: seg.rows });
+    } else {
+      const isFirst = i === 0;
+      const isLast = i === segments.length - 1;
+      let keepTop = isFirst ? 0 : CONTEXT_LINES;
+      let keepBottom = isLast ? 0 : CONTEXT_LINES;
+      
+      if (seg.rows.length <= keepTop + keepBottom) {
+        chunks.push({ id: `c${chunkIdCounter++}`, type: 'visible', rows: seg.rows });
+      } else {
+        if (keepTop > 0) chunks.push({ id: `c${chunkIdCounter++}`, type: 'visible', rows: seg.rows.slice(0, keepTop) });
+        const collapsedRows = seg.rows.slice(keepTop, seg.rows.length - keepBottom);
+        if (collapsedRows.length > 0) chunks.push({ id: `c${chunkIdCounter++}`, type: 'collapsed', rows: collapsedRows });
+        if (keepBottom > 0) chunks.push({ id: `c${chunkIdCounter++}`, type: 'visible', rows: seg.rows.slice(seg.rows.length - keepBottom) });
+      }
+    }
+  }
+  
+  const mergedChunks: ViewChunk[] = [];
+  for (const c of chunks) {
+    if (c.rows.length === 0) continue;
+    const last = mergedChunks[mergedChunks.length - 1];
+    if (last && last.type === 'visible' && c.type === 'visible') {
+      last.rows.push(...c.rows);
+    } else {
+      mergedChunks.push(c);
+    }
+  }
+  
+  alignedChunks.value = mergedChunks;
+}, { immediate: true })
+
+const unifiedChunks = computed(() => {
+  return alignedChunks.value.map(chunk => {
+    if (chunk.type === 'collapsed') {
+      return { id: chunk.id, type: 'collapsed', rows: chunk.rows }
+    }
+    const result: any[] = []
+    chunk.rows.forEach(row => {
+      if (row.source.type === 'equal' && row.target.type === 'equal') {
+        result.push({
+          sourceLine: row.source.line,
+          targetLine: row.target.line,
+          content: row.source.content,
+          highlighted: row.source.highlighted,
+          type: 'equal'
+        })
+      } else {
+        if (row.source.type !== 'empty') {
+          result.push({
+            sourceLine: row.source.line,
+            targetLine: null,
+            content: row.source.content,
+            highlighted: row.source.highlighted,
+            type: 'removed'
+          })
+        }
+        if (row.target.type !== 'empty') {
+          result.push({
+            sourceLine: null,
+            targetLine: row.target.line,
+            content: row.target.content,
+            highlighted: row.target.highlighted,
+            type: 'added'
+          })
+        }
+      }
+    })
+    return { id: chunk.id, type: 'visible', rows: result }
+  })
+})
+
+const mergeVisibleChunksAction = () => {
+  const merged: ViewChunk[] = [];
+  for (const c of alignedChunks.value) {
+    if (c.rows.length === 0) continue;
+    const last = merged[merged.length - 1];
+    if (last && last.type === 'visible' && c.type === 'visible') {
+      last.rows.push(...c.rows);
+    } else {
+      merged.push(c);
+    }
+  }
+  alignedChunks.value = merged;
+}
+
+const expandFromTop = (index: number) => {
+  const chunk = alignedChunks.value[index];
+  if (chunk.type !== 'collapsed') return;
+  const takeCount = MathMin(EXPAND_STEP, chunk.rows.length);
+  const revealed = chunk.rows.splice(0, takeCount);
+  if (alignedChunks.value[index - 1] && alignedChunks.value[index - 1].type === 'visible') {
+    alignedChunks.value[index - 1].rows.push(...revealed);
+  } else {
+    alignedChunks.value.splice(index, 0, { id: `c${chunkIdCounter++}`, type: 'visible', rows: revealed });
+  }
+  if (chunk.rows.length === 0) alignedChunks.value.splice(index, 1);
+  mergeVisibleChunksAction();
+};
+
+const expandFromBottom = (index: number) => {
+  const chunk = alignedChunks.value[index];
+  if (chunk.type !== 'collapsed') return;
+  const takeCount = MathMin(EXPAND_STEP, chunk.rows.length);
+  const revealed = chunk.rows.splice(chunk.rows.length - takeCount, takeCount);
+  if (alignedChunks.value[index + 1] && alignedChunks.value[index + 1].type === 'visible') {
+    alignedChunks.value[index + 1].rows.unshift(...revealed);
+  } else {
+    alignedChunks.value.splice(index + 1, 0, { id: `c${chunkIdCounter++}`, type: 'visible', rows: revealed });
+  }
+  if (chunk.rows.length === 0) alignedChunks.value.splice(index, 1);
+  mergeVisibleChunksAction();
+};
+
+const expandAll = (index: number) => {
+  alignedChunks.value[index].type = 'visible';
+  mergeVisibleChunksAction();
+};
+
+
 
 function computeAlignedDiff(sourceLines: string[], targetLines: string[]) {
   const compare = (s1: string | undefined, s2: string | undefined) => {
@@ -417,27 +576,7 @@ function getLineClass(type: string) {
   }
 }
 
-// Scroll Sync
-const handleScroll = (side: 'source' | 'target') => {
-  if (isSyncing.value) return
-  isSyncing.value = true
-  
-  const source = sourcePane.value
-  const target = targetPane.value
-  
-  if (source && target) {
-    if (side === 'source') {
-      target.scrollTop = source.scrollTop
-      target.scrollLeft = source.scrollLeft
-    } else {
-      source.scrollTop = target.scrollTop
-      source.scrollLeft = target.scrollLeft
-    }
-  }
-  
-  setTimeout(() => { isSyncing.value = false }, 20)
-}
-
+// Scroll Sync (Removed unused handleScroll)
 // Resizing logic
 const startResize = () => {
   isResizing.value = true

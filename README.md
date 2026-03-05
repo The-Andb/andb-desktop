@@ -20,7 +20,7 @@
 
 - **Frontend**: Vue.js 3 + TypeScript
 - **Desktop**: Electron
-- **Core Engine**: NestJS-based `@the-andb/core`
+- **Core Engine**: Framework-based `@the-andb/core`
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide Vue Next
 - **State Management**: Pinia

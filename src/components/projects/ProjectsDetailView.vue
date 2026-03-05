@@ -212,9 +212,9 @@ import {
   GitCompare,
   Layers,
   Table,
-  Hammer,
+  Workflow,
+  Sigma,
   RefreshCw,
-  Code2,
   Loader2
 } from 'lucide-vue-next'
 import DDLViewer from '@/components/ddl/DDLViewer.vue'
@@ -234,8 +234,8 @@ const isFetchingDDL = ref(false)
 const ddlTypes = [
    { key: 'tables', label: 'Tables', icon: Table, color: 'text-blue-500' },
    { key: 'views', label: 'Views', icon: Layers, color: 'text-indigo-500' },
-   { key: 'procedures', label: 'Procedures', icon: Hammer, color: 'text-purple-500' },
-   { key: 'functions', label: 'Functions', icon: Code2, color: 'text-pink-500' }
+   { key: 'procedures', label: 'Procedures', icon: Workflow, color: 'text-purple-500' },
+   { key: 'functions', label: 'Functions', icon: Sigma, color: 'text-pink-500' }
 ]
 
 const projectConnections = computed(() => {

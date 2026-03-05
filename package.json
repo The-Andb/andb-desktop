@@ -1,7 +1,7 @@
 {
   "name": "@the-andb/desktop",
   "productName": "The Andb",
-  "version": "3.0.0",
+  "version": "3.1.0-beta.1",
   "description": "Professional Database Migration Architecture",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -21,11 +21,13 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "sample:load": "node scripts/load-sample-data.js"
+    "sample:load": "node scripts/load-sample-data.js",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "postinstall": "npm run rebuild"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/The-Andb/andb.git"
+    "url": "git+https://github.com/The-Andb/andb-desktop.git"
   },
   "keywords": [
     "database",
@@ -40,9 +42,9 @@
   "license": "Proprietary",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/The-Andb/andb/issues"
+    "url": "https://github.com/The-Andb/andb-desktop/issues"
   },
-  "homepage": "https://github.com/The-Andb/andb#readme",
+  "homepage": "https://github.com/The-Andb/andb-desktop#readme",
   "devDependencies": {
     "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@playwright/test": "^1.58.0",
@@ -59,7 +61,7 @@
     "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
-    "electron": "^34.0.0",
+    "electron": "34.0.0",
     "electron-builder": "24.13.3",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
@@ -122,13 +124,14 @@
       {
         "provider": "github",
         "owner": "The-Andb",
-        "repo": "andb"
+        "repo": "andb-desktop"
       }
     ]
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@the-andb/core": "*",
+    "@sentry/electron": "^7.9.0",
+    "@the-andb/core": "4.0.0-beta.1",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",
@@ -142,6 +145,7 @@
     "lucide-vue-next": "^0.294.0",
     "mysql2": "^3.16.2",
     "pinia": "^2.1.7",
+    "posthog-js": "^1.358.1",
     "prismjs": "^1.30.0",
     "vue": "^3.5.27",
     "vue-i18n": "^9.14.5",

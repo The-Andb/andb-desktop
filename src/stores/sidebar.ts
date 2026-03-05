@@ -100,18 +100,63 @@ export const useSidebarStore = defineStore('sidebar', () => {
   // Initial load
   loadFromStorage()
 
+  const gitStatus = ref<any>(null)
+  const gitLoading = ref(false)
+
+  async function checkGitStatus() {
+    const projectsStore = (await import('./projects')).useProjectsStore()
+    const projectId = projectsStore.selectedProjectId
+
+    if (!projectId || gitLoading.value) return
+    gitLoading.value = true
+
+    try {
+      const gitConfigRes = await (window as any).electronAPI?.storage?.get(`git_config_${projectId}`)
+      if (!gitConfigRes?.success || !gitConfigRes.data?.remoteUrl) {
+        gitStatus.value = null
+        return
+      }
+
+      const res = await (window as any).electronAPI?.andbExecute({
+        sourceConnection: {} as any,
+        targetConnection: {} as any,
+        operation: 'git-status' as any,
+        options: { config: gitConfigRes.data }
+      })
+
+      if (res?.success) {
+        gitStatus.value = res.data
+      } else {
+        gitStatus.value = null
+      }
+    } catch (err) {
+      console.error('Failed to check git status in store:', err)
+      gitStatus.value = null
+    } finally {
+      gitLoading.value = false
+    }
+  }
+
+  // Auto-check on project switch
+  watch(() => (import('./projects').then(m => m.useProjectsStore().selectedProjectId)), () => {
+    checkGitStatus()
+  })
+
   return {
     refreshKey,
     refreshRequestKey,
     comparisonResults,
     environments,
     loading,
+    gitStatus,
+    gitLoading,
     triggerRefresh,
     requestRefresh,
     setComparisonResults,
     clearComparisonResults,
     loadSchemas,
     setEnvironments,
+    checkGitStatus,
     expandedEnvironments,
     expandedDatabases,
     expandedTypes

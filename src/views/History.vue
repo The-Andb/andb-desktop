@@ -211,15 +211,15 @@ import {
   ScanSearch, 
   Table, 
   Zap, 
-  Hammer, 
   Layers, 
-  ShieldCheck, 
   Clock, 
   Server,
   Database,
   Copy,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Workflow,
+  Sigma
 } from 'lucide-vue-next'
 
 const loading = ref(false)
@@ -283,9 +283,9 @@ const filteredSnapshots = computed(() => {
 const getIconForType = (type: string) => {
   switch (type.toUpperCase()) {
     case 'TABLES': return Table
-    case 'PROCEDURES': return Hammer
-    case 'FUNCTIONS': return Zap
-    case 'TRIGGERS': return ShieldCheck
+    case 'PROCEDURES': return Workflow
+    case 'FUNCTIONS': return Sigma
+    case 'TRIGGERS': return Zap
     case 'VIEWS': return Layers
     default: return Database
   }

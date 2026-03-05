@@ -63,20 +63,51 @@
 
           <div v-if="appStore.buttonStyle === 'full'" class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
-          <div v-if="error" class="text-red-500 text-[10px] font-bold uppercase tracking-wider max-w-[150px] truncate" :title="error">{{ error }}</div>
+          <!-- Safe Mode Toggle -->
+          <div class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none">
+             <ShieldCheck class="w-4 h-4" :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'" />
+             
+             <div class="flex items-center gap-1">
+               <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help" :title="$t('common.tooltips.safeMode', 'Safe Mode prevents potentially destructive actions during comparisons and migrations.')">{{ $t('schema.safeMode', 'Safe Mode') }}</span>
+               <button @click="showSafeModeInfo = !showSafeModeInfo" class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                 <Info class="w-3 h-3" />
+               </button>
+             </div>
+             
+             <button 
+               @click="appStore.safeMode = !appStore.safeMode"
+               class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
+               :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
+             >
+               <span 
+                 class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                 :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"
+               ></span>
+             </button>
+
+             <!-- Info Popover -->
+             <div v-if="showSafeModeInfo" class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+               <div class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                 <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest">
+                   <ShieldCheck class="w-4 h-4 text-green-500"/> {{ $t('schema.safeMode', 'Safe Mode') }} Info
+                 </h3>
+                 <button @click="showSafeModeInfo = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X class="w-3.5 h-3.5"/></button>
+               </div>
+               <div class="text-gray-600 dark:text-gray-300 space-y-3 text-xs leading-relaxed">
+                 <p>
+                   <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry Run)</span>
+                   Simulates changes without affecting your database. Generates SQL for preview only. <span class="text-gray-400 italic">Recommended.</span>
+                 </p>
+                 <p>
+                   <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span>
+                   Executes actual CREATE, ALTER, and DROP statements directly on the database. <span class="text-red-400 font-bold">Use with extreme caution!</span>
+                 </p>
+               </div>
+             </div>
+          </div>
 
           <button 
-            @click="runComparison(true)" 
-            :disabled="loading || !activePair"
-             class="hidden md:flex items-center justify-center gap-1.5 px-3 py-1.5 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all disabled:opacity-50 text-xs font-medium"
-            :title="fetchButtonText"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading && loadingAction === 'fetch' }" />
-            <span>Fetch</span>
-          </button>
-
-          <button 
-            @click="runComparison(false)" 
+            @click="runComparison()" 
             :disabled="loading || !activePair"
             class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale"
             :class="[
@@ -109,20 +140,7 @@
           <!-- Comparison Area (Top) -->
           <div class="flex-1 flex overflow-hidden relative min-w-0">
             <main class="flex-1 flex overflow-hidden relative min-w-0">
-              <!-- Loading Overlay (Spinner Only) -->
-              <!-- Loading Overlay (Spinner Only) -->
-              <!-- <div v-if="loading && !hasResults" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-sm">
-                <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
-                  <div class="relative w-20 h-20 mx-auto mb-6">
-                    <div class="absolute inset-0 border-4 border-primary-500/20 rounded-full"></div>
-                    <div class="absolute inset-0 border-4 border-t-primary-500 rounded-full animate-spin"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-2xl">🔍</div>
-                  </div>
-                  <p class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-widest">{{ statusMessage || $t('schema.loading') }}</p>
-                  <div class="mt-2 text-xs text-gray-500 uppercase tracking-tighter animate-pulse">{{ $t('schema.runningCommands') }}</div>
-                </div>
-              </div> -->
-
+              <!-- Loading Overlay (removed) -->
           <!-- Vertical Split: Object List vs DDL View -->
           <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0">
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
@@ -259,7 +277,7 @@
                         </div>
                       </div>
                       <div v-if="!showMigrateModal" class="flex items-center gap-3">
-                        <button 
+                        <button
                           v-if="cat.changes > 0"
                           class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-600 hover:shadow-md dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800/50 dark:hover:bg-orange-600 dark:hover:text-white transition-all group/badge shadow-sm disabled:opacity-50 disabled:grayscale"
                           :title="isTargetDump ? 'Cannot migrate to a static file' : 'Click to Migrate All Changes'"
@@ -298,7 +316,7 @@
                     ]"
                   >
                     <div class="min-w-0" :class="showMigrateModal ? '' : 'pr-2'">
-                      <div v-if="!showMigrateModal" class="text-[12px] font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name">
+                      <div v-if="!showMigrateModal" class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">
                         {{ item.name }}
                       </div>
                       <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">
@@ -409,6 +427,7 @@
                     :source-label="sourceName"
                     :target-label="targetName"
                     :status="selectedItem.status"
+                    :diff-options="diffOptions"
                   />
                 </div>
               </div>
@@ -446,6 +465,42 @@
       @apply="handleApplyFromDetail"
     />
 
+    <!-- Error Details Modal -->
+    <div v-if="showErrorModal && error" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-red-100 dark:border-red-900/30 w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        <div class="p-6 flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+              <AlertCircle class="w-6 h-6 text-red-500" />
+            </div>
+            <div>
+              <h3 class="text-lg font-extrabold text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('common.error') }}</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">An unexpected issue occurred during the operation</p>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-950 rounded-xl p-4 border border-gray-100 dark:border-gray-800/50 font-mono text-xs text-red-600 dark:text-red-400 break-words max-h-[300px] overflow-y-auto custom-scrollbar leading-relaxed">
+            {{ error }}
+          </div>
+          
+          <div class="flex items-center gap-3 mt-2">
+            <button 
+              @click="showErrorModal = false"
+              class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all"
+            >
+              {{ $t('common.close') }}
+            </button>
+            <button 
+              @click="runComparison(); showErrorModal = false"
+              class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </template>
 
 <script setup lang="ts">
@@ -464,28 +519,31 @@ import { useI18n } from 'vue-i18n'
 import { 
   RefreshCw, 
   ScanSearch, 
-  MousePointer2,
-  ChevronRight,
-  Database,
-  Server,
-  Table,
-  Layers,
-  Hammer,
-  Zap,
-  ChevronLeft,
-  CheckCircle2,
-  PlusCircle,
-  XCircle,
-  AlertCircle,
-  Search,
-  List,
-  GitMerge,
-  ArrowRightLeft,
-  GitCompare,
-  CaseSensitive,
-  WholeWord,
-  Regex,
-  X
+  MousePointer2, 
+  ChevronRight, 
+  Database, 
+  Server, 
+  Table, 
+  Layers, 
+  Zap, 
+  ChevronLeft, 
+  CheckCircle2, 
+  PlusCircle, 
+  XCircle, 
+  AlertCircle, 
+  Search, 
+  List, 
+  GitMerge, 
+  ArrowRightLeft, 
+  GitCompare, 
+  CaseSensitive, 
+  WholeWord, 
+  Regex, 
+  X, 
+  Workflow, 
+  Sigma,
+  ShieldCheck,
+  Info
 } from 'lucide-vue-next'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
 import { useOperationsStore } from '@/stores/operations'
@@ -537,12 +595,18 @@ watch(() => projectsStore.selectedProjectId, () => {
 // Deep Link Handling
 onMounted(async () => {
     // Check for pairId in query
+    if (connectionPairsStore.connectionPairs.length === 0) {
+        await connectionPairsStore.reloadData()
+    }
+    
     if (route.query.pairId) {
-        // Wait for store to load
-        if (connectionPairsStore.connectionPairs.length === 0) {
-            await connectionPairsStore.reloadData()
-        }
         connectionPairsStore.selectPair(route.query.pairId as string)
+    } else if (connectionPairsStore.connectionPairs.length > 0 && !connectionPairsStore.activePair) {
+        // Auto-select first pair if none selected
+        const firstPairId = connectionPairsStore.connectionPairs[0].id
+        if (firstPairId) {
+            connectionPairsStore.selectPair(firstPairId)
+        }
     }
 
     // Check for action=new (Auto Run)
@@ -552,11 +616,11 @@ onMounted(async () => {
         
         // If we have an active pair, run valid comparison immediately
         if (activePair.value) {
-           runComparison(true)
+           runComparison()
         } else {
             // Retry once after another tick if store was slow
             await nextTick()
-            if (activePair.value) runComparison(true)
+            if (activePair.value) runComparison()
             else {
                 notificationStore.add({
                     type: 'info',
@@ -573,39 +637,15 @@ onMounted(async () => {
 
 const viewMode = ref<'list' | 'tree'>('list')
 
-const fetchButtonText = computed(() => {
-    if (loading.value) return t('schema.fetching')
-    
-    if (selectedItem.value) {
-        const type = selectedItem.value.type.toLowerCase()
-        let singularType = type.endsWith('s') ? type.slice(0, -1) : type
-        if (type === 'procedures') singularType = 'procedure'
-        
-        const isDump = isSourceDump.value || isTargetDump.value
-        const action = isDump ? 'RE-PARSE' : 'FETCH'
-        return `${action} THIS ${singularType.toUpperCase()}`
-    }
-    
-    // If category filtered
-    if (selectedFilterType.value && selectedFilterType.value !== 'all') {
-        const isDump = isSourceDump.value || isTargetDump.value
-        const action = isDump ? 'RE-PARSE' : 'FETCH'
-        return `${action} ALL ${selectedFilterType.value.toUpperCase()}`
-    }
-
-    const isDump = isSourceDump.value || isTargetDump.value
-    if (isDump) return 'Re-parse Dump Files'
-    if (appStore.buttonStyle === 'full') return t('compare.fetchFromDB')
-    return t('compare.fetch')
-})
+// Removed fetchButtonText as there is no manual fetch button anymore
 
 
 
 const typeIcons = {
   tables: Table,
   views: Layers,
-  procedures: Hammer,
-  functions: Hammer,
+  procedures: Workflow,
+  functions: Sigma,
   triggers: Zap
 }
 
@@ -616,7 +656,8 @@ const getIconForType = (type: string) => {
 
 // State
 const loading = ref(false)
-const loadingAction = ref<'fetch' | 'compare' | null>(null)
+const loadingAction = ref<'compare' | null>(null)
+const showSafeModeInfo = ref(false)
 const statusMessage = ref('')
 const resultsWidth = ref(300)
 const error = ref<string | null>(null)
@@ -634,8 +675,15 @@ const searchFlags = ref({
   wholeWord: false,
   regex: false
 })
+const diffOptions = ref({
+  hideWhitespace: false,
+  wrapLines: false,
+  mode: 'unified' as 'unified' | 'split',
+  showChangesOnly: true // default to true
+})
 const selectedStatusFilter = ref('all')
 const lastCompareTime = ref(0)
+const showErrorModal = ref(false)
 
 const statusFilters = computed(() => [
   { label: t('common.all'), value: 'all' },
@@ -790,7 +838,7 @@ const countSummary = computed(() => {
 })
 
 // Actions
-const runComparison = async (refresh: boolean = false) => {
+const runComparison = async () => {
   if (!activePair.value) return
   // Debounce: prevent rapid re-clicks within 1.5 seconds
   const now = Date.now()
@@ -798,9 +846,8 @@ const runComparison = async (refresh: boolean = false) => {
   lastCompareTime.value = now
   
   loading.value = true
-  loadingAction.value = refresh ? 'fetch' : 'compare'
+  loadingAction.value = 'compare'
   
-  // consoleStore.setVisibility(true) // Only open console on manual run/error, not initial load
   statusMessage.value = t('compare.initializing')
   consoleStore.clearLogs()
   error.value = null
@@ -814,7 +861,7 @@ const runComparison = async (refresh: boolean = false) => {
     // Atomic Compare Logic
     if (selectedItem.value) {
       // 1. Compare specific object
-      objTypes = [selectedItem.value.type.toLowerCase()] // e.g., 'tables'
+      objTypes = [selectedItem.value.type.toLowerCase() as any] // e.g., 'tables'
       compareName = selectedItem.value.name
       consoleStore.addLog(`Comparing single object: ${selectedItem.value.name} (${selectedItem.value.type})`, 'info')
       statusMessage.value = t('compare.analyzingItem', { name: selectedItem.value.name })
@@ -828,53 +875,15 @@ const runComparison = async (refresh: boolean = false) => {
       statusMessage.value = t('compare.analyzing')
     }
     
-    // 1. Export Source and Target DDLs (Only if refreshing)
-    // 1. Export Source and Target DDLs (Only if refreshing)
-    if (refresh) {
-      consoleStore.setVisibility(true)
-      
-      // POWERFUL FETCH: Clear cache if doing a full fetch to ensure fresh data
-      if (!selectedItem.value && (!selectedFilterType.value || selectedFilterType.value === 'all')) {
-         statusMessage.value = t('compare.cleaning')
-         consoleStore.addLog('Cleaning up local cache for fresh fetch...', 'warn')
-         await Promise.all([
-           Andb.clearConnectionData(source),
-           Andb.clearConnectionData(target)
-         ])
-      }
-
-      statusMessage.value = t('compare.exporting')
-      
-      for (const type of objTypes) {
-        const cmdS = `andb export --source ${source.environment} --type ${type}` + (compareName ? ` --name ${compareName}` : '')
-        consoleStore.addLog(cmdS, 'cmd')
-        const cmdT = `andb export --source ${target.environment} --type ${type}` + (compareName ? ` --name ${compareName}` : '')
-        consoleStore.addLog(cmdT, 'cmd')
-      }
-      
-      // Parallelize exports
-      await Promise.all([
-        ...objTypes.map(type => Andb.export(source, target, { 
-          type, 
-          environment: source.environment,
-          name: compareName
-        })),
-        ...objTypes.map(type => Andb.export(source, target, { 
-          type, 
-          environment: target.environment,
-          name: compareName
-        }))
-      ])
-    }
-    
-    // 2. Compare (Always run to update comparison results from local cache)
+    // Compare (Always run to update comparison results from local cache)
     statusMessage.value = t('compare.comparingObjects')
+
     
     // Start recording operation
     const opId = operationsStore.addOperation({
       type: 'compare',
-      sourceEnv: source.environment,
-      targetEnv: target.environment,
+      sourceEnv: activePair.value.sourceEnv,
+      targetEnv: activePair.value.targetEnv,
       status: 'pending',
       startTime: new Date()
     })
@@ -882,8 +891,8 @@ const runComparison = async (refresh: boolean = false) => {
     const results = await Promise.all(objTypes.map(type => 
       Andb.compare(source, target, { 
         type, 
-        sourceEnv: source.environment, 
-        targetEnv: target.environment,
+        sourceEnv: activePair.value!.sourceEnv, 
+        targetEnv: activePair.value!.targetEnv,
         name: compareName
       })
     ))
@@ -907,6 +916,11 @@ const runComparison = async (refresh: boolean = false) => {
     sidebarStore.setComparisonResults(allResults.value)
     sidebarStore.triggerRefresh()
 
+    // Auto-select first result if we did a bulk comparison
+    if (!compareName && filteredResults.value.length > 0) {
+       selectItem(filteredResults.value[0])
+    }
+
     consoleStore.addLog('Comparison completed successfully', 'success')
   } catch (e: any) {
     error.value = e.message || 'Comparison failed'
@@ -917,6 +931,9 @@ const runComparison = async (refresh: boolean = false) => {
       message: e.message
     })
   } finally {
+    appStore.isSchemaFetching = false; // Release global fetch state
+    appStore.schemaFetchProgress = null;
+    
     // 5. Update Sidebar to show new objects
     await sidebarStore.loadSchemas(true)
     
@@ -950,7 +967,7 @@ const handleObjectSelected = (event: any) => {
     // If NOT found, it might be because comparison hasn't run or item is new/missing
     // Let's trigger a LOCAL comparison first to check cache
     consoleStore.addLog(`Object ${name} not in current results. Triggering local comparison...`, 'info')
-    runComparison(false).then(() => {
+    runComparison().then(() => {
        const retryFound = allResults.value.find(i => i.name === name)
        if (retryFound) selectedItem.value = retryFound
     })
@@ -970,7 +987,7 @@ const handleCategorySelected = (event: any) => {
   const hasTypeResults = allResults.value.some(i => i.type.toLowerCase() === type.toLowerCase())
   if (type !== 'all' && !hasTypeResults) {
     consoleStore.addLog(`No results for ${type}. Auto-triggering comparison...`, 'info')
-    runComparison(false)
+    runComparison()
   }
 }
 
@@ -1170,12 +1187,16 @@ const openBatchMigrateModal = (type: string) => {
   // Collect all items that will be migrated
   let itemsToMigrate = []
   if (type === 'Schema') {
-    itemsToMigrate = allResults.value.filter(i => i.status !== 'equal' && i.status !== 'same')
+    itemsToMigrate = allResults.value.filter(i =>
+      i.status !== 'equal' && i.status !== 'same' &&
+      i.status !== 'deprecated' && i.status !== 'missing_in_source'  // Rule: Never migrate DROP
+    )
   } else {
-    itemsToMigrate = allResults.value.filter(i => 
-      i.type.toLowerCase() === type.toLowerCase() && 
-      i.status !== 'equal' && 
-      i.status !== 'same'
+    itemsToMigrate = allResults.value.filter(i =>
+      i.type.toLowerCase() === type.toLowerCase() &&
+      i.status !== 'equal' &&
+      i.status !== 'same' &&
+      i.status !== 'deprecated' && i.status !== 'missing_in_source'  // Rule: Never migrate DROP
     )
   }
 
@@ -1244,8 +1265,8 @@ const confirmMigration = async () => {
           ? ['tables', 'views', 'procedures', 'functions', 'triggers']
           : [type]
         
-        // For batch migration, we sync everything: New, Updated, and Deprecated
-        const statuses: ('NEW' | 'UPDATED' | 'DEPRECATED')[] = ['NEW', 'UPDATED', 'DEPRECATED']
+        // Rule: Never migrate DROP. Only NEW and UPDATED.
+        const statuses: ('NEW' | 'UPDATED')[] = ['NEW', 'UPDATED']
         
         const resultsMap: Record<string, any> = {
           tables: tableResults,
@@ -1262,7 +1283,8 @@ const confirmMigration = async () => {
               type: ddlType as any,
               sourceEnv: source.environment,
               targetEnv: target.environment,
-              status: status
+              status: status,
+              dryRun: appStore.safeMode
             })
           }
           
@@ -1302,26 +1324,34 @@ const confirmMigration = async () => {
           message: `${type === 'schema' ? 'Entire schema' : 'All ' + batchType.value} has been migrated and verified.`
         })
       } else {
-        // Individual Migration
-        let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
+        // Individual Migration — Rule: Never migrate DROP
+        let status: 'NEW' | 'UPDATED' = 'NEW'
         if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') status = 'UPDATED'
-        if (item.status === 'deprecated' || item.status === 'missing_in_source') status = 'DEPRECATED'
+        if (item.status === 'deprecated' || item.status === 'missing_in_source') {
+          notificationStore.add({ type: 'warning', title: 'Migration Skipped', message: `"${item.name}" is deprecated. DROP operations are not allowed.` })
+          isMigrating.value = false
+          showMigrateModal.value = false
+          return
+        }
         
         await Andb.migrate(source, target, {
           type: item.type as any,
           sourceEnv: source.environment,
           targetEnv: target.environment,
           name: item.name,
-          status: status
+          status: status,
+          dryRun: appStore.safeMode
         })
         
         // Atomic Verification
         await applyAtomicVerify(item)
         
         notificationStore.add({
-          type: 'success',
-          title: 'Migration Successful',
-          message: `${item.name} (${item.type}) has been migrated and verified.`
+          type: appStore.safeMode ? 'info' : 'success',
+          title: appStore.safeMode ? t('compare.dryRunComplete') : 'Migration Successful',
+          message: appStore.safeMode 
+            ? t('compare.dryRunDesc', { name: item.name })
+            : `${item.name} (${item.type}) has been migrated and verified.`
         })
       }
       
@@ -1333,6 +1363,30 @@ const confirmMigration = async () => {
 
       // Complete operation record
       operationsStore.completeOperation(opId, true)
+
+      // Hybrid Model: Auto-sync to Git if configured
+      try {
+        const projectId = projectsStore.selectedProjectId
+        if (projectId) {
+          const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
+          if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
+            console.log(`[Compare] Hybrid Model: Triggering auto-sync to Git for project ${projectId}...`)
+            window.electronAPI?.andbExecute({
+              sourceConnection: {} as any,
+              targetConnection: {} as any,
+              operation: 'git-sync' as any,
+              options: {
+                config: gitConfRes.data,
+                env: target.environment,
+                db: target.database || target.name,
+                message: `chore(schema): auto-sync after migration of ${batchType.value || item.name}`
+              }
+            })
+          }
+        }
+      } catch (gitErr) {
+        console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
+      }
     } catch (e: any) {
       operationsStore.completeOperation(opId, false, { error: e.message })
       throw e
@@ -1424,7 +1478,7 @@ const handleApplyFromDetail = (item: any) => {
 const handleDatabaseRefreshRequested = (e: any) => {
   const { env } = e.detail
   if (activePair.value && (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)) {
-    runComparison(true)
+    runComparison()
   }
 }
 
@@ -1432,7 +1486,7 @@ const handleCategoryRefreshRequested = (e: any) => {
   const { type, env } = e.detail
   if (activePair.value && (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)) {
     selectedFilterType.value = type
-    runComparison(true)
+    runComparison()
   }
 }
 
@@ -1448,7 +1502,7 @@ const handleObjectRefreshRequested = (e: any) => {
       // If not in local results, at least set the search/filter so it might appear
       selectedFilterType.value = normalizedType
     }
-    runComparison(true)
+    runComparison()
   }
 }
 
@@ -1462,7 +1516,7 @@ onMounted(async () => {
   
   // Trigger local comparison on init (fetch from DB is manual)
   if (activePair.value) {
-    runComparison(false)
+    runComparison()
   }
 })
 
@@ -1477,8 +1531,8 @@ onUnmounted(() => {
 // Auto-run comparison when sidebar refresh is clicked (Top refresh button)
 watch(() => sidebarStore.refreshRequestKey, () => {
   if (route.path === '/compare' && activePair.value) {
-    consoleStore.addLog('Sidebar refresh requested: Fetching from DB...', 'info')
-    runComparison(true)
+    consoleStore.addLog('Sidebar refresh requested: Re-running local comparison...', 'info')
+    runComparison()
   }
 })
 
@@ -1494,7 +1548,7 @@ watch(() => connectionPairsStore.selectedPairId, (newId) => {
     selectedItem.value = null // Resets detail view
     
     // Trigger local comparison on pair change
-    runComparison(false)
+    runComparison()
   }
 })
 

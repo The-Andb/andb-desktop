@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/vue'
 import MigrationConfirm from '../MigrationConfirm.vue'
 
@@ -23,7 +23,6 @@ vi.mock('lucide-vue-next', () => ({
   AlertTriangle: { template: '<svg data-testid="icon-alert"></svg>' },
   Table: { template: '<svg data-testid="icon-table"></svg>' },
   Layers: { template: '<svg data-testid="icon-layers"></svg>' },
-  Hammer: { template: '<svg data-testid="icon-hammer"></svg>' },
   Database: { template: '<svg data-testid="icon-database"></svg>' },
   Trash2: { template: '<svg data-testid="icon-trash"></svg>' },
   PlusCircle: { template: '<svg data-testid="icon-plus"></svg>' },
@@ -31,7 +30,9 @@ vi.mock('lucide-vue-next', () => ({
   Terminal: { template: '<svg data-testid="icon-terminal"></svg>' },
   Copy: { template: '<svg data-testid="icon-copy"></svg>' },
   Check: { template: '<svg data-testid="icon-check"></svg>' },
-  List: { template: '<svg data-testid="icon-list"></svg>' }
+  List: { template: '<svg data-testid="icon-list"></svg>' },
+  Workflow: { template: '<svg data-testid="icon-workflow"></svg>' },
+  Sigma: { template: '<svg data-testid="icon-sigma"></svg>' }
 }))
 
 // Mock DDLViewer to avoid rendering complex Monaco/highlighting components

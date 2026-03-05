@@ -2,7 +2,7 @@
   <aside 
     :class="[
       'bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out select-none text-sm relative group',
-      isCollapsed ? 'w-12' : 'w-72',
+      isCollapsed ? 'w-16' : 'w-72',
       shouldBlur ? 'blur-[2px] opacity-40 grayscale-[0.8] cursor-pointer' : ''
     ]"
     @click="shouldBlur && router.push('/')"
@@ -65,68 +65,15 @@
           <button @click="sidebarStore.requestRefresh()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.refresh')">
             <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
           </button>
-          <button @click="expandAll" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.expandAll')">
-            <PlusSquare class="w-3.5 h-3.5" />
+          <!-- Collapse Sidebar Button -->
+          <button @click="appStore.toggleSidebar()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors" :title="$t('common.collapse')">
+            <PanelLeftClose class="w-3.5 h-3.5" />
           </button>
-          <button @click="collapseAll" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.collapseAll')">
-            <MinusSquare class="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-      <!-- Search Box -->
-      <div v-show="!isCollapsed" class="px-3 pb-2 pt-1 border-b border-gray-100 dark:border-gray-800/50">
-        <div class="relative group">
-          <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-            <Search class="h-3.5 w-3.5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-          </div>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="block w-full pl-8 pr-20 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-            :placeholder="$t('common.search')"
-          />
-          
-          <!-- Search Flags -->
-          <div class="absolute inset-y-0 right-0 flex items-center pr-1.5 space-x-0.5">
-            <button 
-              @click="searchFlags.caseSensitive = !searchFlags.caseSensitive"
-              class="p-1 rounded transition-colors"
-              :class="searchFlags.caseSensitive ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-              :title="$t('common.matchCase')"
-            >
-              <CaseSensitive class="w-3.5 h-3.5" />
-            </button>
-            <button 
-              @click="searchFlags.wholeWord = !searchFlags.wholeWord"
-              class="p-1 rounded transition-colors"
-              :class="searchFlags.wholeWord ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-              :title="$t('common.wholeWord')"
-            >
-              <WholeWord class="w-3.5 h-3.5" />
-            </button>
-            <button 
-              @click="searchFlags.regex = !searchFlags.regex"
-              class="p-1 rounded transition-colors"
-              :class="searchFlags.regex ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-              :title="$t('common.useRegex')"
-            >
-              <Regex class="w-3.5 h-3.5" />
-            </button>
-            
-            <!-- Clear Button -->
-            <button 
-              v-if="searchQuery"
-              @click="searchQuery = ''"
-              class="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
-            >
-              <X class="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
 
       <!-- Tree Content -->
-      <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900">
+      <div v-show="!isCollapsed" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900">
         <!-- Loading State (Only if no data or requested refresh) -->
         <div v-if="sidebarStore.loading && sidebarStore.environments.length === 0" class="p-4 space-y-2 opacity-50">
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
@@ -148,11 +95,7 @@
               @click="toggleEnvironment(env.name)"
               :style="{ fontSize: appStore.fontSizes.schema + 'px' }"
             >
-              <span class="w-4 flex items-center justify-center mr-1">
-                <ChevronRight 
-                  class="w-3.5 h-3.5 transition-transform duration-200"
-                  :class="{ 'rotate-90': expandedEnvironments.has(env.name) }" 
-                />
+              <span class="w-1 flex items-center justify-center mr-1">
               </span>
               <component :is="getEnvIcon(env.name)" class="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
               <span class="font-semibold truncate flex-1">{{ env.name }}</span>
@@ -177,13 +120,9 @@
                   :style="{ fontSize: (appStore.fontSizes.schema - 1) + 'px' }"
                 >
                   <span 
-                    class="w-4 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
+                    class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
                     @click.stop="toggleDatabase(env.name, db.name)"
                   >
-                    <ChevronRight 
-                      class="w-3.5 h-3.5 transition-transform duration-200"
-                      :class="{ 'rotate-90': expandedDatabases.has(`${env.name}-${db.name}`) }" 
-                    />
                   </span>
                   <Database class="w-3.5 h-3.5 mr-2 text-amber-600 dark:text-amber-500" />
                   <span class="truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
@@ -214,19 +153,20 @@
                         :style="{ fontSize: (appStore.fontSizes.schema - 1) + 'px' }"
                       >
                         <span 
-                          class="w-4 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
+                          class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
                           @click.stop="toggleType(env.name, db.name, type.key)"
                         >
-                          <ChevronRight 
-                            class="w-3.5 h-3.5 transition-transform duration-200"
-                            :class="{ 'rotate-90': expandedTypes.has(`${env.name}-${db.name}-${type.key}`) }" 
-                          />
                         </span>
-                        <component 
-                          :is="expandedTypes.has(`${env.name}-${db.name}-${type.key}`) ? FolderOpen : Folder" 
-                          class="w-3.5 h-3.5 mr-2"
-                          :class="type.colorClass || 'text-indigo-400'"
-                        />
+                        <div 
+                          class="w-6 h-6 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 transition-all group-hover/cat:scale-110"
+                          :class="type.bgClass || 'bg-indigo-50 dark:bg-indigo-900/30'"
+                        >
+                          <component 
+                            :is="type.icon" 
+                            class="w-3.5 h-3.5"
+                            :class="type.colorClass || 'text-indigo-400'"
+                          />
+                        </div>
                          <span class="truncate flex-1">{{ type.label }}</span>
                          <span class="ml-2 text-[10px] opacity-40 font-mono">{{ db[type.key].length }}</span>
 
@@ -245,42 +185,6 @@
                          </span>
                       </div>
 
-                      <!-- Leaves (Objects) -->
-                      <div v-if="expandedTypes.has(`${env.name}-${db.name}-${type.key}`)" class="relative">
-                         <!-- Indentation Guide Level 3 -->
-                         <div class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
-                         <div class="absolute left-[41px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
-                         <div class="absolute left-[63px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
-                        
-                        <div 
-                          v-for="item in db[type.key]" 
-                          :key="item.name"
-                          @click="selectObject(env.name, db.name, type.key, item)"
-                          class="group/obj flex items-center h-6 px-2 pl-[66px] cursor-pointer text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent"
-                          :class="{ 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 border-blue-500': selectedObjectId === item.name }"
-                        >
-                          <component :is="type.icon" class="w-3.5 h-3.5 mr-2 opacity-70 shrink-0" />
-                          <span 
-                            class="truncate font-mono leading-tight flex-1"
-                            :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }"
-                            :class="{ 
-                              'text-amber-600 dark:text-amber-400': isCompareView && isModified(type.key, item.name), 
-                              'text-green-600 dark:text-green-400': isCompareView && isNew(type.key, item.name) 
-                            }"
-                          >
-                            {{ item.name }}
-                          </span>
-
-                          <!-- Fast Refresh Object -->
-                          <button 
-                            @click.stop="refreshObject(env.name, db.name, type.key, item.name)"
-                            class="p-0.5 opacity-0 group-hover/obj:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm hover:scale-110 transition-all text-primary-500 shrink-0 ml-2"
-                            :title="$t('common.tooltips.refreshObject')"
-                          >
-                            <RefreshCw class="w-2.5 h-2.5" />
-                          </button>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -290,8 +194,38 @@
         </div>
       </div>
       
+      <!-- Git Sync Status Chip -->
+      <div v-if="!isCollapsed && sidebarStore.gitStatus" class="px-3 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/50">
+         <div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center gap-2 min-w-0">
+               <div class="relative">
+                  <GitBranch class="w-3.5 h-3.5 text-primary-500" />
+                  <span v-if="sidebarStore.gitStatus.modifiedFiles?.length > 0" class="absolute -top-1 -right-1 w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+               </div>
+               <div class="flex flex-col min-w-0">
+                  <span class="text-[10px] font-black text-gray-900 dark:text-white leading-none uppercase tracking-tight truncate">{{ sidebarStore.gitStatus.currentBranch }}</span>
+                  <span class="text-[9px] text-gray-400 font-bold truncate">
+                     {{ sidebarStore.gitStatus.modifiedFiles?.length || 0 }} unsynced changes
+                  </span>
+               </div>
+            </div>
+            <button @click="sidebarStore.checkGitStatus()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-primary-500">
+               <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': sidebarStore.gitLoading }" />
+            </button>
+         </div>
+      </div>
+      
       <!-- Collapsed Mode Icon Bar -->
       <div v-if="isCollapsed" class="flex flex-col items-center py-4 space-y-4">
+        <!-- Expand Button -->
+        <button 
+          @click="appStore.toggleSidebar()"
+          class="p-2 text-gray-400 hover:text-primary-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors mb-2"
+          :title="$t('common.expand')"
+        >
+          <PanelLeftOpen class="w-5 h-5" />
+        </button>
+
         <router-link v-for="item in navItems" :key="item.path" :to="item.path" class="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded" :title="item.name">
           <component :is="item.icon" class="w-5 h-5" />
         </router-link>
@@ -308,6 +242,7 @@ import { useAppStore } from '@/stores/app'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useProjectsStore } from '@/stores/projects'
+import { useFeaturesStore } from '@/stores/features'
 
 import { 
   Home, 
@@ -316,22 +251,23 @@ import {
   History,
   RefreshCw, 
   ChevronRight,
-  Table,
   Zap,
-  Hammer,
-  Layers,
   ShieldCheck,
-  Server,
-  Folder,
-  FolderOpen,
-
-  MinusSquare,
-  PlusSquare,
-  Search,
-  CaseSensitive,
-  WholeWord,
-  Regex,
-  X
+  ShieldAlert,
+  Activity,
+  Box,
+  Terminal,
+  X,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Grid3X3,
+  Eye,
+  Cpu,
+  CalendarClock,
+  Sigma,
+  Settings2,
+  Network,
+  GitBranch
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -341,6 +277,7 @@ const appStore = useAppStore()
 const connectionPairsStore = useConnectionPairsStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
+const featuresStore = useFeaturesStore()
 
 
 const isCollapsed = computed(() => appStore.sidebarCollapsed)
@@ -356,15 +293,17 @@ const shouldBlur = computed(() => {
 })
 
 // Navigation Items
-// Navigation Items
 const navItems = computed(() => {
-  return [
-    { name: t('common.dashboard'), path: '/', icon: Home },
-    { name: t('common.schema'), path: '/schema', icon: Database },
-    { name: t('common.compare'), path: '/compare', icon: GitCompare },
-    { name: t('common.history'), path: '/history', icon: History },
-    { name: t('settings.project_settings'), path: '/project-settings', icon: Layers }, 
+  const items = [
+    { name: t('common.dashboard'), path: '/', icon: Home, visible: true },
+    { name: t('common.schema'), path: '/schema', icon: Database, visible: true },
+    { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
+    { name: t('common.history'), path: '/history', icon: History, visible: true },
+    { name: 'Integrations', path: '/integrations', icon: Terminal, visible: true },
+    { name: 'ER Diagram', path: '/er-diagram', icon: Network, visible: featuresStore.isEnabled('erDiagram') },
+    { name: t('settings.project_settings'), path: '/project-settings', icon: Settings2, visible: true }, 
   ]
+  return items.filter(i => i.visible)
 })
 
 // Schema Tree State
@@ -374,7 +313,6 @@ const loading = computed(() => sidebarStore.loading)
 const expandedEnvironments = computed(() => sidebarStore.expandedEnvironments)
 const expandedDatabases = computed(() => sidebarStore.expandedDatabases)
 const expandedTypes = computed(() => sidebarStore.expandedTypes)
-const selectedObjectId = ref<string | null>(null)
 
 // Search State
 const searchQuery = ref('')
@@ -405,20 +343,6 @@ const getCategoryChangeCount = (db: any, typeKey: string) => {
     const res = comparisonMap.value[`${typeKey}-${item.name}`]
     return res && res.status !== 'equal' && res.status !== 'same'
   }).length
-}
-
-const getItemStatus = (type: string, name: string) => {
-  return comparisonMap.value[`${type}-${name}`]?.status
-}
-
-const isModified = (type: string, name: string) => {
-  const s = getItemStatus(type, name)?.toLowerCase()
-  return s === 'modified' || s === 'different' || s === 'updated'
-}
-
-const isNew = (type: string, name: string) => {
-  const s = getItemStatus(type, name)?.toLowerCase()
-  return s === 'new' || s === 'missing_in_target'
 }
 
 const filteredEnvironments = computed(() => {
@@ -509,12 +433,12 @@ const displayEnvironments = computed(() => {
 
 // DDL Types Mapping
 const ddlTypes = computed(() => [
-  { key: 'tables', label: t('navigation.ddl.tables'), icon: Table, colorClass: 'text-blue-600 dark:text-blue-400' },
-  { key: 'views', label: t('navigation.ddl.views'), icon: Layers, colorClass: 'text-indigo-600 dark:text-indigo-400' },
-  { key: 'procedures', label: t('navigation.ddl.procedures'), icon: Hammer, colorClass: 'text-purple-600 dark:text-purple-400' },
-  { key: 'functions', label: t('navigation.ddl.functions'), icon: Hammer, colorClass: 'text-purple-600 dark:text-purple-400' },
-  { key: 'triggers', label: t('navigation.ddl.triggers'), icon: Zap, colorClass: 'text-amber-600 dark:text-amber-400' },
-  { key: 'events', label: t('navigation.ddl.events'), icon: RefreshCw, colorClass: 'text-cyan-600 dark:text-cyan-400' }
+  { key: 'tables', label: t('navigation.ddl.tables'), icon: Grid3X3, colorClass: 'text-blue-600 dark:text-blue-400', bgClass: 'bg-blue-50 dark:bg-blue-900/30' },
+  { key: 'views', label: t('navigation.ddl.views'), icon: Eye, colorClass: 'text-indigo-600 dark:text-indigo-400', bgClass: 'bg-indigo-50 dark:bg-indigo-900/30' },
+  { key: 'procedures', label: t('navigation.ddl.procedures'), icon: Cpu, colorClass: 'text-purple-600 dark:text-purple-400', bgClass: 'bg-purple-50 dark:bg-purple-900/30' },
+  { key: 'functions', label: t('navigation.ddl.functions'), icon: Sigma, colorClass: 'text-purple-600 dark:text-purple-400', bgClass: 'bg-purple-50 dark:bg-purple-900/30' },
+  { key: 'triggers', label: t('navigation.ddl.triggers'), icon: Zap, colorClass: 'text-amber-600 dark:text-amber-400', bgClass: 'bg-amber-50 dark:bg-amber-900/30' },
+  { key: 'events', label: t('navigation.ddl.events'), icon: CalendarClock, colorClass: 'text-cyan-600 dark:text-cyan-400', bgClass: 'bg-cyan-50 dark:bg-cyan-900/30' }
 ])
 
 // Actions
@@ -524,31 +448,12 @@ const isSourceEnvironment = (envName: string) => {
 
 const getEnvIcon = (envName: string) => {
   const name = envName.toUpperCase()
-  if (name.includes('PROD')) return ShieldCheck
-  if (name.includes('UAT')) return Layers
-  if (name.includes('STAGE')) return Server
-  return Database
+  if (name.includes('PROD')) return ShieldAlert
+  if (name.includes('UAT')) return ShieldCheck
+  if (name.includes('STAGE')) return Activity
+  return Box
 }
 
-const collapseAll = () => {
-  expandedEnvironments.value.clear()
-  expandedDatabases.value.clear()
-  expandedTypes.value.clear()
-}
-
-const expandAll = () => {
-  filteredEnvironments.value.forEach(env => {
-    expandedEnvironments.value.add(env.name)
-    env.databases.forEach((db: any) => {
-      expandedDatabases.value.add(`${env.name}-${db.name}`)
-      ddlTypes.value.forEach(type => {
-        if (db[type.key]?.length > 0) {
-          expandedTypes.value.add(`${env.name}-${db.name}-${type.key}`)
-        }
-      })
-    })
-  })
-}
 
 const isActiveDatabase = (db: any) => {
   return db.connectionId === appStore.selectedConnectionId
@@ -611,31 +516,12 @@ const selectCategory = async (env: string, db: string, type: string) => {
   }
 }
 
-const selectObject = async (env: string, db: string, type: string, item: any) => {
-  selectedObjectId.value = item.name
-  if (route.path === '/compare') {
-    window.dispatchEvent(new CustomEvent('object-selected', { detail: { env, db, name: item.name, type } }))
-  } else {
-    const isNavigationNeeded = !['/schema', '/history'].includes(route.path)
-    if (isNavigationNeeded) {
-      await router.push('/schema')
-    }
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('object-selected', { detail: { env, db, name: item.name, type } }))
-    }, isNavigationNeeded ? 200 : 0)
-  }
-}
-
 const refreshDatabase = (env: string, db: string) => {
   window.dispatchEvent(new CustomEvent('database-refresh-requested', { detail: { env, db } }))
 }
 
 const refreshCategory = (env: string, db: string, type: string) => {
   window.dispatchEvent(new CustomEvent('category-refresh-requested', { detail: { env, db, type } }))
-}
-
-const refreshObject = (env: string, db: string, type: string, name: string) => {
-  window.dispatchEvent(new CustomEvent('object-refresh-requested', { detail: { env, db, type, name } }))
 }
 
 const getDatabaseDisplayName = (db: any) => {
@@ -791,9 +677,6 @@ watch(() => appStore.resolvedConnections, () => {
   refreshSchemas(false) // Use cache if available, don't force re-parse
 }, { deep: true })
 
-watch(() => sidebarStore.refreshKey, () => {
-  refreshSchemas(true) // Force fresh fetch from SQLite since we know it just updated
-})
 
 watch(() => sidebarStore.refreshRequestKey, () => {
   refreshSchemas(true) // Force fetch from DB
@@ -806,7 +689,8 @@ watch(() => projectsStore.selectedProjectId, () => {
 
 
 onMounted(() => {
-  refreshSchemas()
+  refreshSchemas(false)
+  sidebarStore.checkGitStatus()
 })
 
 defineExpose({

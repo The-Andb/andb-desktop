@@ -1,4 +1,5 @@
-import path from 'path'
+import { dialog, WebContents } from 'electron'
+import * as path from 'path'
 
 // Import dependencies safely
 // @ts-ignore
@@ -159,7 +160,7 @@ export class AndbBuilder {
   }
 
   /**
-   * Get Storage service from NestJS via Bridge
+   * Get Storage service from Framework via Bridge
    */
   public static async getSQLiteStorage() {
     await CoreBridge.init(AndbBuilder.userDataPath);
@@ -294,7 +295,8 @@ export class AndbBuilder {
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
     operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection',
-    options: any = {}
+    options: any = {},
+    sender?: WebContents
   ): Promise<any> {
     const fs = require('fs')
     const originalCwd = process.cwd()
@@ -333,6 +335,12 @@ export class AndbBuilder {
           ...(isValidSsh(sourceSsh) ? { sshConfig: sourceSsh } : {})
         }
       };
+
+      if (sender) {
+        payload.onProgress = (data: any) => {
+          sender.send('andb-progress', { operation, ...data });
+        };
+      }
 
       if ((global as any).logger) {
         const scope = options.name ? ` (Object: ${options.name})` : (options.type ? ` (Category: ${options.type})` : '');

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/vue'
 import SchemaDiagram from '../SchemaDiagram.vue'
 
@@ -56,7 +56,7 @@ describe('SchemaDiagram.vue', () => {
   }
 
   it('renders tables correctly and parses columns from DDL', () => {
-    const { container } = renderComponent()
+    const { } = renderComponent()
 
     // Ensure headers exist
     expect(screen.getByText('users')).toBeTruthy()
@@ -92,25 +92,25 @@ describe('SchemaDiagram.vue', () => {
   })
 
   it('calculates edges between tables based on naming conventions', () => {
-    const { container } = renderComponent()
+    const { } = renderComponent()
 
     // Look for SVG path elements that signify edges
-    const paths = container.querySelectorAll('svg path')
+    const paths = document.body.querySelectorAll('svg path')
     expect(paths.length).toBeGreaterThan(0) // Should have an edge between users and posts
   })
 
   it('filters tables based on search query by applying grayscale to non-matching', async () => {
-    const { container } = renderComponent()
+    const { } = renderComponent()
 
     const searchInput = screen.getByPlaceholderText('Search tables...')
     await fireEvent.update(searchInput, 'user')
 
-    // Find the users and posts containers
-    // We expect the 'posts' table container to have grayscale / opacity classes applied
+    // Find the users and posts document.bodys
+    // We expect the 'posts' table document.body to have grayscale / opacity classes applied
     const postsElement = screen.getByText('posts').closest('.bg-white')
     expect(postsElement?.className).toContain('grayscale')
 
-    // The 'users' table container should have the ring-primary-500 class
+    // The 'users' table document.body should have the ring-primary-500 class
     const usersElement = screen.getByText('users').closest('.bg-white')
     expect(usersElement?.className).toContain('ring-primary-500')
   })

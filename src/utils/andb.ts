@@ -69,7 +69,8 @@ export class Andb {
 
       return {
         domainNormalization: projectSettings.domainNormalization || globalSettings.domainNormalization,
-        isNotMigrateCondition: projectSettings.isNotMigrateCondition || globalSettings.isNotMigrateCondition
+        isNotMigrateCondition: projectSettings.isNotMigrateCondition || globalSettings.isNotMigrateCondition,
+        gitConfig: (projectSettings as any).gitConfig || null
       }
     } catch (e) {
       // Pinia might not be ready in some edge cases

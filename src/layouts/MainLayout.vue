@@ -51,6 +51,7 @@
         <!-- Content & Console Split -->
         <div class="flex-1 flex flex-col overflow-hidden relative">
           
+
           <!-- Page Content -->
           <main 
             class="flex-1 flex overflow-hidden relative"
@@ -66,6 +67,18 @@
             class="h-1 cursor-row-resize bg-gray-200 dark:bg-gray-700 hover:bg-primary-500 transition-colors z-30 w-full shrink-0"
           ></div>
 
+          <!-- Fetch Progress Bar (above console) -->
+          <div v-if="appStore.isSchemaFetching && appStore.schemaFetchProgress" class="shrink-0 flex items-center gap-3 px-4 h-6 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-primary-500 transition-all duration-300 ease-out rounded-full" 
+                :style="{ width: `${Math.min(100, Math.max(0, (appStore.schemaFetchProgress.current / appStore.schemaFetchProgress.total) * 100))}%` }"
+              ></div>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 shrink-0 whitespace-nowrap">
+              FETCHING {{ appStore.schemaFetchProgress.current }}/{{ appStore.schemaFetchProgress.total }} {{ appStore.schemaFetchProgress.type?.toUpperCase() }}
+            </span>
+          </div>
           <!-- Console Panel -->
           <div 
             v-if="consoleStore.isVisible" 

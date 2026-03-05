@@ -15,6 +15,7 @@ interface AppSchema {
     lastSelectedProjectId?: string
     projectManagerMode?: boolean
     autoCollapseColumns?: boolean
+    safeMode?: boolean
     theme: 'light' | 'dark' | 'system'
     language: 'en' | 'vi'
     buttonStyle: 'full' | 'minimal' | 'icons'
@@ -43,6 +44,7 @@ interface AppSchema {
       ddlName: number
       code: number
     }
+    installationId?: string
   }
 }
 
@@ -245,6 +247,8 @@ export const storage = {
       lastSelectedConnectionId: '',
       lastSelectedProjectId: 'default',
       projectManagerMode: false,
+      autoCollapseColumns: true,
+      safeMode: true,
       theme: 'system' as const,
 
       language: 'en' as const,

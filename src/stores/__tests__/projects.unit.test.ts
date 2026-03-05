@@ -186,7 +186,7 @@ describe('Projects Store', () => {
     // Set some dummy data in other stores
     appStore.selectedConnectionId = 'test-conn'
     pairsStore.selectedPairId = 'test-pair'
-    consoleStore.logs = [{ id: '1', level: 'info', message: 'test', timestamp: 0 }]
+    consoleStore.logs = [{ type: 'info', message: 'test', timestamp: new Date() }]
     operationsStore.operations = [{ id: '1', projectId: newProject.id, type: 'test' as any, status: 'pending', startTime: new Date() }]
 
     // Change project

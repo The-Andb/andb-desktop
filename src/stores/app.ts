@@ -58,7 +58,7 @@ export const FONT_SIZE_PROFILES = {
     button: 10,
     ddlHeader: 14,
     schema: 11,
-    ddlName: 13,
+    ddlName: 11,
     code: 11
   },
   medium: {
@@ -67,7 +67,7 @@ export const FONT_SIZE_PROFILES = {
     button: 11,
     ddlHeader: 16,
     schema: 12,
-    ddlName: 14,
+    ddlName: 12,
     code: 12
   },
   large: {
@@ -76,7 +76,7 @@ export const FONT_SIZE_PROFILES = {
     button: 13,
     ddlHeader: 20,
     schema: 14,
-    ddlName: 16,
+    ddlName: 14,
     code: 14
   }
 }
@@ -85,7 +85,10 @@ export const useAppStore = defineStore('app', () => {
   // State
   const sidebarCollapsed = ref(false)
   const projectManagerMode = ref(false)
-  const autoCollapseColumns = ref(true)
+  const autoCollapseColumns = ref(false) // Default to false, will be synced from features
+  const safeMode = ref(true) // Default to true for safety
+
+  // ... (inside the store factory)
   const buttonStyle = ref<'full' | 'minimal' | 'icons'>('full')
   const navStyle = ref<'vertical-list' | 'horizontal-tabs'>('vertical-list')
   const fontSizes = ref({
@@ -94,7 +97,7 @@ export const useAppStore = defineStore('app', () => {
     button: 11,
     ddlHeader: 16,
     schema: 12,
-    ddlName: 14,
+    ddlName: 12,
     code: 12
   })
   const fontFamilies = ref({
@@ -107,6 +110,14 @@ export const useAppStore = defineStore('app', () => {
   const lastCustomFontSizes = ref({ ...FONT_SIZE_PROFILES.medium })
 
   const connections = ref<DatabaseConnection[]>([])
+
+  // Global Schema Fetching State
+  const isSchemaFetching = ref(false)
+  const schemaFetchMessage = ref('')
+  const schemaFetchProgress = ref<{ current: number; total: number; type: string; objectName: string } | null>(null)
+
+  // Telemetry Identity
+  const installationId = ref<string>('')
 
   // Initialize state
   let initPromise: Promise<void> | null = null
@@ -131,9 +142,18 @@ export const useAppStore = defineStore('app', () => {
 
       projectManagerMode.value = savedSettings.projectManagerMode || false
       autoCollapseColumns.value = savedSettings.autoCollapseColumns !== undefined ? savedSettings.autoCollapseColumns : true
+      safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
 
       // If we loaded 'custom', we should ensure fontSizes reflects the loaded values (already done by fontSizes loading logic above)
       // If we loaded a profile, apply it to ensure consistency.
+
+      // Manage Installation ID
+      if (savedSettings.installationId) {
+        installationId.value = savedSettings.installationId
+      } else {
+        installationId.value = generateId()
+        storage.updateSettings({ installationId: installationId.value })
+      }
 
       selectedConnectionId.value = savedSettings.lastSelectedConnectionId || '1' // Fallback to DEV (id 1) if none
 
@@ -319,6 +339,10 @@ export const useAppStore = defineStore('app', () => {
 
   watch(autoCollapseColumns, newValue => {
     storage.updateSettings({ autoCollapseColumns: newValue })
+  })
+
+  watch(safeMode, newValue => {
+    storage.updateSettings({ safeMode: newValue })
   })
 
   watch(navStyle, newValue => {
@@ -602,6 +626,7 @@ export const useAppStore = defineStore('app', () => {
     sidebarCollapsed,
     projectManagerMode,
     autoCollapseColumns,
+    safeMode,
     isDark,
     buttonStyle,
     navStyle,
@@ -614,6 +639,12 @@ export const useAppStore = defineStore('app', () => {
     currentPair,
 
     selectedConnectionId,
+    installationId,
+
+    // App-wide locks & progress
+    isSchemaFetching,
+    schemaFetchMessage,
+    schemaFetchProgress,
 
     // Getters
     getConnectionById,

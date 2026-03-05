@@ -92,6 +92,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-test')
   },
 
+  onAndbProgress: (callback: (event: any, data: any) => void) => {
+    // Remove existing listener to prevent duplicate subscriptions on hot reload
+    ipcRenderer.removeAllListeners('andb-progress');
+    ipcRenderer.on('andb-progress', callback);
+  },
+
   // Storage (electron-store)
   storage: {
     get: (key: string) => ipcRenderer.invoke('storage-get', key),
@@ -111,6 +117,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   andbGetSchemas: (args?: any) => {
     return ipcRenderer.invoke('andb-get-schemas', args)
+  },
+
+  andbParseTable: (ddl: string) => {
+    return ipcRenderer.invoke('andb-parse-table', ddl)
   },
 
   andbGetSavedComparisonResults: (args: {
@@ -182,6 +192,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pickFile: (options: any) => ipcRenderer.invoke('pick-file', options),
   saveDumpFile: (sourcePath: string) => ipcRenderer.invoke('save-dump-file', sourcePath),
 
+  // Integrations (CLI & MCP)
+  cli: {
+    checkPath: () => ipcRenderer.invoke('cli-check-path'),
+    getBinaryPath: () => ipcRenderer.invoke('cli-get-binary-path'),
+  },
+
+  mcp: {
+    getMcpPath: () => ipcRenderer.invoke('mcp-get-path'),
+  },
+
   // Generic invoke for dynamic calls
-  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args)
+  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+
+  // Phase 3 Security
+  security: {
+    encryptToken: (token: string) => ipcRenderer.invoke('security-encrypt-token', token),
+    decryptToken: (encryptedToken: string) => ipcRenderer.invoke('security-decrypt-token', encryptedToken)
+  }
 })

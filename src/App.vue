@@ -6,12 +6,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
+import { useFeaturesStore } from '@/stores/features'
 import Andb from '@/utils/andb'
 
 import UpdateModal from '@/components/general/UpdateModal.vue'
@@ -21,6 +22,7 @@ const updaterStore = useUpdaterStore()
 const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
+const featuresStore = useFeaturesStore()
 
 
 // Global Refresh Handlers
@@ -106,7 +108,14 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await featuresStore.fetchFeatures()
+  
+  // Sync Focus Mode setting
+  if (featuresStore.isEnabled('focusColumnMode')) {
+    appStore.autoCollapseColumns = true
+  }
+  
   document.addEventListener('keydown', handleKeydown)
   
   // global refresh listeners
@@ -122,6 +131,19 @@ onMounted(() => {
     // Initial check (quietly)
     // updaterStore.checkForUpdates() // Optional, main process does it on startup
   }
+
+  // Wait for store to init and identify telemetry user
+  watch(() => appStore.installationId, (id) => {
+    if (id) {
+      import('@/composables/usePostHog').then(({ usePostHog }) => {
+        const { posthog } = usePostHog()
+        posthog.identify(id, { is_desktop: true })
+      })
+      import('@sentry/electron/renderer').then(Sentry => {
+        Sentry.setUser({ id })
+      })
+    }
+  }, { immediate: true })
 
   // FAILSAFE: Verify Project Selection state after mounting
   setTimeout(() => {

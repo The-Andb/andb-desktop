@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/vue'
 import MirrorDiffView from '../MirrorDiffView.vue'
 
@@ -62,7 +62,7 @@ describe('MirrorDiffView.vue', () => {
   })
 
   it('renders added/removed empty placeholders if source or target are missing', () => {
-    const { container } = renderComponent({
+    const { } = renderComponent({
       sourceDdl: null,
       targetDdl: 'CREATE TABLE new_table (id INT);',
       status: 'missing_in_source'
@@ -96,15 +96,15 @@ describe('MirrorDiffView.vue', () => {
   })
 
   it('aligns diff rows correctly for modified DDL', () => {
-    const { container } = renderComponent({
+    const { } = renderComponent({
       sourceDdl: 'CREATE TABLE x (\n  a INT\n);',
       targetDdl: 'CREATE TABLE x (\n  b INT\n);',
       status: 'modified'
     })
 
     // Look for classes indicating removed/added
-    const addedLines = container.querySelectorAll('.line-added')
-    const removedLines = container.querySelectorAll('.line-removed')
+    const addedLines = document.body.querySelectorAll('.line-added')
+    const removedLines = document.body.querySelectorAll('.line-removed')
 
     expect(addedLines.length).toBeGreaterThan(0)
     expect(removedLines.length).toBeGreaterThan(0)

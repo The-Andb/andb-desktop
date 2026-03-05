@@ -532,7 +532,8 @@ const confirmMigration = async () => {
                 type: item.type,
                 name: item.name,
                 sourceEnv: pair.sourceEnv,
-                targetEnv: pair.targetEnv
+                targetEnv: pair.targetEnv,
+                dryRun: appStore.safeMode
             })
             closeMigrationView()
         }

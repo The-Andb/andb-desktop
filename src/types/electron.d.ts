@@ -59,6 +59,8 @@ declare global {
 
       andbTest: () => Promise<{ success: boolean; available?: boolean; error?: string }>
 
+      onAndbProgress: (callback: (event: any, data: any) => void) => void
+
       andbGetSchemas: (args?: any) => Promise<{ success: boolean; data?: any; error?: string }>
       andbGetSavedComparisonResults: (args: {
         sourceConnection: any
@@ -96,6 +98,21 @@ declare global {
         debugTestUpdate: (status: string) => Promise<void>
         onUpdateStatus: (callback: (response: any) => void) => void
         offUpdateStatus: () => void
+      }
+
+      // Integrations (CLI & MCP)
+      cli: {
+        checkPath: () => Promise<boolean>
+        getBinaryPath: () => Promise<string>
+      }
+
+      mcp: {
+        getMcpPath: () => Promise<string>
+      }
+
+      security: {
+        encryptToken: (token: string) => Promise<{ success: boolean; data?: string; error?: string }>
+        decryptToken: (encryptedToken: string) => Promise<{ success: boolean; data?: string; error?: string }>
       }
     }
   }

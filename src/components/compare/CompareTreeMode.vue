@@ -70,10 +70,7 @@
             v-show="category.items.length > 0"
             class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-transparent hover:border-gray-100 dark:hover:border-gray-700"
           >
-            <ChevronRight 
-              class="w-4 h-4 mr-1 transition-transform text-gray-400"
-              :class="{ 'rotate-90': !collapsedCategories.has(category.type) }"
-            />
+            <span class="w-4 mr-1"></span>
             <component :is="getCategoryIcon(category.type)" class="w-4 h-4 mr-2" :class="getCategoryColor(category.type)" />
             <span class="font-bold text-sm text-gray-700 dark:text-gray-200 capitalize">{{ category.type }}</span>
             <span class="ml-2 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-[10px] rounded-full font-mono">{{ category.items.length }}</span>
@@ -168,17 +165,18 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
-  ChevronRight, 
-  Table, 
-  Layers, 
-  Hammer, 
   Zap, 
   Database,
   Server,
   AlertCircle,
   XCircle,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  Sigma,
+  Grid3X3,
+  Eye,
+  Cpu,
+  CalendarClock
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 
@@ -206,10 +204,10 @@ const updateType = (type: string) => {
 
 const typeOptions = [
   { id: 'all', label: 'All Types', icon: Database },
-  { id: 'tables', label: 'Tables', icon: Table },
-  { id: 'views', label: 'Views', icon: Layers },
-  { id: 'procedures', label: 'Procedures', icon: Hammer },
-  { id: 'functions', label: 'Functions', icon: Hammer },
+  { id: 'tables', label: 'Tables', icon: Grid3X3 },
+  { id: 'views', label: 'Views', icon: Eye },
+  { id: 'procedures', label: 'Procedures', icon: Cpu },
+  { id: 'functions', label: 'Functions', icon: Sigma },
   { id: 'triggers', label: 'Triggers', icon: Zap }
 ]
 
@@ -324,10 +322,12 @@ const canMigrate = (item: any) => {
 // Helpers
 const getCategoryIcon = (type: string) => {
   switch(type) {
-    case 'tables': return Table
-    case 'views': return Layers
-    case 'procedures': case 'functions': return Hammer
+    case 'tables': return Grid3X3
+    case 'views': return Eye
+    case 'procedures': return Cpu
+    case 'functions': return Sigma
     case 'triggers': return Zap
+    case 'events': return CalendarClock
     default: return Database
   }
 }
@@ -338,6 +338,7 @@ const getCategoryColor = (type: string) => {
     case 'views': return 'text-indigo-500'
     case 'procedures': case 'functions': return 'text-purple-500'
     case 'triggers': return 'text-amber-500'
+    case 'events': return 'text-cyan-500'
     default: return 'text-gray-500'
   }
 }

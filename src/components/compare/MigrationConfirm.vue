@@ -178,7 +178,6 @@ import {
   AlertTriangle,
   Table,
   Layers,
-  Hammer,
   Database,
   Trash2,
   PlusCircle,
@@ -186,7 +185,9 @@ import {
   Terminal,
   Copy,
   Check,
-  List
+  List,
+  Workflow,
+  Sigma
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -228,8 +229,8 @@ defineEmits(['close', 'confirm'])
 const typeIcons: any = {
   tables: Table,
   views: Layers,
-  procedures: Hammer,
-  functions: Hammer,
+  procedures: Workflow,
+  functions: Sigma,
   triggers: Zap
 }
 

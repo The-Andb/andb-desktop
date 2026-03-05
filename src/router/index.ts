@@ -47,12 +47,27 @@ const routes = [
     path: '/projects',
     name: 'Projects',
     component: () => import('@/views/Projects.vue')
+  },
+  {
+    path: '/integrations',
+    name: 'Integrations',
+    component: () => import('@/views/Integrations.vue')
   }
 ]
+
+import { usePostHog } from '@/composables/usePostHog'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+
+const { posthog } = usePostHog()
+
+router.afterEach((to) => {
+  posthog.capture('$pageview', {
+    $current_url: to.fullPath
+  })
 })
 
 export default router

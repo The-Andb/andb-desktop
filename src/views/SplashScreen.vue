@@ -55,7 +55,7 @@ const { t } = useI18n()
 // App metadata from package.json
 const version = __APP_VERSION__
 const author = 'The Andb'
-const license = 'Proprietary'
+// const license = 'Proprietary'
 
 // Loading state
 const progress = ref(0)

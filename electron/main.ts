@@ -1,4 +1,10 @@
 import { join } from 'path'
+import * as Sentry from '@sentry/electron/main'
+
+Sentry.init({
+  dsn: "https://d6ce3613be4249e82f6d9ed3f74dd98b@o4510990022344704.ingest.us.sentry.io/4510990029553664",
+});
+
 
 // Resilient Electron API Loader
 const getElectron = () => {
@@ -248,7 +254,7 @@ app.whenReady().then(async () => {
   // Initialize AndbBuilder early
   AndbBuilder.initialize(app.getPath('userData'), app.getAppPath())
 
-  // Initialize NestJS Core Engine
+  // Initialize Framework Core Engine
   const { CoreBridge } = require('@the-andb/core')
   try {
     await CoreBridge.init(app.getPath('userData'))
@@ -695,7 +701,7 @@ ipcMain.handle('andb-delete-all-reports', async () => {
  * Execute andb-core operation with selected pair
  * Replaces old subprocess approach with programmatic API
  */
-ipcMain.handle('andb-execute', async (_event: any, args: any) => {
+ipcMain.handle('andb-execute', async (event: any, args: any) => {
   const { sourceConnection, targetConnection, operation, options } = args
 
   try {
@@ -703,7 +709,8 @@ ipcMain.handle('andb-execute', async (_event: any, args: any) => {
       sourceConnection,
       targetConnection,
       operation,
-      options
+      options,
+      event.sender
     )
 
     // AndbBuilder.execute() already returns { success, data } or { success: false, error }
@@ -726,6 +733,7 @@ ipcMain.handle('andb-get-saved-comparison-results', async (_event: any, args: an
     return { success: false, error: error.message }
   }
 })
+
 
 // ========================================
 // IPC Handlers for Storage (electron-store)
@@ -793,6 +801,22 @@ ipcMain.handle('storage-set', async (_event: any, key: string, value: any) => {
 ipcMain.handle('security-get-public-key', async () => {
   try {
     return { success: true, data: SecurityService.getInstance().getPublicKey() }
+  } catch (e: any) {
+    return { success: false, error: e.message }
+  }
+})
+
+ipcMain.handle('security-encrypt-token', async (_event: any, token: string) => {
+  try {
+    return { success: true, data: SecurityService.getInstance().secureEncrypt(token) }
+  } catch (e: any) {
+    return { success: false, error: e.message }
+  }
+})
+
+ipcMain.handle('security-decrypt-token', async (_event: any, encryptedToken: string) => {
+  try {
+    return { success: true, data: SecurityService.getInstance().secureDecrypt(encryptedToken) }
   } catch (e: any) {
     return { success: false, error: e.message }
   }
@@ -945,6 +969,25 @@ ipcMain.handle('andb-get-schemas', async (_event: any) => {
     return { success: true, data: result }
   } catch (error: any) {
     if ((global as any).logger) (global as any).logger.error('andb-get-schemas error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+/**
+ * Parse CREATE TABLE DDL into structured data
+ */
+ipcMain.handle('andb-parse-table', async (_event: any, ddl: string) => {
+  try {
+    const { CoreBridge } = require('@the-andb/core')
+    // Ensure core engine is initialized
+    const container = await CoreBridge.init()
+    const parserInstance = container.parser
+    if (!parserInstance) throw new Error('Parser service not initialized')
+
+    const result = parserInstance.parseTableDetailed(ddl)
+    return { success: !!result, data: result }
+  } catch (error: any) {
+    if ((global as any).logger) (global as any).logger.error('andb-parse-table error:', error)
     return { success: false, error: error.message }
   }
 })
@@ -1229,6 +1272,63 @@ ipcMain.handle('debug-test-update', (_event: any, status: any) => {
     }, 500)
   } else {
     contents.send('update-status', { status })
+  }
+})
+
+
+// ========================================
+// IPC Handlers for Integrations (CLI & MCP)
+// ========================================
+
+ipcMain.handle('cli-check-path', async () => {
+  try {
+    const { execSync } = require('child_process')
+    // Check if `andb` is globally accessible
+    execSync('which andb', { stdio: 'ignore' })
+    return true
+  } catch (e) {
+    return false
+  }
+})
+
+ipcMain.handle('cli-get-binary-path', () => {
+  const path = require('path')
+  // In development, it might just point to a valid script/bin.
+  // In production, it points inside app.asar.unpacked
+  if (isDev) {
+    return path.join(app.getAppPath(), '../andb-cli/bin/andb.js')
+  } else {
+    return path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '.bin', 'andb')
+  }
+})
+
+ipcMain.handle('mcp-get-path', () => {
+  const path = require('path')
+  if (isDev) {
+    return path.join(app.getAppPath(), '../andb-mcp/dist/index.js')
+  } else {
+    return path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@the-andb', 'mcp', 'dist', 'index.js')
+  }
+})
+
+ipcMain.handle('get-features-status', async () => {
+  try {
+    const { CoreBridge } = require('@the-andb/core')
+    return await CoreBridge.execute('getFeaturesStatus', {})
+  } catch (e: any) {
+    if ((global as any).logger) (global as any).logger.error('Failed to get feature status', e)
+    return {} // All disabled by default
+  }
+})
+
+ipcMain.handle('update-feature-flag', async (_event: any, args: any) => {
+  try {
+    const { key, enabled } = args
+    const { CoreBridge } = require('@the-andb/core')
+    return await CoreBridge.execute('updateFeatureFlag', { key, enabled })
+  } catch (e: any) {
+    if ((global as any).logger) (global as any).logger.error('Failed to update feature flag', e)
+    return { success: false, error: e.message }
   }
 })
 

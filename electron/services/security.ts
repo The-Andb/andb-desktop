@@ -85,7 +85,7 @@ export class SecurityService {
       return 'ENC:' + encrypted.toString('base64');
     } catch (e) {
       console.error('Encryption failed', e);
-      return text; // Fallback to plaintext if encryption fails to avoid data loss, but log it
+      return text;
     }
   }
 
@@ -100,8 +100,41 @@ export class SecurityService {
       return decrypted.toString('utf-8');
     } catch (e) {
       console.error('Decryption failed', e);
-      return text; // Return text (likely cyphertext) if fail
-      // The UI will likely show garbage, alerting user to issue.
+      return text;
+    }
+  }
+
+  // KEYCHAIN / SAFESTORAGE METHODS
+
+  public secureEncrypt(text: string): string {
+    if (!text) return '';
+    try {
+      const { safeStorage } = require('electron');
+      if (safeStorage.isEncryptionAvailable()) {
+        const encrypted = safeStorage.encryptString(text);
+        return 'SEC:' + encrypted.toString('base64');
+      }
+      return this.encrypt(text); // Fallback to RSA if safeStorage unavailable
+    } catch (e) {
+      console.error('Secure encryption failed', e);
+      return this.encrypt(text);
+    }
+  }
+
+  public secureDecrypt(text: string): string {
+    if (!text) return '';
+    if (!text.startsWith('SEC:')) return this.decrypt(text);
+
+    try {
+      const { safeStorage } = require('electron');
+      if (safeStorage.isEncryptionAvailable()) {
+        const buffer = Buffer.from(text.substring(4), 'base64');
+        return safeStorage.decryptString(buffer);
+      }
+      return text; // Cannot decrypt if safeStorage unavailable
+    } catch (e) {
+      console.error('Secure decryption failed', e);
+      return text;
     }
   }
 }

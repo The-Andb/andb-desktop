@@ -86,7 +86,8 @@ import {
   Database,
   Table,
   Layers,
-  Hammer,
+  Workflow,
+  Sigma,
   Zap
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -111,8 +112,8 @@ const notificationStore = useNotificationStore()
 const typeIcons: Record<string, any> = {
   tables: Table,
   views: Layers,
-  procedures: Hammer,
-  functions: Hammer,
+  procedures: Workflow,
+  functions: Sigma,
   triggers: Zap
 }
 

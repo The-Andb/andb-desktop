@@ -1,0 +1,330 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8] [cursor=pointer]:
+          - img "The Andb" [ref=e9]
+          - generic [ref=e10]: The Andb
+        - generic [ref=e11]:
+          - heading "Diff & Sync" [level=1] [ref=e12]
+          - navigation [ref=e14]:
+            - list [ref=e15]:
+              - listitem [ref=e16]:
+                - button "Dashboard" [ref=e17] [cursor=pointer]
+              - listitem [ref=e18]:
+                - generic [ref=e19]: /
+                - button "DEV to STAGE" [ref=e20] [cursor=pointer]
+              - listitem [ref=e21]:
+                - generic [ref=e22]: /
+                - button "Diff & Sync" [disabled] [ref=e23]
+      - generic [ref=e24]:
+        - generic [ref=e26]:
+          - img [ref=e27]
+          - generic [ref=e32]:
+            - combobox "Global Connection Pair Context" [ref=e33] [cursor=pointer]:
+              - option "Select Pair" [disabled]
+              - option "DEV to STAGE" [selected]
+              - option "STAGE to UAT"
+              - option "UAT to PROD"
+              - option "STAGE to PROD"
+            - generic:
+              - img
+        - generic [ref=e34]:
+          - button "Verify connection pair" [ref=e35] [cursor=pointer]:
+            - img [ref=e36]
+          - button "Reload configuration and cache" [ref=e39] [cursor=pointer]:
+            - img [ref=e40]
+          - button "Manage Connection Pairs" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - img [ref=e54]
+            - generic [ref=e56]:
+              - combobox [ref=e57] [cursor=pointer]:
+                - option "The Base One" [selected]
+                - option "+ New Base"
+              - generic:
+                - img
+          - button "Project Manager" [ref=e58] [cursor=pointer]:
+            - img [ref=e59]
+          - 'button "Theme: system" [ref=e65] [cursor=pointer]':
+            - img [ref=e67]
+          - button "EN" [ref=e70] [cursor=pointer]:
+            - img [ref=e71]
+            - generic [ref=e74]: EN
+        - button "Settings" [ref=e76] [cursor=pointer]:
+          - img [ref=e77]
+        - button "About" [ref=e80] [cursor=pointer]:
+          - img [ref=e81]
+  - generic [ref=e83]:
+    - complementary [ref=e85]:
+      - generic [ref=e86]:
+        - navigation [ref=e87]:
+          - generic [ref=e88]:
+            - link "Dashboard" [ref=e89] [cursor=pointer]:
+              - /url: "#/"
+              - img [ref=e91]
+              - generic [ref=e94]: Dashboard
+            - link "Schema" [ref=e95] [cursor=pointer]:
+              - /url: "#/schema"
+              - img [ref=e97]
+              - generic [ref=e101]: Schema
+            - link "Diff & Sync" [ref=e102] [cursor=pointer]:
+              - /url: "#/compare"
+              - img [ref=e104]
+              - generic [ref=e109]: Diff & Sync
+              - img [ref=e110]
+            - link "History & Rollback" [ref=e112] [cursor=pointer]:
+              - /url: "#/history"
+              - img [ref=e114]
+              - generic [ref=e118]: History & Rollback
+            - link "Integrations" [ref=e119] [cursor=pointer]:
+              - /url: "#/integrations"
+              - img [ref=e121]
+              - generic [ref=e123]: Integrations
+            - link "Project Settings" [ref=e124] [cursor=pointer]:
+              - /url: "#/project-settings"
+              - img [ref=e126]
+              - generic [ref=e129]: Project Settings
+        - generic [ref=e130]:
+          - generic [ref=e131]: Source Explorer
+          - generic [ref=e132]:
+            - button "Refresh" [ref=e133] [cursor=pointer]:
+              - img [ref=e134]
+            - button "Expand All" [ref=e139] [cursor=pointer]:
+              - img [ref=e140]
+            - button "Collapse All" [ref=e142] [cursor=pointer]:
+              - img [ref=e143]
+            - button "common.collapse" [ref=e145] [cursor=pointer]:
+              - img [ref=e146]
+        - generic [ref=e150]:
+          - generic:
+            - img
+          - textbox "Search" [ref=e151]
+          - generic [ref=e152]:
+            - button "Match Case" [ref=e153] [cursor=pointer]:
+              - img [ref=e154]
+            - button "Match Whole Word" [ref=e157] [cursor=pointer]:
+              - img [ref=e158]
+            - button "Use Regular Expression" [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+        - generic [ref=e169]:
+          - generic [ref=e170] [cursor=pointer]:
+            - img [ref=e171]
+            - generic [ref=e174]: DEV
+            - generic [ref=e175]: SRC
+          - generic [ref=e179] [cursor=pointer]:
+            - img [ref=e180]
+            - generic [ref=e184]: dev_database
+            - button "Force Refresh Schema" [ref=e185]:
+              - img [ref=e186]
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - generic [ref=e195]:
+          - generic [ref=e197]:
+            - heading "Diff & Sync" [level=1] [ref=e198]:
+              - img [ref=e199]
+              - text: Diff & Sync
+            - generic [ref=e203]:
+              - generic [ref=e204]: DEV
+              - img [ref=e205]
+              - generic [ref=e208]: STAGE
+              - generic [ref=e209]: 14 changes, 0 identical
+          - generic [ref=e210]:
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - button "List" [ref=e213] [cursor=pointer]:
+                  - img [ref=e214]
+                  - generic [ref=e215]: List
+                - button "Tree" [ref=e216] [cursor=pointer]:
+                  - img [ref=e217]
+                  - generic [ref=e221]: Tree
+              - button "FETCH THIS TABLE" [ref=e223] [cursor=pointer]:
+                - img [ref=e224]
+                - generic [ref=e229]: FETCH THIS TABLE
+              - button "Compare" [ref=e230] [cursor=pointer]:
+                - img [ref=e231]
+                - generic [ref=e236]: Compare
+            - button "Toggle Console Panel" [ref=e237] [cursor=pointer]
+        - button "Toggle Console Panel" [ref=e239] [cursor=pointer]:
+          - img [ref=e240]
+      - main [ref=e243]:
+        - main [ref=e246]:
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - generic [ref=e250]:
+                  - img [ref=e252]
+                  - generic [ref=e256]:
+                    - generic [ref=e257]: Database Overview
+                    - generic [ref=e258]: 14 items • 14 changes
+                - button "Migrate Entire Schema" [ref=e259] [cursor=pointer]:
+                  - img [ref=e260]
+              - generic [ref=e262]:
+                - generic [ref=e263]:
+                  - generic:
+                    - img
+                  - textbox "Search by name..." [ref=e264]
+                  - generic [ref=e265]:
+                    - button "Match Case" [ref=e266] [cursor=pointer]:
+                      - img [ref=e267]
+                    - button "Match Whole Word" [ref=e270] [cursor=pointer]:
+                      - img [ref=e271]
+                    - button "Use Regular Expression" [ref=e275] [cursor=pointer]:
+                      - img [ref=e276]
+                - generic [ref=e280]:
+                  - button "All" [ref=e281] [cursor=pointer]
+                  - button "Modified" [ref=e282] [cursor=pointer]
+                  - button "New" [ref=e283] [cursor=pointer]
+                  - button "Deprecated" [ref=e284] [cursor=pointer]
+                  - button "Identical" [ref=e285] [cursor=pointer]
+              - generic [ref=e287]:
+                - generic [ref=e289] [cursor=pointer]:
+                  - generic [ref=e290]:
+                    - img [ref=e292]
+                    - generic [ref=e294]:
+                      - generic [ref=e295]: tables
+                      - generic [ref=e296]: 10 items
+                  - generic [ref=e297]:
+                    - button "10" [ref=e298]:
+                      - img [ref=e300]
+                      - generic [ref=e302]: "10"
+                    - img [ref=e303]
+                - generic [ref=e308] [cursor=pointer]:
+                  - generic [ref=e309]:
+                    - img [ref=e311]
+                    - generic [ref=e315]:
+                      - generic [ref=e316]: views
+                      - generic [ref=e317]: 1 items
+                  - generic [ref=e318]:
+                    - button "1" [ref=e319]:
+                      - img [ref=e321]
+                      - generic [ref=e323]: "1"
+                    - img [ref=e324]
+                - generic [ref=e329] [cursor=pointer]:
+                  - generic [ref=e330]:
+                    - img [ref=e332]
+                    - generic [ref=e336]:
+                      - generic [ref=e337]: procedures
+                      - generic [ref=e338]: 1 items
+                  - generic [ref=e339]:
+                    - button "1" [ref=e340]:
+                      - img [ref=e342]
+                      - generic [ref=e344]: "1"
+                    - img [ref=e345]
+                - generic [ref=e350] [cursor=pointer]:
+                  - generic [ref=e351]:
+                    - img [ref=e353]
+                    - generic [ref=e355]:
+                      - generic [ref=e356]: functions
+                      - generic [ref=e357]: 1 items
+                  - generic [ref=e358]:
+                    - button "1" [ref=e359]:
+                      - img [ref=e361]
+                      - generic [ref=e363]: "1"
+                    - img [ref=e364]
+                - generic [ref=e369] [cursor=pointer]:
+                  - generic [ref=e370]:
+                    - img [ref=e372]
+                    - generic [ref=e374]:
+                      - generic [ref=e375]: triggers
+                      - generic [ref=e376]: 1 items
+                  - generic [ref=e377]:
+                    - button "1" [ref=e378]:
+                      - img [ref=e380]
+                      - generic [ref=e382]: "1"
+                    - img [ref=e383]
+            - generic [ref=e389]:
+              - generic [ref=e390]:
+                - generic [ref=e391]:
+                  - img [ref=e393]
+                  - img [ref=e396]
+                  - img [ref=e399]
+                  - img [ref=e403]
+                  - generic [ref=e405]:
+                    - img [ref=e406]
+                    - generic [ref=e408]: tables
+                  - img [ref=e409]
+                  - generic [ref=e412]: audit_logs
+                  - generic [ref=e413]: New (Source Only)
+                - generic [ref=e414]:
+                  - button "Migrate to STAGE" [ref=e415] [cursor=pointer]:
+                    - img [ref=e416]
+                    - generic [ref=e418]: Migrate to STAGE
+                  - button "View Full Definition" [ref=e421] [cursor=pointer]:
+                    - img [ref=e422]
+              - generic [ref=e431]:
+                - generic [ref=e432]:
+                  - generic [ref=e434]: "SOURCE: DEV"
+                  - generic [ref=e435]:
+                    - generic [ref=e436]: "TARGET: STAGE"
+                    - generic [ref=e437]:
+                      - generic [ref=e438]: New
+                      - button [ref=e440] [cursor=pointer]:
+                        - img [ref=e441]
+                - generic [ref=e446]:
+                  - generic [ref=e448]:
+                    - generic [ref=e449]: "1"
+                    - generic [ref=e450]: +
+                    - generic [ref=e451]:
+                      - text: CREATE TABLE
+                      - generic [ref=e452]: "`audit_logs`"
+                      - text: (
+                  - generic [ref=e458]:
+                    - generic [ref=e459]: "2"
+                    - generic [ref=e460]: +
+                    - generic [ref=e461]:
+                      - generic [ref=e462]: "`id`"
+                      - text: int NOT NULL AUTO_INCREMENT,
+                  - generic [ref=e468]:
+                    - generic [ref=e469]: "3"
+                    - generic [ref=e470]: +
+                    - generic [ref=e471]:
+                      - generic [ref=e472]: "`table_name`"
+                      - text: varchar(50) DEFAULT NULL,
+                  - generic [ref=e478]:
+                    - generic [ref=e479]: "4"
+                    - generic [ref=e480]: +
+                    - generic [ref=e481]:
+                      - generic [ref=e482]: "`record_id`"
+                      - text: int DEFAULT NULL,
+                  - generic [ref=e488]:
+                    - generic [ref=e489]: "5"
+                    - generic [ref=e490]: +
+                    - generic [ref=e491]:
+                      - generic [ref=e492]: "`action`"
+                      - text: varchar(20) DEFAULT NULL,
+                  - generic [ref=e498]:
+                    - generic [ref=e499]: "6"
+                    - generic [ref=e500]: +
+                    - generic [ref=e501]:
+                      - generic [ref=e502]: "`old_value`"
+                      - text: json DEFAULT NULL,
+                  - generic [ref=e508]:
+                    - generic [ref=e509]: "7"
+                    - generic [ref=e510]: +
+                    - generic [ref=e511]:
+                      - generic [ref=e512]: "`new_value`"
+                      - text: json DEFAULT NULL,
+                  - generic [ref=e518]:
+                    - generic [ref=e519]: "8"
+                    - generic [ref=e520]: +
+                    - generic [ref=e521]:
+                      - generic [ref=e522]: "`changed_at`"
+                      - text: timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+                  - generic [ref=e528]:
+                    - generic [ref=e529]: "9"
+                    - generic [ref=e530]: +
+                    - generic [ref=e531]:
+                      - text: PRIMARY KEY (
+                      - generic [ref=e532]: "`id`"
+                      - text: )
+                  - generic [ref=e538]:
+                    - generic [ref=e539]: "10"
+                    - generic [ref=e540]: +
+                    - generic [ref=e541]: ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+```

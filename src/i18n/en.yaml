@@ -233,6 +233,7 @@ schema:
   lastSynced: 'Last synced'
   fetch: 'Fetch'
   fetching: 'Fetching'
+  fetchingStatus: 'Fetching {0}...'
   fetchFromDB: 'Fetch from DB'
   fetchTooltip: 'Fetch Fresh Schema from Database (Andb Core)'
   loading: 'Loading schema...'
@@ -271,6 +272,7 @@ schema:
   code: 'Code'
   fetchThis: 'Fetch this {type}'
   fetchAll: 'Fetch all {type}'
+  safeMode: 'Safe Mode'
   never: 'Never'
 
 compare:
@@ -351,6 +353,8 @@ compare:
   finalizeMerge: 'Finalize Merge'
   conflictsFound: '{count} Conflicts Found'
   conflictsResolved: '{count} Conflicts Resolved'
+  dryRunComplete: 'Dry Run Complete'
+  dryRunDesc: 'A simulation of the migration for "{name}" was performed. No changes were applied to the database.'
 
 connections:
   title: 'Database Connections'

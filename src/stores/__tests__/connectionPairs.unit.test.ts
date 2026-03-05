@@ -73,7 +73,7 @@ describe('ConnectionPairs Store', () => {
 
   it('should add a custom connection pair', async () => {
     const store = useConnectionPairsStore()
-    const projectsStore = useProjectsStore() // Needed for registering to project
+    // const useProjectsStore() = useProjectsStore() // Needed for registering to project
 
     await nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -127,21 +127,21 @@ describe('ConnectionPairs Store', () => {
 
   it('should compute availablePairs combining custom and auto-generated pairs', async () => {
     const store = useConnectionPairsStore()
-    const projectsStore = useProjectsStore()
+    // const useProjectsStore() = useProjectsStore()
     const appStore = useAppStore()
 
     await nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
 
     // Set up a mock project with specific environments and connections
-    const testProject = projectsStore.addProject({
+    const testProject = useProjectsStore().addProject({
       name: 'Test Project',
       description: '',
       connectionIds: ['c1', 'c2'],
       pairIds: ['custom-pair'],
       enabledEnvironmentIds: ['DEV', 'PROD']
     })
-    projectsStore.selectProject(testProject.id)
+    useProjectsStore().selectProject(testProject.id)
 
     appStore.connections = [
       { id: 'c1', environment: 'DEV', name: 'Dev DB', host: '', port: 0, database: '', username: '', password: '', status: 'idle' },
