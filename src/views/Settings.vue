@@ -74,48 +74,6 @@
 
               <!-- Main UI Settings -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <!-- Project Focus Mode Feature Card -->
-                  <div class="md:col-span-2 mb-2 animate-in slide-in-from-bottom-2 fade-in duration-700">
-                     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 p-[1px] shadow-xl shadow-indigo-500/10 transition-all hover:shadow-indigo-500/20 group">
-                        <div class="relative bg-white dark:bg-gray-900 rounded-[15px] p-6 pr-8 h-full flex items-center justify-between z-10 transition-colors">
-                           
-                           <!-- Background Decoration -->
-                           <div class="absolute -right-6 -bottom-6 opacity-5 dark:opacity-10 rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                              <Maximize class="w-48 h-48 text-indigo-500" />
-                           </div>
-
-                           <div class="flex-1 mr-8">
-                              <div class="flex items-center gap-2 mb-3">
-                                 <div class="px-2 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white dark:bg-amber-500/20 dark:text-amber-300 uppercase tracking-widest flex items-center gap-1">
-                                    <Clock class="w-2.5 h-2.5 fill-current" />
-                                    COMING SOON
-                                 </div>
-                              </div>
-                              <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight transition-colors">Project Focus Mode</h3>
-                              <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                                 Hide the sidebar and header clutter to maximize your workspace. 
-                                 Perfect for managing complex connection matrices on smaller screens.
-                              </p>
-                           </div>
-
-                           <div class="flex flex-col items-center gap-3 relative z-20 opacity-60">
-                              <button 
-                                 disabled
-                                 class="relative w-20 h-10 rounded-full transition-all duration-300 focus:outline-none shadow-inner bg-gray-200 dark:bg-gray-800 cursor-not-allowed grayscale"
-                              >
-                                 <div 
-                                    class="absolute top-1 left-1 bg-white w-8 h-8 rounded-full shadow-lg transform transition-transform duration-300 flex items-center justify-center border border-gray-100 translate-x-0"
-                                 >
-                                    <Minimize class="w-4 h-4 text-gray-400" />
-                                 </div>
-                              </button>
-                               <span class="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500">
-                                  In Development
-                               </span>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
 
                 <div class="md:col-span-2 space-y-6">
                     <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
