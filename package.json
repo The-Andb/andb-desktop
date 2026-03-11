@@ -131,7 +131,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@sentry/electron": "^7.9.0",
-    "@the-andb/core": "workspace:*",
+    "@the-andb/core": "4.0.0-beta.2",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",
