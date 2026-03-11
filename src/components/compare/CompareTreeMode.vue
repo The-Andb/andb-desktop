@@ -215,7 +215,7 @@ const collapsedCategories = ref(new Set<string>())
 const leftColWidth = ref(45) // Percentage
 const isResizing = ref(false)
 
-const currentFilter = ref('all')
+const currentFilter = ref('modified')
 const filterOptions = computed(() => [
   { id: 'all', label: t('compare.treeViewData.filter.all'), activeClass: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200', icon: Database },
   { id: 'new', label: t('compare.treeViewData.filter.new'), activeClass: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400', icon: ArrowRight },

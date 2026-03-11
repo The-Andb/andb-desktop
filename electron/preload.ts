@@ -81,8 +81,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // andb-core operations (new programmatic approach)
   andbExecute: (args: {
     sourceConnection: any
-    targetConnection: any
-    operation: 'export' | 'compare' | 'migrate' | 'generate'
+    targetConnection?: any
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'search'
     options: any
   }) => {
     return ipcRenderer.invoke('andb-execute', args)

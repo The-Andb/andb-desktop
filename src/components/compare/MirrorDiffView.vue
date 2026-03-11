@@ -6,7 +6,7 @@
         <!-- Headers -->
         <div class="flex shrink-0 h-10 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative">
           <!-- Source Header -->
-          <div :style="{ width: leftPaneWidth + '%' }" class="px-4 py-2 flex justify-between items-center border-r border-gray-200 dark:border-[#30363d] shrink-0">
+          <div :style="{ width: leftPaneWidth + '%' }" class="px-4 py-2 flex justify-between items-center shrink-0">
             <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.source', { label: sourceLabel }) }}</span>
             <span v-if="isEmptySource" class="text-[10px] bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-800/50 font-bold uppercase">{{ $t('compare.diffView.deleted') }}</span>
           </div>
@@ -79,13 +79,17 @@
             </div>
           </div>
           
-          <!-- Resize Handle Layer over Headers -->
-          <div 
-            @mousedown="startResize"
-            class="resize-handle w-[4px] -ml-[2px] hover:bg-primary-500 cursor-col-resize z-20 absolute top-0 bottom-0 transition-colors duration-200"
-            :style="{ left: leftPaneWidth + '%' }"
-            :class="{ 'bg-primary-600': isResizing }"
-          ></div>
+        </div>
+
+        <!-- Resize Handle (Internal) -->
+        <div 
+          @mousedown="startResize"
+          class="absolute inset-y-0 w-[1px] bg-gray-200 dark:bg-gray-800 hover:bg-primary-500 cursor-col-resize z-30 transition-colors duration-200 group/resizer"
+          :style="{ left: `calc(${leftPaneWidth}% - 1px)` }"
+          :class="{ 'bg-primary-500 w-[2px] shadow-[0_0_8px_rgba(59,130,246,0.5)]': isResizing }"
+        >
+          <!-- Hover trigger area (wider than the visible line) -->
+          <div class="absolute inset-y-0 -left-1.5 -right-1.5 cursor-col-resize"></div>
         </div>
 
         <!-- Scrollable Content -->
@@ -106,7 +110,7 @@
                   <!-- Source Side -->
                   <div 
                     :style="{ width: leftPaneWidth + '%' }"
-                    class="shrink-0 flex line-row group border-r border-gray-200 dark:border-[#30363d]"
+                    class="shrink-0 flex line-row group"
                     :class="getLineClass(row.source.type)"
                   >
                     <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
@@ -117,8 +121,12 @@
                     </div>
                     <div 
                       class="line-content px-2 py-0.5 grow ddl-code overflow-hidden"
-                      :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
-                      v-html="row.source.highlighted || row.source.content"
+                      :class="[
+                        wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
+                        { 'is-navigating': isNavigating }
+                      ]"
+                      v-html="highlightNavLinks(row.source.highlighted || row.source.content)"
+                      @click="handleCodeClick"
                     ></div>
                   </div>
 
@@ -154,7 +162,7 @@
                  <div v-else class="flex-1"></div>
                  
                  <!-- Vertical Split Line continuation behind the badge -->
-                 <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-[#30363d] pointer-events-none z-0" :style="{ left: leftPaneWidth + '%' }"></div>
+                 <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-gray-800 pointer-events-none z-0" :style="{ left: `calc(${leftPaneWidth}% - 1px)` }"></div>
                  
                  <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
                     <button class="bg-blue-50 dark:bg-gray-900 px-3 py-1 rounded-md text-[10px] font-bold border border-blue-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors pointer-events-auto flex items-center text-blue-600 dark:text-blue-400 shadow-sm" @click.stop="expandAll(cIdx)" title="Expand All">
@@ -263,8 +271,12 @@
                 </div>
                 <div 
                   class="line-content px-2 py-0.5 grow ddl-code"
-                  :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
-                  v-html="row.highlighted || row.content"
+                  :class="[
+                    wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
+                    { 'is-navigating': isNavigating }
+                  ]"
+                  v-html="highlightNavLinks(row.highlighted || row.content)"
+                  @click="handleCodeClick"
                 ></div>
               </div>
             </template>
@@ -297,6 +309,7 @@ import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
 import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
+import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 
 const appStore = useAppStore()
 
@@ -307,7 +320,10 @@ const props = defineProps<{
   targetLabel: string
   status: string
   diffOptions?: any
+  navigatableNames?: string[]
 }>()
+
+const emit = defineEmits(['navigate-to-definition'])
 
 const sourcePane = ref<HTMLElement | null>(null)
 const targetPane = ref<HTMLElement | null>(null)
@@ -587,12 +603,12 @@ const startResize = () => {
 
 const handleResize = (e: MouseEvent) => {
   if (!isResizing.value) return
-  const viewRect = document.querySelector('.mirror-diff-view')?.getBoundingClientRect()
-  if (viewRect) {
-    const relativeX = e.clientX - viewRect.left
-    const percentage = (relativeX / viewRect.width) * 100
-    leftPaneWidth.value = Math.max(10, Math.min(90, percentage))
-  }
+    const viewRect = document.querySelector('.mirror-diff-view')?.getBoundingClientRect()
+    if (viewRect) {
+      const relativeX = e.clientX - viewRect.left
+      const percentage = (relativeX / viewRect.width) * 100
+      leftPaneWidth.value = Math.max(10, Math.min(90, percentage))
+    }
 }
 
 const stopResize = () => {
@@ -600,6 +616,36 @@ const stopResize = () => {
   document.removeEventListener('mousemove', handleResize)
   document.removeEventListener('mouseup', stopResize)
   document.body.style.cursor = ''
+}
+
+const isNavigating = ref(false)
+
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = true
+}
+const handleGlobalKeyup = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+  window.addEventListener('keyup', handleGlobalKeyup)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('keyup', handleGlobalKeyup)
+})
+
+const highlightNavLinks = (html: string) => {
+  return highlightLinks(html, props.navigatableNames || [])
+}
+
+const handleCodeClick = (event: MouseEvent) => {
+  const word = getNavigatableWord(event, props.navigatableNames || [])
+  if (word) {
+    emit('navigate-to-definition', word)
+  }
 }
 
 // Reset scroll on content change
@@ -653,6 +699,12 @@ onUnmounted(() => {
 :deep(.token.boolean) { color: var(--code-keyword); }
 :deep(.token.property) { color: var(--code-function); }
 :deep(.token.comment *) { color: inherit !important; }
+
+.underline-navigatable {
+  text-decoration: underline;
+  text-decoration-color: var(--primary-500);
+  text-underline-offset: 4px;
+}
 
 .line-row {
   transition: background 0.1s ease;

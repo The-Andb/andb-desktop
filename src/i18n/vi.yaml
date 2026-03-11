@@ -17,6 +17,7 @@ common:
   saving: 'Đang lưu...'
   download: 'Tải xuống'
   cancel: 'Hủy'
+  error: 'Đã xảy ra lỗi'
   delete: 'Xóa'
   edit: 'Sửa'
   add: 'Thêm'
@@ -50,6 +51,8 @@ common:
     targetLabel: 'Dump đích (Target)'
     selectFile: 'Chọn file .sql'
     start: 'Bắt đầu so sánh'
+  tooltips:
+    safeMode: 'Chế độ An toàn ngăn chặn các hành động tiềm ẩn rủi ro trong quá trình so sánh và di chuyển dữ liệu.'
 
 console:
   title: 'Nhật ký thực thi'
@@ -83,8 +86,8 @@ navigation:
 dashboard:
   title: 'Bảng điều khiển'
   subtitle: 'Tổng quan hoạt động'
-  projectSettings: 'Cài đặt Base'
-  switchProject: 'Chuyển Base'
+  projectSettings: 'Cài đặt Dự Án'
+  switchProject: 'Chuyển Dự Án'
   newConnection: 'Kết nối mới'
   newComparison: 'So sánh mới'
   loadSamples: 'Tải dữ liệu mẫu'
@@ -92,7 +95,7 @@ dashboard:
   loading: 'Đang tải'
   refresh: 'Làm mới'
   refreshDashboard: 'Làm mới Bảng điều khiển'
-  projectDashboard: 'Bảng điều khiển Base'
+  projectDashboard: 'Bảng điều khiển dự án'
   reports: 'Báo cáo'
   active: 'Hoạt động'
   configured: 'Đã cấu hình'
@@ -428,11 +431,11 @@ environments:
       default: 'Các môi trường mặc định (DEV, STAGE, UAT, PROD) không thể xóa'
 
 projects:
-  title: 'Quản lý Base'
+  title: 'Quản lý Project'
   subtitle: 'Tổ chức các cụm cơ sở dữ liệu của bạn'
-  newProject: 'Base mới'
-  editTitle: 'Sửa Base'
-  createTitle: 'Tạo Base mới'
+  newProject: 'Dự án mới'
+  editTitle: 'Sửa Project'
+  createTitle: 'Tạo Project mới'
   connections: 'Kết nối'
   active: 'Đang dùng'
   select: 'Chọn'
@@ -464,7 +467,7 @@ settings:
     engine: 'Cơ chế (Engine)'
   engine:
     title: 'Cấu hình Engine'
-    subtitle: 'Cài đặt hành vi cốt lõi cho Base này'
+    subtitle: 'Cài đặt hành vi cốt lõi cho dự án này'
     domainNormalization:
       title: 'Chuẩn hóa Tên miền'
       desc: 'Bỏ qua các khác biệt về tên miền (như email hardcoded) giữa các môi trường để tập trung vào thay đổi cấu trúc.'

@@ -74,7 +74,12 @@
                                 <Copy class="w-3 h-3" />
                              </button>
                         </div>
-                        <pre class="p-4 bg-gray-900 text-green-400 font-mono text-xs md:text-sm rounded-xl overflow-x-auto shadow-inner leading-relaxed">{{ stmt }}</pre>
+                        <pre 
+                          @click="handleCodeClick($event, index)"
+                          class="p-4 bg-gray-900 text-green-400 font-mono text-xs md:text-sm rounded-xl overflow-x-auto shadow-inner leading-relaxed"
+                          :class="{ 'is-navigating': isNavigating }"
+                          v-html="highlightNavLinks(stmt)"
+                        ></pre>
                     </div>
                 </div>
              </div>
@@ -127,10 +132,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X, FileCode, Copy, CheckCircle, Code2, LayoutTemplate } from 'lucide-vue-next'
 import DDLVisualizer from '@/components/ddl/DDLVisualizer.vue'
+import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 
 const { t } = useI18n()
 
@@ -161,9 +167,10 @@ interface Column {
 const props = defineProps<{
   isOpen: boolean
   item: DDLItem | null
+  navigatableNames?: string[]
 }>()
 
-const emit = defineEmits(['close', 'apply'])
+const emit = defineEmits(['close', 'apply', 'navigate-to-definition'])
 
 const activeTab = ref<'code' | 'visual'>('code')
 
@@ -415,6 +422,37 @@ const copyAllDDL = async () => {
   await copyDDL(allDDL)
 }
 
+const isNavigating = ref(false)
+
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = true
+}
+const handleGlobalKeyup = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+  window.addEventListener('keyup', handleGlobalKeyup)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('keyup', handleGlobalKeyup)
+})
+
+const highlightNavLinks = (text: string) => {
+  return highlightLinks(text, props.navigatableNames || [], false)
+}
+
+const handleCodeClick = (event: MouseEvent, _index: number) => {
+  const word = getNavigatableWord(event, props.navigatableNames || [])
+  if (word) {
+    emit('close')
+    emit('navigate-to-definition', word)
+  }
+}
+
 const close = () => {
   emit('close')
 }
@@ -423,3 +461,19 @@ const applyChanges = () => {
   if (props.item) emit('apply', props.item)
 }
 </script>
+
+<style scoped>
+:deep(.nav-link) {
+  text-decoration: none;
+}
+
+.is-navigating :deep(.nav-link) {
+  cursor: pointer;
+}
+
+.is-navigating :deep(.nav-link:hover) {
+  text-decoration: underline;
+  text-decoration-color: var(--primary-500);
+  text-underline-offset: 4px;
+}
+</style>

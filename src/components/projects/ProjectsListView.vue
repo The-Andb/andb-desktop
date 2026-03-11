@@ -176,7 +176,7 @@ const isQuickDumpModalOpen = ref(false)
     <div class="max-w-7xl mx-auto w-full mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div class="space-y-2">
         <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight uppercase">
-          Your Bases
+          Your Projects
         </h1>
         <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide flex items-center gap-2">
           Organize and switch between your database environments
@@ -343,13 +343,13 @@ const isQuickDumpModalOpen = ref(false)
                 class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
               >
                 <button @click.stop="startRename(project)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <Edit3 class="w-4 h-4" /> Rename Base
+                  <Edit3 class="w-4 h-4" /> Rename Project
                 </button>
                 <button @click.stop="emit('duplicate', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <Copy class="w-4 h-4" /> Duplicate Base
+                  <Copy class="w-4 h-4" /> Duplicate Project
                 </button>
                 <button v-if="project.id !== 'default'" @click.stop="emit('delete', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                  <Trash2 class="w-4 h-4" /> Delete Base
+                  <Trash2 class="w-4 h-4" /> Delete Project
                 </button>
               </div>
             </div>
@@ -403,7 +403,7 @@ const isQuickDumpModalOpen = ref(false)
           </div>
         </div>
 
-        <!-- Add New Base Card (Alternative) -->
+        <!-- Add New Project Card (Alternative) -->
         <div 
           @click="emit('create')"
           class="group bg-gray-100/30 dark:bg-gray-800/20 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-white dark:hover:bg-gray-800/50 hover:border-primary-500/50 transition-all duration-300 cursor-pointer min-h-[260px]"
@@ -412,7 +412,7 @@ const isQuickDumpModalOpen = ref(false)
             <Plus class="w-8 h-8 stroke-[3px]" />
           </div>
           <div class="text-center group-hover:translate-y-1 transition-transform">
-            <div class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Add New Base</div>
+            <div class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Add New Project</div>
             <div class="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wide uppercase">Start a fresh project cluster</div>
           </div>
         </div>
@@ -533,14 +533,14 @@ const isQuickDumpModalOpen = ref(false)
             <button 
               @click.stop="startRename(project)" 
               class="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-400 hover:text-primary-500 rounded-xl transition-all"
-              title="Rename Base"
+              title="Rename Project"
             >
               <Edit3 class="w-4 h-4" />
             </button>
             <button 
               @click.stop="emit('duplicate', project.id)" 
               class="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-400 hover:text-primary-500 rounded-xl transition-all"
-              title="Duplicate Base"
+              title="Duplicate Project"
             >
               <Copy class="w-4 h-4" />
             </button>
@@ -554,7 +554,7 @@ const isQuickDumpModalOpen = ref(false)
                   ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed' 
                   : 'text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500'
               ]"
-              :title="project.id === 'default' ? 'System Base (Protected)' : 'Delete Base'"
+              :title="project.id === 'default' ? 'System Project (Protected)' : 'Delete Project'"
             >
               <Trash2 class="w-4 h-4" />
             </button>
@@ -567,7 +567,7 @@ const isQuickDumpModalOpen = ref(false)
           class="w-full py-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center gap-3 text-gray-400 hover:text-primary-500 hover:border-primary-500 hover:bg-white dark:hover:bg-gray-800/20 transition-all duration-300 font-black text-xs uppercase tracking-[0.2em]"
         >
           <Plus class="w-4 h-4 stroke-[3px]" />
-          Add New Base
+          Add New Project
         </button>
 
         <!-- Inline Live Demo Button -->

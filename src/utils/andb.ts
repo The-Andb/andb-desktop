@@ -408,6 +408,29 @@ export class Andb {
       throw new Error(`Probing failed: ${error.message}`)
     }
   }
+
+  /**
+   * Search for dependencies/content
+   */
+  static async search(
+    connection: DatabaseConnection,
+    query: string,
+    flags: { caseSensitive: boolean; wholeWord: boolean; regex: boolean }
+  ): Promise<any> {
+    if (!isElectron) throw new Error('Not in Electron')
+    try {
+      const result = await window.electronAPI.andbExecute(this.sanitize({
+        sourceConnection: connection,
+        operation: 'search',
+        options: { query, flags }
+      }))
+
+      if (result.success) return result.data
+      throw new Error(result.error || 'Search failed')
+    } catch (error: any) {
+      throw new Error(`Search failed: ${error.message}`)
+    }
+  }
 }
 
 export default Andb

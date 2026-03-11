@@ -52,8 +52,8 @@ declare global {
       // andb-core operations (new programmatic approach)
       andbExecute: (args: {
         sourceConnection: DatabaseConnection
-        targetConnection: DatabaseConnection
-        operation: 'export' | 'compare' | 'migrate' | 'generate'
+        targetConnection?: DatabaseConnection
+        operation: 'export' | 'compare' | 'migrate' | 'generate' | 'search'
         options: any
       }) => Promise<{ success: boolean; data?: any; error?: string }>
 

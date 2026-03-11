@@ -18,7 +18,7 @@ if (typeof window === 'undefined') {
     })),
     electronAPI: {
       storage: {
-        get: vi.fn().mockResolvedValue({ success: true, data: {} }),
+        get: vi.fn().mockResolvedValue({ success: true, data: null }),
         set: vi.fn().mockResolvedValue({ success: true }),
         delete: vi.fn().mockResolvedValue({ success: true }),
       },
@@ -37,13 +37,20 @@ vi.mock('@/utils/storage-ipc', () => ({
     getConnections: vi.fn().mockResolvedValue([]),
     getConnectionPairs: vi.fn().mockResolvedValue([]),
     getEnvironments: vi.fn().mockResolvedValue([]),
+    getConnectionTemplates: vi.fn().mockResolvedValue([]),
     getSettings: vi.fn().mockResolvedValue({}),
-    get: vi.fn().mockResolvedValue({}),
+    get: vi.fn().mockImplementation((key) => {
+      if (key === 'connectionTemplates') return Promise.resolve([])
+      if (key === 'projects' || key === 'connections') return Promise.resolve([])
+      return Promise.resolve(null)
+    }),
+    set: vi.fn().mockResolvedValue({ success: true }),
     updateSettings: vi.fn().mockResolvedValue({}),
     saveProjects: vi.fn().mockResolvedValue({}),
     saveConnections: vi.fn().mockResolvedValue({}),
     saveConnectionPairs: vi.fn().mockResolvedValue({}),
     saveEnvironments: vi.fn().mockResolvedValue({}),
+    saveConnectionTemplates: vi.fn().mockResolvedValue({}),
   }
 }))
 

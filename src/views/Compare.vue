@@ -428,6 +428,8 @@
                     :target-label="targetName"
                     :status="selectedItem.status"
                     :diff-options="diffOptions"
+                    :navigatable-names="navigatableNames"
+                    @navigate-to-definition="handleNavigateToDefinition"
                   />
                 </div>
               </div>
@@ -461,8 +463,10 @@
     <DDLDetailModal
       :is-open="showDetailModal"
       :item="selectedItem"
+      :navigatable-names="navigatableNames"
       @close="closeDetailModal"
       @apply="handleApplyFromDetail"
+      @navigate-to-definition="handleNavigateToDefinition"
     />
 
     <!-- Error Details Modal -->
@@ -681,7 +685,7 @@ const diffOptions = ref({
   mode: 'unified' as 'unified' | 'split',
   showChangesOnly: true // default to true
 })
-const selectedStatusFilter = ref('all')
+const selectedStatusFilter = ref('modified')
 const lastCompareTime = ref(0)
 const showErrorModal = ref(false)
 
@@ -813,6 +817,18 @@ const filteredResults = computed(() => {
 
   return filtered
 })
+
+const navigatableNames = computed(() => {
+  return allResults.value.map(r => r.name)
+})
+
+const handleNavigateToDefinition = (name: string) => {
+  // Navigate to Schema view with selected object
+  router.push({
+    name: 'Schema',
+    query: { select: name }
+  })
+}
 
 const hasResults = computed(() => allResults.value.length > 0)
 const totalChanges = computed(() => allResults.value.filter(i => i.status !== 'equal' && i.status !== 'same').length)

@@ -68,6 +68,7 @@ common:
     refreshSchema: 'Force Refresh Schema'
     refreshCategory: 'Force Refresh Category'
     refreshObject: 'Force Refresh Object'
+    safeMode: 'Safe Mode prevents potentially destructive actions during comparisons and migrations.'
   status:
     identical: 'Identical'
     modified: 'Modified'
@@ -457,9 +458,9 @@ environments:
 projects:
   title: 'Project Manager'
   subtitle: 'Organize your database clusters'
-  newProject: 'New Base'
+  newProject: 'New Project'
   editTitle: 'Edit Project'
-  createTitle: 'Create New Base'
+  createTitle: 'Create New Project'
   connections: 'Connections'
   active: 'Active'
   select: 'Select'

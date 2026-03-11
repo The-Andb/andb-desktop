@@ -54,7 +54,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     if (savedPairs.length > 0) {
       connectionPairs.value = savedPairs
 
-      // Migration: Claim orphan pairs for "The Base One"
+      // Migration: Claim orphan pairs for "Project One"
       const projectsStore = useProjectsStore()
       if (projectsStore.projects.length === 0) {
         await projectsStore.reloadData()

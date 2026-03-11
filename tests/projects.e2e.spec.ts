@@ -40,10 +40,10 @@ test.describe.skip('Project Management', () => {
 
   test('should switch projects', async () => {
     // Click on a different project
-    await window.click('text=The Base One');
+    await window.click('text=Project One');
 
     // Verify project switch (check header or breadcrumb)
-    await expect(window.locator('text=The Base One')).toBeVisible();
+    await expect(window.locator('text=Project One')).toBeVisible();
   });
 
   test('should delete a project', async () => {

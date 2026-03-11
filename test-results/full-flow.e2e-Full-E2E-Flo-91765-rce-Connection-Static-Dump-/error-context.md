@@ -2,206 +2,248 @@
 
 ```yaml
 - generic [ref=e4]:
-  - banner [ref=e5]:
-    - generic [ref=e6]:
-      - generic [ref=e7]:
-        - generic [ref=e8] [cursor=pointer]:
-          - img "The Andb" [ref=e9]
-          - generic [ref=e10]: The Andb
-        - generic [ref=e11]:
-          - heading "Dashboard" [level=1] [ref=e12]
-          - navigation [ref=e14]:
-            - list [ref=e15]:
-              - listitem [ref=e16]:
-                - button "Dashboard" [ref=e17] [cursor=pointer]
-      - generic [ref=e18]:
-        - generic [ref=e19]:
-          - generic [ref=e20]:
-            - img [ref=e21]
-            - generic [ref=e23]:
-              - combobox [ref=e24] [cursor=pointer]:
-                - option "The Base One" [selected]
-                - option "+ New Base"
-              - generic:
-                - img
-          - button "Project Manager" [ref=e25] [cursor=pointer]:
-            - img [ref=e26]
-          - 'button "Theme: system" [ref=e32] [cursor=pointer]':
-            - img [ref=e34]
-          - button "EN" [ref=e37] [cursor=pointer]:
-            - img [ref=e38]
-            - generic [ref=e41]: EN
-        - button "Settings" [ref=e43] [cursor=pointer]:
-          - img [ref=e44]
-        - button "About" [ref=e47] [cursor=pointer]:
-          - img [ref=e48]
-  - generic [ref=e50]:
-    - complementary [ref=e51]:
-      - generic [ref=e52]:
-        - navigation [ref=e53]:
-          - generic [ref=e54]:
-            - link "Dashboard" [ref=e55] [cursor=pointer]:
-              - /url: "#/"
-              - img [ref=e57]
-              - generic [ref=e60]: Dashboard
-            - link "Schema" [ref=e61] [cursor=pointer]:
-              - /url: "#/schema"
-              - img [ref=e63]
-              - generic [ref=e67]: Schema
-            - link "Diff & Sync" [ref=e68] [cursor=pointer]:
-              - /url: "#/compare"
-              - img [ref=e70]
-              - generic [ref=e75]: Diff & Sync
-            - link "History & Rollback" [ref=e76] [cursor=pointer]:
-              - /url: "#/history"
-              - img [ref=e78]
-              - generic [ref=e82]: History & Rollback
-            - link "Integrations" [ref=e83] [cursor=pointer]:
-              - /url: "#/integrations"
-              - img [ref=e85]
-              - generic [ref=e87]: Integrations
-            - link "Project Settings" [ref=e88] [cursor=pointer]:
-              - /url: "#/project-settings"
-              - img [ref=e90]
-              - generic [ref=e93]: Project Settings
-              - img [ref=e94]
-        - generic [ref=e96]:
-          - generic [ref=e97]: Schema Explorer
-          - generic [ref=e98]:
-            - button "Refresh" [ref=e99] [cursor=pointer]:
-              - img [ref=e100]
-            - button "Expand All" [ref=e105] [cursor=pointer]:
-              - img [ref=e106]
-            - button "Collapse All" [ref=e108] [cursor=pointer]:
-              - img [ref=e109]
-            - button "common.collapse" [ref=e111] [cursor=pointer]:
-              - img [ref=e112]
-        - generic [ref=e116]:
-          - generic:
-            - img
-          - textbox "Search" [ref=e117]
-          - generic [ref=e118]:
-            - button "Match Case" [ref=e119] [cursor=pointer]:
-              - img [ref=e120]
-            - button "Match Whole Word" [ref=e123] [cursor=pointer]:
-              - img [ref=e124]
-            - button "Use Regular Expression" [ref=e128] [cursor=pointer]:
-              - img [ref=e129]
-        - generic [ref=e134]:
-          - generic [ref=e135]:
-            - generic [ref=e136] [cursor=pointer]:
-              - img [ref=e137]
-              - generic [ref=e140]: DEV
-              - generic [ref=e141]: SRC
-            - generic [ref=e145] [cursor=pointer]:
-              - img [ref=e146]
-              - generic [ref=e150]: dev_database
-              - button "Force Refresh Schema" [ref=e151]:
-                - img [ref=e152]
-          - generic [ref=e157]:
-            - generic [ref=e158] [cursor=pointer]:
-              - img [ref=e159]
-              - generic [ref=e161]: STAGE
-            - generic [ref=e165] [cursor=pointer]:
-              - img [ref=e166]
-              - generic [ref=e170]: stage_database
-              - button "Force Refresh Schema" [ref=e171]:
-                - img [ref=e172]
-          - generic [ref=e177]:
-            - generic [ref=e178] [cursor=pointer]:
-              - img [ref=e179]
-              - generic [ref=e181]: PROD
-            - generic [ref=e185] [cursor=pointer]:
-              - img [ref=e186]
-              - generic [ref=e190]: prod_database
-              - button "Force Refresh Schema" [ref=e191]:
-                - img [ref=e192]
-    - main [ref=e197]:
-      - generic [ref=e198]:
-        - generic [ref=e199]:
-          - heading "Project Settings" [level=1] [ref=e200]:
-            - img [ref=e201]
-            - text: Project Settings
-          - paragraph [ref=e205]: The Base One
-        - generic [ref=e207]:
-          - heading "Project Settings" [level=3] [ref=e208]
-          - button "Environments" [ref=e209] [cursor=pointer]:
-            - img [ref=e210]
-            - generic [ref=e215]: Environments
-          - button "Connections" [ref=e216] [cursor=pointer]:
-            - img [ref=e217]
-            - generic [ref=e220]: Connections
-          - button "Sync Pairs" [ref=e221] [cursor=pointer]:
-            - img [ref=e222]
-            - generic [ref=e227]: Sync Pairs
-          - button "Engine" [ref=e228] [cursor=pointer]:
-            - img [ref=e229]
-            - generic [ref=e232]: Engine
-        - button "Reset All Data" [ref=e234] [cursor=pointer]:
-          - img [ref=e235]
-          - text: Reset All Data
-      - generic [ref=e240]:
-        - generic [ref=e241]:
-          - img [ref=e243]
-          - generic [ref=e246]:
-            - heading "Access Control & Credentials" [level=2] [ref=e247]
-            - paragraph [ref=e248]: Manage server endpoints and secure database entry
-        - generic [ref=e250]:
-          - generic [ref=e251]:
-            - generic [ref=e252]:
-              - img [ref=e254]
-              - generic [ref=e258]:
-                - heading "Add New Connection" [level=3] [ref=e259]
-                - paragraph [ref=e260]: Database Endpoint Configuration
-            - button "Cancel" [ref=e261] [cursor=pointer]:
-              - generic [ref=e262]: Cancel
-              - img [ref=e263]
-          - generic [ref=e267]:
-            - generic [ref=e268]:
-              - generic [ref=e269]:
-                - generic [ref=e270]:
-                  - img [ref=e271]
-                  - text: Global Connection Source
-                - link "Manage Templates" [ref=e275] [cursor=pointer]:
-                  - /url: "#/settings?cat=templates"
-                  - text: Manage Templates
-              - generic [ref=e277]:
-                - combobox [ref=e278]:
-                  - option "Select" [disabled] [selected]
-                - generic:
-                  - img
-                - img
-              - paragraph [ref=e279]: Host, Port, Username, Password, and Type are inherited from the global connection.
-            - generic [ref=e280]:
-              - heading "Basic Information" [level=3] [ref=e282]
-              - generic [ref=e283]:
-                - generic [ref=e284]:
-                  - generic [ref=e285]: Connection Name *
-                  - textbox "Enter connection name" [ref=e286]: E2E Source Dump
-                - generic [ref=e287]:
-                  - generic [ref=e288]: Environment *
-                  - generic [ref=e289]:
-                    - combobox [ref=e290]:
-                      - option "Select"
-                      - option "Development" [selected]
-                      - option "Staging"
-                      - option "Production"
-                    - img
-                - generic [ref=e291]:
-                  - generic [ref=e292]: Database *
-                  - generic [ref=e293]:
-                    - textbox "database_name" [ref=e294]
-                    - img
-                - generic [ref=e295]:
-                  - generic [ref=e296]: Connection Timeout
-                  - spinbutton [ref=e297]: "30"
-            - generic [ref=e298]:
-              - button "Test" [disabled] [ref=e299]:
-                - img [ref=e300]
-                - text: Test
-              - generic [ref=e303]:
-                - button "Cancel" [ref=e304] [cursor=pointer]
-                - button "Save" [disabled] [ref=e305]:
-                  - img [ref=e306]
-                  - text: Save
+    - banner [ref=e5]:
+        - generic [ref=e6]:
+            - generic [ref=e7]:
+                - generic [ref=e8] [cursor=pointer]:
+                    - img "The Andb" [ref=e9]
+                    - generic [ref=e10]: The Andb
+                - generic [ref=e11]:
+                    - heading "Dashboard" [level=1] [ref=e12]
+                    - navigation [ref=e14]:
+                        - list [ref=e15]:
+                            - listitem [ref=e16]:
+                                - button "Dashboard" [ref=e17] [cursor=pointer]
+            - generic [ref=e18]:
+                - generic [ref=e19]:
+                    - generic [ref=e20]:
+                        - img [ref=e21]
+                        - generic [ref=e23]:
+                            - combobox [active] [ref=e24] [cursor=pointer]:
+                                - option "Project One" [selected]
+                                - option "+ New Project"
+                            - generic:
+                                - img
+                    - button "Project Manager" [ref=e25] [cursor=pointer]:
+                        - img [ref=e26]
+                    - 'button "Theme: system" [ref=e32] [cursor=pointer]':
+                        - img [ref=e34]
+                    - button "EN" [ref=e37] [cursor=pointer]:
+                        - img [ref=e38]
+                        - generic [ref=e41]: EN
+                - button "Settings" [ref=e43] [cursor=pointer]:
+                    - img [ref=e44]
+                - button "About" [ref=e47] [cursor=pointer]:
+                    - img [ref=e48]
+    - generic [ref=e50]:
+        - complementary [ref=e52]:
+            - generic [ref=e53]:
+                - navigation [ref=e54]:
+                    - generic [ref=e55]:
+                        - link "Dashboard" [ref=e56] [cursor=pointer]:
+                            - /url: '#/'
+                            - img [ref=e58]
+                            - generic [ref=e61]: Dashboard
+                            - img [ref=e62]
+                        - link "Schema" [ref=e64] [cursor=pointer]:
+                            - /url: '#/schema'
+                            - img [ref=e66]
+                            - generic [ref=e70]: Schema
+                        - link "Diff & Sync" [ref=e71] [cursor=pointer]:
+                            - /url: '#/compare'
+                            - img [ref=e73]
+                            - generic [ref=e78]: Diff & Sync
+                        - link "History & Rollback" [ref=e79] [cursor=pointer]:
+                            - /url: '#/history'
+                            - img [ref=e81]
+                            - generic [ref=e85]: History & Rollback
+                        - link "Integrations" [ref=e86] [cursor=pointer]:
+                            - /url: '#/integrations'
+                            - img [ref=e88]
+                            - generic [ref=e90]: Integrations
+                        - link "Project Settings" [ref=e91] [cursor=pointer]:
+                            - /url: '#/project-settings'
+                            - img [ref=e93]
+                            - generic [ref=e96]: Project Settings
+                - generic [ref=e97]:
+                    - generic [ref=e98]: Schema Explorer
+                    - generic [ref=e99]:
+                        - button "Refresh" [ref=e100] [cursor=pointer]:
+                            - img [ref=e101]
+                        - button "common.collapse" [ref=e106] [cursor=pointer]:
+                            - img [ref=e107]
+                - generic [ref=e111]:
+                    - generic [ref=e112]:
+                        - generic [ref=e113] [cursor=pointer]:
+                            - img [ref=e114]
+                            - generic [ref=e117]: DEV
+                            - generic [ref=e118]: SRC
+                        - generic [ref=e122] [cursor=pointer]:
+                            - img [ref=e123]
+                            - generic [ref=e127]: dev_database
+                            - button "Force Refresh Schema" [ref=e128]:
+                                - img [ref=e129]
+                    - generic [ref=e134]:
+                        - generic [ref=e135] [cursor=pointer]:
+                            - img [ref=e136]
+                            - generic [ref=e138]: STAGE
+                        - generic [ref=e142] [cursor=pointer]:
+                            - img [ref=e143]
+                            - generic [ref=e147]: stage_database
+                            - button "Force Refresh Schema" [ref=e148]:
+                                - img [ref=e149]
+                    - generic [ref=e154]:
+                        - generic [ref=e155] [cursor=pointer]:
+                            - img [ref=e156]
+                            - generic [ref=e158]: PROD
+                        - generic [ref=e162] [cursor=pointer]:
+                            - img [ref=e163]
+                            - generic [ref=e167]: prod_database
+                            - button "Force Refresh Schema" [ref=e168]:
+                                - img [ref=e169]
+        - generic [ref=e175]:
+            - generic [ref=e176]:
+                - generic [ref=e178]:
+                    - generic [ref=e180]:
+                        - heading "Project One" [level=1] [ref=e183]:
+                            - text: Project One
+                            - img [ref=e184]
+                        - paragraph [ref=e186]: Project Dashboard
+                    - generic [ref=e187]:
+                        - button "Switch" [ref=e189] [cursor=pointer]:
+                            - generic [ref=e190]:
+                                - img [ref=e191]
+                                - generic [ref=e196]: Switch
+                        - button "Reports" [ref=e197] [cursor=pointer]:
+                            - generic [ref=e198]:
+                                - img [ref=e199]
+                                - generic [ref=e202]: Reports
+                        - button "Settings" [ref=e203] [cursor=pointer]:
+                            - generic [ref=e205]:
+                                - img [ref=e206]
+                                - generic [ref=e209]: Settings
+                - button "Toggle Console Panel" [ref=e211] [cursor=pointer]:
+                    - img [ref=e212]
+            - main [ref=e215]:
+                - main [ref=e216]:
+                    - generic [ref=e217]:
+                        - generic [ref=e218]:
+                            - generic [ref=e219] [cursor=pointer]:
+                                - generic [ref=e220]:
+                                    - img [ref=e222]
+                                    - generic [ref=e226]:
+                                        - generic [ref=e227]: Active
+                                        - generic [ref=e228]: 3 / 4
+                                - generic [ref=e229]:
+                                    - paragraph [ref=e230]: Connections
+                                    - paragraph [ref=e231]: '4'
+                            - generic [ref=e235] [cursor=pointer]:
+                                - generic [ref=e236]:
+                                    - img [ref=e238]
+                                    - generic [ref=e242]: Configured
+                                - generic [ref=e243]:
+                                    - paragraph [ref=e244]: Environments
+                                    - paragraph [ref=e245]: '3'
+                                - generic [ref=e246]:
+                                    - generic [ref=e247]: DEV
+                                    - generic [ref=e248]: STAGE
+                                    - generic [ref=e249]: PROD
+                            - generic [ref=e250] [cursor=pointer]:
+                                - generic [ref=e251]:
+                                    - img [ref=e253]
+                                    - generic [ref=e258]:
+                                        - generic [ref=e259]: Sync Pairs
+                                        - generic [ref=e260]: 0 / 1
+                                - generic [ref=e261]:
+                                    - paragraph [ref=e262]: Mappings
+                                    - paragraph [ref=e263]: '1'
+                                - generic [ref=e264]:
+                                    - generic [ref=e265]: Ready for Sync
+                                    - img [ref=e266]
+                            - generic [ref=e269] [cursor=pointer]:
+                                - generic [ref=e270]:
+                                    - img [ref=e272]
+                                    - generic [ref=e274]: Live Feed
+                                - generic [ref=e275]:
+                                    - paragraph [ref=e276]: Ops Today
+                                    - generic [ref=e277]:
+                                        - paragraph [ref=e278]: '0'
+                                        - generic [ref=e279]: '+0'
+                                - generic [ref=e281]:
+                                    - img [ref=e282]
+                                    - text: 'Last: No Operational History'
+                        - generic [ref=e285]:
+                            - generic [ref=e286]:
+                                - img [ref=e288]
+                                - generic [ref=e293]:
+                                    - generic [ref=e294]: Total Changes
+                                    - generic [ref=e295]:
+                                        - generic [ref=e296]: '0'
+                                        - generic [ref=e297]: Objects
+                            - generic [ref=e298]:
+                                - img [ref=e300]
+                                - generic [ref=e303]:
+                                    - generic [ref=e304]: Migrations
+                                    - generic [ref=e305]:
+                                        - generic [ref=e306]: '0'
+                                        - generic [ref=e307]: Records
+                            - generic [ref=e308]:
+                                - img [ref=e310]
+                                - generic [ref=e313]:
+                                    - generic [ref=e314]: Avg Speed
+                                    - generic [ref=e315]:
+                                        - generic [ref=e316]: 0ms
+                                        - generic [ref=e317]: ms
+                            - generic [ref=e318]:
+                                - img [ref=e320]
+                                - generic [ref=e323]:
+                                    - generic [ref=e324]: Success Rate
+                                    - generic [ref=e325]:
+                                        - generic [ref=e326]: 0%
+                                        - generic [ref=e327]: Relative
+                        - generic [ref=e328]:
+                            - generic [ref=e329]:
+                                - heading "DDL Changes by Connection" [level=2] [ref=e330]
+                                - generic [ref=e332]: No DDL changes tracked yet
+                            - generic [ref=e333]:
+                                - heading "Migration Statistics" [level=2] [ref=e334]
+                                - generic [ref=e336]: No migrations performed yet
+                        - generic [ref=e337]:
+                            - generic [ref=e338]:
+                                - generic [ref=e339]:
+                                    - heading "Sync Mappings" [level=2] [ref=e340]:
+                                        - img [ref=e341]
+                                        - text: Sync Mappings
+                                    - button "Manage Pairs" [ref=e346] [cursor=pointer]
+                                - table [ref=e348]:
+                                    - rowgroup [ref=e349]:
+                                        - row "Mapping Pair Topology Condition Actions" [ref=e350]:
+                                            - columnheader "Mapping Pair" [ref=e351]
+                                            - columnheader "Topology" [ref=e352]
+                                            - columnheader "Condition" [ref=e353]
+                                            - columnheader "Actions" [ref=e354]
+                                    - rowgroup [ref=e355]:
+                                        - row "DEV to STAGE Development to staging migration DEV STAGE idle Compare" [ref=e356]:
+                                            - cell "DEV to STAGE Development to staging migration" [ref=e357]:
+                                                - generic [ref=e358]:
+                                                    - generic [ref=e359]: DEV to STAGE
+                                                    - generic [ref=e360]: Development to staging migration
+                                            - cell "DEV STAGE" [ref=e361]:
+                                                - generic [ref=e362]:
+                                                    - generic [ref=e363]: DEV
+                                                    - img [ref=e364]
+                                                    - generic [ref=e367]: STAGE
+                                            - cell "idle" [ref=e368]:
+                                                - generic [ref=e371]: idle
+                                            - cell "Compare" [ref=e372]:
+                                                - button "Compare" [ref=e373] [cursor=pointer]
+                            - generic [ref=e374]:
+                                - generic [ref=e375]:
+                                    - heading "Operational Feed" [level=2] [ref=e376]:
+                                        - img [ref=e377]
+                                        - text: Operational Feed
+                                    - button "Clear Feed" [ref=e379] [cursor=pointer]
+                                - generic [ref=e383]:
+                                    - img [ref=e385]
+                                    - paragraph [ref=e387]: No Operational History
 ```

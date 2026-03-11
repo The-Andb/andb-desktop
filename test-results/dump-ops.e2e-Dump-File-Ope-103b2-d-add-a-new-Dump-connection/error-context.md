@@ -2,206 +2,211 @@
 
 ```yaml
 - generic [ref=e4]:
-  - banner [ref=e5]:
-    - generic [ref=e6]:
-      - generic [ref=e7]:
-        - generic [ref=e8] [cursor=pointer]:
-          - img "The Andb" [ref=e9]
-          - generic [ref=e10]: The Andb
-        - generic [ref=e11]:
-          - heading "Dashboard" [level=1] [ref=e12]
-          - navigation [ref=e14]:
-            - list [ref=e15]:
-              - listitem [ref=e16]:
-                - button "Dashboard" [ref=e17] [cursor=pointer]
-      - generic [ref=e18]:
-        - generic [ref=e19]:
-          - generic [ref=e20]:
-            - img [ref=e21]
-            - generic [ref=e23]:
-              - combobox [ref=e24] [cursor=pointer]:
-                - option "The Base One" [selected]
-                - option "+ New Base"
-              - generic:
-                - img
-          - button "Project Manager" [ref=e25] [cursor=pointer]:
-            - img [ref=e26]
-          - 'button "Theme: system" [ref=e32] [cursor=pointer]':
-            - img [ref=e34]
-          - button "EN" [ref=e37] [cursor=pointer]:
-            - img [ref=e38]
-            - generic [ref=e41]: EN
-        - button "Settings" [ref=e43] [cursor=pointer]:
-          - img [ref=e44]
-        - button "About" [ref=e47] [cursor=pointer]:
-          - img [ref=e48]
-  - generic [ref=e50]:
-    - complementary [ref=e51]:
-      - generic [ref=e52]:
-        - navigation [ref=e53]:
-          - generic [ref=e54]:
-            - link "Dashboard" [ref=e55] [cursor=pointer]:
-              - /url: "#/"
-              - img [ref=e57]
-              - generic [ref=e60]: Dashboard
-            - link "Schema" [ref=e61] [cursor=pointer]:
-              - /url: "#/schema"
-              - img [ref=e63]
-              - generic [ref=e67]: Schema
-            - link "Diff & Sync" [ref=e68] [cursor=pointer]:
-              - /url: "#/compare"
-              - img [ref=e70]
-              - generic [ref=e75]: Diff & Sync
-            - link "History & Rollback" [ref=e76] [cursor=pointer]:
-              - /url: "#/history"
-              - img [ref=e78]
-              - generic [ref=e82]: History & Rollback
-            - link "Integrations" [ref=e83] [cursor=pointer]:
-              - /url: "#/integrations"
-              - img [ref=e85]
-              - generic [ref=e87]: Integrations
-            - link "Project Settings" [ref=e88] [cursor=pointer]:
-              - /url: "#/project-settings"
-              - img [ref=e90]
-              - generic [ref=e93]: Project Settings
-              - img [ref=e94]
-        - generic [ref=e96]:
-          - generic [ref=e97]: Schema Explorer
-          - generic [ref=e98]:
-            - button "Refresh" [ref=e99] [cursor=pointer]:
-              - img [ref=e100]
-            - button "Expand All" [ref=e105] [cursor=pointer]:
-              - img [ref=e106]
-            - button "Collapse All" [ref=e108] [cursor=pointer]:
-              - img [ref=e109]
-            - button "common.collapse" [ref=e111] [cursor=pointer]:
-              - img [ref=e112]
-        - generic [ref=e116]:
-          - generic:
-            - img
-          - textbox "Search" [ref=e117]
-          - generic [ref=e118]:
-            - button "Match Case" [ref=e119] [cursor=pointer]:
-              - img [ref=e120]
-            - button "Match Whole Word" [ref=e123] [cursor=pointer]:
-              - img [ref=e124]
-            - button "Use Regular Expression" [ref=e128] [cursor=pointer]:
-              - img [ref=e129]
-        - generic [ref=e134]:
-          - generic [ref=e135]:
-            - generic [ref=e136] [cursor=pointer]:
-              - img [ref=e137]
-              - generic [ref=e140]: DEV
-              - generic [ref=e141]: SRC
-            - generic [ref=e145] [cursor=pointer]:
-              - img [ref=e146]
-              - generic [ref=e150]: dev_database
-              - button "Force Refresh Schema" [ref=e151]:
-                - img [ref=e152]
-          - generic [ref=e157]:
-            - generic [ref=e158] [cursor=pointer]:
-              - img [ref=e159]
-              - generic [ref=e161]: STAGE
-            - generic [ref=e165] [cursor=pointer]:
-              - img [ref=e166]
-              - generic [ref=e170]: stage_database
-              - button "Force Refresh Schema" [ref=e171]:
-                - img [ref=e172]
-          - generic [ref=e177]:
-            - generic [ref=e178] [cursor=pointer]:
-              - img [ref=e179]
-              - generic [ref=e181]: PROD
-            - generic [ref=e185] [cursor=pointer]:
-              - img [ref=e186]
-              - generic [ref=e190]: prod_database
-              - button "Force Refresh Schema" [ref=e191]:
-                - img [ref=e192]
-    - main [ref=e197]:
-      - generic [ref=e198]:
-        - generic [ref=e199]:
-          - heading "Project Settings" [level=1] [ref=e200]:
-            - img [ref=e201]
-            - text: Project Settings
-          - paragraph [ref=e205]: The Base One
-        - generic [ref=e207]:
-          - heading "Project Settings" [level=3] [ref=e208]
-          - button "Environments" [ref=e209] [cursor=pointer]:
-            - img [ref=e210]
-            - generic [ref=e215]: Environments
-          - button "Connections" [ref=e216] [cursor=pointer]:
-            - img [ref=e217]
-            - generic [ref=e220]: Connections
-          - button "Sync Pairs" [ref=e221] [cursor=pointer]:
-            - img [ref=e222]
-            - generic [ref=e227]: Sync Pairs
-          - button "Engine" [ref=e228] [cursor=pointer]:
-            - img [ref=e229]
-            - generic [ref=e232]: Engine
-        - button "Reset All Data" [ref=e234] [cursor=pointer]:
-          - img [ref=e235]
-          - text: Reset All Data
-      - generic [ref=e240]:
-        - generic [ref=e241]:
-          - img [ref=e243]
-          - generic [ref=e246]:
-            - heading "Access Control & Credentials" [level=2] [ref=e247]
-            - paragraph [ref=e248]: Manage server endpoints and secure database entry
-        - generic [ref=e250]:
-          - generic [ref=e251]:
-            - generic [ref=e252]:
-              - img [ref=e254]
-              - generic [ref=e258]:
-                - heading "Add New Connection" [level=3] [ref=e259]
-                - paragraph [ref=e260]: Database Endpoint Configuration
-            - button "Cancel" [ref=e261] [cursor=pointer]:
-              - generic [ref=e262]: Cancel
-              - img [ref=e263]
-          - generic [ref=e267]:
-            - generic [ref=e268]:
-              - generic [ref=e269]:
-                - generic [ref=e270]:
-                  - img [ref=e271]
-                  - text: Global Connection Source
-                - link "Manage Templates" [ref=e275] [cursor=pointer]:
-                  - /url: "#/settings?cat=templates"
-                  - text: Manage Templates
-              - generic [ref=e277]:
-                - combobox [ref=e278]:
-                  - option "Select" [disabled] [selected]
-                - generic:
-                  - img
-                - img
-              - paragraph [ref=e279]: Host, Port, Username, Password, and Type are inherited from the global connection.
-            - generic [ref=e280]:
-              - heading "Basic Information" [level=3] [ref=e282]
-              - generic [ref=e283]:
-                - generic [ref=e284]:
-                  - generic [ref=e285]: Connection Name *
-                  - textbox "Enter connection name" [ref=e286]: Demo Dump
-                - generic [ref=e287]:
-                  - generic [ref=e288]: Environment *
-                  - generic [ref=e289]:
-                    - combobox [ref=e290]:
-                      - option "Select"
-                      - option "Development" [selected]
-                      - option "Staging"
-                      - option "Production"
-                    - img
-                - generic [ref=e291]:
-                  - generic [ref=e292]: Database *
-                  - generic [ref=e293]:
-                    - textbox "database_name" [ref=e294]
-                    - img
-                - generic [ref=e295]:
-                  - generic [ref=e296]: Connection Timeout
-                  - spinbutton [ref=e297]: "30"
-            - generic [ref=e298]:
-              - button "Test" [disabled] [ref=e299]:
-                - img [ref=e300]
-                - text: Test
-              - generic [ref=e303]:
-                - button "Cancel" [ref=e304] [cursor=pointer]
-                - button "Save" [disabled] [ref=e305]:
-                  - img [ref=e306]
-                  - text: Save
+    - banner [ref=e5]:
+        - generic [ref=e6]:
+            - generic [ref=e7]:
+                - generic [ref=e8] [cursor=pointer]:
+                    - img "The Andb" [ref=e9]
+                    - generic [ref=e10]: The Andb
+                - generic [ref=e11]:
+                    - heading "Dashboard" [level=1] [ref=e12]
+                    - navigation [ref=e14]:
+                        - list [ref=e15]:
+                            - listitem [ref=e16]:
+                                - button "Dashboard" [ref=e17] [cursor=pointer]
+            - generic [ref=e18]:
+                - generic [ref=e19]:
+                    - generic [ref=e20]:
+                        - img [ref=e21]
+                        - generic [ref=e23]:
+                            - combobox [ref=e24] [cursor=pointer]:
+                                - option "Project One" [selected]
+                                - option "+ New Project"
+                            - generic:
+                                - img
+                    - button "Project Manager" [ref=e25] [cursor=pointer]:
+                        - img [ref=e26]
+                    - 'button "Theme: night-owl-light" [ref=e32] [cursor=pointer]':
+                        - img [ref=e34]
+                    - button "EN" [ref=e41] [cursor=pointer]:
+                        - img [ref=e42]
+                        - generic [ref=e45]: EN
+                - button "Settings" [ref=e47] [cursor=pointer]:
+                    - img [ref=e48]
+                - button "About" [ref=e51] [cursor=pointer]:
+                    - img [ref=e52]
+    - generic [ref=e54]:
+        - complementary [ref=e56]:
+            - generic [ref=e57]:
+                - navigation [ref=e58]:
+                    - generic [ref=e59]:
+                        - link "Dashboard" [ref=e60] [cursor=pointer]:
+                            - /url: '#/'
+                            - img [ref=e62]
+                            - generic [ref=e65]: Dashboard
+                        - link "Schema" [ref=e66] [cursor=pointer]:
+                            - /url: '#/schema'
+                            - img [ref=e68]
+                            - generic [ref=e72]: Schema
+                        - link "Diff & Sync" [ref=e73] [cursor=pointer]:
+                            - /url: '#/compare'
+                            - img [ref=e75]
+                            - generic [ref=e80]: Diff & Sync
+                        - link "History & Rollback" [ref=e81] [cursor=pointer]:
+                            - /url: '#/history'
+                            - img [ref=e83]
+                            - generic [ref=e87]: History & Rollback
+                        - link "Integrations" [ref=e88] [cursor=pointer]:
+                            - /url: '#/integrations'
+                            - img [ref=e90]
+                            - generic [ref=e92]: Integrations
+                            - img [ref=e93]
+                        - link "Project Settings" [ref=e95] [cursor=pointer]:
+                            - /url: '#/project-settings'
+                            - img [ref=e97]
+                            - generic [ref=e100]: Project Settings
+                - generic [ref=e101]:
+                    - generic [ref=e102]: Schema Explorer
+                    - generic [ref=e103]:
+                        - button "Refresh" [ref=e104] [cursor=pointer]:
+                            - img [ref=e105]
+                        - button "common.collapse" [ref=e110] [cursor=pointer]:
+                            - img [ref=e111]
+        - main [ref=e119]:
+            - generic [ref=e121]:
+                - generic [ref=e122]:
+                    - heading "Integrations Hub" [level=1] [ref=e123]
+                    - paragraph [ref=e124]: Connect The Andb to your local workflows. We provide the tools; you keep the control.
+                - generic [ref=e125]:
+                    - generic [ref=e126]:
+                        - generic [ref=e127]:
+                            - generic [ref=e128]:
+                                - img [ref=e130]
+                                - generic [ref=e134]:
+                                    - heading "Git Versioning (Hybrid)" [level=2] [ref=e135]
+                                    - paragraph [ref=e136]: Mirror SQLite state to human-readable SQL files in Git.
+                            - generic [ref=e138]:
+                                - img [ref=e139]
+                                - text: Not Initialized
+                        - generic [ref=e142]:
+                            - generic [ref=e143]:
+                                - generic [ref=e144]:
+                                    - generic [ref=e145]: Repository URL
+                                    - textbox "https://github.com/owner/repo.git" [ref=e146]
+                                - generic [ref=e147]:
+                                    - generic [ref=e148]:
+                                        - generic [ref=e149]:
+                                            - img [ref=e150]
+                                            - text: Work Branch
+                                        - textbox "andb-work/user" [ref=e154]
+                                    - generic [ref=e155]:
+                                        - generic [ref=e156]:
+                                            - img [ref=e157]
+                                            - text: Base Branch
+                                        - textbox "main" [ref=e161]
+                                - generic [ref=e162]:
+                                    - generic [ref=e163]:
+                                        - img [ref=e164]
+                                        - text: Local Path
+                                    - textbox "/db" [ref=e166]
+                                - generic [ref=e167]:
+                                    - heading "Credentials" [level=3] [ref=e168]:
+                                        - img [ref=e169]
+                                        - text: Credentials
+                                    - generic [ref=e172]:
+                                        - generic [ref=e173]:
+                                            - text: Username
+                                            - textbox "git-username" [ref=e174]
+                                        - generic [ref=e175]:
+                                            - generic [ref=e176]:
+                                                - generic [ref=e177]: Token / PAT
+                                                - button "How to get a token?" [ref=e178] [cursor=pointer]:
+                                                    - img [ref=e179]
+                                                    - text: How to get a token?
+                                            - textbox "••••••••••••" [ref=e182]
+                                - generic [ref=e183]:
+                                    - generic [ref=e184]:
+                                        - button "Save" [ref=e185] [cursor=pointer]:
+                                            - img [ref=e186]
+                                            - text: Save
+                                        - generic [ref=e190] [cursor=pointer]:
+                                            - checkbox "Auto-Commit" [checked] [ref=e192]
+                                            - generic [ref=e195]: Auto-Commit
+                                    - button "Sync & Push" [ref=e196] [cursor=pointer]:
+                                        - img [ref=e197]
+                                        - text: Sync & Push
+                            - generic [ref=e200]:
+                                - heading "Why use Hybrid Git?" [level=3] [ref=e201]
+                                - list [ref=e202]:
+                                    - listitem [ref=e203]:
+                                        - generic [ref=e204]: '1'
+                                        - generic [ref=e205]:
+                                            - strong [ref=e206]: 'Real Diffs:'
+                                            - text: Each database object is stored as an individual
+                                            - code [ref=e207]: .sql
+                                            - text: file, resulting in perfect Git history.
+                                    - listitem [ref=e208]:
+                                        - generic [ref=e209]: '2'
+                                        - generic [ref=e210]:
+                                            - strong [ref=e211]: 'Zero Lag:'
+                                            - text: SQLite handles the UI operations instantly, while Git manages the long-term proof of work.
+                                    - listitem [ref=e212]:
+                                        - generic [ref=e213]: '3'
+                                        - generic [ref=e214]:
+                                            - strong [ref=e215]: 'Team Sync:'
+                                            - text: Push your schema changes to a shared repository for code reviews and team parity.
+                    - generic [ref=e216]:
+                        - generic [ref=e217]:
+                            - generic [ref=e218]:
+                                - img [ref=e220]
+                                - generic [ref=e222]:
+                                    - heading "CLI Tool" [level=2] [ref=e223]
+                                    - paragraph [ref=e224]: Access full power from your terminal.
+                            - generic [ref=e225]:
+                                - button "Refresh Status" [ref=e226] [cursor=pointer]:
+                                    - img [ref=e227]
+                                - generic [ref=e232]:
+                                    - img [ref=e233]
+                                    - text: Detected
+                        - generic [ref=e236]:
+                            - generic [ref=e237]:
+                                - text: To run
+                                - code [ref=e238]: andb
+                                - text: from your terminal without requiring administrator privileges, copy and paste one of the options below into your terminal.
+                            - generic [ref=e239]:
+                                - generic [ref=e240]:
+                                    - 'heading "Option 1: Add to PATH (Recommended)" [level=3] [ref=e241]'
+                                    - paragraph [ref=e242]: 'Add this to your `~/.zshrc` or `~/.bashrc` file for permanent access.'
+                                    - generic [ref=e243]:
+                                        - generic [ref=e244]: export PATH="$PATH:/Volumes/FlexibleWorkplace/The-Andb/node_modules/electron/dist/Electron.app/Contents/Resources/app.asar.unpacked/node_modules/.bin"
+                                        - button "Copy to clipboard" [ref=e246] [cursor=pointer]:
+                                            - img [ref=e247]
+                                - generic [ref=e250]:
+                                    - 'heading "Option 2: Create a Local Symlink" [level=3] [ref=e251]'
+                                    - paragraph [ref=e252]: Links the binary into your user's local bin folder.
+                                    - generic [ref=e253]:
+                                        - generic [ref=e254]: ln -sf "/Volumes/FlexibleWorkplace/The-Andb/node_modules/electron/dist/Electron.app/Contents/Resources/app.asar.unpacked/node_modules/.bin/andb" ~/.local/bin/andb
+                                        - button "Copy to clipboard" [ref=e256] [cursor=pointer]:
+                                            - img [ref=e257]
+                    - generic [ref=e260]:
+                        - generic [ref=e261]:
+                            - generic [ref=e262]:
+                                - img [ref=e264]
+                                - generic [ref=e267]:
+                                    - heading "Smart MCP Server" [level=2] [ref=e268]
+                                    - paragraph [ref=e269]: Transform your AI Agent into a Senior Database Architect.
+                            - generic [ref=e271]: Revolutionary Mode
+                        - generic [ref=e273]:
+                            - generic [ref=e274]: The Andb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering **Risk Analysis**, **Index Suggestions**, and **Safety Guards**.
+                            - generic [ref=e276]:
+                                - generic [ref=e277]: '"the-andb": { "command": "node", "args": ["/Volumes/FlexibleWorkplace/The-Andb/node_modules/electron/dist/Electron.app/Contents/Resources/app.asar.unpacked/node_modules/@the-andb/mcp/dist/index.js"] }'
+                                - button "Copy to clipboard" [ref=e279] [cursor=pointer]:
+                                    - img [ref=e280]
+                            - generic [ref=e283]:
+                                - generic [ref=e284]:
+                                    - heading "Cursor location" [level=4] [ref=e285]
+                                    - code [ref=e286]: ~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
+                                - generic [ref=e287]:
+                                    - heading "Windsurf location" [level=4] [ref=e288]
+                                    - code [ref=e289]: ~/.codeium/windsurf/mcp_config.json
 ```

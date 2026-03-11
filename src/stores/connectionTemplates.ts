@@ -41,10 +41,7 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
   function checkDuplicate(template: Partial<ConnectionTemplate>, excludeId?: string) {
     return templates.value.some(t => {
       if (excludeId && t.id === excludeId) return false
-      return t.host === template.host &&
-        t.port === template.port &&
-        t.database === template.database &&
-        t.username === template.username
+      return t.name.toLowerCase() === template.name?.toLowerCase()
     })
   }
 

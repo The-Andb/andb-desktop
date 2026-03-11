@@ -100,7 +100,7 @@ export const useProjectNavigation = () => {
 
       case 'environments':
         nextType = 'databases'
-        title = item.name + ' Bases'
+        title = 'Project ' + item.name
         items = appStore.resolvedConnections
           .filter(c => project?.connectionIds.includes(c.id) && (c.environment === item.id || c.environment === item.name))
           .map(c => ({

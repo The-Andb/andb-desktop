@@ -37,7 +37,7 @@ export const useProjectNavigationStore = defineStore('projectNavigation', () => 
   const loadRoot = async (projectId?: string) => {
     const rootItems: MillerNode[] = projectsStore.projects.map(p => ({
       id: p.id,
-      name: p.name || 'Untitled Base',
+      name: p.name || 'Untitled Project',
       type: p.id === 'miller-sample-blueprint' ? 'root' : 'projects',
       icon: Folder,
       rawData: p.id === 'miller-sample-blueprint' ? { isSample: true } : p,
@@ -49,7 +49,7 @@ export const useProjectNavigationStore = defineStore('projectNavigation', () => 
       new ColumnNode({
         id: 'root',
         level: 0,
-        title: 'Active Bases',
+        title: 'Active Projects',
         items: [...rootItems], // Spread to ensure new reference
         isPinned: true
       })

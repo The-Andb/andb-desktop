@@ -53,7 +53,7 @@ export const useProjectsStore = defineStore('projects', () => {
       if (!projects.value.some(p => p.id === 'default')) {
         projects.value.push({
           id: 'default',
-          name: 'The Base One',
+          name: 'Project One',
           description: 'System default project',
           connectionIds: [],
           pairIds: [],

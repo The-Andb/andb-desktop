@@ -11,7 +11,7 @@
             :initial-nodes="rootNodes"
             :fetcher="millerFetcher"
             :auto-collapse="appStore.autoCollapseColumns"
-            root-title="Active Bases"
+            root-title="Active Projects"
             @select="handleAbstractSelect"
         >
             <template #header-actions="{ column }">
@@ -19,7 +19,7 @@
                     <button 
                       @click.stop="addNewProject"
                       class="flex items-center gap-1.5 px-2 py-1 bg-primary-500/10 text-primary-500 hover:bg-primary-500/20 transition-all active:scale-95"
-                      title="Add New Base"
+                      title="Add New Project"
                     >
                       <Plus class="w-3 h-3" />
                     </button>
@@ -49,14 +49,14 @@
                     <button 
                       @click.stop="cloneProject(node)"
                       class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-primary-500 transition-colors"
-                      title="Clone Base"
+                      title="Clone Project"
                     >
                       <Copy class="w-3.5 h-3.5" />
                     </button>
                     <button 
                       @click.stop="deleteProject(node)"
                       class="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 text-gray-400 hover:text-red-500 transition-colors"
-                      title="Delete Base"
+                      title="Delete Project"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
                     </button>
@@ -335,7 +335,7 @@ const rootNodes = computed(() => projectsStore.projects
   .filter(p => p.id !== 'miller-sample-blueprint')
   .map(p => ({
     id: p.id,
-    name: p.name || 'Untitled Base',
+    name: p.name || 'Untitled Project',
     type: 'projects',
     icon: Folder,
     rawData: p,
@@ -587,7 +587,7 @@ const refreshConnection = async (node: any) => {
 const addNewProject = async () => {
     console.log('Adding new project...')
     const newP = projectsStore.addProject({
-        name: 'New Base ' + (projectsStore.projects.length),
+        name: 'New Project ' + (projectsStore.projects.length),
         description: 'Created via Miller View',
         connectionIds: [],
         pairIds: [],

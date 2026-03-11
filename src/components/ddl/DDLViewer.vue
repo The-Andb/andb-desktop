@@ -1,13 +1,33 @@
 <template>
   <div class="flex-1 flex flex-col overflow-hidden relative group h-full">
-    <div class="absolute inset-0 flex overflow-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50 text-sm font-mono">
-      <!-- Line Numbers -->
-      <div v-if="showLineNumbers" class="flex-none py-4 px-2 text-right text-gray-400 dark:text-gray-600 select-none bg-gray-100/50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 min-w-[3rem]">
-        <div v-for="n in lineCount" :key="n" class="leading-6">{{ n }}</div>
+    <div ref="containerRef" class="absolute inset-0 flex flex-col overflow-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50 text-sm font-mono">
+      <div class="min-w-max w-full">
+        <div 
+          v-for="(line, idx) in highlightedLines" 
+          :key="idx"
+          :data-line="idx + 1"
+          class="flex items-stretch group/line border-l-[6px] border-transparent hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors"
+          :class="{ 
+            '!bg-primary-500/30 dark:!bg-primary-400/30 border-l-primary-600 dark:border-l-primary-400 shadow-[inset_4px_0_0_0_rgba(var(--primary-600),0.5)]': selectedLine === idx + 1 
+          }"
+        >
+          <!-- Line Numbers -->
+          <div 
+            v-if="showLineNumbers" 
+            class="flex-none py-0.5 px-3 text-right text-gray-400 dark:text-gray-600 select-none bg-gray-100/30 dark:bg-gray-800/20 border-r border-gray-200 dark:border-gray-700 min-w-[3.5rem] leading-6"
+            :class="{ 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/10': selectedLine === idx + 1 }"
+          >
+            {{ idx + 1 }}
+          </div>
+          
+          <!-- Code -->
+          <pre 
+            @click="handleCodeClick($event, idx + 1)"
+            class="flex-1 py-0.5 px-4 syntax-highlighter bg-transparent text-gray-800 dark:text-gray-200 !mt-0 !bg-transparent leading-6 overflow-visible" 
+            :style="{ fontSize: fontSize + 'px', fontFamily: fontFamily }"
+          ><code class="block overflow-visible"><div v-html="line || ' '" class="min-h-[1.5rem] whitespace-pre" :class="{ 'is-navigating': isNavigating }"></div></code></pre>
+        </div>
       </div>
-      
-      <!-- Code -->
-      <pre class="flex-1 py-4 px-4 syntax-highlighter bg-transparent text-gray-800 dark:text-gray-200 !mt-0 !bg-transparent" :style="{ fontSize: fontSize + 'px', fontFamily: fontFamily }"><code v-html="highlightedContent" class="block leading-6"></code></pre>
     </div>
     
     <!-- Copy Button (Overlay) -->
@@ -25,15 +45,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
 import { Copy, Check } from 'lucide-vue-next'
+import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 
 const props = defineProps({
   content: {
     type: String,
     required: true,
+    default: ''
+  },
+  searchTerm: {
+    type: String,
     default: ''
   },
   fontSize: {
@@ -51,10 +76,68 @@ const props = defineProps({
   showCopyButton: {
     type: Boolean,
     default: true
+  },
+  navigatableNames: {
+    type: Array as () => string[],
+    default: () => []
   }
 })
 
+const emit = defineEmits(['navigate-to-definition'])
+
 const copied = ref(false)
+const containerRef = ref<HTMLElement | null>(null)
+const selectedLine = ref<number | null>(null)
+
+// Reset selection when content changes
+watch(() => props.content, () => {
+  selectedLine.value = null
+})
+
+defineExpose({
+  scrollToLine: (line: number) => {
+    if (!containerRef.value) return
+    selectedLine.value = line
+    const lineElement = containerRef.value.querySelector(`[data-line="${line}"]`)
+    if (lineElement) {
+      lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+})
+
+const isNavigating = ref(false)
+
+const handleCodeClick = (event: MouseEvent, _line: number) => {
+  const word = getNavigatableWord(event, props.navigatableNames as string[])
+  if (word) {
+    emit('navigate-to-definition', word)
+  }
+}
+
+// Track meta/ctrl key for cursor change
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = true
+}
+const handleGlobalKeyup = (e: KeyboardEvent) => {
+  if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = false
+}
+
+watch(isNavigating, (val) => {
+  if (val) {
+    window.addEventListener('keyup', handleGlobalKeyup)
+  } else {
+    window.removeEventListener('keyup', handleGlobalKeyup)
+  }
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('keyup', handleGlobalKeyup)
+})
 
 const copyToClipboard = () => {
   if (!props.content) return
@@ -63,41 +146,46 @@ const copyToClipboard = () => {
   setTimeout(() => { copied.value = false }, 2000)
 }
 
-const lineCount = computed(() => {
-  if (!props.content) return 0
-  return props.content.split('\n').length
-})
-
-const highlightedContent = computed(() => {
-  if (!props.content) return ''
+const highlightedLines = computed(() => {
+  if (!props.content) return []
   
-  // 1. Basic Highlight with Prism
-  let html = Prism.highlight(props.content, Prism.languages.sql, 'sql')
+  // Highlight with Prism
+  const html = Prism.highlight(props.content, Prism.languages.sql, 'sql')
+  const lines = html.split('\n')
 
-  // 2. Custom Post-processing for "Rainbow" brackets and distinct punctuation
-  // Handle Parentheses
-  html = html.replace(
-    /<span class="token punctuation">(\()<\/span>/g, 
-    '<span class="token punctuation paren-open text-yellow-500 dark:text-yellow-400 font-bold">(</span>'
-  )
-  html = html.replace(
-    /<span class="token punctuation">(\))<\/span>/g, 
-    '<span class="token punctuation paren-close text-yellow-500 dark:text-yellow-400 font-bold">)</span>'
-  )
+  // Prepare search regex if needed
+  let searchRegex: RegExp | null = null
+  if (props.searchTerm && props.searchTerm.trim()) {
+    try {
+      const escaped = props.searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      searchRegex = new RegExp(`(${escaped})`, 'gi')
+    } catch (e) {
+      console.warn('Invalid search term for highlight:', props.searchTerm)
+    }
+  }
 
-  // Handle Commas
-  html = html.replace(
-    /<span class="token punctuation">(,)<\/span>/g, 
-    '<span class="token punctuation comma text-gray-500 dark:text-gray-100 font-bold">,</span>'
-  )
+  return lines.map(line => {
+    let processed = line
+    // Custom post-processing for brackets/punctuation
+    processed = processed.replace(/<span class="token punctuation">(\()<\/span>/g, '<span class="token punctuation paren-open text-yellow-500 dark:text-yellow-400 font-bold">(</span>')
+    processed = processed.replace(/<span class="token punctuation">(\))<\/span>/g, '<span class="token punctuation paren-close text-yellow-500 dark:text-yellow-400 font-bold">)</span>')
+    processed = processed.replace(/<span class="token punctuation">(,)<\/span>/g, '<span class="token punctuation comma text-gray-500 dark:text-gray-100 font-bold">,</span>')
+    processed = processed.replace(/<span class="token punctuation">(;)<\/span>/g, '<span class="token punctuation semicolon text-red-500 dark:text-pink-400 font-bold">;</span>')
 
-  // Handle Semicolons
-  html = html.replace(
-    /<span class="token punctuation">(;)<\/span>/g, 
-    '<span class="token punctuation semicolon text-red-500 dark:text-pink-400 font-bold">;</span>'
-  )
-  
-  return html
+    // Search Keyword Highlighting
+    if (searchRegex) {
+      const parts = processed.split(/(<[^>]+>)/g)
+      processed = parts.map(part => {
+        if (part.startsWith('<')) return part
+        return part.replace(searchRegex!, '<span class="search-highlight bg-yellow-400 dark:bg-yellow-500/80 text-black dark:text-gray-900 ring-2 ring-yellow-400/20 rounded-sm px-0.5 font-bold shadow-sm">$1</span>')
+      }).join('')
+    }
+
+    // Navigatable Identifier Highlighting (Precise Underline)
+    processed = highlightLinks(processed, props.navigatableNames as string[])
+
+    return processed
+  })
 })
 </script>
 
@@ -129,5 +217,13 @@ const highlightedContent = computed(() => {
 .syntax-highlighter .token.operator { color: var(--code-operator); }
 .syntax-highlighter .token.punctuation { color: var(--code-punctuation); }
 
-/* Remove old hardcoded dark overrides as variables handle them now */
+.is-navigating .nav-link {
+  cursor: pointer;
+}
+
+.is-navigating .nav-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--primary-500);
+  text-underline-offset: 4px;
+}
 </style>

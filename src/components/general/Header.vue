@@ -156,7 +156,7 @@
                 </option>
                 <hr />
                 <option value="__NEW__" class="bg-gray-50 dark:bg-gray-900 font-bold text-primary-500">
-                  + {{ $t('projects.newProject') || 'New Base' }}
+                  + {{ $t('projects.newProject') || 'New Project' }}
                 </option>
               </select>
               <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
@@ -346,7 +346,7 @@ const selectedProjectModel = computed({
   set: (val: string) => {
     if (val === '__NEW__') {
        const newProject = projectsStore.addProject({
-          name: 'New Base',
+          name: 'New Project',
           description: '',
           connectionIds: [],
           pairIds: [],

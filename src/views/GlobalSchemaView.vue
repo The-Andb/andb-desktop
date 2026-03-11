@@ -120,15 +120,15 @@
       <!-- Expand / Collapse All (moved here from panel header) -->
       <div v-if="hasResults" class="flex items-center gap-0.5 ml-auto shrink-0">
         <button
-          @click="expandCmd = { action: 'expand', ts: Date.now() }"
-          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          @click="treeExpandCmd = { action: 'expand', ts: Date.now() }"
+          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:white"
           title="Expand All"
         >
           <Plus class="w-3 h-3" />
         </button>
         <button
-          @click="expandCmd = { action: 'collapse', ts: Date.now() }"
-          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-white"
+          @click="treeExpandCmd = { action: 'collapse', ts: Date.now() }"
+          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:white"
           title="Collapse All"
         >
           <Minus class="w-3 h-3" />
@@ -138,71 +138,91 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden relative">
-      <main class="flex-1 flex overflow-hidden relative">
-        <!-- Loading Overlay -->
-        <div v-if="loading && !hasResults" class="absolute inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
-          <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
-            <div class="relative w-20 h-20 mx-auto mb-6">
-              <div class="absolute inset-0 border-4 border-primary-500/20 rounded-full"></div>
-              <div class="absolute inset-0 border-4 border-t-primary-500 rounded-full animate-spin"></div>
-              <div class="absolute inset-0 flex items-center justify-center text-2xl">🔍</div>
-            </div>
-            <p class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-widest">{{ statusMessage || $t('schema.loading') }}</p>
-            <div class="mt-2 text-xs text-gray-500 uppercase tracking-tighter animate-pulse">{{ $t('schema.runningCommands') }}</div>
-          </div>
-        </div>
-
-        <div class="flex-1 flex overflow-hidden relative">
+        <main class="flex-1 flex overflow-hidden relative" v-if="!loading || hasResults">
           <!-- Left: Object Categories & List -->
           <div :style="{ width: resultsWidth + 'px' }" class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative">
 
-              <!-- Search Bar -->
-              <div v-if="hasResults" class="p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                    <Search class="w-3.5 h-3.5 text-gray-400" />
+              <!-- Search Bar (Professional Redesign) -->
+              <div v-if="hasResults" class="p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
+                <div class="relative group">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200">
+                    <Search class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500" />
                   </span>
                   <input 
                     v-model="searchQuery"
                     type="text" 
-                    :placeholder="$t('history.searchPlaceholder')"
-                    class="w-full pl-8 pr-24 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white transition-all"
+                    :placeholder="searchFlags.content ? 'Search content & names...' : 'Search names...'"
+                    class="w-full pl-9 pr-32 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner"
+                    @keyup.enter="searchFlags.content && performContentSearch()"
                   />
                   
-                  <!-- Search Flags -->
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-1.5 space-x-0.5">
+                  <!-- Unified Search Icons (VS Code Style) -->
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-2 space-x-0.5">
                     <button 
                       @click="searchFlags.caseSensitive = !searchFlags.caseSensitive"
-                      class="p-1 rounded transition-colors"
-                      :class="searchFlags.caseSensitive ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      :title="$t('common.matchCase')"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.caseSensitive ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+                      title="Match Case"
                     >
                       <CaseSensitive class="w-3.5 h-3.5" />
                     </button>
                     <button 
                       @click="searchFlags.wholeWord = !searchFlags.wholeWord"
-                      class="p-1 rounded transition-colors"
-                      :class="searchFlags.wholeWord ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      :title="$t('common.wholeWord')"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.wholeWord ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+                      title="Match Whole Word"
                     >
                       <WholeWord class="w-3.5 h-3.5" />
                     </button>
                     <button 
                       @click="searchFlags.regex = !searchFlags.regex"
-                      class="p-1 rounded transition-colors"
-                      :class="searchFlags.regex ? 'bg-primary-500 text-white' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      :title="$t('common.useRegex')"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.regex ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+                      title="Use Regex"
                     >
                       <Regex class="w-3.5 h-3.5" />
                     </button>
                     
+                    <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
+
+                    <button 
+                      @click="toggleContentSearch"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.content ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+                      title="Content Search (Snippets)"
+                    >
+                      <Binary class="w-3.5 h-3.5" />
+                    </button>
+
                     <button 
                       v-if="searchQuery"
-                      @click="searchQuery = ''"
-                      class="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                      @click="clearSearch"
+                      class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all"
                     >
                       <X class="w-3.5 h-3.5" />
                     </button>
+                  </div>
+                </div>
+
+                <!-- Search Progress/Summary -->
+                <div v-if="searchQuery" class="flex items-center justify-between mt-2 px-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                   <div v-if="isSearchingContent" class="flex items-center gap-2">
+                    <RefreshCw class="w-3 h-3 animate-spin text-primary-500" />
+                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-tight animate-pulse">Searching codebases...</span>
+                  </div>
+                  <div v-else class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                    <span v-if="searchFlags.content" class="text-primary-600 dark:text-primary-400">
+                      {{ contentSearchResults.reduce((acc, curr) => acc + (curr.matches?.length || 0), 0) }} total matches
+                    </span>
+                    <span v-else>
+                      {{ filteredResults.length }} objects found
+                    </span>
+                  </div>
+                  
+                  <!-- Filter Tag (if any) -->
+                  <div v-if="selectedFilterType !== 'all'" class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-gray-500">
+                    <Filter class="w-2.5 h-2.5" />
+                    {{ selectedFilterType }}
                   </div>
                 </div>
               </div>
@@ -214,12 +234,17 @@
                   <p class="text-[10px] opacity-60 mt-1">{{ $t('schema.selectDbFetch') }}</p>
                 </div>
                 <SchemaTreeMode 
-                  v-if="hasResults"
-                  :results="filteredResults"
+                  v-if="treeMode === 'tree'"
+                  :results="filteredResults" 
                   :selected-item-name="selectedItem?.name"
+                  :active-search-line="activeSearchLine"
+                  :search-term="searchQuery"
                   :focus-type="focusType"
-                  :expand-cmd="expandCmd"
+                  :expand-cmd="treeExpandCmd"
+                  :navigatable-names="navigatableNames"
                   @select="selectItem"
+                  @navigateTo="handleNavigateTo"
+                  @navigate-to-definition="handleNavigateToDefinition"
                 />
 
               </div>
@@ -247,9 +272,9 @@
                       <h2 class="font-bold text-gray-900 dark:text-white truncate" :style="{ fontSize: appStore.fontSizes.ddlHeader + 'px' }">{{ selectedItem.name }}</h2>
                       <div class="flex items-center space-x-2 mt-0.5">
                         <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider transition-colors duration-200">{{ selectedItem.type }}</span>
-                        <div v-if="selectedItem.updated_at" class="flex items-center text-[10px] text-gray-400 ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+                        <div v-if="selectedDbLastUpdated" class="flex items-center text-[10px] text-gray-400 ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
                           <span class="mr-1 opacity-70">{{ $t('schema.lastSynced') }}:</span>
-                          <span class="font-mono text-gray-500 dark:text-gray-300">{{ formatTimeAgo(selectedItem.updated_at) }}</span>
+                          <span class="font-mono text-gray-500 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
                         </div>
                       </div>
                     </div>
@@ -258,7 +283,6 @@
                   <div class="flex items-center gap-2" v-if="selectedItem.type !== 'diagrams'">
                      <!-- Tab Switcher for Tables -->
                      <div v-if="selectedItem.type === 'tables' || selectedItem.type === 'table'" class="bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 flex mr-2">
-                      
                         <button 
                             @click="viewMode = 'visual'"
                             class="px-2 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
@@ -268,7 +292,7 @@
                             {{ $t('schema.visual') }}
                         </button>
 
-                          <button 
+                        <button 
                             @click="viewMode = 'code'"
                             class="px-2 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
                             :class="viewMode === 'code' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
@@ -313,9 +337,13 @@
                 <!-- 2. Raw SQL Viewer Mode -->
                 <div v-else-if="viewMode === 'code' || (selectedItem.type !== 'tables' && selectedItem.type !== 'table')" class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden relative">
                     <DDLViewer 
+                        ref="ddlViewerRef"
                         :content="formattedDDL" 
+                        :search-term="searchQuery"
                         :font-size="appStore.fontSizes.code" 
                         :font-family="appStore.fontFamilies.code"
+                        :navigatable-names="navigatableNames"
+                        @navigate-to-definition="handleNavigateToDefinition"
                     />
                 </div>
                 
@@ -348,15 +376,14 @@
                 <p class="text-sm max-w-xs leading-relaxed">{{ $t('schema.selectObjectDesc') }}</p>
               </div>
             </div>
-          </div>
         </main>
+      </div>
     </div>
-  </div>
-</template>
+  </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import { useAppStore } from '@/stores/app'
@@ -389,12 +416,14 @@ import {
   Plus,
   Minus,
   Database,
+  Binary,
   Grid3X3,
   Eye,
   Cpu,
   CalendarClock,
   Zap,
-  Info
+  Info,
+  Filter
 } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
@@ -408,6 +437,7 @@ const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const router = useRouter()
+const route = useRoute()
 
 // Watch for project changes to reset schema selection
 watch(() => projectsStore.selectedProjectId, () => {
@@ -462,15 +492,21 @@ const resetNavigation = () => {
 }
 
 const selectedFilterType = ref('all')
+const treeMode = ref<'tree' | 'flat'>('tree')
 const searchQuery = ref('')
 const searchFlags = ref({
   caseSensitive: false,
   wholeWord: false,
-  regex: false
+  regex: false,
+  content: false
 })
-const selectedItem = ref<any>(null)
+const contentSearchResults = ref<any[]>([])
+const isSearchingContent = ref(false)
+const selectedItem = shallowRef<any>(null)
+const activeSearchLine = ref<number | null>(null)
 const focusType = ref<string | undefined>(undefined)
-const expandCmd = ref<{ action: 'expand' | 'collapse', ts: number } | null>(null)
+const treeExpandCmd = ref<{ action: 'expand' | 'collapse', ts: number } | null>(null)
+const ddlViewerRef = ref<any>(null)
 
 const schemaData = ref({
   tables: [] as any[],
@@ -496,8 +532,17 @@ const allResults = computed(() => {
   }
   return base
 })
+const navigatableNames = computed(() => {
+  return allResults.value
+    .filter(i => i.type !== 'all' && i.type !== 'diagrams')
+    .map(i => i.name)
+})
 
 const filteredResults = computed(() => {
+  if (searchFlags.value.content) {
+    return contentSearchResults.value
+  }
+
   let filtered = allResults.value
   
   if (selectedFilterType.value !== 'all') {
@@ -531,6 +576,65 @@ const filteredResults = computed(() => {
 
   return filtered
 })
+
+const performContentSearch = async () => {
+  const query = searchQuery.value.trim()
+  if (!query) {
+    contentSearchResults.value = []
+    return
+  }
+
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
+  if (!conn) return
+
+  isSearchingContent.value = true
+  try {
+    const results = await Andb.search(conn, query, {
+      caseSensitive: searchFlags.value.caseSensitive,
+      wholeWord: searchFlags.value.wholeWord,
+      regex: searchFlags.value.regex
+    })
+    
+    // Convert results to format expected by the tree
+    // results is IDependencyMatch[]: { sourceObject: { name, type }, matches: { line, snippet }[] }
+    contentSearchResults.value = (results || []).map((r: any) => {
+      const type = pluralizeType(r.sourceObject.type)
+
+      return {
+        name: r.sourceObject.name,
+        type,
+        content: r.sourceObject.content, // Pass DDL content to allow viewer to show it
+        matches: r.matches,
+        title: `${r.sourceObject.name} (${r.matches.length} matches)`
+      }
+    })
+  } catch (e) {
+    console.error('Content search failed:', e)
+    notificationStore.add({ type: 'error', title: 'Search Failed', message: (e as any).message })
+  } finally {
+    isSearchingContent.value = false
+  }
+}
+
+watch([searchQuery, () => searchFlags.value.caseSensitive, () => searchFlags.value.wholeWord, () => searchFlags.value.regex], () => {
+  if (searchFlags.value.content) {
+    performContentSearch()
+  }
+})
+
+const toggleContentSearch = () => {
+  searchFlags.value.content = !searchFlags.value.content
+  if (searchFlags.value.content) {
+    performContentSearch()
+  } else {
+    contentSearchResults.value = []
+  }
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  contentSearchResults.value = []
+}
 
 const selectedDbLastUpdated = ref<string | null>(null)
 
@@ -622,7 +726,22 @@ watch(formattedDDL, async (newVal) => {
 })
 
 
-const hasResults = computed(() => allResults.value.length > 0)
+const hasResults = computed(() => allResults.value.length > 0 || contentSearchResults.value.length > 0)
+
+const pluralizeType = (t: string) => {
+  const map: Record<string, string> = {
+    'table': 'tables',
+    'view': 'views',
+    'procedure': 'procedures',
+    'function': 'functions',
+    'trigger': 'triggers',
+    'event': 'events'
+  }
+  const low = t.trim().toLowerCase()
+  if (map[low]) return map[low]
+  if (low.endsWith('s')) return low
+  return low + 's'
+}
 
 // Visual View Logic
 const fetchButtonText = computed(() => {
@@ -919,12 +1038,17 @@ watch(() => sidebarStore.refreshKey, () => {
   }
 })
 
-const selectItem = async (item: any) => {
+const selectItem = (item: any) => {
   if (!item) return
+  if (selectedItem.value?.name !== item.name) {
+    activeSearchLine.value = null
+  }
   selectedItem.value = item
-  // If DDL is not already in item, we might need to fetch it (but compare usually returns it)
-  // Ensure we are showing the correct filter type
-  if (item.type && selectedFilterType.value === 'all') {
+  // If DDL is not already in item, we might need to fetch it
+  // Ensure we are showing the correct filter type if it doesn't match
+  if (item.type && item.type !== 'diagrams' && selectedFilterType.value !== 'all' && selectedFilterType.value !== item.type) {
+    selectedFilterType.value = item.type
+  } else if (item.type && selectedFilterType.value === 'all' && item.type !== 'diagrams') {
     selectedFilterType.value = item.type
   }
 }
@@ -1039,6 +1163,36 @@ const handleObjectSelected = (e: any) => {
   }
 }
 
+const handleNavigateTo = async (payload: { item: any; line: number }) => {
+  activeSearchLine.value = payload.line
+  // 1. Select the item first
+  if (selectedItem.value?.name !== payload.item.name) {
+    selectItem(payload.item)
+  }
+  
+  // 2. Wait for DDLViewer to be rendered or content to be updated
+  await nextTick()
+  // Ensure we are in code view
+  viewMode.value = 'code'
+  await nextTick()
+  
+  // 3. Scroll to the line
+  if (ddlViewerRef.value) {
+    ddlViewerRef.value.scrollToLine(payload.line)
+  }
+}
+
+const handleNavigateToDefinition = (name: string) => {
+  const item = allResults.value.find(i => i.name === name)
+  if (item) {
+    // Switch to code view if it's not and we are navigating to it
+    if (viewMode.value !== 'code') {
+      viewMode.value = 'code'
+    }
+    selectItem(item)
+  }
+}
+
 const handleDatabaseSelected = (e: any) => {
   const { env, db } = e.detail
   const conn = appStore.resolvedConnections.find(c => 
@@ -1075,6 +1229,18 @@ onMounted(() => {
       }
     })
   }
+
+  // Handle deep link selection from other views (like Compare)
+  const processDeepLink = () => {
+    if (route.query.select && allResults.value.length > 0) {
+      handleNavigateToDefinition(route.query.select as string)
+    }
+  }
+
+  watch(() => route.query.select, processDeepLink)
+  watch(() => allResults.value.length, processDeepLink)
+  
+  processDeepLink()
 })
 
 onUnmounted(() => {

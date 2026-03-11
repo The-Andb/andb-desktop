@@ -454,7 +454,12 @@ const duplicateTemplate = (template: ConnectionTemplate) => {
             name: newName
         })
     } catch (e: any) {
-        alert(t('common.error'))
+        if (e.message === 'DUPLICATE_CONNECTION') {
+            alert(t('connections.template.duplicateError'))
+        } else {
+            console.error(e)
+            alert(t('common.error'))
+        }
     }
 }
 
