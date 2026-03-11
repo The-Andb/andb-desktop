@@ -2,7 +2,7 @@
   "name": "@the-andb/desktop",
   "productName": "The Andb",
   "version": "3.1.0-beta.2",
-  "description": "Professional Database Migration Architecture",
+  "description": "The Andb - Simplest Database Migration Tool",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -131,7 +131,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@sentry/electron": "^7.9.0",
-    "@the-andb/core": "4.0.0-beta.2",
+    "@the-andb/core": "workspace:*",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",

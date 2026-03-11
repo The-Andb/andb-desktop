@@ -670,15 +670,12 @@ import {
   LayoutTemplate,
   Shield,
   Key,
-  Maximize,
-  Minimize,
   RotateCcw,
   LayoutList,
   Columns as ColumnsIcon,
   RefreshCw,
   GitCompare,
-  Cpu,
-  Clock
+  Cpu
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
