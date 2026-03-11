@@ -40,31 +40,39 @@
       <TabPanels class="flex-1 overflow-auto relative">
         <!-- Columns Tab -->
         <TabPanel class="h-full outline-none">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-fixed">
             <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-20 font-bold text-[10px] uppercase text-gray-500 dark:text-gray-400 tracking-wider">
               <tr>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 w-8">#</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Column</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Data Type</th>
-                <th class="px-3 py-3 border-b border-gray-200 dark:border-gray-700 text-center w-8" title="Primary Key">PK</th>
-                <th class="px-3 py-3 border-b border-gray-200 dark:border-gray-700 text-center w-8" title="Not Null">NN</th>
-                <th class="px-3 py-3 border-b border-gray-200 dark:border-gray-700 text-center w-8" title="Unique">UQ</th>
-                <th class="px-3 py-3 border-b border-gray-200 dark:border-gray-700 text-center w-8" title="Auto Increment">AI</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Default</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Comment</th>
+                <th 
+                  v-for="(header, i) in ['#', 'Column', 'Data Type', 'PK', 'NN', 'UQ', 'AI', 'Default', 'Comment']" 
+                  :key="header"
+                  class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 relative group overflow-hidden"
+                  :title="header === 'PK' ? 'Primary Key' : header === 'NN' ? 'Not Null' : header === 'UQ' ? 'Unique' : header === 'AI' ? 'Auto Increment' : ''"
+                  :style="{ width: colResizer.columnWidths.value[i] + 'px' }"
+                  :class="[
+                    ['PK', 'NN', 'UQ', 'AI'].includes(header) ? 'text-center h-full' : '',
+                  ]"
+                >
+                  <span class="truncate block">{{ header }}</span>
+                  <div 
+                    class="resize-handle" 
+                    :class="{ 'resizing': colResizer.activeColumnIndex.value === i }"
+                    @mousedown="colResizer.handleMouseDown(i, $event)"
+                  ></div>
+                </th>
               </tr>
             </thead>
             <tbody class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
               <tr v-for="(col, idx) in columns" :key="col.name" class="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 transition-colors">
                 <td class="px-6 py-3 text-gray-400 text-center">{{ idx + 1 }}</td>
-                <td class="px-6 py-3 font-bold text-gray-900 dark:text-gray-100">
-                  <div class="flex items-center gap-2">
-                    <Key v-if="col.pk" class="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                    <Circle v-else class="w-2 h-2 text-blue-400 opacity-50" />
-                    {{ col.name }}
+                <td class="px-6 py-3 font-bold text-gray-900 dark:text-gray-100 truncate">
+                  <div class="flex items-center gap-2 truncate">
+                    <Key v-if="col.pk" class="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />
+                    <Circle v-else class="w-2 h-2 text-blue-400 opacity-50 shrink-0" />
+                    <span class="truncate">{{ col.name }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-3 text-blue-600 dark:text-blue-400 font-bold uppercase">{{ col.type }}</td>
+                <td class="px-6 py-3 text-blue-600 dark:text-blue-400 font-bold uppercase truncate">{{ col.type }}</td>
                 <td class="px-3 py-3 text-center">
                   <div class="w-3 h-3 rounded-sm mx-auto" :class="col.pk ? 'bg-yellow-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
                 </td>
@@ -77,8 +85,8 @@
                 <td class="px-3 py-3 text-center">
                   <div class="w-3 h-3 rounded-sm mx-auto" :class="col.autoIncrement ? 'bg-primary-500' : 'border border-gray-300 dark:border-gray-600'"></div>
                 </td>
-                <td class="px-6 py-3 text-gray-500 italic">{{ col.default || 'NULL' }}</td>
-                <td class="px-6 py-3 text-gray-400 max-w-xs truncate">{{ col.comment }}</td>
+                <td class="px-6 py-3 text-gray-500 italic truncate">{{ col.default || 'NULL' }}</td>
+                <td class="px-6 py-3 text-gray-400 truncate">{{ col.comment }}</td>
               </tr>
             </tbody>
           </table>
@@ -86,30 +94,39 @@
 
         <!-- Indexes Tab -->
         <TabPanel class="h-full outline-none">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-fixed">
             <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-20 font-bold text-[10px] uppercase text-gray-500 dark:text-gray-400 tracking-wider">
               <tr>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Index Name</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Type</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Columns</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Definition</th>
+                <th 
+                  v-for="(header, i) in ['Index Name', 'Type', 'Columns', 'Definition']" 
+                  :key="header"
+                  class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 relative group overflow-hidden"
+                  :style="{ width: idxResizer.columnWidths.value[i] + 'px' }"
+                >
+                  <span class="truncate block">{{ header }}</span>
+                  <div 
+                    class="resize-handle" 
+                    :class="{ 'resizing': idxResizer.activeColumnIndex.value === i }"
+                    @mousedown="idxResizer.handleMouseDown(i, $event)"
+                  ></div>
+                </th>
               </tr>
             </thead>
             <tbody class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
               <tr v-for="idx in indexes" :key="idx.name" class="hover:bg-primary-50/30 dark:hover:bg-primary-900/10">
-                <td class="px-6 py-3 font-bold text-gray-900 dark:text-white">
-                  <div class="flex items-center gap-2">
-                    <Search class="w-3.5 h-3.5 text-gray-400" />
-                    {{ idx.name }}
+                <td class="px-6 py-3 font-bold text-gray-900 dark:text-white truncate">
+                  <div class="flex items-center gap-2 truncate">
+                    <Search class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <span class="truncate">{{ idx.name }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-3">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="idx.type === 'PRIMARY KEY' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'">
+                <td class="px-6 py-3 truncate">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase whitespace-nowrap" :class="idx.type === 'PRIMARY KEY' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'">
                     {{ idx.type }}
                   </span>
                 </td>
-                <td class="px-6 py-3 text-primary-600">{{ idx.columns }}</td>
-                <td class="px-6 py-3 text-gray-400 text-[10px] truncate max-w-md">{{ idx.definition }}</td>
+                <td class="px-6 py-3 text-primary-600 truncate">{{ idx.columns }}</td>
+                <td class="px-6 py-3 text-gray-400 text-[10px] truncate">{{ idx.definition }}</td>
               </tr>
               <tr v-if="!indexes || indexes.length === 0">
                 <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">No indexes defined</td>
@@ -120,20 +137,29 @@
 
         <!-- Foreign Keys Tab -->
         <TabPanel class="h-full outline-none">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse table-fixed">
             <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-20 font-bold text-[10px] uppercase text-gray-500 dark:text-gray-400 tracking-wider">
               <tr>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">FK Name</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">Columns</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">References</th>
-                <th class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">On Update/Delete</th>
+                <th 
+                  v-for="(header, i) in ['FK Name', 'Columns', 'References', 'On Update/Delete']" 
+                  :key="header"
+                  class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 relative group overflow-hidden"
+                  :style="{ width: fkResizer.columnWidths.value[i] + 'px' }"
+                >
+                  <span class="truncate block">{{ header }}</span>
+                  <div 
+                    class="resize-handle" 
+                    :class="{ 'resizing': fkResizer.activeColumnIndex.value === i }"
+                    @mousedown="fkResizer.handleMouseDown(i, $event)"
+                  ></div>
+                </th>
               </tr>
             </thead>
             <tbody class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
               <tr v-for="fk in foreignKeys" :key="fk.name" class="hover:bg-primary-50/30 dark:hover:bg-primary-900/10">
-                <td class="px-6 py-3 font-bold text-gray-900 dark:text-white">{{ fk.name }}</td>
-                <td class="px-6 py-3">{{ fk.localColumns }}</td>
-                <td class="px-6 py-3">
+                <td class="px-6 py-3 font-bold text-gray-900 dark:text-white truncate">{{ fk.name }}</td>
+                <td class="px-6 py-3 truncate">{{ fk.localColumns }}</td>
+                <td class="px-6 py-3 truncate">
                   <div class="flex items-center gap-1">
                     <span class="text-primary-600 font-bold">{{ fk.referencedTable }}</span>
                     <span class="text-gray-400">({{ fk.referencedColumns }})</span>
@@ -254,27 +280,33 @@
 
             <!-- Workbench Style Data Grid -->
             <div class="flex-1 overflow-auto bg-white dark:bg-gray-800">
-              <table class="w-full text-left border-collapse text-[11px] whitespace-nowrap">
+              <table class="w-full text-left border-collapse text-[11px] whitespace-nowrap table-fixed">
                 <thead class="bg-gray-100 dark:bg-gray-900 sticky top-0 z-10 shadow-[0_1px_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_rgba(255,255,255,0.05)]">
                   <tr>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 w-32 border-r border-gray-200 dark:border-gray-700">Partition</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 min-w-[150px] border-r border-gray-200 dark:border-gray-700">Values</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">Data Directory</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">Index Directory</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">Min Rows</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700">Max Rows</th>
-                    <th class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300">Comment</th>
+                    <th 
+                      v-for="(header, i) in ['Partition', 'Values', 'Data Directory', 'Index Directory', 'Min Rows', 'Max Rows', 'Comment']" 
+                      :key="header"
+                      class="px-4 py-2 font-normal text-gray-500 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 relative group overflow-hidden"
+                      :style="{ width: partResizer.columnWidths.value[i] + 'px' }"
+                    >
+                      <span class="truncate block">{{ header }}</span>
+                      <div 
+                        class="resize-handle" 
+                        :class="{ 'resizing': partResizer.activeColumnIndex.value === i }"
+                        @mousedown="partResizer.handleMouseDown(i, $event)"
+                      ></div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="font-mono divide-y divide-gray-100 dark:divide-gray-700">
                   <tr v-for="part in parsedPartitions.partitions" :key="part.name" class="hover:bg-primary-50/50 dark:hover:bg-primary-900/20 text-gray-800 dark:text-gray-200">
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700">{{ part.name }}</td>
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700">{{ part.values }}</td>
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500">{{ part.dataDir }}</td>
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500">{{ part.indexDir }}</td>
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500">{{ part.minRows }}</td>
-                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500">{{ part.maxRows }}</td>
-                    <td class="px-4 py-1.5 text-gray-500">{{ part.comment }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 truncate">{{ part.name }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 truncate">{{ part.values }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500 truncate">{{ part.dataDir }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500 truncate">{{ part.indexDir }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500 truncate">{{ part.minRows }}</td>
+                    <td class="px-4 py-1.5 border-r border-gray-100 dark:border-gray-700 text-gray-500 truncate">{{ part.maxRows }}</td>
+                    <td class="px-4 py-1.5 text-gray-500 truncate">{{ part.comment }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -306,9 +338,20 @@ import {
   Key, Circle, Search, Zap, ZapOff, Layers, ListTree, Plus
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
+import { useTableResizer } from '@/composables/useTableResizer'
 import DDLViewer from './DDLViewer.vue'
 
 const appStore = useAppStore()
+
+// Initialize resizers for each table
+// Columns tab: #, Column, Data Type, PK, NN, UQ, AI, Default, Comment
+const colResizer = useTableResizer('detailed-view-cols', [50, 200, 150, 40, 40, 40, 40, 150, 250])
+// Indexes tab: Index Name, Type, Columns, Definition
+const idxResizer = useTableResizer('detailed-view-idxs', [200, 100, 200, 400])
+// Foreign Keys tab: FK Name, Columns, References, On Update/Delete
+const fkResizer = useTableResizer('detailed-view-fks', [200, 150, 250, 200])
+// Partitions tab: Partition, Values, Data Dir, Index Dir, Min Rows, Max Rows, Comment
+const partResizer = useTableResizer('detailed-view-parts', [150, 200, 150, 150, 80, 80, 200])
 
 const props = defineProps<{
   tableName: string
@@ -471,5 +514,28 @@ const tabs = computed(() => [
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  z-index: 30;
+}
+
+.resize-handle:hover, 
+.resize-handle.resizing {
+  background-color: theme('colors.primary.500');
+  opacity: 0.5;
+}
+
+/* Ensure content truncate in table cells */
+td.truncate {
+  max-width: 0;
 }
 </style>

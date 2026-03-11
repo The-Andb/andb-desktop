@@ -130,34 +130,39 @@
     <!-- Connections Table -->
     <div class="card overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full table-fixed">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left">
-                <input
-                  v-model="selectAll"
-                  @change="toggleSelectAll"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('connections.connectionName') }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('connections.host') }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('connections.environment') }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('connections.status') }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('connections.lastTested') }}
-              </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                {{ $t('common.actions') }}
+              <th 
+                v-for="(header, i) in ['select', 'name', 'host', 'environment', 'status', 'lastTested', 'actions']" 
+                :key="header"
+                class="px-6 py-3 text-left relative group overflow-hidden"
+                :style="{ width: tableResizer.columnWidths.value[i] + 'px' }"
+              >
+                <template v-if="header === 'select'">
+                  <input
+                    v-model="selectAll"
+                    @change="toggleSelectAll"
+                    type="checkbox"
+                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                </template>
+                <template v-else-if="header === 'actions'">
+                  <span class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider block text-right">
+                    {{ $t('common.actions') }}
+                  </span>
+                </template>
+                <template v-else>
+                  <span class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate block">
+                    {{ $t(`connections.${header === 'name' ? 'connectionName' : header}`) }}
+                  </span>
+                </template>
+                
+                <div 
+                  class="resize-handle" 
+                  :class="{ 'resizing': tableResizer.activeColumnIndex.value === i }"
+                  @mousedown="tableResizer.handleMouseDown(i, $event)"
+                ></div>
               </th>
             </tr>
           </thead>
@@ -176,55 +181,55 @@
                 />
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
+              <td class="px-6 py-4 truncate">
+                <div class="flex items-center truncate">
                   <div class="flex-shrink-0 h-10 w-10">
                     <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                       <Database class="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     </div>
                   </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                  <div class="ml-4 truncate">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {{ connection.name }}
                     </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                    <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {{ connection.database }}
                     </div>
                   </div>
                 </div>
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">
+              <td class="px-6 py-4 truncate">
+                <div class="text-sm text-gray-900 dark:text-white truncate">
                   {{ connection.host }}:{{ connection.port }}
                 </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
+                <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
                   {{ connection.username }}
                 </div>
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4 truncate">
                 <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full truncate"
                   :class="getEnvironmentBadgeClass(connection.environment)"
                 >
                   {{ $t(`environments.${connection.environment.toLowerCase()}`) }}
                 </span>
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
+              <td class="px-6 py-4 truncate">
+                <div class="flex items-center truncate">
                   <div
                     class="flex-shrink-0 h-2 w-2 rounded-full mr-2"
                     :class="getStatusColor(connection.status)"
                   ></div>
-                  <span class="text-sm text-gray-900 dark:text-white">
+                  <span class="text-sm text-gray-900 dark:text-white truncate">
                     {{ $t(`connections.${connection.status}`) }}
                   </span>
                 </div>
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 truncate">
                 {{ formatLastTested(connection.lastTested) }}
               </td>
               
@@ -327,9 +332,14 @@ import {
   Edit, 
   Database 
 } from 'lucide-vue-next'
+import { useTableResizer } from '@/composables/useTableResizer'
 import type { DatabaseConnection } from '@/stores/app'
 
 const { t: $t } = useI18n()
+
+// Initialize resizer for connections table
+// Columns: Select, Name, Host, Environment, Status, Last Tested, Actions
+const tableResizer = useTableResizer('connection-list-table', [50, 250, 200, 120, 120, 180, 120])
 
 interface Props {
   connections: DatabaseConnection[]
@@ -475,3 +485,27 @@ watch([searchQuery, environmentFilter, statusFilter], () => {
   currentPage.value = 1
 })
 </script>
+<style scoped>
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.resize-handle:hover, 
+.resize-handle.resizing {
+  background-color: theme('colors.primary.500');
+  opacity: 0.5;
+}
+
+/* Ensure content truncate in table cells */
+td.truncate {
+  max-width: 0;
+}
+</style>

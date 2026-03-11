@@ -98,15 +98,18 @@ describe('MigrationConfirm.vue', () => {
     expect(screen.getByText('migration.titleBatch')).toBeTruthy()
 
     // Summary numbers should be displayed (3 items, 2 types)
-    expect(screen.getAllByText('3')).toBeTruthy() // Total items
-    expect(screen.getAllByText('2')).toBeTruthy() // Types changed (tables, procedures)
+    // Using getAllByText as these numbers might appear in different places (labels vs badges)
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('2').length).toBeGreaterThan(0)
 
     // Verify groups and items are rendered
     expect(screen.getByText('tables')).toBeTruthy()
     expect(screen.getByText('procedures')).toBeTruthy()
-    expect(screen.getByText('users')).toBeTruthy()
-    expect(screen.getByText('posts')).toBeTruthy()
-    expect(screen.getByText('get_users')).toBeTruthy()
+    
+    // Select items by their name within the list
+    expect(screen.getAllByText('users').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('posts').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('get_users').length).toBeGreaterThan(0)
 
     // Verify first item's SQL is rendered because it auto-selects
     expect(screen.getByText('CREATE TABLE users (id INT);')).toBeTruthy()

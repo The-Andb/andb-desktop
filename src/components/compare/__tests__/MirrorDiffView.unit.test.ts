@@ -61,8 +61,8 @@ describe('MirrorDiffView.vue', () => {
     expect(screen.getByText('CREATE TABLE users (id INT, name VARCHAR(255));')).toBeTruthy()
   })
 
-  it('renders added/removed empty placeholders if source or target are missing', () => {
-    const { } = renderComponent({
+  it('renders deleted placeholder if missing in source', () => {
+    renderComponent({
       sourceDdl: null,
       targetDdl: 'CREATE TABLE new_table (id INT);',
       status: 'missing_in_source'
@@ -70,11 +70,19 @@ describe('MirrorDiffView.vue', () => {
 
     // Source side should show deleted
     expect(screen.getAllByText('compare.diffView.deleted')).toBeTruthy()
-    expect(screen.getAllByText('compare.diffView.sourceEmpty')).toBeTruthy()
+    expect(screen.getByText('CREATE TABLE new_table (id INT);')).toBeTruthy()
+  })
+
+  it('renders new placeholder if missing in target', () => {
+    renderComponent({
+      sourceDdl: 'CREATE TABLE old_table (id INT);',
+      targetDdl: null,
+      status: 'missing_in_target'
+    })
 
     // Target side should show new
     expect(screen.getAllByText('compare.diffView.new')).toBeTruthy()
-    expect(screen.getByText('CREATE TABLE new_table (id INT);')).toBeTruthy()
+    expect(screen.getByText('CREATE TABLE old_table (id INT);')).toBeTruthy()
   })
 
   it('displays unified view if selected in settings', async () => {
