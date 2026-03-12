@@ -11,10 +11,10 @@
     "preview": "vite preview",
     "electron": "electron .",
     "build:electron": "tsc -p tsconfig.electron.json",
-    "electron:dev": "npm run build:electron && NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && npm run build:electron && electron-builder",
-    "electron:publish": "npm run build && npm run build:electron && electron-builder --publish always",
-    "test:prod": "npm run build && npm run build:electron && NODE_ENV=production npx electron .",
+    "electron:dev": "pnpm run build:electron && NODE_ENV=development concurrently \"pnpm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "pnpm run build && pnpm run build:electron && electron-builder",
+    "electron:publish": "pnpm run build && pnpm run build:electron && electron-builder --publish always",
+    "test:prod": "pnpm run build && pnpm run build:electron && NODE_ENV=production npx electron .",
     "test:packaged": "open 'dist/The Andb-3.0.0-arm64.dmg'",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore",
     "lint:fix": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .eslintignore",
@@ -24,7 +24,7 @@
     "test:e2e": "playwright test",
     "sample:load": "node scripts/load-sample-data.js",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "postinstall": "npm run rebuild"
+    "postinstall": "pnpm run rebuild"
   },
   "repository": {
     "type": "git",
