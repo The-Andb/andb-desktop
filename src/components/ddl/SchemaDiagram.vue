@@ -34,7 +34,7 @@
       <div 
         v-for="table in tablesWithPos" 
         :key="table.name"
-        class="absolute transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        class="absolute transition-all duration-700 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)]"
         :class="{ '!transition-none': draggingTable?.name === table.name }"
         :style="{ 
           left: table.x + 'px', 
