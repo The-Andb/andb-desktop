@@ -26,6 +26,7 @@ common:
   new: 'Mới'
   search: 'Tìm kiếm'
   switch: 'Chuyển'
+  change: 'Thay đổi'
   liveDemo: 'Demo Trực tiếp'
   back: 'Quay lại'
   copied: 'Đã sao chép'
@@ -592,6 +593,15 @@ settings:
     viewNotes: 'Xem ghi chú phát hành'
     autoDownload: 'Tự động tải về bản cập nhật'
     autoDownloadDesc: 'Tự động tải về bản cập nhật khi có sẵn'
+  terminal:
+    title: 'Tích hợp Terminal'
+    subtitle: 'Truy cập andb engine trực tiếp từ dòng lệnh của bạn'
+    install: 'Cài đặt andb CLI'
+    installDesc: 'Tạo một symlink trong /usr/local/bin/andb để truy cập toàn cục. Yêu cầu quyền admin.'
+    installed: 'CLI đã được cài đặt'
+    notInstalled: 'CLI chưa được cài đặt'
+    success: 'Cài đặt CLI thành công!'
+    failed: 'Cài đặt thất bại'
   projectFocusMode: 'Chế độ tập trung'
   projectFocusModeDesc: 'Ẩn thanh bên và thanh tiêu đề để tối đa không gian làm việc.'
   resetModal:

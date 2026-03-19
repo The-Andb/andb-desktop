@@ -1,0 +1,10 @@
+CREATE TABLE `send_mail` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `to_email` VARCHAR(255) NOT NULL DEFAULT '',
+  `subject` VARCHAR(255) NOT NULL DEFAULT '',
+  `template` VARCHAR(255) NOT NULL DEFAULT '',
+  `percent` INT NOT NULL DEFAULT '0',
+  `upgrade_to` VARCHAR(255) NOT NULL DEFAULT '',
+  `expired` VARCHAR(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='utf8_unicode_ci'

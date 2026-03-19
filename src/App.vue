@@ -2,20 +2,28 @@
   <div id="app" class="h-screen bg-gray-50 dark:bg-gray-900">
     <router-view />
     <UpdateModal />
+    <MigrationChangelogModal
+      :isOpen="showMigrationChangelog"
+      :report="migrationReport"
+      @dismiss="dismissMigrationChangelog"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useFeaturesStore } from '@/stores/features'
+import { useProjectsStore } from '@/stores/projects'
+import { useSettingsStore } from '@/stores/settings'
 import Andb from '@/utils/andb'
 
 import UpdateModal from '@/components/general/UpdateModal.vue'
+import MigrationChangelogModal from '@/components/general/MigrationChangelogModal.vue'
 
 const appStore = useAppStore()
 const updaterStore = useUpdaterStore()
@@ -23,7 +31,22 @@ const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
+const projectsStore = useProjectsStore()
+const settingsStore = useSettingsStore()
 
+// Migration Changelog state
+const showMigrationChangelog = ref(false)
+const migrationReport = ref<any>(null)
+
+const dismissMigrationChangelog = async () => {
+  showMigrationChangelog.value = false
+  migrationReport.value = null
+  try {
+    await window.electronAPI?.dismissMigrationChangelog?.()
+  } catch {
+    // Silent fail
+  }
+}
 
 // Global Refresh Handlers
 const handleDatabaseRefreshRequested = async (e: any) => {
@@ -128,9 +151,22 @@ onMounted(async () => {
     window.electronAPI.updater.onUpdateStatus((response: any) => {
       updaterStore.setStatus(response.status, response.info || response.progress || response.error)
     })
-    // Initial check (quietly)
-    // updaterStore.checkForUpdates() // Optional, main process does it on startup
   }
+
+  // Check for migration changelog (delayed to avoid blocking initial load)
+  setTimeout(async () => {
+    if (window.electronAPI?.getMigrationChangelog) {
+      try {
+        const result = await window.electronAPI.getMigrationChangelog()
+        if (result?.success && result.data) {
+          migrationReport.value = result.data
+          showMigrationChangelog.value = true
+        }
+      } catch (e) {
+        // Silent fail — changelog is non-critical
+      }
+    }
+  }, 2000)
 
   // Wait for store to init and identify telemetry user
   watch(() => appStore.installationId, (id) => {
@@ -155,6 +191,35 @@ onMounted(async () => {
      // Note: Store init happens before this, but let's just log verification.
      // Actual recovery logic is better placed in the store itself, which we improved.
   }, 1000)
+
+  // System Db Dogfooding: Automatically setup the "TheAndb System" project
+  const assureSystemDb = async () => {
+    let dbPath = settingsStore.settings.sqlitePath
+    
+    // Fetch from backend if store is empty
+    if (!dbPath && (window as any).electronAPI?.getDbPath) {
+      const res = await (window as any).electronAPI.getDbPath()
+      if (res?.success) {
+        dbPath = res.data
+        settingsStore.settings.sqlitePath = res.data
+      }
+    }
+
+    if (!dbPath) {
+       dbPath = 'default' 
+    }
+    if (dbPath && projectsStore.isLoaded) {
+      await projectsStore.setupSystemProject(dbPath)
+      // Force UI observation after manual store injections
+      await projectsStore.reloadData()
+    }
+  }
+
+  // Watch for Project Load & Path changes
+  watch([() => settingsStore.settings.sqlitePath, () => projectsStore.isLoaded], () => {
+    if (projectsStore.isLoaded) assureSystemDb()
+  }, { immediate: true })
+
 })
 
 onUnmounted(() => {

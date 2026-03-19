@@ -24,48 +24,6 @@
 
         <!-- Right Actions Area -->
         <div class="flex items-center gap-4">
-            <!-- Safe Mode Toggle -->
-            <div class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none">
-               <ShieldCheck class="w-4 h-4" :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'" />
-               
-               <div class="flex items-center gap-1">
-                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help" :title="$t('common.tooltips.safeMode', 'Safe Mode prevents potentially destructive actions during comparisons and migrations.')">{{ $t('schema.safeMode') }}</span>
-                 <button @click="showSafeModeInfo = !showSafeModeInfo" class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                   <Info class="w-3 h-3" />
-                 </button>
-               </div>
-               
-               <button 
-                 @click="appStore.safeMode = !appStore.safeMode"
-                 class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
-                 :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
-               >
-                 <span 
-                   class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                   :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"
-                 ></span>
-               </button>
-
-               <!-- Info Popover -->
-               <div v-if="showSafeModeInfo" class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
-                 <div class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
-                   <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest">
-                     <ShieldCheck class="w-4 h-4 text-green-500"/> {{ $t('schema.safeMode') }} Info
-                   </h3>
-                   <button @click="showSafeModeInfo = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X class="w-3.5 h-3.5"/></button>
-                 </div>
-                 <div class="text-gray-600 dark:text-gray-300 space-y-3 text-xs leading-relaxed">
-                   <p>
-                     <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry Run)</span>
-                     Simulates changes without affecting your database. Generates SQL for preview only. <span class="text-gray-400 italic">Recommended.</span>
-                   </p>
-                   <p>
-                     <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span>
-                     Executes actual CREATE, ALTER, and DROP statements directly on the database. <span class="text-red-400 font-bold">Use with extreme caution!</span>
-                   </p>
-                 </div>
-               </div>
-            </div>
 
             <!-- Fetch Group -->
            <div class="flex items-center gap-3">
@@ -116,24 +74,6 @@
           {{ selectedItem.name }}
         </span>
       </template>
-
-      <!-- Expand / Collapse All (moved here from panel header) -->
-      <div v-if="hasResults" class="flex items-center gap-0.5 ml-auto shrink-0">
-        <button
-          @click="treeExpandCmd = { action: 'expand', ts: Date.now() }"
-          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:white"
-          title="Expand All"
-        >
-          <Plus class="w-3 h-3" />
-        </button>
-        <button
-          @click="treeExpandCmd = { action: 'collapse', ts: Date.now() }"
-          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-400 hover:text-gray-700 dark:hover:white"
-          title="Collapse All"
-        >
-          <Minus class="w-3 h-3" />
-        </button>
-      </div>
     </div>
 
     <!-- Main Content Area -->
@@ -204,26 +144,48 @@
                   </div>
                 </div>
 
-                <!-- Search Progress/Summary -->
-                <div v-if="searchQuery" class="flex items-center justify-between mt-2 px-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                   <div v-if="isSearchingContent" class="flex items-center gap-2">
-                    <RefreshCw class="w-3 h-3 animate-spin text-primary-500" />
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-tight animate-pulse">Searching codebases...</span>
-                  </div>
-                  <div v-else class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                    <span v-if="searchFlags.content" class="text-primary-600 dark:text-primary-400">
-                      {{ contentSearchResults.reduce((acc, curr) => acc + (curr.matches?.length || 0), 0) }} total matches
-                    </span>
-                    <span v-else>
-                      {{ filteredResults.length }} objects found
-                    </span>
-                  </div>
-                  
-                  <!-- Filter Tag (if any) -->
-                  <div v-if="selectedFilterType !== 'all'" class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-gray-500">
-                    <Filter class="w-2.5 h-2.5" />
-                    {{ selectedFilterType }}
-                  </div>
+                <!-- Search Progress/Summary & Tree Controls -->
+                <div class="flex items-center justify-between mt-2 px-1">
+                   <div v-if="searchQuery" class="flex items-center animate-in fade-in slide-in-from-top-1 duration-200">
+                     <div v-if="isSearchingContent" class="flex items-center gap-2">
+                      <RefreshCw class="w-3 h-3 animate-spin text-primary-500" />
+                      <span class="text-[10px] text-gray-500 uppercase font-bold tracking-tight animate-pulse">Searching codebases...</span>
+                     </div>
+                     <div v-else class="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                      <span v-if="searchFlags.content" class="text-primary-600 dark:text-primary-400">
+                        {{ contentSearchResults.reduce((acc, curr) => acc + (curr.matches?.length || 0), 0) }} total matches
+                      </span>
+                      <span v-else>
+                        {{ filteredResults.length }} objects found
+                      </span>
+                      <!-- Filter Tag (if any) -->
+                      <div v-if="selectedFilterType !== 'all'" class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-gray-500">
+                        <Filter class="w-2.5 h-2.5" />
+                        {{ selectedFilterType }}
+                      </div>
+                     </div>
+                   </div>
+                   <div v-else class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                     {{ filteredResults.length }} objects
+                   </div>
+
+                   <!-- Expand / Collapse All -->
+                   <div class="flex items-center gap-0.5 ml-auto shrink-0">
+                     <button
+                       @click="treeExpandCmd = { action: 'expand', ts: Date.now() }"
+                       class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                       title="Expand All"
+                     >
+                       <Plus class="w-3.5 h-3.5" />
+                     </button>
+                     <button
+                       @click="treeExpandCmd = { action: 'collapse', ts: Date.now() }"
+                       class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                       title="Collapse All"
+                     >
+                       <Minus class="w-3.5 h-3.5" />
+                     </button>
+                   </div>
                 </div>
               </div>
               
@@ -245,7 +207,8 @@
                   @select="selectItem"
                   @navigateTo="handleNavigateTo"
                   @navigate-to-definition="handleNavigateToDefinition"
-                />
+                  @send-to-instant="(item: any, slot: any) => handleSendToInstantFromTree(item, slot)"
+                 />
 
               </div>
               
@@ -319,6 +282,34 @@
                     </button>
 
                     <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+                    <!-- Inline segmented control for Instant Compare -->
+                    <div class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm transition-all hover:shadow">
+                      <button 
+                        @click="handlePickStack('source')"
+                        :disabled="isCurrentTarget"
+                        class="p-1 rounded-full transition-all group/src"
+                        :class="[
+                          isCurrentSource ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
+                          isCurrentTarget ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                        ]"
+                        title="Set as Source"
+                      >
+                        <Flame class="w-3.5 h-3.5 transition-colors" :class="isCurrentSource ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
+                      </button>
+                      <span class="text-[9px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
+                      <button 
+                        @click="handlePickStack('target')"
+                        :disabled="isCurrentSource"
+                        class="p-1 rounded-full transition-all group/tgt"
+                        :class="[
+                          isCurrentTarget ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+                          isCurrentSource ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                        ]"
+                        title="Set as Target"
+                      >
+                        <Flame class="w-3.5 h-3.5 transition-colors" :class="isCurrentTarget ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
+                      </button>
+                    </div>
                     <button 
                       @click="downloadDDL"
                       class="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
@@ -374,7 +365,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 uppercase tracking-widest">{{ $t('schema.selectObject') }}</h3>
                 <p class="text-sm max-w-xs leading-relaxed">{{ $t('schema.selectObjectDesc') }}</p>
-              </div>
+               </div>
             </div>
         </main>
       </div>
@@ -412,7 +403,6 @@ import {
   Regex,
   X,
   Sigma,
-  ShieldCheck,
   Plus,
   Minus,
   Database,
@@ -422,8 +412,8 @@ import {
   Cpu,
   CalendarClock,
   Zap,
-  Info,
-  Filter
+  Filter,
+  Flame
 } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
@@ -472,7 +462,6 @@ const getIconForType = (type: string) => {
 }
 
 // State
-const showSafeModeInfo = ref(false)
 const loading = ref(false)
 const statusMessage = ref('')
 const error = ref<string | null>(null)
@@ -780,6 +769,89 @@ watch(selectedItem, () => {
 })
 
 
+// Object fetching is handled by handlePickStack and handleSendToInstantFromTree
+
+const isCurrentSource = computed(() => {
+  return selectedItem.value && appStore.compareStack.source?.name === selectedItem.value.name
+})
+
+const isCurrentTarget = computed(() => {
+  return selectedItem.value && appStore.compareStack.target?.name === selectedItem.value.name
+})
+
+const handlePickStack = (slot: 'source' | 'target') => {
+  if (!selectedItem.value) return
+  
+  // Prevent picking source if it's already target, and vice versa
+  if (slot === 'source' && isCurrentTarget.value) return
+  if (slot === 'target' && isCurrentSource.value) return
+  
+  // Toggle off if clicking the already selected slot
+  if (slot === 'source' && isCurrentSource.value) {
+    appStore.compareStack.source = null
+    return
+  }
+  if (slot === 'target' && isCurrentTarget.value) {
+    appStore.compareStack.target = null
+    return
+  }
+
+  // Type Validation
+  const oppositeSlot = slot === 'source' ? 'target' : 'source'
+  const oppositeItem = appStore.compareStack[oppositeSlot]
+  
+  if (oppositeItem && oppositeItem.type && selectedItem.value.type && oppositeItem.type !== selectedItem.value.type) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Type Mismatch',
+      message: `Cannot compare a ${selectedItem.value.type.replace(/s$/, '')} with a ${oppositeItem.type.replace(/s$/, '')}.`
+    })
+    return
+  }
+
+  appStore.compareStack[slot] = {
+    name: selectedItem.value.name,
+    ddl: formattedDDL.value,
+    type: selectedItem.value.type
+  }
+  
+  appStore.isCompareStackVisible = true
+}
+
+const handleSendToInstantFromTree = (item: any, slot: 'source' | 'target' = 'source') => {
+  if (!item) return
+  const ddl = item.ddl || item.content || ''
+  if (!ddl) {
+    notificationStore.add({
+      type: 'warning',
+      title: 'No DDL available',
+      message: 'Please select the object first to load its DDL.'
+    })
+    return
+  }
+  
+  // Type Validation
+  const oppositeSlot = slot === 'source' ? 'target' : 'source'
+  const oppositeItem = appStore.compareStack[oppositeSlot]
+  
+  if (oppositeItem && oppositeItem.type && item.type && oppositeItem.type !== item.type) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Type Mismatch',
+      message: `Cannot compare a ${item.type.replace(/s$/, '')} with a ${oppositeItem.type.replace(/s$/, '')}.`
+    })
+    return
+  }
+
+  appStore.compareStack[slot] = {
+    name: item.name,
+    ddl,
+    type: item.type
+  }
+  
+  appStore.isCompareStackVisible = true
+}
+
 // Resize Logic
 const resultsWidth = ref(256)
 const isResizingResults = ref(false)
@@ -805,7 +877,7 @@ const stopResize = () => {
 }
 
 // Actions
-const loadSchema = async (forceRefresh = false) => {
+const loadSchema = async (forceRefresh = false, keepSelection = false) => {
   if (!selectedConnectionId.value) return
   
   const conn = appStore.getConnectionById(selectedConnectionId.value)
@@ -824,8 +896,15 @@ const loadSchema = async (forceRefresh = false) => {
   }
   
   error.value = null
-  // Only reset selection if NOT forcing refresh (i.e. switching DBs)
-  if (!forceRefresh) {
+  
+  let preservedName = null
+  let preservedType = null
+  
+  if (keepSelection || forceRefresh) {
+    preservedName = selectedItem.value?.name
+    preservedType = selectedItem.value?.type
+  } else {
+    // Reset selection if changing DBs normally
     selectedItem.value = null
     selectedFilterType.value = 'all'
   }
@@ -1011,6 +1090,14 @@ const loadSchema = async (forceRefresh = false) => {
     loading.value = false
     appStore.isSchemaFetching = false; // Release global fetch state
     appStore.schemaFetchProgress = null;
+    
+    // Restore selection if we intended to keep it
+    if (preservedName && preservedType) {
+      const newItem = allResults.value.find(i => i.name === preservedName && i.type === preservedType)
+      if (newItem) {
+        selectedItem.value = newItem
+      }
+    }
   }
 }
 
@@ -1028,13 +1115,13 @@ watch(() => sidebarStore.refreshRequestKey, () => {
   // Only trigger if we are on this page
   // Note: route checks are tricky in sub-component, but assuming this is only mounted when valid
   if (selectedConnectionId.value) {
-    loadSchema(true)
+    loadSchema(true, true)
   }
 })
 
 watch(() => sidebarStore.refreshKey, () => {
   if (selectedConnectionId.value) {
-    loadSchema(false) // Reload from cache (SQLite) as global refresh updated it
+    loadSchema(false, true) // Reload from cache (SQLite) as global refresh updated it, keep selection!
   }
 })
 

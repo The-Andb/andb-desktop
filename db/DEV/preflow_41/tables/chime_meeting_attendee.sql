@@ -1,0 +1,21 @@
+CREATE TABLE `chime_meeting_attendee` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `attendee_id` VARCHAR(50) CHARACTER SET latin1 NOT NULL,
+  `user_email` VARCHAR(100) CHARACTER SET latin1 DEFAULT NULL COMMENT 'external_user_id in chime',
+  `is_flo_user` TINYINT(1) NOT NULL,
+  `join_token` VARCHAR(3000) CHARACTER SET latin1 NOT NULL,
+  `meeting_id` VARCHAR(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `status` enum('PENDING','INVITED','JOINED','LEAVED','DROPED','DECLINED') COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'JOINED: Attendee  join meeting\r\nLEAVED: Attendee left meeting\r\nDROPED: Attendee be kickoff meeting',
+  `phone_number` VARCHAR(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `join_type` enum('INTERNET','DIAL') COLLATE utf8mb4_general_ci NOT NULL,
+  `join_time` DOUBLE(13,3) DEFAULT NULL,
+  `end_time` DOUBLE(13,3) DEFAULT NULL,
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) NOT NULL,
+  `spend_time` INT DEFAULT NULL,
+  `add_by` INT DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `chime_meeting_attendee_attendee_id_IDX` (`attendee_id`) USING BTREE,
+  KEY `chime_meeting_attendee_meeting_id_IDX` (`meeting_id`) USING BTREE,
+  KEY `chime_meeting_attendee_phone_number_IDX` (`phone_number`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -34,10 +34,11 @@
           
           <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
             <div>{{ template.host }}:{{ template.port }}</div>
-            <div>{{ template.database }}</div>
+            <div v-if="template.database">{{ template.database }}</div>
             <div>{{ template.username }}</div>
             <div class="flex items-center gap-2">
               <span
+                v-if="template.environment"
                 class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                 :class="getEnvironmentBadgeClass(template.environment)"
               >
@@ -126,29 +127,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Save, Trash2 } from 'lucide-vue-next'
+import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
 
 const { t: $t } = useI18n()
-
-interface ConnectionTemplate {
-  id: string
-  name: string
-  description?: string
-  host: string
-  port: number
-  database: string
-  username: string
-  password?: string
-  environment: string
-  useSSL: boolean
-  allowSelfSigned: boolean
-  charset: string
-  timezone: string
-  timeout: number
-  createdAt: Date
-}
+const templatesStore = useConnectionTemplatesStore()
 
 interface Props {
   form: any
@@ -162,39 +147,11 @@ const emit = defineEmits<{
 }>()
 
 // State
-const templates = ref<ConnectionTemplate[]>([])
+const templates = computed(() => templatesStore.templates)
 const showSaveModal = ref(false)
 const templateName = ref('')
 const templateDescription = ref('')
 const includePassword = ref(false)
-
-// Load templates from localStorage
-const loadTemplates = () => {
-  try {
-    const stored = localStorage.getItem('connection-templates')
-    if (stored) {
-      templates.value = JSON.parse(stored).map((t: any) => ({
-        ...t,
-        createdAt: new Date(t.createdAt)
-      }))
-    }
-  } catch (error: any) {
-    if (window.electronAPI) {
-      window.electronAPI.log.send('error', 'Failed to load templates from localStorage', error.message)
-    }
-  }
-}
-
-// Save templates to localStorage
-const saveTemplates = () => {
-  try {
-    localStorage.setItem('connection-templates', JSON.stringify(templates.value))
-  } catch (error: any) {
-    if (window.electronAPI) {
-      window.electronAPI.log.send('error', 'Failed to save templates to localStorage', error.message)
-    }
-  }
-}
 
 // Save current form as template
 const saveAsTemplate = () => {
@@ -205,8 +162,7 @@ const saveAsTemplate = () => {
 }
 
 const confirmSaveTemplate = () => {
-  const template: ConnectionTemplate = {
-    id: Date.now().toString(),
+  templatesStore.addTemplate({
     name: templateName.value,
     description: templateDescription.value,
     host: props.form.host,
@@ -220,11 +176,9 @@ const confirmSaveTemplate = () => {
     charset: props.form.charset,
     timezone: props.form.timezone,
     timeout: props.form.timeout,
-    createdAt: new Date()
-  }
+    type: props.form.type || 'mysql'
+  })
   
-  templates.value.push(template)
-  saveTemplates()
   showSaveModal.value = false
 }
 
@@ -236,8 +190,7 @@ const loadTemplate = (template: ConnectionTemplate) => {
 // Delete template
 const deleteTemplate = (id: string) => {
   if (confirm($t('connections.confirmDeleteTemplate'))) {
-    templates.value = templates.value.filter(t => t.id !== id)
-    saveTemplates()
+    templatesStore.removeTemplate(id)
   }
 }
 
@@ -246,15 +199,13 @@ const getEnvironmentBadgeClass = (environment: string) => {
   const classes = {
     DEV: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     STAGE: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    UAT: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
     PROD: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
   }
   return classes[environment as keyof typeof classes] || classes.DEV
 }
 
-const formatDate = (date: Date) => {
+const formatDate = (date: string | Date) => {
   return new Date(date).toLocaleDateString()
 }
-
-// Initialize
-loadTemplates()
 </script>

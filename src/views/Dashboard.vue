@@ -382,7 +382,8 @@ import {
   LayoutGrid,
   Settings,
   FileText,
-  Edit3
+  Edit3,
+  Folder
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ReportsViewer from '@/components/reports/ReportsViewer.vue'

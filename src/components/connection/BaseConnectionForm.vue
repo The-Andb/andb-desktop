@@ -11,7 +11,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Type -->
-        <div class="space-y-2">
+        <div v-if="!hideType" class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.databaseType') }} *</label>
           <div class="relative group">
             <select
@@ -21,18 +21,19 @@
               class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
             >
               <option value="mysql">{{ $t('connections.types.mysql') }}</option>
-              <option value="dump">{{ $t('connections.types.dump') }}</option>
               <option value="postgres" disabled>{{ $t('connections.types.postgres') }}</option>
+              <option value="sqlite">{{ $t('connections.types.sqlite') }}</option>
+              <option value="dump">{{ $t('connections.types.dump') }}</option>
             </select>
             <ChevronDown v-if="!readOnlyFields.includes('type')" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
             <Lock v-else class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
-        <!-- Host / Dump Path -->
+        <!-- Host / Dump Path / SQLite Path -->
         <div class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-            {{ modelValue.type === 'dump' ? $t('connections.dumpPath') : $t('connections.host') }} *
+            {{ ['dump', 'sqlite'].includes(modelValue.type) ? (modelValue.type === 'dump' ? $t('connections.dumpPath') : 'SQLite DB Path') : $t('connections.host') }} *
           </label>
           <div class="relative">
             <input
@@ -40,12 +41,12 @@
               @input="updateField('host', ($event.target as HTMLInputElement).value)"
               type="text"
               :disabled="readOnlyFields.includes('host')"
-              :placeholder="modelValue.type === 'dump' ? $t('connections.dumpPathPlaceholder') : $t('connections.hostPlaceholder')"
+              :placeholder="['dump', 'sqlite'].includes(modelValue.type) ? (modelValue.type === 'dump' ? $t('connections.dumpPathPlaceholder') : 'Select or enter path to .sqlite file') : $t('connections.hostPlaceholder')"
               class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
             />
             <button 
-              v-if="modelValue.type === 'dump' && !readOnlyFields.includes('host')" 
-              @click="pickDumpFile"
+              v-if="['dump', 'sqlite'].includes(modelValue.type) && !readOnlyFields.includes('host')" 
+              @click="modelValue.type === 'dump' ? pickDumpFile() : pickSqliteFile()"
               type="button"
               class="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-gray-500 transition-colors"
             >
@@ -56,7 +57,7 @@
         </div>
 
         <!-- Port -->
-        <div v-if="modelValue.type !== 'dump'" class="space-y-2">
+        <div v-if="!['dump', 'sqlite'].includes(modelValue.type)" class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.port') }} *</label>
           <div class="relative">
             <input
@@ -70,8 +71,36 @@
           </div>
         </div>
 
+        <!-- Database (Only for Project Connection, usually not in template, but can be) -->
+        <div v-if="!['dump', 'sqlite'].includes(modelValue.type)" class="space-y-2">
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.database') }}</label>
+          <div class="relative">
+            <input
+              :value="modelValue.database"
+              @input="updateField('database', ($event.target as HTMLInputElement).value)"
+              type="text"
+              :disabled="readOnlyFields.includes('database')"
+              :placeholder="$t('connections.databasePlaceholder')"
+              class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold leading-tight"
+            />
+            <Lock v-if="readOnlyFields.includes('database')" class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Authentication Section -->
+    <div v-if="!['dump', 'sqlite'].includes(modelValue.type)" class="space-y-6 pt-4">
+      <div class="pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+          <Key class="w-4 h-4 text-amber-500" />
+          Authentication
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Username -->
-        <div v-if="modelValue.type !== 'dump'" class="space-y-2">
+        <div class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.username') }} *</label>
           <div class="relative">
             <input
@@ -86,7 +115,7 @@
         </div>
 
         <!-- Password -->
-        <div v-if="modelValue.type !== 'dump'" class="space-y-2">
+        <div class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.password') }}</label>
           <div class="relative">
             <input
@@ -109,27 +138,11 @@
             <Lock v-else class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
           </div>
         </div>
-
-        <!-- Database (Only for Project Connection, usually not in template, but can be) -->
-        <div v-if="modelValue.type !== 'dump'" class="space-y-2">
-          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.database') }}</label>
-          <div class="relative">
-            <input
-              :value="modelValue.database"
-              @input="updateField('database', ($event.target as HTMLInputElement).value)"
-              type="text"
-              :disabled="readOnlyFields.includes('database')"
-              :placeholder="$t('connections.databasePlaceholder')"
-              class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold leading-tight"
-            />
-            <Lock v-if="readOnlyFields.includes('database')" class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-          </div>
-        </div>
       </div>
     </div>
 
     <!-- SSH Tunnel Section -->
-    <div class="space-y-6 pt-4">
+    <div v-if="!['dump', 'sqlite'].includes(modelValue.type)" class="space-y-6 pt-4">
       <div class="pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
@@ -311,8 +324,10 @@ import {
 const props = withDefaults(defineProps<{
   modelValue: any
   readOnlyFields?: string[]
+  hideType?: boolean
 }>(), {
-  readOnlyFields: () => []
+  readOnlyFields: () => [],
+  hideType: false
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -341,6 +356,22 @@ const pickDumpFile = async () => {
       filters: [{ name: 'SQL Files', extensions: ['sql'] }]
     })
     if (path) updateField('host', path)
+  }
+}
+
+const pickSqliteFile = async () => {
+  if ((window as any).electronAPI?.pickFile) {
+    const path = await (window as any).electronAPI.pickFile({
+      title: 'Select SQLite Database File',
+      filters: [
+        { name: 'SQLite Databases', extensions: ['sqlite', 'sqlite3', 'db'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    if (path) {
+      updateField('host', path)
+      updateField('database', '')
+    }
   }
 }
 

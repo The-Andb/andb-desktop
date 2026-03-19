@@ -431,6 +431,30 @@ export class Andb {
       throw new Error(`Search failed: ${error.message}`)
     }
   }
+
+  /**
+   * Install andb CLI globally
+   */
+  static async installCli(): Promise<{ success: boolean; message: string }> {
+    if (!isElectron) return { success: false, message: 'Not in Electron' }
+    try {
+      return await window.electronAPI.invoke('andb-install-cli')
+    } catch (error: any) {
+      return { success: false, message: error.message }
+    }
+  }
+
+  /**
+   * Check if andb CLI is installed globally
+   */
+  static async isCliInstalled(): Promise<boolean> {
+    if (!isElectron) return false
+    try {
+      return await window.electronAPI.invoke('andb-check-cli-installed')
+    } catch (error) {
+      return false
+    }
+  }
 }
 
 export default Andb

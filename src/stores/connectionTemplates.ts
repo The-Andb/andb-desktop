@@ -18,6 +18,13 @@ export interface ConnectionTemplate {
     writeView: boolean
     writeRoutine: boolean
   }
+  description?: string
+  environment?: string
+  useSSL?: boolean
+  allowSelfSigned?: boolean
+  charset?: string
+  timezone?: string
+  timeout?: number
   createdAt: string
   updatedAt: string
 }
@@ -26,9 +33,34 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
   const templates = ref<ConnectionTemplate[]>([])
 
   const init = async () => {
+    // 1. Check unified storage
     const saved = await storage.get('connectionTemplates')
-    if (saved) {
+    if (saved && saved.length > 0) {
       templates.value = saved
+      return
+    }
+
+    // 2. Migration: Check legacy localStorage
+    try {
+      const legacy = localStorage.getItem('connection-templates')
+      if (legacy) {
+        const parsed = JSON.parse(legacy)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('[Migration] Moving legacy connection templates to unified storage')
+          templates.value = parsed.map((t: any) => ({
+            ...t,
+            // Ensure dates are strings for IPC transport
+            createdAt: t.createdAt ? new Date(t.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: t.updatedAt ? new Date(t.updatedAt).toISOString() : new Date().toISOString()
+          }))
+          // Save to unified storage immediately
+          await storage.set('connectionTemplates', JSON.parse(JSON.stringify(templates.value)))
+          // Clear legacy
+          localStorage.removeItem('connection-templates')
+        }
+      }
+    } catch (e) {
+      console.error('Failed to migrate legacy templates:', e)
     }
   }
 

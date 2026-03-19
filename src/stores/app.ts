@@ -87,6 +87,15 @@ export const useAppStore = defineStore('app', () => {
   const projectManagerMode = ref(false)
   const autoCollapseColumns = ref(false) // Default to false, will be synced from features
   const safeMode = ref(true) // Default to true for safety
+  const compareMode = ref<'auto' | 'instant'>('auto')
+  const compareStack = ref<{
+    source: { name: string; ddl: string; type?: string } | null
+    target: { name: string; ddl: string; type?: string } | null
+  }>({
+    source: null,
+    target: null
+  })
+  const isCompareStackVisible = ref(false)
 
   // ... (inside the store factory)
   const buttonStyle = ref<'full' | 'minimal' | 'icons'>('full')
@@ -108,6 +117,7 @@ export const useAppStore = defineStore('app', () => {
 
   // Store the last custom configuration to restore it when switching back to Custom
   const lastCustomFontSizes = ref({ ...FONT_SIZE_PROFILES.medium })
+  const hiddenHorizontalTabs = ref<string[]>([])
 
   const connections = ref<DatabaseConnection[]>([])
 
@@ -135,6 +145,12 @@ export const useAppStore = defineStore('app', () => {
       }
       if (savedSettings.fontFamilies) {
         fontFamilies.value = { ...fontFamilies.value, ...savedSettings.fontFamilies }
+      }
+      if (savedSettings.fontSizeProfile) {
+        fontSizeProfile.value = savedSettings.fontSizeProfile
+      }
+      if (savedSettings.hiddenHorizontalTabs) {
+        hiddenHorizontalTabs.value = savedSettings.hiddenHorizontalTabs
       }
       if (savedSettings.lastCustomFontSizes) {
         lastCustomFontSizes.value = { ...lastCustomFontSizes.value, ...savedSettings.lastCustomFontSizes }
@@ -210,15 +226,10 @@ export const useAppStore = defineStore('app', () => {
           }
         ]
 
-        // Auto-assign demo connections to default project if new
+        // Not automatically assigning demo connections anymore since there's no guaranteed default project
         const projectsStore = useProjectsStore()
         if (projectsStore.projects.length === 0) {
           await projectsStore.reloadData()
-        }
-        const defaultProject = projectsStore.projects.find(p => p.id === 'default')
-        if (defaultProject && defaultProject.connectionIds.length === 0) {
-          defaultProject.connectionIds = connections.value.map(c => c.id)
-          storage.saveProjects(projectsStore.projects)
         }
       }
     })()
@@ -396,6 +407,10 @@ export const useAppStore = defineStore('app', () => {
     storage.updateSettings({ fontFamilies: { ...newValue } })
   }, { deep: true })
 
+  watch(hiddenHorizontalTabs, newValue => {
+    storage.updateSettings({ hiddenHorizontalTabs: newValue })
+  }, { deep: true })
+
   watch(selectedConnectionId, newValue => {
     storage.updateSettings({ lastSelectedConnectionId: newValue })
   })
@@ -457,19 +472,7 @@ export const useAppStore = defineStore('app', () => {
     const projectsStore = useProjectsStore()
     const targetProjectId = projectId || projectsStore.selectedProjectId
 
-    if (!targetProjectId) {
-      console.error('FATAL: Attempted to create connection without a project context.')
-      // Fallback to default project if available, or throw
-      const defaultProject = projectsStore.projects.find(p => p.id === 'default')
-      if (defaultProject) {
-        console.warn('Redirecting orphan connection to Default Project')
-        projectsStore.addItemToProject('connection', newConnection.id, 'default')
-      } else {
-        // Rollback
-        connections.value.pop()
-        throw new Error('Cannot create connection: No active project context.')
-      }
-    } else {
+    if (targetProjectId) {
       // Use a robust way to ensure we link to the right project even if it's new
       const project = projectsStore.projects.find(p => p.id === targetProjectId)
       if (project) {
@@ -611,6 +614,11 @@ export const useAppStore = defineStore('app', () => {
       fontSizes.value = { ...FONT_SIZE_PROFILES[profileKey] }
     }
   }
+  const clearCompareStack = () => {
+    compareStack.value = { source: null, target: null }
+    isCompareStackVisible.value = false
+  }
+
   const isDark = ref(false)
 
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -633,6 +641,8 @@ export const useAppStore = defineStore('app', () => {
     fontSizes,
     fontFamilies,
     fontSizeProfile,
+    hiddenHorizontalTabs,
+    lastCustomFontSizes,
     connections,
     resolvedConnections,
     filteredConnections,
@@ -640,6 +650,10 @@ export const useAppStore = defineStore('app', () => {
 
     selectedConnectionId,
     installationId,
+    compareMode,
+    compareStack,
+    isCompareStackVisible,
+    clearCompareStack,
 
     // App-wide locks & progress
     isSchemaFetching,

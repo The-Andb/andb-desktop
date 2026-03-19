@@ -1,0 +1,13 @@
+CREATE TABLE `locks` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `owner` VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `timeout` INT UNSIGNED DEFAULT NULL,
+  `created` INT DEFAULT NULL,
+  `token` VARBINARY(100) DEFAULT NULL,
+  `scope` TINYINT DEFAULT NULL,
+  `depth` TINYINT DEFAULT NULL,
+  `uri` VARBINARY(1000) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `token` (`token`),
+  KEY `uri` (`uri`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

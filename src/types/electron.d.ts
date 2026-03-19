@@ -76,6 +76,10 @@ declare global {
       getReportList: () => Promise<{ success: boolean; data?: any[]; error?: string }>
       getReportContent: (filename: string) => Promise<{ success: boolean; data?: string; error?: string }>
 
+      // Migration Changelog
+      getMigrationChangelog: () => Promise<{ success: boolean; data?: any; error?: string }>
+      dismissMigrationChangelog: () => Promise<{ success: boolean; error?: string }>
+
       loadMockCompareData: () => Promise<{ success: boolean; message?: string; error?: string }>
 
       storage: {
@@ -114,6 +118,9 @@ declare global {
         encryptToken: (token: string) => Promise<{ success: boolean; data?: string; error?: string }>
         decryptToken: (encryptedToken: string) => Promise<{ success: boolean; data?: string; error?: string }>
       }
+
+      // Generic invoke for dynamic calls
+      invoke: (channel: string, ...args: any[]) => Promise<any>
     }
   }
 }

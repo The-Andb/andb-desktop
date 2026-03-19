@@ -1,0 +1,21 @@
+CREATE TABLE `collection_instance_member` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT 'user_id of member',
+  `owner_user_id` BIGINT UNSIGNED NOT NULL COMMENT 'user_id of owner',
+  `collection_id` BIGINT UNSIGNED NOT NULL COMMENT 'ID record of table collection - shared by the owner ',
+  `color` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `favorite` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `is_hide` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `recent_time` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `created_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `updated_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `root_id` BIGINT DEFAULT NULL,
+  `archive_status` TINYINT(1) DEFAULT '0',
+  `show_archive_sub_col` TINYINT(1) NOT NULL DEFAULT '1',
+  `archived_time` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_collection_id` (`collection_id`),
+  KEY `idx_owner_user_id` (`owner_user_id`),
+  KEY `idx_updated_date` (`updated_date`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

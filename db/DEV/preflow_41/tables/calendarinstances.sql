@@ -1,0 +1,21 @@
+CREATE TABLE `calendarinstances` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `calendarid` INT UNSIGNED NOT NULL,
+  `principaluri` VARBINARY(100) DEFAULT NULL,
+  `access` TINYINT(1) NOT NULL DEFAULT '1' COMMENT '1 = owner, 2 = read, 3 = readwrite',
+  `displayname` VARCHAR(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `uri` VARBINARY(200) DEFAULT NULL,
+  `description` TEXT COLLATE utf8mb4_unicode_ci,
+  `calendarorder` INT UNSIGNED NOT NULL DEFAULT '0',
+  `calendarcolor` VARBINARY(10) DEFAULT NULL,
+  `timezone` TEXT COLLATE utf8mb4_unicode_ci,
+  `transparent` TINYINT(1) NOT NULL DEFAULT '0',
+  `share_href` VARBINARY(100) DEFAULT NULL,
+  `share_displayname` VARCHAR(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `share_invitestatus` TINYINT(1) NOT NULL DEFAULT '2' COMMENT '1 = noresponse, 2 = accepted, 3 = declined, 4 = invalid',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `calendarid` (`calendarid`,`principaluri`),
+  UNIQUE KEY `calendarid_2` (`calendarid`,`share_href`),
+  KEY `idx_uri` (`uri`),
+  UNIQUE KEY `principaluri` (`principaluri`,`uri`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

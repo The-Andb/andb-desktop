@@ -1,0 +1,21 @@
+CREATE TABLE `calendarobjects` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `calendardata` LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `uri` VARBINARY(200) DEFAULT NULL,
+  `calendarid` INT UNSIGNED NOT NULL,
+  `lastmodified` INT UNSIGNED DEFAULT NULL,
+  `etag` VARBINARY(32) DEFAULT NULL,
+  `size` INT UNSIGNED NOT NULL,
+  `componenttype` VARBINARY(255) DEFAULT NULL,
+  `firstoccurence` INT UNSIGNED DEFAULT NULL,
+  `lastoccurence` INT UNSIGNED DEFAULT NULL,
+  `uid` VARCHAR(200) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `invisible` INT NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  FULLTEXT KEY `calendardata` (`calendardata`),
+  UNIQUE KEY `calendarid` (`calendarid`,`uri`),
+  KEY `calendarid_2` (`calendarid`),
+  KEY `componenttype` (`componenttype`) USING BTREE,
+  KEY `uid` (`uid`),
+  KEY `uri` (`uri`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='utf8_unicode_ci'

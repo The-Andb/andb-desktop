@@ -1,0 +1,21 @@
+CREATE TABLE `url` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `url` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `uid` VARBINARY(1000) DEFAULT NULL,
+  `title` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `order_number` DECIMAL(20,10) DEFAULT '0.0000000000',
+  `order_update_time` DOUBLE(13,3) DEFAULT '0.000',
+  `is_trashed` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `recent_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `created_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `updated_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  PRIMARY KEY (`id`),
+  KEY `idx_is_trashed` (`is_trashed`),
+  FULLTEXT KEY `idx_title` (`title`),
+  KEY `idx_uid` (`uid`),
+  FULLTEXT KEY `idx_url` (`url`),
+  KEY `idx_user_id` (`user_id`),
+  UNIQUE KEY `uniq_on_user_id_and_order_number` (`user_id`,`order_number`),
+  UNIQUE KEY `uniq_on_user_id_and_uid` (`user_id`,`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='utf8_unicode_ci'

@@ -27,7 +27,7 @@
      <div class="flex items-center gap-4">
         <!-- View Mode Switch -->
         <div 
-          v-if="!showMigrateModal"
+          v-if="!showMigrateModal && appStore.compareMode === 'auto'"
           class="flex items-center gap-3"
         >
           <!-- Segmented Control for View Mode -->
@@ -107,6 +107,7 @@
           </div>
 
           <button 
+            v-if="appStore.compareMode === 'auto'"
             @click="runComparison()" 
             :disabled="loading || !activePair"
             class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale"
@@ -123,15 +124,7 @@
           </button>
        </div>
        
-       <!-- Console Toggle -->
-       <button 
-          @click="consoleStore.toggleVisibility()" 
-          class="p-2 rounded-xl text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all border border-transparent"
-          :title="$t('console.toggle')"
-        >
-          <PanelBottom class="w-4 h-4" />
-        </button>
-     </div>
+       </div>
    </div>
     </template>
         
@@ -139,8 +132,9 @@
         <div class="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-white dark:bg-gray-950">
           <!-- Comparison Area (Top) -->
           <div class="flex-1 flex overflow-hidden relative min-w-0">
-            <main class="flex-1 flex overflow-hidden relative min-w-0">
-              <!-- Loading Overlay (removed) -->
+            <main class="flex-1 flex flex-col overflow-hidden relative min-w-0">
+              <!-- Removed Manual Compare Dropdowns per user request -->
+
           <!-- Vertical Split: Object List vs DDL View -->
           <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0">
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
@@ -414,19 +408,15 @@
                       <span class="font-bold">{{ $t('compare.migrateTo', { name: targetName }) }}</span>
                       <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 linear skew-x-[-20deg]"></div>
                     </button>
-                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
-                    <button @click="openDetailModal(selectedItem)" class="p-2 text-gray-400 hover:text-primary-600 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 shadow-sm" :title="$t('compare.viewFullDefinition')">
-                      <ScanSearch class="w-4.5 h-4.5 font-bold" />
-                    </button>
                   </div>
                 </div>
                 <div class="flex-1 flex flex-col min-h-0 min-w-0">
                   <MirrorDiffView 
-                    :source-ddl="selectedItem.diff?.source"
-                    :target-ddl="selectedItem.diff?.target"
+                    :source-ddl="selectedItem.diff?.source || null"
+                    :target-ddl="selectedItem.diff?.target || null"
                     :source-label="sourceName"
                     :target-label="targetName"
-                    :status="selectedItem.status"
+                    :status="selectedItem.status || 'equal'"
                     :diff-options="diffOptions"
                     :navigatable-names="navigatableNames"
                     @navigate-to-definition="handleNavigateToDefinition"
@@ -451,6 +441,8 @@
                :target-is-static="isTargetDump"
                v-model:active-type="selectedFilterType"
                @migrate="openMigrateModal"
+               @select="selectItem"
+               @send-to-instant="(item, slot) => sendToInstant(item, slot)"
              />
           </div>
 
@@ -460,14 +452,6 @@
   </MainLayout>
 
     <!-- Modals & Notifications -->
-    <DDLDetailModal
-      :is-open="showDetailModal"
-      :item="selectedItem"
-      :navigatable-names="navigatableNames"
-      @close="closeDetailModal"
-      @apply="handleApplyFromDetail"
-      @navigate-to-definition="handleNavigateToDefinition"
-    />
 
     <!-- Error Details Modal -->
     <div v-if="showErrorModal && error" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -508,46 +492,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
-import DDLDetailModal from '@/components/ddl/DDLDetailModal.vue'
 import MirrorDiffView from '@/components/compare/MirrorDiffView.vue'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConsoleStore } from '@/stores/console'
 import Andb from '@/utils/andb'
-import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { 
-  RefreshCw, 
-  ScanSearch, 
-  MousePointer2, 
-  ChevronRight, 
-  Database, 
-  Server, 
-  Table, 
-  Layers, 
-  Zap, 
-  ChevronLeft, 
-  CheckCircle2, 
-  PlusCircle, 
-  XCircle, 
-  AlertCircle, 
-  Search, 
-  List, 
-  GitMerge, 
-  ArrowRightLeft, 
-  GitCompare, 
-  CaseSensitive, 
-  WholeWord, 
-  Regex, 
-  X, 
-  Workflow, 
   Sigma,
+  AlertCircle,
+  ScanSearch,
+  Zap,
+  RefreshCw,
+  MousePointer2,
+  ChevronRight,
+  Database,
+  Server,
+  Table,
+  Layers,
+  Workflow,
+  List,
+  GitMerge,
+  CaseSensitive,
+  WholeWord,
+  Regex,
   ShieldCheck,
-  Info
+  Info,
+  GitCompare,
+  ArrowRightLeft,
+  Search,
+  CheckCircle2,
+  X,
+  ChevronLeft,
+  PlusCircle,
+  XCircle
 } from 'lucide-vue-next'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
 import { useOperationsStore } from '@/stores/operations'
@@ -561,6 +543,7 @@ const operationsStore = useOperationsStore()
 const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
+const projectsStore = useProjectsStore()
 const { t } = useI18n()
 
 const activePair = computed(() => connectionPairsStore.activePair)
@@ -582,7 +565,28 @@ const isTargetDump = computed(() => {
   return conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
 })
 
-const projectsStore = useProjectsStore()
+const sendToInstant = (item: any, slot: 'source' | 'target' = 'source') => {
+  if (!item) return
+  
+  const ddl = item.sourceDdl || item.diff?.source || item.targetDdl || item.diff?.target || ''
+  
+  // Type Validation
+  const oppositeSlot = slot === 'source' ? 'target' : 'source'
+  const oppositeItem = appStore.compareStack[oppositeSlot]
+  
+  if (oppositeItem && oppositeItem.type && item.type && oppositeItem.type !== item.type) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Type Mismatch',
+      message: `Cannot compare a ${item.type.replace(/s$/, '')} with a ${oppositeItem.type.replace(/s$/, '')}.`
+    })
+    return
+  }
+  
+  appStore.compareStack[slot] = { name: item.name, ddl, type: item.type }
+  
+  appStore.isCompareStackVisible = true
+}
 
 // Watch for project changes to reset state
 watch(() => projectsStore.selectedProjectId, () => {
@@ -671,7 +675,6 @@ const functionResults = ref<any[]>([])
 const viewResults = ref<any[]>([])
 const triggerResults = ref<any[]>([])
 const selectedItem = ref<any>(null)
-const showDetailModal = ref(false)
 const selectedFilterType = ref<string>('all')
 const searchQuery = ref('')
 const searchFlags = ref({
@@ -685,9 +688,11 @@ const diffOptions = ref({
   mode: 'unified' as 'unified' | 'split',
   showChangesOnly: true // default to true
 })
-const selectedStatusFilter = ref('modified')
+const selectedStatusFilter = ref('all')
 const lastCompareTime = ref(0)
 const showErrorModal = ref(false)
+
+
 
 const statusFilters = computed(() => [
   { label: t('common.all'), value: 'all' },
@@ -957,6 +962,12 @@ const runComparison = async () => {
   }
 }
 
+// ==========================================
+// Expose for debugging if needed
+// ==========================================
+defineExpose({})
+
+
 const selectItem = (item: any) => {
   selectedItem.value = item
   showMigrateModal.value = false
@@ -1060,15 +1071,6 @@ const getStatusText = (status: string) => {
     case 'deprecated': return t('common.status.deprecatedTarget')
     default: return status
   }
-}
-
-const openDetailModal = (item: any) => {
-  selectedItem.value = item
-  showDetailModal.value = true
-}
-
-const closeDetailModal = () => {
-  showDetailModal.value = false
 }
 
 // Migration Actions
@@ -1484,11 +1486,6 @@ const applyAtomicVerify = async (item: any) => {
     // Fallback to full comparison if atomic fails
     await runComparison()
   }
-}
-
-const handleApplyFromDetail = (item: any) => {
-  showDetailModal.value = false
-  openMigrateModal(item)
 }
 
 const handleDatabaseRefreshRequested = (e: any) => {

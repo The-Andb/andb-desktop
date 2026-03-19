@@ -35,6 +35,7 @@ interface AppSchema {
       code: string
     }
     fontSizeProfile?: 'small' | 'medium' | 'large' | 'custom'
+    hiddenHorizontalTabs: string[]
     lastCustomFontSizes?: {
       main: number
       menu: number
@@ -268,13 +269,14 @@ export const storage = {
         general: "'Inter', sans-serif",
         code: "'JetBrains Mono', monospace"
       },
-      fontSizeProfile: 'medium' as 'small' | 'medium' | 'large' | 'custom'
+      fontSizeProfile: 'medium' as 'small' | 'medium' | 'large' | 'custom',
+      hiddenHorizontalTabs: []
     }
     return result.success ? { ...defaults, ...result.data } : defaults
   },
 
   async saveSettings(settings: AppSchema['settings']): Promise<void> {
-    await getStorage().set('settings', settings)
+    await getStorage().set('settings', JSON.parse(JSON.stringify(settings)))
   },
 
   async updateSettings(updates: Partial<AppSchema['settings']>): Promise<void> {

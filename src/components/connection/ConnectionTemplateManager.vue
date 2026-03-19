@@ -46,9 +46,8 @@
                           Clear
                       </button>
                   </div>
-                  <button @click="openForm()" class="btn btn-primary flex items-center">
-                    <Plus class="w-4 h-4 mr-2" />
-                    {{ $t('settings.global_connections.add') }}
+                  <button @click="openForm(undefined, false)" class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95">
+                    <Plus class="w-4 h-4" /> Add Connection
                   </button>
               </div>
           </div>
@@ -81,7 +80,13 @@
                   </tr>
                   </thead>
                   <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
-                  <tr v-for="template in templates" 
+                  <!-- DB Connections Group Header -->
+                  <tr v-if="dbTemplates.length > 0">
+                    <td colspan="5" class="px-6 py-2 bg-gray-50 dark:bg-gray-800/50 text-xs font-black text-gray-500 uppercase tracking-widest border-y border-gray-100 dark:border-gray-800">
+                      <div class="flex items-center gap-2"><Database class="w-3.5 h-3.5" /> Database Connections</div>
+                    </td>
+                  </tr>
+                  <tr v-for="template in dbTemplates" 
                       :key="template.id"
                       class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                       :class="{ 'bg-primary-50 dark:bg-primary-900/10': selectedTemplates.includes(template.id) }"
@@ -179,6 +184,60 @@
                       </div>
                       </td>
                   </tr>
+
+                  <!-- User Connections Group Header -->
+                  <tr v-if="userTemplates.length > 0">
+                    <td colspan="5" class="px-6 py-2 bg-gray-50 dark:bg-gray-800/50 text-xs font-black text-gray-500 uppercase tracking-widest border-y border-gray-100 dark:border-gray-800">
+                      <div class="flex items-center gap-2"><ShieldCheck class="w-3.5 h-3.5" /> User Connections</div>
+                    </td>
+                  </tr>
+                  <tr v-for="template in userTemplates" 
+                      :key="'user-'+template.id"
+                      class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                      :class="{ 'bg-primary-50 dark:bg-primary-900/10': selectedTemplates.includes(template.id) }"
+                  >
+                      <td class="px-4 py-4 whitespace-nowrap w-10">
+                        <input type="checkbox" :value="template.id" v-model="selectedTemplates" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800" />
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                          <div class="h-10 w-10 rounded-xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 shadow-sm cursor-pointer hover:scale-105" @click="openForm(template)">
+                              <ShieldCheck class="w-4 h-4" />
+                          </div>
+                          </div>
+                          <div class="ml-4 cursor-pointer" @click="openForm(template)">
+                          <div class="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{{ template.name }}</div>
+                          <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{{ template.type }} · restricted</div>
+                          </div>
+                      </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col max-w-[220px]">
+                          <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                              <Server class="w-3.5 h-3.5 text-gray-400" />
+                              <span class="truncate">{{ template.host }}</span>
+                              <span v-if="template.type !== 'sqlite'">:{{ template.port }}</span>
+                          </div>
+                          <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                              <ShieldCheck class="w-3 h-3 text-emerald-500" /> {{ template.username }}
+                          </div>
+                      </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                      <div v-if="template.database" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md w-fit">
+                          <Database class="w-3.5 h-3.5 text-gray-400" /> {{ template.database }}
+                      </div>
+                      <span v-else class="text-xs text-gray-400 italic">No default DB</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div class="flex items-center justify-end gap-2">
+                          <button @click="openReconfigure(template)" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 p-1 rounded-lg transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="Reconfigure Privileges"><ShieldCheck class="w-4 h-4" /></button>
+                          <button @click="openForm(template)" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 p-1" :title="$t('common.edit')"><Edit2 class="w-4 h-4" /></button>
+                          <button @click="deleteTemplate(template.id)" class="text-red-600 dark:text-red-400 hover:text-red-900 p-1" :title="$t('common.delete')"><Trash2 class="w-4 h-4" /></button>
+                      </div>
+                      </td>
+                  </tr>
                   </tbody>
               </table>
               </div>
@@ -201,8 +260,63 @@
     <!-- View: Template Form (Inline) -->
     <div v-else class="animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm h-full flex flex-col">
         
-        <!-- MySQL Secure Assistant Mode (ONLY for NEW connections) -->
-        <div v-if="form.type === 'mysql' && (!editingTemplate || reconfigureMode)" class="flex-1 flex flex-col min-h-0">
+        <!-- Form Header & Global Mode Toggle -->
+        <div class="px-8 pt-8 pb-4 flex items-center justify-between shrink-0 border-b border-gray-100 dark:border-gray-800">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/30 flex items-center justify-center shadow-inner">
+                    <LayoutTemplate class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                        {{ editingTemplate ? $t('settings.global_connections.edit') : $t('settings.global_connections.create') }}
+                    </h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest opacity-60">Global Connection Configuration</p>
+                </div>
+            </div>
+            <button @click="closeForm" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 transition-colors flex items-center gap-2">
+                <span class="text-xs font-bold uppercase">{{ $t('common.cancel') }}</span>
+                <X class="w-5 h-5" />
+            </button>
+        </div>
+
+        <!-- Form Body Top: Database Type Selector -->
+        <div class="px-8 pt-6 pb-2 shrink-0 border-b border-gray-100 dark:border-gray-800">
+            <div class="space-y-2 max-w-sm mb-4">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.databaseType') }} *</label>
+                <div class="relative group">
+                    <select
+                        v-model="form.type"
+                        :disabled="!!editingTemplate"
+                        class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
+                    >
+                        <option value="mysql">{{ $t('connections.types.mysql') }}</option>
+                        <option value="postgres" disabled>{{ $t('connections.types.postgres') }}</option>
+                        <option value="sqlite">{{ $t('connections.types.sqlite') }}</option>
+                        <option value="dump">{{ $t('connections.types.dump') }}</option>
+                    </select>
+                    <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode Toggle (Only visible when creating a new connection AND type supports restricted auth) -->
+        <div v-if="!editingTemplate && ['mysql', 'postgres'].includes(form.type)" class="px-8 pt-6 shrink-0">
+           <div class="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full sm:w-fit overflow-x-auto">
+              <button @click="isUserConnectionMode = false"
+                      class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
+                      :class="!isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                 <Database class="w-4 h-4" /> Trusted Auth
+              </button>
+              <button @click="isUserConnectionMode = true"
+                      class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
+                      :class="isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                 <ShieldCheck class="w-4 h-4" /> Restricted Auth
+              </button>
+           </div>
+        </div>
+
+        <!-- Secure Assistant Mode (ONLY for Restricted User setups) -->
+        <div v-if="isUserConnectionMode && (!editingTemplate || reconfigureMode) && ['mysql', 'postgres'].includes(form.type)" class="flex-1 flex flex-col min-h-0 pt-2">
            <SetupUserTemplate 
               :initialData="editingTemplate"
               @cancel="closeForm"
@@ -212,24 +326,6 @@
 
         <!-- Standard Form Mode (For non-MySQL OR Editing) -->
         <template v-else>
-            <!-- Form Header -->
-            <div class="px-8 pt-8 pb-4 flex items-center justify-between shrink-0 border-b border-gray-100 dark:border-gray-800">
-                <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/30 flex items-center justify-center shadow-inner">
-                    <LayoutTemplate class="w-6 h-6 text-primary-600 dark:text-primary-400" />
-                </div>
-                <div>
-                    <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-                    {{ editingTemplate ? $t('settings.global_connections.edit') : $t('settings.global_connections.create') }}
-                    </h3>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest opacity-60">Global Connection Configuration</p>
-                </div>
-                </div>
-                <button @click="closeForm" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 transition-colors flex items-center gap-2">
-                    <span class="text-xs font-bold uppercase">{{ $t('common.cancel') }}</span>
-                    <X class="w-5 h-5" />
-                </button>
-            </div>
 
             <!-- Form Body -->
             <div class="px-8 py-6 space-y-8 overflow-y-auto">
@@ -243,7 +339,7 @@
                     />
                 </div>
 
-                <BaseConnectionForm v-model="form" />
+                <BaseConnectionForm v-model="form" :hideType="true" />
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
@@ -270,7 +366,7 @@
 import { ref, computed, watch } from 'vue'
 import { 
     Plus, LayoutTemplate, Edit2, Trash2, Server, User, LayoutGrid, List, Database, X, Copy, 
-    ShieldQuestion, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle 
+    ShieldQuestion, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle, ChevronDown 
 } from 'lucide-vue-next'
 import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
 import BaseConnectionForm from '@/components/connection/BaseConnectionForm.vue'
@@ -281,6 +377,8 @@ import type { DatabaseConnection } from '@/stores/app'
 
 const store = useConnectionTemplatesStore()
 const templates = computed(() => store.templates)
+const dbTemplates = computed(() => templates.value.filter(t => !(t as any).permissions))
+const userTemplates = computed(() => templates.value.filter(t => !!(t as any).permissions))
 const { t } = useI18n()
 
 const testingTemplates = ref(new Set<string>())
@@ -328,6 +426,7 @@ const showAddForm = ref(false)
 const showPassword = ref(false)
 const editingTemplate = ref<ConnectionTemplate | null>(null)
 const reconfigureMode = ref(false)
+const isUserConnectionMode = ref(false) // true when user clicked 'Add User'
 
 const form = ref<Partial<ConnectionTemplate> & { productSettings?: any }>({
     name: '',
@@ -350,7 +449,8 @@ const form = ref<Partial<ConnectionTemplate> & { productSettings?: any }>({
     }
 })
 
-const openForm = (template?: ConnectionTemplate) => {
+const openForm = (template?: ConnectionTemplate, asUserMode = false) => {
+    isUserConnectionMode.value = asUserMode
     if (template) {
         editingTemplate.value = template
         form.value = {
@@ -385,6 +485,7 @@ const closeForm = () => {
     showAddForm.value = false
     editingTemplate.value = null
     reconfigureMode.value = false
+    isUserConnectionMode.value = false
     showPassword.value = false
 }
 

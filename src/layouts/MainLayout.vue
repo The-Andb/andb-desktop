@@ -93,6 +93,7 @@
     </div>
     
     <Notification ref="notificationRef" />
+    <CompareStackBar />
   </div>
 </template>
 
@@ -104,6 +105,7 @@ import Header from '@/components/general/Header.vue'
 import Sidebar from '@/components/general/Sidebar.vue'
 import ConsoleOutput from '@/components/general/ConsoleOutput.vue'
 import Notification from '@/components/general/Notification.vue'
+import CompareStackBar from '@/components/compare/CompareStackBar.vue'
 import { PanelBottom, X } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'

@@ -1,0 +1,21 @@
+CREATE TABLE `platform_release_push_notification` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `app_id` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `base_release_id` BIGINT UNSIGNED NOT NULL,
+  `destination_release_id` BIGINT UNSIGNED NOT NULL,
+  `title` VARCHAR(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` VARCHAR(512) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `url_download` VARCHAR(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `force_update` TINYINT UNSIGNED DEFAULT '0',
+  `status` TINYINT DEFAULT '1',
+  `created_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `updated_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  PRIMARY KEY (`id`),
+  KEY `idx_app_id` (`app_id`),
+  KEY `idx_base_release_id` (`base_release_id`),
+  KEY `idx_destination_release_id` (`destination_release_id`),
+  KEY `idx_status` (`status`),
+  UNIQUE KEY `uniq_base_release_id_and_destination_release_id` (`base_release_id`,`destination_release_id`),
+  CONSTRAINT `cst_base_release_id` FOREIGN KEY (`base_release_id`) REFERENCES `release` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cst_destination_release_id` FOREIGN KEY (`destination_release_id`) REFERENCES `release` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

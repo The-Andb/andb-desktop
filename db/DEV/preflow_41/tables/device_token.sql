@@ -1,0 +1,22 @@
+CREATE TABLE `device_token` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `device_token` VARCHAR(255) NOT NULL DEFAULT '',
+  `device_type` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `device_uuid` VARCHAR(255) DEFAULT '',
+  `time_sent_silent` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `time_received_silent` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `status_app_run` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `env_silent` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `device_env` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `cert_env` TINYINT UNSIGNED DEFAULT '0',
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_cert_env` (`cert_env`),
+  KEY `idx_device_token_filter_1` (`time_sent_silent`,`time_received_silent`),
+  KEY `idx_time_received` (`time_received_silent`),
+  KEY `idx_time_send` (`time_sent_silent`),
+  KEY `idx_user_id` (`user_id`),
+  UNIQUE KEY `uniq_device_token` (`device_token`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='latin1_swedish_ci'

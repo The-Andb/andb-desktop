@@ -1,0 +1,20 @@
+CREATE TABLE `sort_object` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `collection_id` BIGINT NOT NULL DEFAULT '0',
+  `calendar_uri` VARCHAR(255) NOT NULL DEFAULT '',
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `account_id` BIGINT UNSIGNED DEFAULT '0',
+  `object_uid` VARBINARY(1000) NOT NULL,
+  `object_type` VARBINARY(50) NOT NULL,
+  `object_href` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `order_number` DECIMAL(20,10) DEFAULT '0.0000000000',
+  `order_update_time` DOUBLE(13,3) DEFAULT '0.000',
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_account_id` (`account_id`),
+  KEY `idx_object_type` (`object_type`) USING BTREE,
+  KEY `idx_on_object_type_and_object_uid` (`object_type`,`object_uid`) USING BTREE,
+  KEY `idx_user_id` (`user_id`) USING BTREE,
+  KEY `unq_sort` (`calendar_uri`,`user_id`,`account_id`,`object_type`,`object_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

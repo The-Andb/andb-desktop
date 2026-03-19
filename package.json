@@ -1,21 +1,21 @@
 {
   "name": "@the-andb/desktop",
-  "productName": "The Andb",
-  "version": "3.1.0",
+  "productName": "TheAndb",
+  "version": "3.2.3",
   "private": true,
   "description": "The Andb - Simplest Database Migration Tool",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "electron": "electron .",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron": "node scripts/build-electron.mjs",
     "electron:dev": "pnpm run build:electron && NODE_ENV=development concurrently \"pnpm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "pnpm run build && pnpm run build:electron && electron-builder",
     "electron:publish": "pnpm run build && pnpm run build:electron && electron-builder --publish always",
     "test:prod": "pnpm run build && pnpm run build:electron && NODE_ENV=production npx electron .",
-    "test:packaged": "open 'dist/The Andb-3.0.0-arm64.dmg'",
+    "test:packaged": "open 'dist/TheAndb-3.0.0-arm64.dmg'",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore",
     "lint:fix": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .eslintignore",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css,scss,json}\"",
@@ -60,12 +60,14 @@
     "@vitejs/plugin-vue": "^4.5.2",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
+    "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
     "electron": "34.0.0",
     "electron-builder": "24.13.3",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
+    "esbuild": "^0.27.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -103,9 +105,7 @@
       "public/**/*",
       "!public/*.dmg",
       "!public/*.zip",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/node_modules/.bin"
+      "!node_modules"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
@@ -127,18 +127,37 @@
         "owner": "The-Andb",
         "repo": "andb-desktop"
       }
+    ],
+    "extraResources": [
+      {
+        "from": "../andb-cli",
+        "to": "tools/andb-cli",
+        "filter": [
+          "dist/**/*",
+          "package.json"
+        ]
+      },
+      {
+        "from": "../andb-mcp",
+        "to": "tools/andb-mcp",
+        "filter": [
+          "dist/**/*",
+          "package.json"
+        ]
+      }
     ]
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@sentry/electron": "^7.9.0",
-    "@the-andb/core": "4.0.0",
+    "@the-andb/core": "workspace:*",
     "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^10.7.1",
     "andb-logger": "^1.0.3",
     "better-sqlite3": "^12.6.2",
     "electron-serve": "^1.1.0",
     "electron-store": "^8.2.0",
+    "js-yaml": "^4.1.1",
     "electron-updater": "^6.7.3",
     "highcharts": "^12.5.0",
     "highcharts-vue": "^2.0.1",
@@ -148,6 +167,7 @@
     "pinia": "^2.1.7",
     "posthog-js": "^1.358.1",
     "prismjs": "^1.30.0",
+    "splitpanes": "^4.0.4",
     "vue": "^3.5.27",
     "vue-i18n": "^9.14.5",
     "vue-router": "^4.6.4",

@@ -1,0 +1,20 @@
+CREATE TABLE `collection_notification_cleanup` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT 'User ID (owner of collection)',
+  `collection_id` BIGINT UNSIGNED NOT NULL COMMENT 'Collection ID that needs cleanup',
+  `member_user_id` BIGINT UNSIGNED NOT NULL COMMENT 'Member user ID (person receiving notification)',
+  `time_to_remove` DOUBLE(13,3) NOT NULL COMMENT 'Timestamp when notifications need to be deleted',
+  `oldest_notification_date` DOUBLE(13,3) DEFAULT NULL COMMENT 'Date of oldest notification',
+  `total_outdated_count` INT NOT NULL DEFAULT '0' COMMENT 'Number of outdated notifications',
+  `status` TINYINT NOT NULL DEFAULT '0' COMMENT '0: pending, 1: processing, 2: completed, 3: skipped',
+  `last_checked_date` DOUBLE(13,3) NOT NULL COMMENT 'Last check/update time',
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_collection_id` (`collection_id`),
+  KEY `idx_member_user_id` (`member_user_id`),
+  KEY `idx_status_checked` (`status`,`last_checked_date`),
+  KEY `idx_time_to_remove` (`time_to_remove`),
+  KEY `idx_user_status` (`user_id`,`status`),
+  UNIQUE KEY `uniq_user_collection_member` (`user_id`,`collection_id`,`member_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Cache table for notification cleanup queue'

@@ -31,6 +31,7 @@ interface Settings {
     replacement: string
   }
   isNotMigrateCondition: string
+  sqlitePath: string
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -43,7 +44,8 @@ const defaultSettings: Settings = {
     pattern: '@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
     replacement: '@<EMAIL_DOMAIN>'
   },
-  isNotMigrateCondition: 'test|OTE_'
+  isNotMigrateCondition: 'test|OTE_',
+  sqlitePath: ''
 }
 
 const loadSettings = (): Settings => {

@@ -2,7 +2,6 @@
 import { ref, computed, nextTick } from 'vue'
 import { useProjectsStore } from '@/stores/projects'
 import { 
-  Folder, 
   Plus, 
   Search, 
   MoreVertical, 
@@ -34,6 +33,10 @@ const filteredProjects = computed(() => {
     p.name.toLowerCase().includes(query) || 
     p.description.toLowerCase().includes(query)
   )
+})
+
+const selectableProjects = computed(() => {
+  return filteredProjects.value.filter(p => p.name !== 'TheAndb System')
 })
 
 const emit = defineEmits<{
@@ -116,10 +119,10 @@ const toggleSelection = (id: string) => {
 }
 
 const toggleSelectAll = () => {
-  if (selectedIds.value.length === filteredProjects.value.length) {
+  if (selectedIds.value.length === selectableProjects.value.length) {
     selectedIds.value = []
   } else {
-    selectedIds.value = filteredProjects.value.map(p => p.id)
+    selectedIds.value = selectableProjects.value.map(p => p.id)
   }
 }
 
@@ -131,10 +134,9 @@ const projectsToDelete = computed(() => {
 const handleBulkDelete = () => {
   if (selectedIds.value.length === 0) return
   
-  // Exclude default project from bulk delete logic within confirm
-  const targets = selectedIds.value.filter(id => id !== 'default')
+  // Bulk delete logic without protection
+  const targets = selectedIds.value
   if (targets.length === 0) {
-    alert("System projects cannot be deleted.")
     selectedIds.value = []
     return
   }
@@ -143,7 +145,7 @@ const handleBulkDelete = () => {
 }
 
 const confirmBulkDelete = () => {
-  const targets = selectedIds.value.filter(id => id !== 'default')
+  const targets = selectedIds.value
   targets.forEach(id => projectsStore.removeProject(id))
   selectedIds.value = []
   isBulkDeleteModalOpen.value = false
@@ -247,12 +249,12 @@ const isQuickDumpModalOpen = ref(false)
         <button 
           @click="toggleSelectAll"
           class="flex items-center gap-2 px-3 py-1.5 hover:bg-white/10 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-primary-400"
-          :title="selectedIds.length === filteredProjects.length ? 'Deselect All' : 'Select All'"
+          :title="selectedIds.length === selectableProjects.length ? 'Deselect All' : 'Select All'"
         >
           <div class="w-5 h-5 rounded border-2 border-primary-500 flex items-center justify-center bg-transparent">
-            <Check v-if="selectedIds.length === filteredProjects.length" class="w-3 h-3 text-primary-500 stroke-[4px]" />
+            <Check v-if="selectedIds.length === selectableProjects.length" class="w-3 h-3 text-primary-500 stroke-[4px]" />
           </div>
-          {{ selectedIds.length === filteredProjects.length ? 'None' : 'All' }}
+          {{ selectedIds.length === selectableProjects.length ? 'None' : 'All' }}
         </button>
         <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center font-black text-sm">
           {{ selectedIds.length }}
@@ -299,6 +301,7 @@ const isQuickDumpModalOpen = ref(false)
         >
           <!-- Selection Checkbox (Grid) -->
           <div 
+            v-if="project.name !== 'TheAndb System'"
             class="absolute top-4 left-4 z-40 transition-all duration-300"
             :class="[isSelectionMode ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100']"
           >
@@ -325,12 +328,12 @@ const isQuickDumpModalOpen = ref(false)
           <!-- Header -->
           <div class="flex items-start justify-between mb-6 relative z-30">
             <div class="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center text-primary-500 shadow-inner group-hover:scale-110 transition-transform duration-500">
-              <Folder v-if="project.id === 'default'" class="w-6 h-6 fill-primary-500/20" />
-              <Database v-else class="w-6 h-6" />
+              <Database class="w-6 h-6" />
             </div>
 
             <div class="relative">
               <button 
+                v-if="project.name !== 'TheAndb System'"
                 @click.stop="toggleMenu(project.id)"
                 class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 hover:text-gray-900 transition-colors"
               >
@@ -348,7 +351,7 @@ const isQuickDumpModalOpen = ref(false)
                 <button @click.stop="emit('duplicate', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <Copy class="w-4 h-4" /> Duplicate Project
                 </button>
-                <button v-if="project.id !== 'default'" @click.stop="emit('delete', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button @click.stop="emit('delete', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   <Trash2 class="w-4 h-4" /> Delete Project
                 </button>
               </div>
@@ -448,6 +451,7 @@ const isQuickDumpModalOpen = ref(false)
         >
           <!-- Selection Checkbox (List) -->
           <div 
+            v-if="project.name !== 'TheAndb System'"
             class="shrink-0 z-40 transition-all duration-300"
             :class="[isSelectionMode ? 'opacity-100 w-6' : 'opacity-0 w-0 group-hover:opacity-100 group-hover:w-6']"
           >
@@ -472,8 +476,7 @@ const isQuickDumpModalOpen = ref(false)
           </div>
 
           <div class="w-12 h-12 shrink-0 rounded-xl bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center text-primary-500 shadow-inner group-hover:scale-110 transition-transform duration-300 relative z-10">
-            <Folder v-if="project.id === 'default'" class="w-6 h-6 fill-primary-500/20" />
-            <Database v-else class="w-6 h-6" />
+              <Database class="w-6 h-6" />
           </div>
 
           <div class="flex-1 min-w-0 relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
@@ -529,7 +532,7 @@ const isQuickDumpModalOpen = ref(false)
           </div>
 
           <!-- Inline Actions Area (No longer using Menu) -->
-          <div class="relative z-30 ml-4 shrink-0 flex items-center gap-1 opacity-10 sm:opacity-40 group-hover:opacity-100 transition-opacity">
+          <div v-if="project.name !== 'TheAndb System'" class="relative z-30 ml-4 shrink-0 flex items-center gap-1 opacity-10 sm:opacity-40 group-hover:opacity-100 transition-opacity">
             <button 
               @click.stop="startRename(project)" 
               class="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-400 hover:text-primary-500 rounded-xl transition-all"
@@ -545,16 +548,11 @@ const isQuickDumpModalOpen = ref(false)
               <Copy class="w-4 h-4" />
             </button>
             
-            <!-- Delete Button (Muted if default) -->
+            <!-- Delete Button -->
             <button 
-              @click.stop="project.id !== 'default' && emit('delete', project.id)" 
-              class="p-2 rounded-xl transition-all"
-              :class="[
-                project.id === 'default' 
-                  ? 'text-gray-200 dark:text-gray-700 cursor-not-allowed' 
-                  : 'text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500'
-              ]"
-              :title="project.id === 'default' ? 'System Project (Protected)' : 'Delete Project'"
+              @click.stop="emit('delete', project.id)" 
+              class="p-2 rounded-xl transition-all text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500"
+              title="Delete Project"
             >
               <Trash2 class="w-4 h-4" />
             </button>
@@ -570,7 +568,6 @@ const isQuickDumpModalOpen = ref(false)
           Add New Project
         </button>
 
-        <!-- Inline Live Demo Button -->
         <button 
           @click="handleSetupDemo"
           class="w-full py-4 bg-orange-500/5 dark:bg-orange-500/10 border-2 border-dashed border-orange-200 dark:border-orange-900/30 rounded-2xl flex items-center justify-center gap-3 text-orange-500 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 hover:border-orange-500/50 transition-all duration-300 font-black text-xs uppercase tracking-[0.2em]"

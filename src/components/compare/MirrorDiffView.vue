@@ -97,7 +97,7 @@
           <div v-if="isEmptySource && isEmptyTarget" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
             {{ $t('compare.diffView.sourceEmpty') }}
           </div>
-          <div v-else class="ddl-container py-2 pb-8 flex flex-col" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
+          <div v-else class="ddl-container pb-4 flex flex-col" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
             <template v-for="(chunk, cIdx) in alignedChunks" :key="'sp-chk-' + chunk.id">
               
               <!-- VISIBLE ROWS: Render Both Panes Side-by-Side per row -->
@@ -249,7 +249,7 @@
         </div>
       </div>
 
-      <div class="flex-1 overflow-auto custom-scrollbar-diff relative ddl-container py-2">
+      <div class="flex-1 overflow-auto custom-scrollbar-diff relative ddl-container">
           <template v-for="(chunk, cIdx) in unifiedChunks" :key="'uni-chk-' + chunk.id">
             <template v-if="chunk.type === 'visible'">
               <div 

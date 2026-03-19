@@ -1,0 +1,23 @@
+CREATE TABLE `contact_history` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `source_object_uid` VARBINARY(1000) NOT NULL,
+  `source_object_type` VARBINARY(50) NOT NULL,
+  `source_account_id` BIGINT UNSIGNED DEFAULT '0',
+  `source_object_href` TEXT COLLATE utf8mb4_general_ci,
+  `destination_object_uid` VARBINARY(1000) NOT NULL,
+  `destination_object_type` VARBINARY(50) NOT NULL,
+  `destination_account_id` BIGINT UNSIGNED DEFAULT '0',
+  `destination_object_href` TEXT COLLATE utf8mb4_general_ci,
+  `action` TINYINT NOT NULL DEFAULT '0',
+  `action_data` TEXT COLLATE utf8mb4_general_ci,
+  `path` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT '',
+  `is_trashed` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_on_destination` (`user_id`,`destination_object_type`,`destination_object_uid`,`destination_account_id`),
+  KEY `idx_on_source` (`user_id`,`source_object_uid`,`source_object_type`,`source_account_id`),
+  KEY `idx_on_updated_date` (`updated_date`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='utf8_unicode_ci'

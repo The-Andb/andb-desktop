@@ -1,0 +1,22 @@
+CREATE TABLE `suggested_collection` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `collection_id` BIGINT UNSIGNED NOT NULL,
+  `criterion_type` INT UNSIGNED DEFAULT '0',
+  `criterion_value` TEXT COLLATE utf8mb4_unicode_ci,
+  `criterion_checksum` VARCHAR(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `frequency_used` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  `action_time` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `account_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `third_object_uid` VARBINARY(1000) NOT NULL DEFAULT '',
+  `third_object_type` TINYINT UNSIGNED NOT NULL DEFAULT '0',
+  `object_type` VARBINARY(50) NOT NULL DEFAULT '',
+  `group_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_collection_id` (`collection_id`),
+  KEY `idx_criterion_type` (`criterion_type`),
+  KEY `idx_user_id` (`user_id`),
+  UNIQUE KEY `uniq_on_us_id_and_aid_and_cid_and_gid_and_criterion` (`user_id`,`collection_id`,`group_id`,`criterion_type`,`criterion_checksum`,`account_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='utf8mb4_unicode_ci'

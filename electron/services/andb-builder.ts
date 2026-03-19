@@ -2,8 +2,7 @@ import { dialog, WebContents } from 'electron'
 import * as path from 'path'
 
 // Import dependencies safely
-// @ts-ignore
-const { CoreBridge } = require('@the-andb/core')
+import BackgroundWorker from './background-worker'
 // @ts-ignore
 const Logger = require('andb-logger')
 
@@ -63,10 +62,17 @@ export class AndbBuilder {
   private static bridgeInitialized = false
   public static userDataPath: string = ''
   public static appPath: string = ''
+  public static sqlitePath: string = ''
 
-  public static initialize(userDataPath: string, appPath: string) {
+  public static initialize(userDataPath: string, appPath: string, sqlitePath: string = '') {
     this.userDataPath = userDataPath
     this.appPath = appPath
+    this.sqlitePath = sqlitePath
+    
+    // Initialize the background worker early with resolved paths
+    BackgroundWorker.getInstance().init(userDataPath, sqlitePath).catch(e => {
+       if ((global as any).logger) (global as any).logger.error('Failed to init BackgroundWorker:', e)
+    })
   }
 
   public static async getReportList() {
@@ -155,16 +161,20 @@ export class AndbBuilder {
   }
 
   public static async getDatabaseStats() {
-    const storage = await this.getSQLiteStorage()
-    return await storage.getStats()
+    return await BackgroundWorker.getInstance().getStats()
+  }
+
+  public static async getSQLiteStorage() {
+    return BackgroundWorker.getInstance()
   }
 
   /**
-   * Get Storage service from Framework via Bridge
+   * Get BackgroundWorker instance (replaces direct storage access)
    */
-  public static async getSQLiteStorage() {
-    await CoreBridge.init(AndbBuilder.userDataPath);
-    return await CoreBridge.getStorage();
+  public static async getBackgroundWorker() {
+    const worker = BackgroundWorker.getInstance()
+    // BackgroundWorker handles its own start/init via its init method called from main.ts
+    return worker
   }
 
   /**
@@ -273,17 +283,17 @@ export class AndbBuilder {
       baseDir: AndbBuilder.userDataPath,
       logName: 'andb',
       storage: 'sqlite',
-      storagePath: require('path').join(AndbBuilder.userDataPath, 'andb-storage.db'),
+      storagePath: require('@the-andb/core').CoreBridge.getDbPath(),
       enableFileOutput: false,
       ...extraConfig
     }
   }
 
   /**
-   * Ensure CoreBridge is ready
+   * Ensure BackgroundWorker is ready
    */
   public static async getNestApp() {
-    await CoreBridge.init(AndbBuilder.userDataPath);
+    // Initialized from main.ts
     this.bridgeInitialized = true;
     return true;
   }
@@ -294,73 +304,88 @@ export class AndbBuilder {
   static async execute(
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
-    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection',
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot',
     options: any = {},
     sender?: WebContents
   ): Promise<any> {
     const fs = require('fs')
     const originalCwd = process.cwd()
     const userDataDir = AndbBuilder.userDataPath
+    console.log(`[AndbBuilder] execute called for operation: ${operation}`);
 
     try {
-      if (targetConn && sourceConn?.environment?.toUpperCase() === targetConn?.environment?.toUpperCase()) {
+      if (
+        targetConn && 
+        sourceConn?.environment && 
+        targetConn?.environment && 
+        sourceConn.environment.toUpperCase() === targetConn.environment.toUpperCase()
+      ) {
         throw new Error(`Comparison within the same environment '${sourceConn.environment}' is not permitted.`)
       }
 
       if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true })
       process.chdir(userDataDir)
 
-      await CoreBridge.init(AndbBuilder.userDataPath);
+      if (sender) {
+        BackgroundWorker.getInstance().on('progress', (data: any) => {
+          if (data.operation === operation) {
+             sender.send('andb-progress', { operation, ...data });
+          }
+        });
+      }
 
-      const sEnv = sourceConn.environment.toUpperCase();
-      const sType = (sourceConn as any).type === 'dump' || sourceConn.host === 'file' ? 'dump' : 'mysql';
+      // Use conn name/id as fallback to avoid downstream 'UNKNOWN' registration failures
+      const sEnv = sourceConn?.environment?.toUpperCase() || 
+                   sourceConn?.name?.toUpperCase() || 
+                   sourceConn?.id?.toUpperCase() || 'DEFAULT';
+      const tEnv = targetConn?.environment?.toUpperCase() || null;
 
-      // Only pass sshConfig if it has a valid host
-      const isValidSsh = (cfg: any) => cfg && typeof cfg === 'object' && !!cfg.host;
-      const sourceSsh = sourceConn.sshConfig || (sourceConn as any).ssh;
+      // Build sourceConfig in the format ProjectConfigService.setConnection() expects
+      // so OrchestrationService.syncConfigWithPayload() can pre-register the connection
+      // before ExporterService looks it up by env name.
+      const buildConfig = (conn: DatabaseConnection | null) => {
+        if (!conn) return null;
+        return {
+          host: conn.host,
+          port: conn.port,
+          user: conn.username,
+          password: conn.password || '',
+          database: conn.database || conn.name,
+          path: (conn as any).path || ((conn as any).type === 'sqlite' ? conn.host : undefined),
+          type: (conn as any).type || 'mysql',
+          sshConfig: (conn as any).ssh || (conn as any).sshConfig,
+        };
+      };
 
       const payload: any = {
         ...options,
-        connection: sourceConn,
+        connection: sourceConn, // Raw connection for getSchemaObjects / test-connection
         srcEnv: sEnv,
-        destEnv: targetConn ? targetConn.environment.toUpperCase() : null,
+        destEnv: tEnv,
         env: sEnv,
-        sourceConfig: {
-          host: sourceConn.host,
-          port: sourceConn.port,
-          database: sourceConn.database || sourceConn.name,
-          user: sourceConn.username,
-          password: sourceConn.password || '',
-          type: sType,
-          ...(isValidSsh(sourceSsh) ? { sshConfig: sourceSsh } : {})
-        }
+        db: sourceConn?.database || sourceConn?.name,
+        sourceConnection: sourceConn,
+        targetConnection: targetConn,
+        // These are required by syncConfigWithPayload → setConnection, so ExporterService
+        // and other orchestrators can call configService.getConnection(env).
+        sourceConfig: buildConfig(sourceConn),
+        ...(targetConn ? { targetConfig: buildConfig(targetConn) } : {}),
       };
 
-      if (sender) {
-        payload.onProgress = (data: any) => {
-          sender.send('andb-progress', { operation, ...data });
-        };
-      }
+      console.log(`[AndbBuilder] Prepared payload for ${operation}:`, JSON.stringify({
+        operation,
+        env: payload.env,
+        db: sourceConn?.database || sourceConn?.name,
+        hasConn: !!payload.connection
+      }));
 
       if ((global as any).logger) {
         const scope = options.name ? ` (Object: ${options.name})` : (options.type ? ` (Category: ${options.type})` : '');
-        (global as any).logger.info(`[AndbBuilder] ${operation} → ${sEnv}/${payload.sourceConfig.database}${scope}`);
+        const dbName = sourceConn?.database || sourceConn?.name || 'unknown';
+        (global as any).logger.info(`[AndbBuilder] ${operation} → ${sEnv}/${dbName}${scope}`);
       }
 
-      if (targetConn) {
-        const targetSsh = targetConn.sshConfig || (targetConn as any).ssh;
-        payload.targetConfig = {
-          host: targetConn.host,
-          port: targetConn.port,
-          database: targetConn.database || targetConn.name,
-          user: targetConn.username,
-          password: targetConn.password || '',
-          type: (targetConn as any).type === 'dump' || targetConn.host === 'file' ? 'dump' : 'mysql',
-          ...(isValidSsh(targetSsh) ? { sshConfig: targetSsh } : {})
-        };
-      }
-
-      let result = await CoreBridge.execute(operation, payload);
+      let result = await BackgroundWorker.getInstance().execute(operation, payload);
 
       // Normalize result for consistent IPC response
       if (!result || typeof result !== 'object' || !('success' in result)) {
@@ -387,14 +412,14 @@ export class AndbBuilder {
     type: string
   ): Promise<any> {
     const ddlType = type.toLowerCase()
-    const storage = await this.getSQLiteStorage()
+    const worker = BackgroundWorker.getInstance()
     const srcEnv = sourceConn.environment
     const destEnv = targetConn.environment
     const dbName = sourceConn.database || sourceConn.name
     const destDbName = targetConn.database || targetConn.name
-
-    const results = await storage.getComparisons(srcEnv, destEnv, dbName, ddlType);
-
+ 
+    const results = await worker.getComparisons(srcEnv, destEnv, dbName, ddlType);
+ 
     return await Promise.all(results.map(async (res: any) => {
       let alterStmts = res.alter_statements
       try {
@@ -402,49 +427,97 @@ export class AndbBuilder {
           alterStmts = this.safeJsonParse(alterStmts)
         }
       } catch (e) { }
-
+ 
       return {
         name: res.name,
         status: res.status,
-        type: res.type.toUpperCase(),
+        type: res.type?.toUpperCase() || '',
         ddl: Array.isArray(alterStmts) ? alterStmts : (alterStmts ? [alterStmts] : []),
         diff: {
-          source: await storage.getDDL(srcEnv, dbName, ddlType, res.name),
-          target: await storage.getDDL(destEnv, destDbName, ddlType, res.name)
+          source: await worker.getDDL(srcEnv, dbName, ddlType, res.name),
+          target: await worker.getDDL(destEnv, destDbName, ddlType, res.name)
         }
       }
     }))
   }
 
   static async clearConnectionData(connection: DatabaseConnection) {
-    const storage = await this.getSQLiteStorage()
-    return await storage.clearDataForConnection(connection.environment, connection.database)
+    const worker = BackgroundWorker.getInstance()
+    return await worker.clearConnectionData(connection.environment, connection.database)
   }
-
+ 
   static async getSnapshots(environment: string, database: string, type: string, name: string) {
-    const storage = await this.getSQLiteStorage()
-    return await storage.getSnapshots(environment, database, type.toUpperCase(), name)
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getSnapshots(environment, database, type?.toUpperCase() || '', name)
   }
-
+ 
   static async getMigrationHistory(limit: number = 100) {
-    const storage = await this.getSQLiteStorage()
-    return await storage.getMigrationHistory(limit)
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getMigrationHistory(limit)
+  }
+ 
+  static async getAllSnapshots(limit: number = 200) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getAllSnapshots(limit)
   }
 
-  static async getAllSnapshots(limit: number = 200) {
-    const storage = await this.getSQLiteStorage()
-    return await storage.getAllSnapshots(limit)
+  static async addMigration(migration: any) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.addMigration(migration)
+  }
+
+  static async updateMigrationStatus(id: number, status: string, error?: string) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.updateMigrationStatus(id, status, error)
+  }
+
+  static async addComparison(comparison: any) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.addComparison(comparison)
+  }
+
+  static async getComparisonHistory(limit: number = 50) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getComparisonHistory(limit)
+  }
+
+  static async addExportLog(log: any) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.addExportLog(log)
+  }
+
+  static async getExportLogs(limit: number = 50) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getExportLogs(limit)
+  }
+
+  static async addAuditLog(log: any) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.addAuditLog(log)
+  }
+
+  static async getAuditLogs(limit: number = 50) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.getAuditLogs(limit)
+  }
+
+  static async databaseCleanup(daysToKeep: number = 30) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.cleanup(daysToKeep)
+  }
+
+  static async parseTable(ddl: string) {
+    const worker = BackgroundWorker.getInstance()
+    return await worker.execute('parseTable', { ddl })
   }
 
   static async createManualSnapshot(connection: DatabaseConnection, type: string, name: string) {
-    await CoreBridge.init(AndbBuilder.userDataPath);
     return { success: true, message: 'Snapshot feature simplified' };
   }
 
   static async restoreSnapshot(connection: DatabaseConnection, snapshot: any) {
-    await CoreBridge.init(AndbBuilder.userDataPath);
-    return await CoreBridge.execute('migrate', {
-      destEnv: connection.environment.toUpperCase(),
+    return await BackgroundWorker.getInstance().execute('migrate', {
+      destEnv: connection?.environment?.toUpperCase() || '',
       targetConfig: {
         host: connection.host,
         port: connection.port,
@@ -471,13 +544,12 @@ export class AndbBuilder {
     permissions: any,
     script: string
   }) {
-    await CoreBridge.init(AndbBuilder.userDataPath)
     const { adminConnection, restrictedUser, permissions, script } = args
 
     // Ensure admin connection type is set
     if (!(adminConnection as any).type) (adminConnection as any).type = 'mysql'
 
-    return await CoreBridge.execute('setup-restricted-user', {
+    return await BackgroundWorker.getInstance().execute('setup-restricted-user', {
       adminConnection,
       restrictedUser,
       permissions,
@@ -489,11 +561,10 @@ export class AndbBuilder {
     connection: any,
     permissions: any
   }) {
-    await CoreBridge.init(AndbBuilder.userDataPath)
     const { connection, permissions } = args
     if (!connection.type) connection.type = 'mysql'
 
-    return await CoreBridge.execute('probe-restricted-user', {
+    return await BackgroundWorker.getInstance().execute('probe-restricted-user', {
       connection,
       permissions
     })
@@ -505,11 +576,10 @@ export class AndbBuilder {
     permissions: any,
     isReconfigure?: boolean
   }) {
-    await CoreBridge.init(AndbBuilder.userDataPath)
     const { adminConnection, restrictedUser, permissions, isReconfigure } = args
     if (!(adminConnection as any).type) (adminConnection as any).type = 'mysql'
 
-    return await CoreBridge.execute('generate-user-setup-script', {
+    return await BackgroundWorker.getInstance().execute('generate-user-setup-script', {
       adminConnection,
       restrictedUser,
       permissions,
@@ -517,9 +587,17 @@ export class AndbBuilder {
     })
   }
 
+  static async compareArbitrary(srcDDL: string, destDDL: string, type?: string) {
+    return await BackgroundWorker.getInstance().compareArbitrary(srcDDL, destDDL, type);
+  }
+
+  static async compareCustom(src: any, dest: any) {
+    return await BackgroundWorker.getInstance().compareCustom(src, dest);
+  }
+
   static async test(): Promise<boolean> {
     try {
-      await CoreBridge.init(AndbBuilder.userDataPath);
+      await BackgroundWorker.getInstance().getStats();
       return true
     } catch (error) {
       return false

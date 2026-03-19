@@ -1,0 +1,6 @@
+CREATE TABLE `kanban_status` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `value` INT NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

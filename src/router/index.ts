@@ -24,6 +24,11 @@ const routes = [
     component: () => import('@/views/Compare.vue')
   },
   {
+    path: '/instant-compare',
+    name: 'InstantCompare',
+    component: () => import('@/views/compare/InstantCompareView.vue')
+  },
+  {
     path: '/compare/resolve/:sessionId?',
     name: 'SchemaResolve',
     component: () => import('@/views/compare/ResolveView.vue')
@@ -63,6 +68,25 @@ const router = createRouter({
 })
 
 const { posthog } = usePostHog()
+import { useProjectsStore } from '@/stores/projects'
+
+router.beforeEach(async (to, _from, next) => {
+  if (to.path === '/splash' || to.path === '/projects') {
+    return next()
+  }
+
+  const projectsStore = useProjectsStore()
+  
+  if (!projectsStore.isLoaded) {
+    await projectsStore.reloadData()
+  }
+
+  if (projectsStore.projects.length === 0) {
+    return next({ path: '/projects' })
+  }
+
+  next()
+})
 
 router.afterEach((to) => {
   posthog.capture('$pageview', {

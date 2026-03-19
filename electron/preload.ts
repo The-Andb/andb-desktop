@@ -92,6 +92,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-test')
   },
 
+  // Migration Changelog
+  getMigrationChangelog: () => ipcRenderer.invoke('get-migration-changelog'),
+  dismissMigrationChangelog: () => ipcRenderer.invoke('dismiss-migration-changelog'),
+
   onAndbProgress: (callback: (event: any, data: any) => void) => {
     // Remove existing listener to prevent duplicate subscriptions on hot reload
     ipcRenderer.removeAllListeners('andb-progress');
@@ -190,6 +194,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // File System Operations
   pickFile: (options: any) => ipcRenderer.invoke('pick-file', options),
+  pickAndMoveSqliteDb: () => ipcRenderer.invoke('pick-and-move-sqlite-db'),
+  resetDbPath: () => ipcRenderer.invoke('reset-db-path'),
+  getDbPath: () => ipcRenderer.invoke('get-db-path'),
   saveDumpFile: (sourcePath: string) => ipcRenderer.invoke('save-dump-file', sourcePath),
 
   // Integrations (CLI & MCP)

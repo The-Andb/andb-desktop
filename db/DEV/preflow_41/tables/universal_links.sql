@@ -1,0 +1,21 @@
+CREATE TABLE `universal_links` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `global_uid` VARCHAR(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `object_uid` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `object_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `object_type` VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `account_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `collection_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `calendar_uri` VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ad_uri` VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `category` TINYINT UNSIGNED DEFAULT NULL,
+  `comment_id` BIGINT UNSIGNED DEFAULT NULL,
+  `msg_uid` VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_date` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_date` timestamp(3) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3),
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `identity_hash` VARCHAR(64) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS (sha2(concat(`object_uid`,_utf8mb4'|',`object_id`,_utf8mb4'|',`object_type`,_utf8mb4'|',`collection_id`,_utf8mb4'|',COALESCE(`calendar_uri`,_utf8mb4'\0'),_utf8mb4'|',COALESCE(`ad_uri`,_utf8mb4'\0'),_utf8mb4'|',`account_id`),256)) STORED,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_global_uid` (`global_uid`),
+  UNIQUE KEY `idx_object_identity` (`identity_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

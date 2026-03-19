@@ -39,18 +39,63 @@
             <div v-for="item in category.items" :key="item.name" 
               @click="emit('select', item)"
               class="group relative flex items-center py-1.5 px-2 cursor-pointer rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors"
-              :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedItemName === item.name }"
+              :class="[
+                { 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedItemName === item.name && appStore.compareStack?.source?.name !== item.name && appStore.compareStack?.target?.name !== item.name },
+                { 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 shadow-sm': appStore.compareStack?.source?.name === item.name },
+                { 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 shadow-sm': appStore.compareStack?.target?.name === item.name }
+              ]"
             >
               <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2.5 opacity-50 shrink-0" />
               <div class="flex-1 min-w-0 flex flex-col">
                 <div class="flex items-center justify-between w-full">
-                  <span class="truncate font-mono" :class="selectedItemName === item.name ? 'font-bold' : ''" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
-                  <span v-if="item.matches?.length > 0" class="ml-2 px-1 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 text-[8px] font-black rounded-sm border border-primary-200 dark:border-primary-800">
-                    {{ item.matches.length }}
-                  </span>
-                  <span v-else-if="item.updated_at" class="text-[9px] text-gray-400 shrink-0 ml-auto opacity-40 group-hover:opacity-100 transition-opacity">
-                    {{ formatTimeAgo(item.updated_at).replace(' ago', '') }}
-                  </span>
+                  <span class="truncate font-mono" 
+                        :class="[
+                          selectedItemName === item.name ? 'font-bold' : '',
+                          appStore.compareStack?.source?.name === item.name ? 'text-orange-900 dark:text-orange-100 font-bold' : '',
+                          appStore.compareStack?.target?.name === item.name ? 'text-blue-900 dark:text-blue-100 font-bold' : ''
+                        ]" 
+                        :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                  <div class="flex items-center">
+                    <span v-if="item.matches?.length > 0" class="px-1 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 text-[8px] font-black rounded-sm border border-primary-200 dark:border-primary-800">
+                      {{ item.matches.length }}
+                    </span>
+                    <div v-else-if="item.updated_at" class="relative flex items-center h-full">
+                      <span class="text-[9px] text-gray-400 opacity-40 group-hover:opacity-0 transition-opacity" 
+                            :class="{ 'opacity-0': appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name }">
+                        {{ formatTimeAgo(item.updated_at).replace(' ago', '') }}
+                      </span>
+                    </div>
+                    
+                    <!-- Send to Instant Buttons -->
+                    <div class="absolute right-2 flex items-center px-1 bg-white/80 dark:bg-gray-800/80 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow p-0.5"
+                         :class="appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
+                      <button 
+                        @click.stop="emit('send-to-instant', item, 'source')"
+                        :disabled="appStore.compareStack?.target?.name === item.name"
+                        class="p-1 rounded-full transition-all group/src"
+                        :class="[
+                          appStore.compareStack?.source?.name === item.name ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
+                          appStore.compareStack?.target?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                        ]"
+                        title="Set as Source"
+                      >
+                        <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.source?.name === item.name ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
+                      </button>
+                      <span class="text-[8px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
+                      <button 
+                        @click.stop="emit('send-to-instant', item, 'target')"
+                        :disabled="appStore.compareStack?.source?.name === item.name"
+                        class="p-1 rounded-full transition-all group/tgt"
+                        :class="[
+                          appStore.compareStack?.target?.name === item.name ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+                          appStore.compareStack?.source?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                        ]"
+                        title="Set as Target"
+                      >
+                        <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.target?.name === item.name ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 
                 <!-- Search Snippets -->
@@ -92,7 +137,8 @@ import {
   CalendarClock,
   Zap,
   Sigma,
-  Network
+  Network,
+  Flame
 } from 'lucide-vue-next'
 
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
@@ -114,6 +160,7 @@ const emit = defineEmits<{
   (e: 'select', item: any): void
   (e: 'navigateTo', payload: { item: any, line: number }): void
   (e: 'navigate-to-definition', name: string): void
+  (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
 }>()
 
 const collapsedCategories = ref(new Set<string>())

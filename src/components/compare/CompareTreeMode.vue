@@ -129,6 +129,34 @@
                       :class="[getStatusClass(item.status), canMigrate(item) ? 'group-hover/icon:hidden' : '']" 
                     />
                  </div>
+                  <!-- Send to Instant Buttons -->
+                  <div class="absolute left-full ml-8 hidden group-hover:flex items-center px-1 bg-white/90 dark:bg-gray-800/90 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm backdrop-blur-sm z-20 p-0.5">
+                    <button 
+                      @click.stop="emit('send-to-instant', item, 'source')"
+                      :disabled="appStore.compareStack?.target?.name === item.name"
+                      class="p-1 rounded-full transition-all group/src"
+                      :class="[
+                        appStore.compareStack?.source?.name === item.name ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
+                        appStore.compareStack?.target?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                      ]"
+                      title="Add as Source"
+                    >
+                      <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.source?.name === item.name ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
+                    </button>
+                    <span class="text-[8px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
+                    <button 
+                      @click.stop="emit('send-to-instant', item, 'target')"
+                      :disabled="appStore.compareStack?.source?.name === item.name"
+                      class="p-1 rounded-full transition-all group/tgt"
+                      :class="[
+                        appStore.compareStack?.target?.name === item.name ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+                        appStore.compareStack?.source?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                      ]"
+                      title="Add as Target"
+                    >
+                      <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.target?.name === item.name ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
+                    </button>
+                  </div>
                  
                  <!-- Connector Lines -->
                  <div v-if="hasInSource(item)" class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 -mr-1"></div>
@@ -176,7 +204,8 @@ import {
   Grid3X3,
   Eye,
   Cpu,
-  CalendarClock
+  CalendarClock,
+  Flame
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 
@@ -196,6 +225,7 @@ const emit = defineEmits<{
   (e: 'migrate', item: any): void
   (e: 'select', item: any): void
   (e: 'update:activeType', type: string): void
+  (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
 }>()
 
 const updateType = (type: string) => {

@@ -216,8 +216,20 @@
                        </div>
                      </button>
                    </div>
-                </div>
-              </div>
+                   
+                   <!-- Visible Tabs Configuration -->
+                   <div v-if="appStore.navStyle === 'horizontal-tabs'" class="mt-4 p-5 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-2">
+                     <label class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Visible Configuration</label>
+                     <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                       <label v-for="item in navItems" :key="item.path" class="flex items-center px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-xl cursor-pointer gap-3 transition-colors shadow-sm group">
+                         <input type="checkbox" :checked="!appStore.hiddenHorizontalTabs.includes(item.path)" @change="toggleHorizontalTab(item.path)" class="w-4 h-4 rounded text-primary-500 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:ring-primary-500 focus:ring-offset-0" />
+                         <component :is="item.icon" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                         <span class="text-xs font-black text-gray-700 dark:text-gray-300 truncate tracking-tight">{{ item.name }}</span>
+                       </label>
+                     </div>
+                   </div>
+                 </div>
+               </div>
 
               <!-- Typography Matrix -->
               <div class="pt-8 border-t border-gray-100 dark:border-gray-800">
@@ -358,6 +370,72 @@
                 </div>
               </div>
             </div>
+            <!-- TERMINAL INTEGRATION SECTION -->
+            <div v-if="activeCategory === 'terminal'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+               <div class="space-y-8">
+                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-8 relative overflow-hidden">
+                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <Terminal class="w-48 h-48" />
+                     </div>
+                     
+                     <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-6">
+                           <div class="w-12 h-12 rounded-2xl bg-primary-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/20">
+                              <Terminal class="w-6 h-6" />
+                           </div>
+                           <div>
+                              <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.terminal.title') }}</h3>
+                              <p class="text-xs text-gray-500 font-medium">{{ $t('settings.terminal.subtitle') }}</p>
+                           </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                           <div class="flex-1">
+                              <div class="flex items-center gap-2 mb-2">
+                                 <span class="text-xs font-black uppercase tracking-widest">{{ $t('settings.terminal.install') }}</span>
+                                 <div v-if="isCliInstalled" class="flex items-center gap-1.5 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-[10px] font-black uppercase">
+                                    <Check class="w-3 h-3" />
+                                    {{ $t('settings.terminal.installed') }}
+                                 </div>
+                                 <div v-else class="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full text-[10px] font-black uppercase">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                                    {{ $t('settings.terminal.notInstalled') }}
+                                 </div>
+                              </div>
+                              <p class="text-xs text-gray-400 max-w-md leading-relaxed">
+                                 {{ $t('settings.terminal.installDesc') }}
+                              </p>
+                           </div>
+
+                           <button 
+                              @click="handleInstallCli"
+                              :disabled="isInstallingCli"
+                              class="w-full md:w-auto px-8 py-4 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary-500/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+                           >
+                              <RefreshCw v-if="isInstallingCli" class="w-4 h-4 animate-spin" />
+                              <Zap v-else class="w-4 h-4" />
+                              {{ isInstallingCli ? $t('common.processing') : (isCliInstalled ? 'Reinstall CLI' : $t('settings.terminal.install')) }}
+                           </button>
+                        </div>
+
+                        <!-- Code Block Example -->
+                        <div class="mt-10 p-6 bg-gray-950 rounded-2xl border border-white/5 relative group">
+                           <div class="flex items-center justify-between mb-4">
+                              <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Usage Example</span>
+                              <button @click="copyCommand" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 transition-colors">
+                                 <Layers class="w-3.5 h-3.5" />
+                              </button>
+                           </div>
+                           <div class="font-mono text-[11px] space-y-2">
+                              <div class="text-gray-500"># Use andb from anywhere</div>
+                              <div class="text-white"><span class="text-primary-400">$</span> andb compare dev prod --type tables</div>
+                              <div class="text-gray-600 mt-2">// Response from andb engine v4.x</div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
 
             <!-- CONNECTION TEMPLATES SECTION -->
             <div v-if="activeCategory === 'templates'" class="animate-in fade-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
@@ -426,6 +504,42 @@
                        </div>
                     </div>
                  </div>
+                  <!-- SQLite Storage Path -->
+                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
+                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <Database class="w-32 h-32" />
+                     </div>
+                     <div class="relative z-10">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">SQLite Storage Path</h3>
+                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
+                          Define the location of your internal metadata database (<code>andb-storage.db</code>). Move this to a custom folder to ensure your data stays safe during app reinstalls.
+                        </p>
+                        
+                        <div class="space-y-4">
+                           <div class="flex items-center gap-3">
+                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
+                                 {{ currentDbPath || 'Loading path...' }}
+                              </div>
+                              <button 
+                                 v-if="currentDbPath && !currentDbPath.includes('Application Support') && !currentDbPath.includes('AppData')"
+                                 @click="resetSqlitePath"
+                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 Reset
+                              </button>
+                              <button 
+                                 @click="pickSqlitePath"
+                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 Relocate
+                              </button>
+                           </div>
+                           <p v-if="settingsStore.settings.sqlitePath" class="text-[10px] text-gray-400 font-medium">
+                             Current database is located at the path above. Restart the app for changes to take full effect.
+                           </p>
+                        </div>
+                     </div>
+                  </div>
                </div>
             </div>
 
@@ -647,7 +761,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
   ChevronDown, 
@@ -675,17 +789,23 @@ import {
   Columns as ColumnsIcon,
   RefreshCw,
   GitCompare,
-  Cpu
+  Cpu,
+  Terminal,
+  Home,
+  Workflow,
+  Network
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
 import ConnectionTemplateManager from '@/components/connection/ConnectionTemplateManager.vue'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
+import { useFeaturesStore } from '@/stores/features'
 import { useSettingsStore, themeOptions } from '@/stores/settings'
 import { useOperationsStore } from '@/stores/operations'
 import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
+import Andb from '@/utils/andb'
 
 
 import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
@@ -697,8 +817,43 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const appStore = useAppStore()
 const router = useRouter()
+const featuresStore = useFeaturesStore()
 
+const currentDbPath = ref('')
+const fetchDbPath = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.getDbPath) {
+        const res = await (window as any).electronAPI.getDbPath()
+        if (res && res.success) {
+            currentDbPath.value = res.data
+        }
+    }
+}
 
+// Navigation Configuration Setup
+const navItems = computed(() => {
+  const items = [
+    { name: t('common.dashboard'), path: '/', icon: Home, visible: true },
+    { name: t('common.schema'), path: '/schema', icon: Database, visible: true },
+    { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
+    { name: t('common.history'), path: '/history', icon: HistoryIcon, visible: true },
+    { name: 'Instant Compare', path: '/instant-compare', icon: Workflow, visible: true },
+    { name: 'Integrations', path: '/integrations', icon: Terminal, visible: true },
+    { name: 'ER Diagram', path: '/er-diagram', icon: Network, visible: featuresStore.isEnabled('erDiagram') },
+    { name: t('settings.project_settings'), path: '/project-settings', icon: SettingsIcon, visible: true }, 
+  ]
+  return items.filter(i => i.visible)
+})
+
+const toggleHorizontalTab = (path: string) => {
+  const hidden = [...appStore.hiddenHorizontalTabs]
+  const index = hidden.indexOf(path)
+  if (index === -1) {
+    hidden.push(path)
+  } else {
+    hidden.splice(index, 1)
+  }
+  appStore.hiddenHorizontalTabs = hidden
+}
 
 const connectionPairsStore = useConnectionPairsStore()
 const settingsStore = useSettingsStore()
@@ -707,7 +862,7 @@ const updaterStore = useUpdaterStore()
 const route = useRoute()
 
 // Active Category State (Declared early for usage in watchers)
-const activeCategory = ref('interface')
+const activeCategory = ref<string>('interface')
 
 // Security Logic
 const publicKey = ref('')
@@ -762,20 +917,86 @@ const regenerateKeys = async () => {
     }
 }
 
+const resetSqlitePath = async () => {
+    if (confirm('Are you sure you want to revert to the default database location? Your current custom database file will NOT be deleted, but the app will start reading from the default system folder. Please restart the app for changes to take full effect.')) {
+        if ((window as any).electronAPI && (window as any).electronAPI.resetDbPath) {
+            await (window as any).electronAPI.resetDbPath()
+            settingsStore.settings.sqlitePath = ''
+            alert('Settings reset. Please restart the app for changes to take full effect.')
+        }
+    }
+}
+
+const pickSqlitePath = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.pickAndMoveSqliteDb) {
+        const result = await (window as any).electronAPI.pickAndMoveSqliteDb()
+        
+        if (result && result.success && result.newPath) {
+            settingsStore.settings.sqlitePath = result.newPath
+            currentDbPath.value = result.newPath
+            const actionMsg = result.action === 'used_existing' 
+              ? 'Now using the existing database in the selected folder.' 
+              : 'Database moved/overwritten successfully.';
+            alert(`${actionMsg}\nPlease restart the app for changes to take full effect.`)
+        } else if (result && !result.success && !result.canceled) {
+            alert('Failed to move database: ' + result.error)
+        }
+    }
+}
+
+// CLI Installation Logic
+const isCliInstalled = ref(false)
+const isInstallingCli = ref(false)
+
+const checkCliStatus = async () => {
+    isCliInstalled.value = await Andb.isCliInstalled()
+}
+
+const handleInstallCli = async () => {
+    isInstallingCli.value = true
+    try {
+        const res = await Andb.installCli()
+        if (res.success) {
+            alert(t('settings.terminal.success'))
+            await checkCliStatus()
+        } else {
+            alert(t('settings.terminal.failed') + ': ' + res.message)
+        }
+    } catch (e: any) {
+        alert('Error: ' + e.message)
+    } finally {
+        isInstallingCli.value = false
+    }
+}
+
+const copyCommand = () => {
+    navigator.clipboard.writeText('andb compare dev prod --type tables')
+    alert('Example command copied to clipboard')
+}
+
 watch(activeCategory, (newVal) => {
     if (newVal === 'security') {
         loadPublicKey()
     }
+    if (newVal === 'terminal') {
+        checkCliStatus()
+    }
+})
+
+onMounted(() => {
+    checkCliStatus()
+    fetchDbPath()
 })
 
 const categories = computed(() => {
   const appCats = [
-    { id: 'interface', label: t('settings.categories.interface'), icon: MonitorSmartphone, subtitle: t('settings.interface.subtitle') },
-    { id: 'templates', label: t('settings.categories.connections'), icon: LayoutTemplate, subtitle: t('settings.global_connections.subtitle') },
-    { id: 'engine', label: 'Engine', icon: Cpu, subtitle: 'Core behavior settings' },
-    { id: 'security', label: t('settings.categories.security'), icon: Shield, subtitle: t('settings.security.subtitle') },
-    { id: 'backup', label: t('settings.categories.backup'), icon: Database, subtitle: t('settings.backup.subtitle') },
-    { id: 'update', label: t('settings.categories.update'), icon: DownloadCloud, subtitle: t('settings.update.subtitle') }
+    { id: 'interface', label: t('settings.categories.interface'), icon: markRaw(MonitorSmartphone), subtitle: t('settings.interface.subtitle') },
+    { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
+    { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },
+    { id: 'terminal', label: t('settings.terminal.title'), icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
+    { id: 'security', label: t('settings.categories.security'), icon: markRaw(Shield), subtitle: t('settings.security.subtitle') },
+    { id: 'backup', label: t('settings.categories.backup'), icon: markRaw(Database), subtitle: t('settings.backup.subtitle') },
+    { id: 'update', label: t('settings.categories.update'), icon: markRaw(DownloadCloud), subtitle: t('settings.update.subtitle') }
   ]
 
   return appCats.map(c => ({ ...c, type: 'app' }))
@@ -832,9 +1053,9 @@ const getFontSizeRange = (key: string) => {
 }
 
 const buttonStyles = computed<{ id: 'full' | 'minimal' | 'icons', label: string, icon: any, desc: string }[]>(() => [
-  { id: 'full', label: t('settings.interface.buttons.premium'), icon: Zap, desc: t('settings.interface.buttons.premiumDesc') },
-  { id: 'minimal', label: t('settings.interface.buttons.minimal'), icon: MousePointer2, desc: t('settings.interface.buttons.minimalDesc') },
-  { id: 'icons', label: t('settings.interface.buttons.iconOnly'), icon: Layers, desc: t('settings.interface.buttons.iconOnlyDesc') }
+  { id: 'full', label: t('settings.interface.buttons.premium'), icon: markRaw(Zap), desc: t('settings.interface.buttons.premiumDesc') },
+  { id: 'minimal', label: t('settings.interface.buttons.minimal'), icon: markRaw(MousePointer2), desc: t('settings.interface.buttons.minimalDesc') },
+  { id: 'icons', label: t('settings.interface.buttons.iconOnly'), icon: markRaw(Layers), desc: t('settings.interface.buttons.iconOnlyDesc') }
 ])
 
 

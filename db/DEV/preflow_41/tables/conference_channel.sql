@@ -1,0 +1,22 @@
+CREATE TABLE `conference_channel` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `collection_id` BIGINT DEFAULT NULL COMMENT 'A collection has Only one channel',
+  `title` VARCHAR(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` BIGINT NOT NULL,
+  `uid` VARCHAR(255) NOT NULL,
+  `realtime_channel` VARCHAR(100) NOT NULL DEFAULT '',
+  `room_url` VARCHAR(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `channel_arn` VARCHAR(2000) DEFAULT NULL,
+  `is_trashed` TINYINT(1) NOT NULL DEFAULT '0',
+  `created_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `updated_date` DOUBLE(13,3) NOT NULL DEFAULT '0.000',
+  `last_used` DOUBLE(13,3) NOT NULL,
+  `revoke_time` DOUBLE(13,3) DEFAULT NULL,
+  `enable_chat_history` TINYINT(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `collection_id_UNIQUE` (`collection_id`),
+  KEY `conference_channel_last_used_IDX` (`last_used`,`updated_date`,`created_date`) USING BTREE,
+  KEY `conference_channel_uid_IDX` (`uid`) USING BTREE,
+  KEY `idx_conference_channel_sort` (`id`,`updated_date`,`is_trashed`,`collection_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

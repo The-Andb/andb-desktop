@@ -24,6 +24,7 @@ common:
   new: 'New'
   search: 'Search'
   switch: 'Switch'
+  change: 'Change'
   liveDemo: 'Live Demo'
   quickDump:
     title: 'Quick Dump Compare'
@@ -429,8 +430,8 @@ connections:
   types:
     mysql: 'MySQL / MariaDB'
     dump: 'SQL Dump File'
-    postgres: 'PostgreSQL (Coming Soon)'
-    sqlite: 'SQLite (Coming Soon)'
+    postgres: 'PostgreSQL'
+    sqlite: 'SQLite'
   dumpPath: 'Dump File Path'
   dumpPathPlaceholder: 'Select or enter path to .sql file'
 
@@ -617,6 +618,15 @@ settings:
     viewNotes: 'View Release Notes'
     autoDownload: 'Auto-Download Updates'
     autoDownloadDesc: 'Automatically download updates when available'
+  terminal:
+    title: 'Terminal Integration'
+    subtitle: 'Access andb engine directly from your command line'
+    install: 'Install andb CLI'
+    installDesc: 'Create a symlink in /usr/local/bin/andb for global access. Requires admin privileges.'
+    installed: 'CLI is installed'
+    notInstalled: 'CLI is not installed'
+    success: 'CLI installed successfully!'
+    failed: 'Installation failed'
   projectFocusMode: 'Project Focus Mode'
   projectFocusModeDesc: 'Hide sidebar and header to maximize your workspace.'
   resetModal:

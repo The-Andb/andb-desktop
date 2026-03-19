@@ -70,11 +70,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
         .map(p => p.id)
 
       if (orphanPairIds.length > 0) {
-        const defaultProject = projectsStore.projects.find(p => p.id === 'default')
-        if (defaultProject) {
-          defaultProject.pairIds.push(...orphanPairIds)
-          storage.saveProjects(projectsStore.projects)
-        }
+        console.warn(`Found ${orphanPairIds.length} orphaned connection pairs. They are no longer automatically assigned to a default project.`);
       }
 
     } else {
@@ -108,16 +104,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
         }
       ]
 
-      // Auto-assign demo pairs to default project if new
-      const projectsStore = useProjectsStore()
-      if (projectsStore.projects.length === 0) {
-        await projectsStore.reloadData()
-      }
-      const defaultProject = projectsStore.projects.find(p => p.id === 'default')
-      if (defaultProject && defaultProject.pairIds.length === 0) {
-        defaultProject.pairIds = connectionPairs.value.map(p => p.id)
-        storage.saveProjects(projectsStore.projects)
-      }
+      // Not automatically assigning demo pairs anymore
     }
 
     // Set default selection

@@ -1,0 +1,20 @@
+CREATE TABLE `meeting_invite` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `account_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `invitee_uid` VARCHAR(255) NOT NULL,
+  `message_id` VARCHAR(255) DEFAULT NULL,
+  `status` VARCHAR(20) NOT NULL,
+  `mi_href` TEXT NOT NULL,
+  `created_date` DOUBLE(13,3) NOT NULL,
+  `updated_date` DOUBLE(13,3) DEFAULT NULL,
+  `is_removed` TINYINT UNSIGNED DEFAULT '0',
+  `is_canceled` TINYINT UNSIGNED DEFAULT '0',
+  `msg_account_id` BIGINT UNSIGNED NOT NULL DEFAULT '0',
+  `uid` VARCHAR(255) NOT NULL,
+  `uri` VARCHAR(255) NOT NULL,
+  `recurid` DOUBLE(13,3) DEFAULT NULL,
+  `timestamp` DOUBLE(13,3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

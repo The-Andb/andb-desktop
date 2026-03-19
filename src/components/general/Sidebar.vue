@@ -19,42 +19,69 @@
     <div :class="['flex-1 flex flex-col min-h-0', shouldBlur ? 'pointer-events-none' : '']">
       <!-- Navigation Menu (Side Activity Bar style if collapsed, or just top menu) -->
       <!-- Navigation Menu (Dynamic Style) -->
-      <nav v-show="!isCollapsed" class="flex-shrink-0 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700 p-2 overflow-hidden">
-        <div 
-          :class="[
-            appStore.navStyle === 'horizontal-tabs' 
-              ? 'flex items-center gap-1 overflow-x-auto no-scrollbar pb-1.5 -mb-1.5 px-0.5' 
-              : 'space-y-1'
-          ]"
-        >
-          <router-link
-            v-for="item in navItems" :key="item.path"
-            :to="item.path"
-            class="flex items-center rounded-lg transition-all duration-200 group relative"
+      <nav v-show="!isCollapsed" class="flex-shrink-0 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700 p-2 z-10 relative">
+        <div class="flex items-center justify-between w-full">
+          <div 
             :class="[
-              appStore.navStyle === 'horizontal-tabs' ? 'py-2 px-3 flex-shrink-0' : 'px-3 py-2',
-              $route.path === item.path 
-                ? (appStore.navStyle === 'horizontal-tabs' ? 'text-primary-600 dark:text-primary-400' : 'bg-white dark:bg-gray-800 text-primary-600 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-gray-700')
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              appStore.navStyle === 'horizontal-tabs' 
+                ? 'flex items-center gap-1 overflow-x-auto no-scrollbar pb-1.5 -mb-1.5 px-0.5 select-none flex-1 min-w-0' 
+                : 'space-y-1 w-full'
             ]"
-            :style="{ fontSize: appStore.fontSizes.menu + 'px' }"
-            :title="item.name"
           >
-            <div 
-              class="rounded-md transition-all duration-300" 
+            <router-link
+              v-for="item in visibleNavItems" :key="item.path"
+              :to="item.path"
+              class="flex items-center rounded-lg transition-all duration-200 group relative"
               :class="[
-                 appStore.navStyle === 'horizontal-tabs' ? 'p-0.5' : 'p-1.5',
-                 $route.path === item.path && appStore.navStyle !== 'horizontal-tabs' ? 'bg-primary-50 dark:bg-primary-900/30' : ''
+                appStore.navStyle === 'horizontal-tabs' ? 'py-2 px-3 flex-shrink-0' : 'px-3 py-2',
+                $route.path === item.path 
+                  ? (appStore.navStyle === 'horizontal-tabs' ? 'text-primary-600 dark:text-primary-400' : 'bg-white dark:bg-gray-800 text-primary-600 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-gray-700')
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
+              :style="{ fontSize: appStore.fontSizes.menu + 'px' }"
+              :title="item.name"
             >
-              <component :is="item.icon" :class="appStore.navStyle === 'horizontal-tabs' ? 'w-5 h-5' : 'w-4 h-4'" />
-            </div>
-            <span v-if="appStore.navStyle !== 'horizontal-tabs'" class="ml-3 font-bold tracking-tight">{{ item.name }}</span>
-            <ChevronRight v-if="$route.path === item.path && appStore.navStyle !== 'horizontal-tabs'" class="ml-auto w-3.5 h-3.5 opacity-50" />
-            
-            <!-- Active Indicator for horizontal mode -->
-            <div v-if="appStore.navStyle === 'horizontal-tabs' && $route.path === item.path" class="absolute -bottom-2 left-2 right-2 h-0.5 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
-          </router-link>
+              <div 
+                class="rounded-md transition-all duration-300" 
+                :class="[
+                   appStore.navStyle === 'horizontal-tabs' ? 'p-0.5' : 'p-1.5',
+                   $route.path === item.path && appStore.navStyle !== 'horizontal-tabs' ? 'bg-primary-50 dark:bg-primary-900/30' : ''
+                ]"
+              >
+                <component :is="item.icon" :class="appStore.navStyle === 'horizontal-tabs' ? 'w-5 h-5' : 'w-4 h-4'" />
+              </div>
+              <span v-if="appStore.navStyle !== 'horizontal-tabs'" class="ml-3 font-bold tracking-tight">{{ item.name }}</span>
+              <ChevronRight v-if="$route.path === item.path && appStore.navStyle !== 'horizontal-tabs'" class="ml-auto w-3.5 h-3.5 opacity-50" />
+              
+              <!-- Active Indicator for horizontal mode -->
+              <div v-if="appStore.navStyle === 'horizontal-tabs' && $route.path === item.path" class="absolute -bottom-2 left-2 right-2 h-0.5 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)]"></div>
+            </router-link>
+          </div>
+
+          <!-- The More Menu Toggle (Horizontal Mode Only) -->
+          <div v-if="appStore.navStyle === 'horizontal-tabs' && appStore.hiddenHorizontalTabs.length > 0" class="relative flex-shrink-0 ml-1 flex items-center">
+             <button @click="isMoreMenuOpen = !isMoreMenuOpen" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors" :class="{ 'bg-gray-200 dark:bg-gray-700': isMoreMenuOpen }" :title="$t('settings.interface.navigation.horizontalDesc')">
+               <MoreHorizontal class="w-5 h-5" />
+             </button>
+             
+             <!-- Popover Overlay for clickaway -->
+             <div v-if="isMoreMenuOpen" class="fixed inset-0 z-40" @click="isMoreMenuOpen = false"></div>
+             
+             <!-- Popover Menu -->
+             <div v-if="isMoreMenuOpen" class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 z-50 p-1.5 overflow-hidden flex flex-col gap-0.5 select-none">
+               <router-link
+                 v-for="item in navItems.filter(i => appStore.hiddenHorizontalTabs.includes(i.path))"
+                 :key="item.path"
+                 :to="item.path"
+                 class="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg gap-3 transition-colors"
+                 :class="{ 'bg-primary-50 dark:bg-primary-900/30 text-primary-600': $route.path === item.path }"
+                 @click="isMoreMenuOpen = false"
+               >
+                 <component :is="item.icon" class="w-4 h-4" :class="$route.path === item.path ? 'text-primary-600' : 'text-gray-500 dark:text-gray-400'" />
+                 <span class="text-xs font-bold" :class="$route.path === item.path ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">{{ item.name }}</span>
+               </router-link>
+             </div>
+          </div>
         </div>
       </nav>
 
@@ -249,6 +276,7 @@ import {
   Database,
   GitCompare, 
   History,
+  Workflow,
   RefreshCw, 
   ChevronRight,
   Zap,
@@ -267,7 +295,8 @@ import {
   Sigma,
   Settings2,
   Network,
-  GitBranch
+  GitBranch,
+  MoreHorizontal
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -299,11 +328,19 @@ const navItems = computed(() => {
     { name: t('common.schema'), path: '/schema', icon: Database, visible: true },
     { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
     { name: t('common.history'), path: '/history', icon: History, visible: true },
+    { name: 'Instant Compare', path: '/instant-compare', icon: Workflow, visible: true },
     { name: 'Integrations', path: '/integrations', icon: Terminal, visible: true },
     { name: 'ER Diagram', path: '/er-diagram', icon: Network, visible: featuresStore.isEnabled('erDiagram') },
     { name: t('settings.project_settings'), path: '/project-settings', icon: Settings2, visible: true }, 
   ]
   return items.filter(i => i.visible)
+})
+
+const isMoreMenuOpen = ref(false)
+
+const visibleNavItems = computed(() => {
+  if (appStore.navStyle !== 'horizontal-tabs') return navItems.value
+  return navItems.value.filter(item => !appStore.hiddenHorizontalTabs.includes(item.path))
 })
 
 // Schema Tree State

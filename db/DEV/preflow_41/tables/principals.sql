@@ -1,0 +1,9 @@
+CREATE TABLE `principals` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uri` VARCHAR(200) NOT NULL,
+  `email` VARCHAR(80) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `displayname` VARCHAR(80) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `vcardurl` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uri` (`uri`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1

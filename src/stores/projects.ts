@@ -13,6 +13,7 @@ export const useProjectsStore = defineStore('projects', () => {
   const projects = ref<Project[]>([])
   const selectedProjectId = ref<string | null>(null)
   const viewMode = ref<'list' | 'grid' | 'columns' | 'detail'>('grid')
+  const isLoaded = ref(false)
 
   // Initialize
   let initPromise: Promise<void> | null = null
@@ -49,20 +50,6 @@ export const useProjectsStore = defineStore('projects', () => {
         })
       }
 
-      // 2. Ensure Default Project
-      if (!projects.value.some(p => p.id === 'default')) {
-        projects.value.push({
-          id: 'default',
-          name: 'Project One',
-          description: 'System default project',
-          connectionIds: [],
-          pairIds: [],
-          enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD'],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-      }
-
       // 4. Set Selection
       const settings = await storage.getSettings()
       let lastSelected = settings?.lastSelectedProjectId
@@ -81,20 +68,12 @@ export const useProjectsStore = defineStore('projects', () => {
       console.log('[Projects] Init - Last Selected ID:', lastSelected)
 
       // 5. Data Sanitization (Fix duplicate IDs from previous bugs)
-      // If multiple projects share 'default' ID, only the first one stays 'default'
-      let defaultCount = 0
       projects.value = projects.value.map(p => {
         // De-duplicate connectionIds and pairIds for every project
         const cleanConnectionIds = [...new Set(p.connectionIds || [])]
         const cleanPairIds = [...new Set(p.pairIds || [])]
 
         let newId = p.id
-        if (p.id === 'default') {
-          defaultCount++
-          if (defaultCount > 1) {
-            newId = generateId()
-          }
-        }
 
         return {
           ...p,
@@ -128,7 +107,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
       // Final Fallback
       if (!found) {
-        selectedProjectId.value = projects.value[0]?.id || 'default'
+        selectedProjectId.value = projects.value[0]?.id || null
       }
 
       // 6. Ensure isActive flag is consistent with selectedProjectId
@@ -137,6 +116,8 @@ export const useProjectsStore = defineStore('projects', () => {
       })
       // 7. Auto-Cleanup: Deduplicate connections and pairs on startup
       await cleanGarbageConnections()
+
+      isLoaded.value = true
     })()
 
     try {
@@ -242,7 +223,12 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   const removeProject = (id: string) => {
-    if (id === 'default') return // Cannot remove default project
+    // Check if we are deleting the protected system project
+    const projectToDelete = projects.value.find(p => p.id === id)
+    if (projectToDelete?.name === 'TheAndb System') {
+      console.warn('Cannot delete the protected system project.')
+      return
+    }
 
     // Check if we are deleting the currently selected project
     const wasSelected = selectedProjectId.value === id
@@ -250,9 +236,13 @@ export const useProjectsStore = defineStore('projects', () => {
     projects.value = projects.value.filter(p => p.id !== id)
 
     if (wasSelected) {
-      // Find another project to select, or fallback to default
-      const nextId = projects.value[0]?.id || 'default'
-      selectProject(nextId)
+      // Find another project to select, or fallback to null
+      const nextId = projects.value[0]?.id || null
+      if (nextId) {
+        selectProject(nextId)
+      } else {
+        selectedProjectId.value = null
+      }
     }
   }
 
@@ -456,10 +446,55 @@ export const useProjectsStore = defineStore('projects', () => {
 
     if (!quickProject.pairIds.includes(quickPair.id)) quickProject.pairIds.push(quickPair.id)
 
-    // 4. Set context
-    selectProject(quickProject.id)
-
     return quickPair
+  }
+
+  async function setupSystemProject(dbPath: string) {
+    const appStore = useAppStore()
+
+    // 1. Ensure System Project exists
+    let systemProject = projects.value.find(p => p.name === 'TheAndb System')
+    
+    if (!systemProject) {
+      systemProject = addProject({
+        name: 'TheAndb System',
+        description: 'System internal configuration database for TheAndb. Use caution.',
+        connectionIds: [],
+        pairIds: [],
+        enabledEnvironmentIds: ['DEV']
+      })
+    }
+
+    // 2. Check if a connection for this specific dbPath already exists in the project
+    const hasExistingConn = systemProject.connectionIds.some(connId => {
+      const conn = appStore.connections.find(c => c.id === connId)
+      return conn && conn.host === dbPath
+    })
+
+    if (hasExistingConn) {
+      return // Don't duplicate if it already exists
+    }
+
+    // 3. Create Connection pointing to internal DB
+    const isNew = systemProject.connectionIds.length === 0
+    const sysConn = appStore.addConnection({
+      name: isNew ? 'TheAndb Internal DB' : `TheAndb Internal DB (${new Date().toLocaleDateString()})`,
+      host: dbPath,
+      port: 0,
+      database: 'andb',
+      username: 'root',
+      environment: 'DEV',
+      status: 'idle',
+      type: 'sqlite'
+    }, systemProject.id)
+    
+    if (!systemProject.connectionIds.includes(sysConn.id)) systemProject.connectionIds.push(sysConn.id)
+
+    // Force explicit persist to catch edge cases during boot watcher
+    await Promise.all([
+      storage.saveProjects(projects.value),
+      storage.saveConnections(appStore.connections)
+    ])
   }
 
   /**
@@ -537,6 +572,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   return {
     projects,
+    isLoaded,
     selectedProjectId,
     currentProject,
     addProject,
@@ -547,6 +583,7 @@ export const useProjectsStore = defineStore('projects', () => {
     addItemToProject,
     removeItemFromProject,
     setupDemo,
+    setupSystemProject,
     createQuickDumpPair,
     cleanGarbageConnections,
     reloadData: init,

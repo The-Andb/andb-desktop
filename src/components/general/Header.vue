@@ -42,48 +42,55 @@
              <Breadcrumbs />
           </div>
         </div>
+
       </div>
 
       <!-- Central Toolbar (Contextual Pair or Single Selector) -->
       <div 
          v-if="['/compare', '/schema', '/history'].includes(route.path)" 
-         class="hidden lg:flex items-center bg-gray-50 dark:bg-gray-950 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300"
+         class="hidden lg:flex items-center gap-4 transition-all duration-300"
          :class="{'opacity-0 pointer-events-none scale-95': appStore.projectManagerMode}"
       >
         <!-- Dropdown Portion -->
-        <div class="flex items-center pl-2 space-x-2 border-r border-gray-200 dark:border-gray-700 pr-2">
-          <!-- PAIR SELECTOR (Available in Compare, Schema, History) -->
-          <div class="flex items-center space-x-2" :class="{ 'pr-2 border-r border-gray-200 dark:border-gray-700 mr-2': route.path !== '/compare' }">
-             <GitCompare class="w-4 h-4 text-indigo-500" />
-             <div class="relative">
-                 <select
-                  v-model="selectedPairId"
-                  @change="onPairChange"
-                  class="w-32 py-1.5 pl-2 pr-6 border-none !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer appearance-none truncate"
-                  :class="{'text-gray-400 font-normal': !selectedPairId}"
-                  :title="$t('header.pairContext')"
-                >
-                  <option value="" disabled class="text-gray-400 bg-white dark:bg-gray-800">{{ $t('header.selectPair') }}</option>
-                  <option v-for="pair in availablePairs" :key="pair.id" :value="pair.id" class="bg-white dark:bg-gray-800 font-bold text-gray-900 dark:text-white">
-                    {{ pair.name }}
-                  </option>
-                </select>
-                <!-- Custom Arrow for better styling -->
-                <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
-                     <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-             </div>
+        <div class="flex items-center space-x-4">
+          <!-- PAIR SELECTOR (Contextual by Mode for Compare, otherwise always show) -->
+          <div 
+            v-if="['/compare', '/schema', '/history'].includes(route.path)"
+            class="flex items-center"
+          >
+            <!-- PAIR DROP DOWN (Always show Auto/Pair context) -->
+            <div class="flex items-center space-x-2 animate-in fade-in slide-in-from-left duration-300 relative group">
+               <GitCompare v-if="route.path !== '/compare'" class="w-4 h-4 text-indigo-500" />
+               <div v-if="route.path === '/compare'" class="flex items-center gap-2 text-primary-500">
+                 <GitCompare class="w-4 h-4" />
+               </div>
+               <div class="relative">
+                   <select
+                     v-model="selectedPairId"
+                     @change="onPairChange"
+                     class="w-40 py-1 pl-1 pr-6 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer appearance-none truncate transition-colors"
+                     :class="{'text-gray-400 font-normal': !selectedPairId}"
+                     :title="$t('header.pairContext')"
+                   >
+                     <option value="" disabled class="text-gray-400 bg-white dark:bg-gray-800">{{ $t('header.selectPair') }}</option>
+                     <option v-for="pair in availablePairs" :key="pair.id" :value="pair.id" class="bg-white dark:bg-gray-800 font-bold text-gray-900 dark:text-white">
+                       {{ pair.name }}
+                     </option>
+                   </select>
+                   <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
+                        <ChevronDown class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                   </div>
+               </div>
+            </div>
           </div>
           
           <!-- SINGLE DB SELECTOR (Available in Schema, History) -->
-          <div v-if="route.path !== '/compare'" class="flex items-center space-x-2">
+          <div v-if="route.path !== '/compare'" class="flex items-center space-x-2 animate-in fade-in slide-in-from-right duration-300 relative group">
              <Database class="w-4 h-4 text-primary-500" />
              <div class="relative flex items-center">
                 <select
                   v-model="appStore.selectedConnectionId"
-                  class="pr-8 py-1.5 border-none !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer !appearance-none"
+                  class="w-40 py-1 pl-1 pr-6 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 !bg-transparent text-gray-900 dark:text-white text-sm font-bold focus:ring-0 cursor-pointer !appearance-none truncate transition-colors"
                 >
                   <option value="" disabled>{{ $t('header.selectDatabase') }}</option>
                   <option v-for="conn in appStore.filteredConnections" :key="conn.id" :value="conn.id" class="bg-white dark:bg-gray-800">
@@ -91,26 +98,33 @@
                   </option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
-                  <ChevronDown class="h-4 w-4 text-gray-400" />
+                  <ChevronDown class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 </div>
              </div>
           </div>
         </div>
 
+        <div class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2"></div>
+
         <!-- Unified Action Group -->
-        <div class="flex items-center space-x-1 px-1">
+        <div class="flex items-center space-x-1">
           <!-- Verify Action (Contextual) -->
           <button
             @click="handleContextualTest"
-            class="p-2 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all flex items-center group relative"
-            :class="{ 'opacity-50 cursor-not-allowed': isContextTesting }"
+            class="p-2 rounded-lg transition-all flex items-center group relative border"
+            :class="[
+              isContextTesting ? 'bg-primary-50 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800/50 cursor-wait' : '',
+              !isContextTesting && contextTestResult === 'success' ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50 text-green-600 dark:text-green-400 shadow-sm shadow-green-500/10' : '',
+              !isContextTesting && contextTestResult === 'failed' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 shadow-sm shadow-red-500/10' : '',
+              !isContextTesting && (contextTestResult === 'idle' || !contextTestResult) ? 'bg-white dark:bg-gray-800 border-transparent hover:border-gray-200 dark:hover:border-gray-700 text-gray-400 hover:text-primary-500' : ''
+            ]"
             :disabled="isContextTesting"
             :title="route.path === '/compare' ? $t('header.verifyPair') : $t('header.verifyConnection')"
           >
             <Loader2 v-if="isContextTesting" class="w-4 h-4 animate-spin text-primary-500" />
-            <Check v-else-if="contextTestResult === 'success'" class="w-4 h-4 text-green-500" />
-            <AlertCircle v-else-if="contextTestResult === 'failed'" class="w-4 h-4 text-red-500" />
-            <ShieldCheck v-else class="w-4 h-4 text-gray-400 group-hover:text-primary-500" />
+            <CheckCircle2 v-else-if="contextTestResult === 'success'" class="w-4 h-4" />
+            <AlertCircle v-else-if="contextTestResult === 'failed'" class="w-4 h-4" />
+            <ShieldCheck v-else class="w-4 h-4" />
           </button>
 
           <!-- Reload Action -->
@@ -239,15 +253,15 @@ import {
   Settings,
   Info,
   Loader2,
-  Check,
+  CheckCircle2,
   AlertCircle,
   GitCompare,
-  Database,
-  Download,
-  Folder,
-  Layers,
   LayoutGrid as LayoutGridIcon,
-  ChevronDown
+  ChevronDown,
+  Database,
+  Layers,
+  Download,
+  Folder
 } from 'lucide-vue-next'
 
 import { useUpdaterStore } from '@/stores/updater'
@@ -310,6 +324,10 @@ onMounted(() => {
   if (route.path === '/schema' && !appStore.selectedConnectionId && connectionPairsStore.activePair) {
     appStore.selectedConnectionId = connectionPairsStore.activePair.source?.id || ''
   }
+  // Auto-pick first pair if none selected and on compare route
+  if (['/compare'].includes(route.path) && !connectionPairsStore.selectedPairId && availablePairs.value.length > 0) {
+    connectionPairsStore.setSelectedPair(availablePairs.value[0].id)
+  }
 })
 
 // Watch for route changes to apply auto-pick logic
@@ -317,7 +335,12 @@ watch(() => route.path, (newPath) => {
   if (['/schema', '/history'].includes(newPath) && !appStore.selectedConnectionId && connectionPairsStore.activePair) {
     appStore.selectedConnectionId = connectionPairsStore.activePair.source?.id || ''
   }
+  // Auto-pick first pair if none selected when navigating to compare routes
+  if (['/compare'].includes(newPath) && !connectionPairsStore.selectedPairId && availablePairs.value.length > 0) {
+    connectionPairsStore.setSelectedPair(availablePairs.value[0].id)
+  }
 })
+
 
 // Watch for pair changes to update auto-pick
 watch(() => connectionPairsStore.selectedPairId, (newId) => {
@@ -340,6 +363,13 @@ const selectedPairId = computed({
 })
 
 const availablePairs = computed(() => connectionPairsStore.availablePairs)
+
+// Watch for available pairs changes to auto-select if empty
+watch(availablePairs, (pairs) => {
+   if (['/compare'].includes(route.path) && !connectionPairsStore.selectedPairId && pairs.length > 0) {
+      connectionPairsStore.setSelectedPair(pairs[0].id)
+   }
+}, { immediate: true })
 
 const selectedProjectModel = computed({
   get: () => projectsStore.selectedProjectId,
