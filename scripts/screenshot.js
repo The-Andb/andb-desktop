@@ -24,7 +24,7 @@ async function capture() {
 
     const toDay = new Date();
     const theDay = toDay.toISOString().split('T')[0];
-    const outDir = path.join(__dirname, '../../andb-landing/public/screenshots/', theDay);
+    const outDir = path.join(__dirname, '../../andb-www/public/screenshots/', theDay);
     if (!fs.existsSync(outDir)) {
         fs.mkdirSync(outDir, { recursive: true });
     }
@@ -40,8 +40,8 @@ async function capture() {
     }
 
     const modes = [
-        { suffix: '', theme: 'dark' },
-        { suffix: '-light', theme: 'light' }
+        { suffix: '', theme: 'night-owl-dark' },
+        { suffix: '-light', theme: 'night-owl-light' }
     ];
 
     win.webContents.on('console-message', (event, level, message) => {
@@ -75,16 +75,17 @@ async function capture() {
                 await win.webContents.executeJavaScript(`
             try {
                 // FORCE THEME & BACKGROUNDS
-                if ('${mode.theme}' === 'light') {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.classList.add('light');
-                    document.body.style.backgroundColor = '#ffffff';
+                const isLight = '${mode.theme}'.includes('light');
+                const htmlClasses = ['dark', 'light', 'solarized-dark', 'night-owl-dark', 'night-owl-light'];
+                htmlClasses.forEach(c => document.documentElement.classList.remove(c));
+                document.documentElement.classList.add('${mode.theme}');
+                if (!isLight) document.documentElement.classList.add('dark'); // dark mode utility base
+
+                if (isLight) {
+                    document.body.style.backgroundColor = '#fbfbfb';
                 } else {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                    
                     // Deep Dark Mode for Screenshots (Fix "Gray Cast")
-                    const deepDark = '#020617'; // Slate-950/Near Black
+                    const deepDark = '#011627'; // Night Owl Dark Base
                     document.body.style.backgroundColor = deepDark;
                     
                     // Force #app and main containers to be deep dark
@@ -95,7 +96,7 @@ async function capture() {
                     const style = document.createElement('style');
                     style.textContent = \`
                         .dark .bg-gray-900 { background-color: \${deepDark} !important; }
-                        .dark .bg-gray-950 { background-color: #000000 !important; }
+                        .dark .bg-gray-950 { background-color: #01111d !important; }
                     \`;
                     document.head.appendChild(style);
                 }
