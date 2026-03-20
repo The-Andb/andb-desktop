@@ -300,7 +300,7 @@
         </div>
 
         <!-- Mode Toggle (Only visible when creating a new connection AND type supports restricted auth) -->
-        <div v-if="!editingTemplate && ['mysql', 'postgres'].includes(form.type)" class="px-8 pt-6 shrink-0">
+        <div v-if="!editingTemplate && ['mysql', 'postgres'].includes(form.type || '')" class="px-8 pt-6 shrink-0">
            <div class="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full sm:w-fit overflow-x-auto">
               <button @click="isUserConnectionMode = false"
                       class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
@@ -316,7 +316,7 @@
         </div>
 
         <!-- Secure Assistant Mode (ONLY for Restricted User setups) -->
-        <div v-if="isUserConnectionMode && (!editingTemplate || reconfigureMode) && ['mysql', 'postgres'].includes(form.type)" class="flex-1 flex flex-col min-h-0 pt-2">
+        <div v-if="isUserConnectionMode && (!editingTemplate || reconfigureMode) && ['mysql', 'postgres'].includes(form.type || '')" class="flex-1 flex flex-col min-h-0 pt-2">
            <SetupUserTemplate 
               :initialData="editingTemplate"
               @cancel="closeForm"
