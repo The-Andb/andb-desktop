@@ -183,8 +183,6 @@ import {
   PlusCircle,
   FileEdit,
   Terminal,
-  Copy,
-  Check,
   List,
   Workflow,
   Sigma
@@ -206,16 +204,7 @@ const props = defineProps<{
   targetIsStatic?: boolean
 }>()
 
-const copied = ref(false)
 const selectedItemKey = ref<string | null>(null) // State for selected item
-
-const copySql = () => {
-    let content = previewSql.value
-    if (!content) return
-    navigator.clipboard.writeText(content)
-    copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
-}
 
 // Reset selection when modal closes
 watch(() => props.isOpen, (newVal) => {

@@ -32,6 +32,7 @@ interface Settings {
   }
   isNotMigrateCondition: string
   sqlitePath: string
+  setupCompleted: boolean
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -45,7 +46,8 @@ const defaultSettings: Settings = {
     replacement: '@<EMAIL_DOMAIN>'
   },
   isNotMigrateCondition: 'test|OTE_',
-  sqlitePath: ''
+  sqlitePath: '',
+  setupCompleted: false
 }
 
 const loadSettingsAsync = async (currentSettings: any) => {

@@ -109,8 +109,8 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
     // Fallback from old default behavior to settings-based persistence
     const settings = await storage.getSettings()
-    if (settings && settings.lastSelectedPairId) {
-       selectedPairId.value = settings.lastSelectedPairId
+    if (settings && (settings as any).lastSelectedPairId) {
+       selectedPairId.value = (settings as any).lastSelectedPairId
     } else {
        const defaultPair = connectionPairs.value.find(p => p.isDefault)
        if (defaultPair) {
@@ -147,7 +147,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   watch(selectedPairId, newValue => {
     if (newValue) {
-      storage.updateSettings({ lastSelectedPairId: newValue })
+      storage.updateSettings({ lastSelectedPairId: newValue } as any)
     }
   })
 

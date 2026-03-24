@@ -1091,9 +1091,9 @@ const pickSqlitePath = async () => {
     if ((window as any).electronAPI && (window as any).electronAPI.pickAndMoveSqliteDb) {
         const result = await (window as any).electronAPI.pickAndMoveSqliteDb()
         
-        if (result && result.success && result.newPath) {
-            settingsStore.settings.sqlitePath = result.newPath
-            currentDbPath.value = result.newPath
+        if (result && result.success && result.path) {
+            settingsStore.settings.sqlitePath = result.path
+            currentDbPath.value = result.path
             const actionMsg = result.action === 'used_existing' 
               ? 'Now using the existing database in the selected folder.' 
               : 'Database moved/overwritten successfully.';
