@@ -1,5 +1,12 @@
 <template>
   <MainLayout>
+    <DeleteProjectConfirmModal
+      :is-open="isDeleteModalOpen"
+      :project-name="projectToDelete?.name || ''"
+      @close="isDeleteModalOpen = false"
+      @confirm="confirmDeleteProject"
+    />
+    
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full px-2">
         <!-- Breadcrumb + Inline Edit Title (Focus Mode Only) -->
@@ -52,6 +59,7 @@
           @delete="handleDeleteProject"
           @rename="handleRenameProject"
           @duplicate="handleDuplicateProject"
+          @toggle-protect="handleToggleProtectProject"
         />
         <ProjectsColumnsView 
           v-else
@@ -74,6 +82,7 @@ import { useAppStore } from '@/stores/app'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ProjectsColumnsView from '@/components/projects/ProjectsColumnsView.vue'
 import ProjectsListView from '@/components/projects/ProjectsListView.vue'
+import DeleteProjectConfirmModal from '@/components/projects/DeleteProjectConfirmModal.vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Folder } from 'lucide-vue-next'
@@ -152,12 +161,22 @@ const startEditTitle = () => {
   }
 }
 
+const isDeleteModalOpen = ref(false)
+const projectToDelete = ref<{id: string, name: string} | null>(null)
+
 const handleDeleteProject = (id: string) => {
   const project = projectsStore.projects.find(p => p.id === id)
   if (!project) return
   
-  if (confirm(t('projects.deleteConfirm', { name: project.name }))) {
-    projectsStore.removeProject(id)
+  projectToDelete.value = { id: project.id, name: project.name }
+  isDeleteModalOpen.value = true
+}
+
+const confirmDeleteProject = () => {
+  if (projectToDelete.value) {
+    projectsStore.removeProject(projectToDelete.value.id)
+    isDeleteModalOpen.value = false
+    projectToDelete.value = null
   }
 }
 
@@ -167,6 +186,13 @@ const handleRenameProject = (id: string, newName: string) => {
 
 const handleDuplicateProject = (id: string) => {
   projectsStore.duplicateProject(id)
+}
+
+const handleToggleProtectProject = (id: string) => {
+  const project = projectsStore.projects.find((p: any) => p.id === id)
+  if (project) {
+    projectsStore.updateProject(id, { isProtected: !project.isProtected })
+  }
 }
 
 

@@ -1,4 +1,4 @@
--- The Andb Live Demo Target Dataset
+-- TheAndb Live Demo Target Dataset
 -- Exported: 2026-01-22
 
 CREATE TABLE `users` (

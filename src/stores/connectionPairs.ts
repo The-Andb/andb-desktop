@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useAppStore } from './app'
-import { useProjectsStore } from './projects'
+import { useProjectsStore, projectChangedBus } from './projects'
 import { storage } from '../utils/storage-ipc'
 
 
@@ -107,18 +107,26 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       // Not automatically assigning demo pairs anymore
     }
 
-    // Set default selection
-    const defaultPair = connectionPairs.value.find(p => p.isDefault)
-    if (defaultPair) {
-      selectedPairId.value = defaultPair.id
+    // Fallback from old default behavior to settings-based persistence
+    const settings = await storage.getSettings()
+    if (settings && settings.lastSelectedPairId) {
+       selectedPairId.value = settings.lastSelectedPairId
+    } else {
+       const defaultPair = connectionPairs.value.find(p => p.isDefault)
+       if (defaultPair) {
+         selectedPairId.value = defaultPair.id
+       }
     }
   }
 
   // Call init
   init()
 
-  const selectedPairId = ref('1') // Default to first pair
-
+  const selectedPairId = ref('')
+  
+  projectChangedBus.on(() => {
+    selectedPairId.value = ''
+  })
 
   // Watch and auto-save to storage
   watch(
@@ -136,6 +144,12 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     },
     { deep: true }
   )
+
+  watch(selectedPairId, newValue => {
+    if (newValue) {
+      storage.updateSettings({ lastSelectedPairId: newValue })
+    }
+  })
 
   // Getters
   const enabledEnvironments = computed(() => {
@@ -164,10 +178,6 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     // Only use environments that have at least one connection IN THIS PROJECT
     const sortedEnvs = [...environments.value]
       .filter(env => project.enabledEnvironmentIds.includes(env.id))
-      .filter(env => project.connectionIds.some(cid => {
-        const conn = appStore.resolvedConnections.find(c => c.id === cid)
-        return conn && conn.environment === env.id
-      }))
       .sort((a, b) => a.order - b.order)
 
     if (sortedEnvs.length < 2) return customPairs
@@ -210,11 +220,12 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   // Auto-select first pair if current one becomes invalid (e.g. project switch)
   watch(() => availablePairs.value, (newPairs) => {
+    const projectsStore = useProjectsStore()
     if (newPairs.length > 0) {
       if (!newPairs.some(p => p.id === selectedPairId.value)) {
         selectedPairId.value = newPairs[0].id
       }
-    } else {
+    } else if (projectsStore.isLoaded) {
       selectedPairId.value = ''
     }
   }, { immediate: true })
@@ -346,6 +357,28 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     const index = connectionPairs.value.findIndex(pair => pair.id === id)
     if (index !== -1) {
       connectionPairs.value[index] = { ...connectionPairs.value[index], ...updates }
+    } else if (id.startsWith('auto-')) {
+      // Materialize auto-generated pairs into custom pairs upon user edit
+      const basePair = availablePairs.value.find(p => p.id === id)
+      if (basePair) {
+        const newId = Date.now().toString()
+        const newPair: ConnectionPair = {
+          ...basePair,
+          ...updates,
+          id: newId,
+          isDefault: basePair.isDefault // preserve default status if applicable
+        }
+        connectionPairs.value.push(newPair)
+        
+        // Link to project
+        const projectsStore = useProjectsStore()
+        projectsStore.addItemToProject('pair', newId)
+
+        // If it was the currently selected pair, update selection natively
+        if (selectedPairId.value === id) {
+           selectedPairId.value = newId
+        }
+      }
     }
   }
 

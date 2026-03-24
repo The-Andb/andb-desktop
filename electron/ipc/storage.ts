@@ -1,14 +1,16 @@
 import { app } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
-import Store from 'electron-store'
 import * as crypto from 'crypto'
 import { SecurityService } from '../services/security'
+import { desktopStorageStrategy } from '../bootstrap'
+import { GlobalConnectionEntity } from '../storage/entities/gui/GlobalConnectionEntity'
+import { GuiPreferenceEntity } from '../storage/entities/gui/GuiPreferenceEntity'
 
-let _store: Store | null = null
-function getStore() {
-  if (!_store) _store = new Store()
-  return _store
+function getRepository(entity: any) {
+  const dataSource = desktopStorageStrategy.getDataSource()
+  if (!dataSource || !dataSource.isInitialized) throw new Error('Database not initialized')
+  return dataSource.getRepository(entity)
 }
 
 /**
@@ -16,20 +18,46 @@ function getStore() {
  */
 export async function handleStorageGet(_event: any, key: string) {
   try {
-    let data = getStore().get(key)
-
-    // Decrypt passwords if connections or templates
-    if ((key === 'connections' || key === 'connectionTemplates') && Array.isArray(data)) {
+    if (key === 'connections' || key === 'connectionTemplates') {
+      const repo = getRepository(GlobalConnectionEntity)
+      const data = await repo.find({ order: { name: 'ASC' } })
+      
       const security = SecurityService.getInstance()
-      data = data.map((conn: any) => {
+      const decryptedData = data.map((conn: any) => {
         if (conn.password) {
-          conn.password = security.decrypt(conn.password)
+          try {
+            conn.password = security.decrypt(conn.password)
+          } catch(e) {}
+        }
+        if (conn.ssh_config_json) {
+           conn.ssh = JSON.parse(conn.ssh_config_json)
+        }
+        if (conn.permissions_json) {
+           conn.permissions = JSON.parse(conn.permissions_json)
+        }
+        if (conn.domain_mapping_json) {
+           conn.domainMapping = JSON.parse(conn.domain_mapping_json)
+        }
+        if (conn.product_settings_json) {
+           conn.productSettings = JSON.parse(conn.product_settings_json)
         }
         return conn
       })
+      return { success: true, data: decryptedData }
     }
 
-    return { success: true, data }
+    // Generic Preferences
+    const repo = getRepository(GuiPreferenceEntity)
+    const pref = await repo.findOne({ where: { key } })
+    
+    let result = pref ? pref.value : undefined
+    try {
+      if (result && (result.startsWith('{') || result.startsWith('['))) {
+        result = JSON.parse(result)
+      }
+    } catch { }
+
+    return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }
   }
@@ -40,19 +68,41 @@ export async function handleStorageGet(_event: any, key: string) {
  */
 export async function handleStorageSet(_event: any, key: string, value: any) {
   try {
-    // Encrypt passwords if connections or templates
     if ((key === 'connections' || key === 'connectionTemplates') && Array.isArray(value)) {
+      const repo = getRepository(GlobalConnectionEntity)
       const security = SecurityService.getInstance()
-      value = value.map((conn: any) => {
-        const c = { ...conn }
-        if (c.password) {
-          c.password = security.encrypt(c.password)
+      
+      for (const conn of value) {
+        let encryptedPassword = conn.password;
+        if (encryptedPassword) {
+          encryptedPassword = security.encrypt(encryptedPassword)
         }
-        return c
-      })
+        await repo.upsert({
+          id: conn.id,
+          name: conn.name,
+          environment: conn.environment || null,
+          type: conn.type || 'mysql',
+          host: conn.host || null,
+          port: conn.port || null,
+          database: conn.database || null,
+          username: conn.username || null,
+          password: encryptedPassword || null,
+          ssh_config_json: conn.ssh ? JSON.stringify(conn.ssh) : null,
+          permissions_json: conn.permissions ? JSON.stringify(conn.permissions) : null,
+          templateId: conn.templateId || null,
+          domain_mapping_json: conn.domainMapping ? JSON.stringify(conn.domainMapping) : null,
+          product_settings_json: conn.productSettings ? JSON.stringify(conn.productSettings) : null,
+          updated_at: new Date()
+        }, ['id']);
+      }
+      return { success: true }
     }
 
-    getStore().set(key, value)
+    // Generic Preferences
+    const repo = getRepository(GuiPreferenceEntity)
+    const serialized = typeof value === 'object' ? JSON.stringify(value) : String(value)
+    await repo.upsert({ key, value: serialized }, ['key'])
+
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -64,7 +114,8 @@ export async function handleStorageSet(_event: any, key: string, value: any) {
  */
 export async function handleStorageDelete(_event: any, key: string) {
   try {
-    getStore().delete(key)
+    const repo = getRepository(GuiPreferenceEntity)
+    await repo.delete({ key })
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -76,7 +127,9 @@ export async function handleStorageDelete(_event: any, key: string) {
  */
 export async function handleStorageHas(_event: any, key: string) {
   try {
-    return { success: true, data: getStore().has(key) }
+    const repo = getRepository(GuiPreferenceEntity)
+    const count = await repo.count({ where: { key } })
+    return { success: true, data: count > 0 }
   } catch (error: any) {
     return { success: false, error: error.message }
   }
@@ -87,7 +140,8 @@ export async function handleStorageHas(_event: any, key: string) {
  */
 export async function handleStorageClear() {
   try {
-    getStore().clear()
+    await getRepository(GuiPreferenceEntity).clear()
+    await getRepository(GlobalConnectionEntity).clear()
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -202,5 +256,29 @@ export async function handleUpdateFeatureFlag(_event: any, args: any) {
     return await BackgroundWorker.getInstance().updateFeatureFlag(key, enabled)
   } catch (e: any) {
     return { success: false, error: e.message }
+  }
+}
+
+/**
+ * Handle SQLite User Settings Get
+ */
+export async function handleGetUserSettings() {
+  try {
+    const settings = await desktopStorageStrategy.getUserSettings()
+    return { success: true, data: settings }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle SQLite User Settings Save
+ */
+export async function handleSaveUserSetting(_event: any, key: string, value: any) {
+  try {
+    await desktopStorageStrategy.saveUserSetting(key, value)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }

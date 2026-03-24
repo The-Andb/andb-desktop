@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useProjectsStore } from './projects'
+import { useProjectsStore, projectChangedBus } from './projects'
 
 export interface Operation {
   id: string
@@ -150,6 +150,10 @@ export const useOperationsStore = defineStore('operations', () => {
     operations.value = operations.value.filter(op => op.projectId !== projectId)
     saveToStorage()
   }
+
+  projectChangedBus.on(() => {
+    clearOperations()
+  })
 
   const clearOldOperations = (daysToKeep: number = 30) => {
     const cutoffDate = new Date()

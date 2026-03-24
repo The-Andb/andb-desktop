@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { projectChangedBus } from './projects'
 
 export interface LogEntry {
   message: string
@@ -23,6 +24,10 @@ export const useConsoleStore = defineStore('console', () => {
   function clearLogs() {
     logs.value = []
   }
+
+  projectChangedBus.on(() => {
+    clearLogs()
+  })
 
   function setVisibility(visible: boolean) {
     isVisible.value = visible

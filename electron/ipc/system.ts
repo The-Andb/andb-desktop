@@ -26,6 +26,17 @@ export async function handlePickFile(_event: any, options: any) {
 }
 
 /**
+ * Generic Open Directory Dialog
+ */
+export async function handlePickDirectory(_event: any) {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory']
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+  return result.filePaths[0]
+}
+
+/**
  * Check file permissions (especially for SSH keys)
  */
 export async function handleCheckFilePermissions(_event: any, filePath: string) {
@@ -59,7 +70,7 @@ export async function handleSaveDumpFile(_event: any, sourcePath: string) {
 
     fs.copyFileSync(sourcePath, targetPath)
     if ((global as any).logger) (global as any).logger.info(`File uploaded: ${sourcePath} -> ${targetPath}`)
-    return targetPath 
+    return targetPath
   } catch (error) {
     if ((global as any).logger) (global as any).logger.error('Failed to save dump file:', error)
     throw error
@@ -145,7 +156,7 @@ export async function handleExecuteAndbCommand(_event: any, command: string, arg
     const { exec } = require('child_process')
     const { promisify } = require('util')
     const execAsync = promisify(exec)
-    
+
     // Safety check: only allow andb commands
     if (!command.startsWith('andb')) {
       return { success: false, error: 'Only andb commands allowed' }

@@ -179,7 +179,8 @@ export const useProjectNavigation = () => {
         title = String(item.name)
 
         try {
-          const schemas = await Andb.getSchemas()
+          const schemasRes = await Andb.getSchemas()
+          const schemas = schemasRes.data || []
 
           // Use .find() because schemas is an Array of environments
           const envName = item.parentConn?.environment

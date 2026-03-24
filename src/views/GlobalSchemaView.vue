@@ -415,10 +415,11 @@ import {
   Filter,
   Flame
 } from 'lucide-vue-next'
-import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
+import { useNotificationStore } from '@/stores/notification'
 import TableDetailedView from '@/components/ddl/TableDetailedView.vue'
 import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
+import { useSchemaLoader } from '@/composables/useSchemaLoader'
 
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
@@ -460,11 +461,6 @@ const getIconForType = (type: string) => {
   const key = type?.toLowerCase() as keyof typeof typeIcons
   return typeIcons[key] || Database
 }
-
-// State
-const loading = ref(false)
-const statusMessage = ref('')
-const error = ref<string | null>(null)
 const selectedConnectionId = computed({
   get: () => appStore.selectedConnectionId,
   set: (val) => appStore.selectedConnectionId = val
@@ -497,30 +493,21 @@ const focusType = ref<string | undefined>(undefined)
 const treeExpandCmd = ref<{ action: 'expand' | 'collapse', ts: number } | null>(null)
 const ddlViewerRef = ref<any>(null)
 
-const schemaData = ref({
-  tables: [] as any[],
-  procedures: [] as any[],
-  functions: [] as any[],
-  views: [] as any[],
-  triggers: [] as any[],
-  events: [] as any[]
-})
+// Initialize schema loader
+const {
+  loading,
+  statusMessage,
+  schemaData,
+  allResults,
+  selectedDbLastUpdated,
+  loadSchema
+} = useSchemaLoader(
+  // Reconstruct ref matching structure required by the composable
+  computed(() => appStore.selectedConnectionId),
+  selectedItem,
+  selectedFilterType
+)
 
-const allResults = computed(() => {
-  const base = [
-    ...schemaData.value.tables.map(i => ({ ...i, type: 'tables' })),
-    ...schemaData.value.procedures.map(i => ({ ...i, type: 'procedures' })),
-    ...schemaData.value.functions.map(i => ({ ...i, type: 'functions' })),
-    ...schemaData.value.views.map(i => ({ ...i, type: 'views' })),
-    ...schemaData.value.triggers.map(i => ({ ...i, type: 'triggers' })),
-    ...schemaData.value.events.map(i => ({ ...i, type: 'events' }))
-  ]
-  const hasData = base.length > 0
-  if (hasData) {
-    base.unshift({ name: 'Interactive ERD', type: 'diagrams' })
-  }
-  return base
-})
 const navigatableNames = computed(() => {
   return allResults.value
     .filter(i => i.type !== 'all' && i.type !== 'diagrams')
@@ -624,8 +611,6 @@ const clearSearch = () => {
   searchQuery.value = ''
   contentSearchResults.value = []
 }
-
-const selectedDbLastUpdated = ref<string | null>(null)
 
 watch(selectedItem, () => {
     // Reset to code view when finding a new item
@@ -877,229 +862,6 @@ const stopResize = () => {
 }
 
 // Actions
-const loadSchema = async (forceRefresh = false, keepSelection = false) => {
-  if (!selectedConnectionId.value) return
-  
-  const conn = appStore.getConnectionById(selectedConnectionId.value)
-  if (!conn) return
-
-  loading.value = true
-  if (forceRefresh) {
-    appStore.isSchemaFetching = true; // Lock global fetch state
-    appStore.schemaFetchProgress = null;
-    consoleStore.setVisibility(true) // Open console only on manual refresh
-    statusMessage.value = t('schema.fetchingFromDb')
-    consoleStore.clearLogs()
-  } else {
-    // Silent load from cache
-    statusMessage.value = t('schema.loadingCache')
-  }
-  
-  error.value = null
-  
-  let preservedName = null
-  let preservedType = null
-  
-  if (keepSelection || forceRefresh) {
-    preservedName = selectedItem.value?.name
-    preservedType = selectedItem.value?.type
-  } else {
-    // Reset selection if changing DBs normally
-    selectedItem.value = null
-    selectedFilterType.value = 'all'
-  }
-
-  try {
-    if (forceRefresh) {
-      // REAL FETCH: Hit the database
-      consoleStore.addLog(t('schema.connecting'), 'info')
-      
-      // Atomic Refresh Logic
-      if (selectedItem.value) {
-        // 1. Refresh specific object
-        // ... (no clearing for atomic item refresh usually)
-        let objTypes: any[] = [selectedItem.value.type.toLowerCase()] // e.g., 'tables'
-        let exportName: string | undefined = selectedItem.value.name
-
-        // Special handling for Diagrams (fetch all tables instead)
-        if (selectedItem.value.type === 'diagrams') {
-          objTypes = ['tables']
-          exportName = undefined
-          consoleStore.addLog(`Refreshing tables for Interactive ERD...`, 'info')
-        } else {
-          consoleStore.addLog(`Refreshing single object: ${selectedItem.value.name} (${selectedItem.value.type})`, 'info')
-        }
-        
-        // Helper to run export
-        const runExports = async () => {
-          const env = conn.environment
-          const cmd = `andb export --source ${env}` + (exportName ? ` --name ${exportName}` : '')
-          consoleStore.addLog(cmd, 'cmd')
-         
-          await Andb.export(conn, null as any, { 
-            type: objTypes[0], // Pass specific type (e.g., 'procedures') for targeted refresh
-            env, 
-            name: exportName 
-          })
-            .then(res => {
-              const summary = res.data || {}
-              Object.entries(summary).forEach(([type, count]) => {
-                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
-              })
-              return res
-            })
-        }
-        await runExports()
-
-      } else if (selectedFilterType.value && selectedFilterType.value !== 'all') {
-        // 2. Refresh specific category
-        const env = conn.environment
-        const type = selectedFilterType.value as any
-        const cmd = `andb export --source ${env} --type ${type}`
-        consoleStore.addLog(cmd, 'cmd')
-        
-        await Andb.export(conn, null as any, { 
-            type,
-            env
-        })
-          .then(res => {
-            const summary = res.data || {}
-            Object.entries(summary).forEach(([type, count]) => {
-                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
-            })
-            return res
-          })
-
-      } else {
-        // 3. FULL REFRESH
-        // POWERFUL CLEANUP HERE
-        consoleStore.addLog(t('schema.cleaningCache'), 'warn')
-        const clearResult = await Andb.clearConnectionData(conn)
-        
-        if (clearResult) {
-          consoleStore.addLog(`Cleared ${clearResult.ddlCount || 0} DDL records`, 'info')
-          consoleStore.addLog(`Cleared ${clearResult.comparisonCount || 0} Comparison records`, 'info')
-        }
-        
-        consoleStore.addLog(t('schema.refreshed'), 'info')
-        
-        const cmd = `andb export --source ${conn.environment}`
-        consoleStore.addLog(cmd, 'cmd')
-   
-        await Andb.export(conn, null as any, { 
-          type: 'all' as any,
-          environment: conn.environment 
-        })
-          .then(res => {
-            const summary = res.data || {}
-            Object.entries(summary).forEach(([type, count]) => {
-                consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
-            })
-            return res
-          })
-      }
-
-      // Update cache logic stays same - we just refreshed SQLite state.
-      // Now falling through to load from cache will pick up changes.
-      
-      notificationStore.add({
-        type: 'success',
-        title: t('schema.refreshed'),
-        message: t('schema.refreshedDesc', { name: conn.name })
-      })
-      
-      consoleStore.addLog(t('schema.refreshSuccess'), 'success')
-      
-      // Trigger sidebar update to reflect new cache
-      sidebarStore.triggerRefresh()
-
-    } 
-    
-    // Always load from cache to update UI state
-    {
-      // ... cache fetch ...
-      // CACHE FETCH: Load from SQLite via Andb.getSchemas()
-      console.log('[GlobalSchemaView] loadSchema called. ConnId:', selectedConnectionId.value, 'Filter:', selectedFilterType.value)
-      
-      // The 'conn' variable is already defined at the top of loadSchema, so we don't redefine it here.
-      // If it was null, we would have returned earlier.
-
-      const allSchemas = await Andb.getSchemas()
-      console.log('[GlobalSchemaView] Fetched schemas:', allSchemas?.length, 'environments')
-
-      const envData = allSchemas?.find((e: any) => e.name === conn.environment)
-      if (!envData) console.warn('[GlobalSchemaView] Environment not found in schemas:', conn.environment)
-
-      const targetDbName = conn.database || conn.name
-      // Try exact, then case-insensitive match for both Name and Database
-      const dbData = envData?.databases?.find((d: any) => {
-         const dName = d.name.toLowerCase()
-         return dName === targetDbName.toLowerCase() || 
-                (conn.name && dName === conn.name.toLowerCase()) ||
-                (conn.database && dName === conn.database.toLowerCase())
-      })
-      
-      console.log('[GlobalSchemaView] Looking for DB:', targetDbName, 'Found:', !!dbData, 'In env:', conn.environment) 
-
-      if (dbData) {
-        // Set last updated time from DB metadata
-        selectedDbLastUpdated.value = dbData.lastUpdated || null
-
-        console.log('[GlobalSchemaView] DB Data counts - Tables:', dbData.tables?.length, 'Procs:', dbData.procedures?.length)
-        
-        // Update the reactive state (source of truth for computed 'allResults')
-        schemaData.value = {
-          tables: dbData.tables || [],
-          procedures: dbData.procedures || [],
-          functions: dbData.functions || [],
-          views: dbData.views || [],
-          triggers: dbData.triggers || [],
-          events: dbData.events || []
-        }
-        
-        // No need to manually assign to allResults (it's computed!)
-        // Sorting and filtering is handled by 'filteredResults' computed property
-      } else {
-        selectedDbLastUpdated.value = null
-        // Clear data
-        schemaData.value = {
-          tables: [],
-          procedures: [],
-          functions: [],
-          views: [],
-          triggers: [],
-          events: []
-        }
-        
-        if (conn.status === 'connected') {
-            // Auto-refresh if empty?
-            // console.log('Auto-triggering refresh...')
-        }
-      }
-    }
-
-  } catch (err: any) {
-    error.value = err.message
-    consoleStore.addLog(`Error loading schema: ${err.message}`, 'error')
-    notificationStore.add({
-      type: 'error',
-      title: t('schema.errorLoading'),
-      message: err.message
-    })
-  } finally {
-    loading.value = false
-    appStore.isSchemaFetching = false; // Release global fetch state
-    appStore.schemaFetchProgress = null;
-    
-    // Restore selection if we intended to keep it
-    if (preservedName && preservedType) {
-      const newItem = allResults.value.find(i => i.name === preservedName && i.type === preservedType)
-      if (newItem) {
-        selectedItem.value = newItem
-      }
-    }
-  }
-}
 
 watch(() => appStore.selectedConnectionId, async (newId) => {
   if (newId) {
@@ -1131,11 +893,10 @@ const selectItem = (item: any) => {
     activeSearchLine.value = null
   }
   selectedItem.value = item
-  // If DDL is not already in item, we might need to fetch it
-  // Ensure we are showing the correct filter type if it doesn't match
+  
+  // If we are currently strongly filtering by a DIFFERENT type, switch to the item's type so it's visible.
+  // But if we are already viewing 'all', keep it as 'all' so other headers don't disappear!
   if (item.type && item.type !== 'diagrams' && selectedFilterType.value !== 'all' && selectedFilterType.value !== item.type) {
-    selectedFilterType.value = item.type
-  } else if (item.type && selectedFilterType.value === 'all' && item.type !== 'diagrams') {
     selectedFilterType.value = item.type
   }
 }
@@ -1225,8 +986,14 @@ const handleObjectSelected = (e: any) => {
     // Clear search to ensure the object is visible
     searchQuery.value = ''
     
-    if (selectedFilterType.value !== type && type !== 'all') {
+    if (selectedFilterType.value !== type && type !== 'all' && selectedFilterType.value !== 'all') {
       selectedFilterType.value = type
+    }
+    
+    // Auto-expand: pulse focusType so SchemaTreeMode expands the correct category
+    if (type && type !== 'all') {
+      focusType.value = undefined
+      setTimeout(() => { focusType.value = type }, 50)
     }
     
     // If connection changed or no results, try load from cache
@@ -1302,20 +1069,6 @@ onMounted(() => {
   window.addEventListener('category-selected', handleCategorySelected)
   window.addEventListener('object-selected', handleObjectSelected)
   window.addEventListener('database-selected', handleDatabaseSelected)
-
-  // Global IPC progress listener
-  if (window.electronAPI && window.electronAPI.onAndbProgress) {
-    window.electronAPI.onAndbProgress((_event: any, data: any) => {
-      if (data.operation === 'export') {
-        appStore.schemaFetchProgress = {
-          current: data.current || 0,
-          total: data.total || 0,
-          type: data.type || '',
-          objectName: data.objectName || ''
-        }
-      }
-    })
-  }
 
   // Handle deep link selection from other views (like Compare)
   const processDeepLink = () => {

@@ -1,5 +1,5 @@
 common:
-  dashboard: 'Bảng điều khiển'
+  dashboard: 'Dashboard'
   all: 'Tất cả'
   overview: 'Tổng quan'
   database: 'Cơ sở dữ liệu'
@@ -13,8 +13,11 @@ common:
   import: 'Nhập'
   scripts: 'Scripts'
   settings: 'Cài đặt'
+  integrations: 'Tích hợp'
+  instantCompare: 'So sánh Tốc hành'
   save: 'Lưu'
   saving: 'Đang lưu...'
+  processing: 'Đang xử lý...'
   download: 'Tải xuống'
   cancel: 'Hủy'
   error: 'Đã xảy ra lỗi'
@@ -31,6 +34,8 @@ common:
   back: 'Quay lại'
   copied: 'Đã sao chép'
   copy: 'Sao chép'
+  collapse: 'Thu gọn'
+  expand: 'Mở rộng'
   loadingReport: 'Đang tải dữ liệu báo cáo...'
   noReports: 'Không tìm thấy báo cáo'
   generateReportDesc: 'Hãy tạo một báo cáo để hiển thị ở đây'
@@ -85,7 +90,7 @@ navigation:
     triggers: 'Triggers'
 
 dashboard:
-  title: 'Bảng điều khiển'
+  title: 'Dashboard'
   subtitle: 'Tổng quan hoạt động'
   projectSettings: 'Cài đặt Dự Án'
   switchProject: 'Chuyển Dự Án'
@@ -95,8 +100,8 @@ dashboard:
   samples: 'Mẫu'
   loading: 'Đang tải'
   refresh: 'Làm mới'
-  refreshDashboard: 'Làm mới Bảng điều khiển'
-  projectDashboard: 'Bảng điều khiển dự án'
+  refreshDashboard: 'Làm mới Dashboard'
+  projectDashboard: 'Dashboard dự án'
   reports: 'Báo cáo'
   active: 'Hoạt động'
   configured: 'Đã cấu hình'
@@ -169,10 +174,10 @@ header:
   about: 'Giới thiệu'
 
 about:
-  title: 'The Andb'
+  title: 'TheAndb'
   subtitle: 'Công cụ di trú cơ sở dữ liệu đơn giản nhất'
   version: 'Phiên bản'
-  author: 'The Andb'
+  author: 'TheAndb'
   license: 'GPL-3.0'
   copyright: '© 2024 - 2026 {author}. Bảo lưu mọi quyền.'
   dmca: 'Được bảo vệ bởi DMCA | Phần mềm Độc quyền'
@@ -481,7 +486,7 @@ settings:
     subtitle: 'Quản lý mã hóa và xác thực truy cập'
     publicKey: 'Khóa công khai'
     active: 'Đang hoạt động'
-    publicKeyDesc: 'Khóa công khai này được sử dụng để mã hóa mật khẩu kết nối của bạn tại địa phương. Nó là duy nhất cho bản cài đặt này.'
+    publicKeyDesc: 'Khóa công khai này được sử dụng để mã hóa mật khẩu cấu hình Database tại máy của bạn trước khi chúng được lưu trữ vào file cấu hình (SQLite). Khóa bí mật (Private Key) được bảo vệ vô hình trong OS Keychain của hệ điều hành, đảm bảo chỉ có thiết bị của bạn mới đọc được mật khẩu này.'
     dangerZone: 'Vùng nguy hiểm'
     regenerateWarning: 'Việc tạo lại các khóa mã hóa sẽ vô hiệu hóa TẤT CẢ dữ liệu mật khẩu hiện đang được lưu trong các kết nối của bạn. Bạn sẽ cần nhập lại thông tin đăng nhập cho mọi kết nối. Chỉ sử dụng nếu bạn nghi ngờ khóa của mình bị lộ.'
     regenerateKeys: 'Tạo lại & Xoay vòng Khóa'
@@ -625,7 +630,7 @@ migration:
   objectLabel: 'Đối tượng cần di trú'
   confirmBatch: 'Bắt đầu di trú từ {source} sang {target}?'
   totalItems: 'Tổng mục'
-  typesChanged: 'Loại đã thay đổi'
+  typesChanged: 'Loại SQL Object'
   snapshotNote: 'Một bản snapshot DDL trước khi di trú sẽ được lưu vào lịch sử.'
   confirmBtnBatch: 'Di trú {count} mục'
   confirmBtnSingle: 'Xác nhận di trú'
@@ -733,23 +738,23 @@ connectionPairs:
 
 restrictedUserSetup:
   title: 'Thiết lập Tài khoản Vận hành'
-  description: 'The Andb sẽ dùng tài khoản này để làm việc với database của bạn. Hãy đảm bảo tài khoản có đủ các quyền cần thiết cho nhu cầu bảo mật của bạn.'
+  description: 'TheAndb sẽ dùng tài khoản này để làm việc với database của bạn. Hãy đảm bảo tài khoản có đủ các quyền cần thiết cho nhu cầu bảo mật của bạn.'
   reconfigure:
     title: 'Cấu hình lại quyền hạn'
     adminNote: 'Nhập thông tin Admin để cập nhật quyền cho user {username}. Thông tin này sẽ không được lưu lại.'
   restrictedUsername:
     label: 'Tên người dùng quản lý (Andb)'
     placeholder: 'the_andb'
-  reassurance: 'An tâm tuyệt đối: Quyền Admin chỉ được dùng một lần duy nhất để chuẩn bị môi trường. Mật khẩu này được xử lý trong bộ nhớ tạm và biến mất ngay sau khi xong việc. The Andb cam kết không bao giờ lưu trữ thông tin nhạy cảm này.'
+  reassurance: 'An tâm tuyệt đối: Quyền Admin chỉ được dùng một lần duy nhất để chuẩn bị môi trường. Mật khẩu này được xử lý trong bộ nhớ tạm và biến mất ngay sau khi xong việc. TheAndb cam kết không bao giờ lưu trữ thông tin nhạy cảm này.'
   safetyBadge: 'Tiêu chuẩn An toàn Cao'
   permissions:
-    title: 'Bạn muốn The Andb giúp gì cho bạn?'
+    title: 'Bạn muốn TheAndb giúp gì cho bạn?'
     read:
       label: 'CHẾ ĐỘ XEM (Bắt buộc)'
-      desc: 'Giúp The Andb hiểu và vẽ lại cấu trúc database của bạn mà không thay đổi bất cứ dữ liệu nào.'
+      desc: 'Giúp TheAndb hiểu và vẽ lại cấu trúc database của bạn mà không thay đổi bất cứ dữ liệu nào.'
     writeAlter:
       label: 'HỖ TRỢ THAY ĐỔI CẤU TRÚC'
-      desc: 'Cho phép The Andb đề xuất và thực hiện các thay đổi bảng (Alter Table) để đồng bộ hóa.'
+      desc: 'Cho phép TheAndb đề xuất và thực hiện các thay đổi bảng (Alter Table) để đồng bộ hóa.'
     writeView:
       label: 'QUẢN LÝ VIEW'
       desc: 'Cho phép cập nhật các định nghĩa View khi có sự khác biệt giữa các môi trường.'
@@ -781,7 +786,7 @@ restrictedUserSetup:
   levels:
     readonly: 'CHẾ ĐỘ XEM (An toàn nhất)'
     alter: 'HỖ TRỢ THAY ĐỔI CẤU TRÚC'
-    full: 'TOÀN QUYỀN DDL (Chế độ Mạnh mẽ)'
+    full: 'TOÀN QUYỀN (Chế độ Mạnh nhất)'
   logs:
     connecting: 'Đang kết nối tới {host} với quyền {user}...'
     adminOk: 'Kết nối Admin đã được thiết lập.'

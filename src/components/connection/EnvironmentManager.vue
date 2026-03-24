@@ -6,13 +6,6 @@
       </h3>
       <div class="flex items-center gap-2">
         <button
-          @click="showConnectionManager()"
-          class="btn btn-secondary flex items-center"
-        >
-          <Database class="w-4 h-4 mr-2" />
-          {{ $t('environments.manageConnections') }}
-        </button>
-        <button
           @click="addEnvironment"
           class="btn btn-primary flex items-center"
         >
@@ -28,89 +21,60 @@
         v-model="environments"
         item-key="id"
         class="space-y-4"
-        @end="onDragEnd"
         handle=".drag-handle"
       >
         <template #item="{ element: env }">
-          <div class="group relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
-            <div class="flex items-start gap-4">
-              <!-- Gutter: Drag Handle & Enable Toggle -->
-              <div class="flex flex-col items-center gap-4 pt-2">
-                <div class="drag-handle cursor-move p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all" title="Drag to reorder">
-                  <GripVertical class="w-4 h-4" />
-                </div>
-                <input
-                  type="checkbox"
-                  :id="`env-${env.id}`"
-                  :checked="isEnvEnabled(env.id)"
-                  @change="toggleEnv(env.id, ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 text-primary-600 border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary-500 bg-white dark:bg-gray-800 transition-all cursor-pointer"
-                />
+          <div class="group relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-300">
+            <div class="flex items-center gap-3">
+              <!-- Drag Handle & Toggle -->
+              <div class="drag-handle cursor-move p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg shrink-0">
+                <GripVertical class="w-4 h-4" />
               </div>
+              <input
+                type="checkbox"
+                :id="`env-${env.id}`"
+                :checked="isEnvEnabled(env.id)"
+                @change="toggleEnv(env.id, ($event.target as HTMLInputElement).checked)"
+                class="w-4 h-4 text-primary-600 border-gray-300 dark:border-gray-700 rounded focus:ring-primary-500 shrink-0 cursor-pointer"
+              />
 
-              <!-- Main Content: Stacked Inputs -->
-              <div class="flex-1 flex flex-col gap-3 min-w-0">
-                <!-- Name Row -->
-                <div class="flex items-center gap-3">
+              <!-- Content Row -->
+              <div class="flex-1 flex flex-col min-w-0 px-3 border-l border-gray-100 dark:border-gray-800 ml-1">
                   <input
                     v-model="env.name"
                     type="text"
-                    class="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400"
+                    class="w-full bg-transparent border-none text-sm font-bold text-gray-900 dark:text-white focus:ring-0 p-0 outline-none placeholder:text-gray-400"
                     :placeholder="$t('environments.manager.namePlaceholder')"
                     @blur="updateEnvironment(env)"
                   />
-                  
-                  <!-- Metadata: Type & Count -->
-                  <div class="flex items-center gap-2 shrink-0">
-                    <span
-                      :class="[
-                        'px-2.5 py-1 text-[10px] font-black rounded-lg border tracking-wider uppercase',
-                        getEnvironmentBadgeClass(env.name)
-                      ]"
-                    >
-                      {{ getEnvironmentType(env.name) }}
-                    </span>
-
-                    <button 
-                      @click="showConnectionManager(env.name)"
-                      class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900/40 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-300 rounded-lg border border-transparent hover:border-primary-200 dark:hover:border-primary-800/50 transition-all group/badge"
-                      title="View Connections"
-                    >
-                      <Database class="w-3.5 h-3.5" />
-                      <span class="text-[10px] font-bold">{{ getConnectionCount(env.name) }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Description Input Area -->
-                <div class="relative group/desc">
                   <input
                     v-model="env.description"
                     type="text"
-                    class="w-full px-4 py-2 bg-gray-50/30 dark:bg-gray-900/30 border border-gray-100/50 dark:border-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700 rounded-xl text-xs text-gray-500 dark:text-gray-400 focus:bg-gray-50 dark:focus:bg-gray-900 focus:border-gray-200 dark:focus:border-gray-800 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
+                    class="w-full bg-transparent border-none text-[11px] text-gray-500 dark:text-gray-400 focus:ring-0 p-0 mt-0.5 outline-none placeholder:text-gray-300/50"
                     :placeholder="$t('environments.manager.descPlaceholder')"
                     @blur="updateEnvironment(env)"
                   />
-                </div>
               </div>
 
-              <!-- Actions Area -->
-              <div class="flex items-center gap-2 pt-1 border-l border-gray-100 dark:border-gray-800 pl-4 ml-2">
-                <button
-                  @click="duplicateEnvironment(env)"
-                  class="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all"
-                  :title="$t('environments.manager.duplicate')"
-                >
-                  <Copy class="w-4 h-4" />
-                </button>
-                <button
-                  @click="removeEnvironment(env)"
-                  class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                  :title="$t('environments.manager.remove')"
-                  :disabled="isDefaultEnvironment(env.name)"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
+              <!-- Metadata Badges -->
+              <div class="flex items-center gap-2 shrink-0">
+                 <span :class="['px-2 py-1 text-[9px] font-black rounded border tracking-widest uppercase', getEnvironmentBadgeClass(env.name)]">
+                    {{ getEnvironmentType(env.name) }}
+                 </span>
+                 <button 
+                    @click="showConnectionManager(env.name)"
+                    class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 rounded border border-gray-200 dark:border-gray-700 transition-colors"
+                    title="View Connections"
+                 >
+                    <Database class="w-3 h-3" />
+                    <span class="text-[9px] font-bold">{{ getConnectionCount(env.name) }}</span>
+                 </button>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-1 shrink-0 border-l border-gray-100 dark:border-gray-800 pl-3 ml-1">
+                <button @click="duplicateEnvironment(env)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"><Copy class="w-3.5 h-3.5" /></button>
+                <button @click="removeEnvironment(env)" :disabled="isDefaultEnvironment(env.name)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-20 rounded-lg transition-colors"><Trash2 class="w-3.5 h-3.5" /></button>
               </div>
             </div>
           </div>
@@ -141,7 +105,10 @@ const { t: $t } = useI18n()
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 
-const environments = computed(() => connectionPairsStore.environments)
+const environments = computed({
+  get: () => connectionPairsStore.environments,
+  set: (val) => connectionPairsStore.reorderEnvironments(val)
+})
 
 const projectsStore = useProjectsStore() // Needs import
 
@@ -168,7 +135,11 @@ const showConnectionManager = (envName?: string) => {
 }
 
 const getConnectionCount = (environmentName: string) => {
-  return appStore.resolvedConnections.filter(conn => conn.environment === environmentName).length
+  const project = projectsStore.currentProject
+  if (!project) return 0
+  return appStore.resolvedConnections.filter(conn => 
+    conn.environment === environmentName && project.connectionIds.includes(conn.id)
+  ).length
 }
 
 const defaultEnvironments = ['DEV', 'STAGE', 'UAT', 'PROD']
@@ -247,10 +218,7 @@ const updateEnvironment = (env: Environment) => {
   })
 }
 
-const onDragEnd = () => {
-  // Update order after drag
-  connectionPairsStore.reorderEnvironments(environments.value)
-}
+// Removed onDragEnd as v-model handles it via setter
 
 // Expose environments for parent component
 defineExpose({

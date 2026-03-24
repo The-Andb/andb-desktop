@@ -125,14 +125,14 @@
                     <span class="truncate max-w-[300px]">{{ $t('migration.staticWarning') }}</span>
                  </div>
                </span>
-               <button 
+               <!-- <button 
                   v-if="sqlScript && !fetchingSql"
                   @click="copySql"
                   class="text-[10px] font-bold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95"
                 >
                   <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" />
                   {{ copied ? $t('common.copied') : $t('common.copy') }}
-                </button>
+                </button> -->
             </div>
             
             <div class="flex-1 relative bg-gray-50 dark:bg-gray-950 overflow-hidden flex flex-col">
@@ -224,7 +224,14 @@ watch(() => props.isOpen, (newVal) => {
   }
 })
 
-defineEmits(['close', 'confirm'])
+watch(selectedItemKey, (newKey) => {
+   if (newKey && isBatchMode.value) {
+       const [type, ...nameParts] = newKey.split('-');
+       emit('select', { type, name: nameParts.join('-') });
+   }
+})
+
+const emit = defineEmits(['close', 'confirm', 'select'])
 
 const typeIcons: any = {
   tables: Table,

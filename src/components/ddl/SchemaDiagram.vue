@@ -175,6 +175,7 @@
 </template>
 
 <script setup lang="ts">
+import Andb from '@/utils/andb'
 import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { Table, Key, Circle, Minus, Plus, Maximize2, LayoutTemplate, MousePointer2, GitBranch, Grid3X3, Search, Download, RefreshCw } from 'lucide-vue-next'
 import { toPng } from 'html-to-image'
@@ -229,7 +230,7 @@ const gridStyle = computed(() => ({
 }))
 
 // Auto-layout logic (Balanced Grid)
-const autoLayout = () => {
+const autoLayout = async () => {
   const horizontalSpacing = 320
   let verticalSpacing = 320 
   
@@ -239,15 +240,34 @@ const autoLayout = () => {
   
   const cols = Math.ceil(Math.sqrt(props.tables.length))
   
-  tablesWithPos.value = props.tables.map((table, i) => {
+  const positioned = await Promise.all(props.tables.map(async (table, i) => {
     const col = i % cols
     const row = Math.floor(i / cols)
     
     // Parse columns from DDL if available
     let columns: Column[] | null = null
     const ddl = table.ddl || table.content || ''
-    if (ddl) {
-        columns = parseColumnsFromDDL(ddl)
+    
+    if (table.columns && Array.isArray(table.columns) && table.columns.length > 0) {
+      columns = table.columns
+    } else if (ddl) {
+      try {
+        const parsed = await Andb.parseTable(ddl)
+        if (parsed && parsed.columns) {
+          // Flatten AST to UI Columns format
+          columns = Object.keys(parsed.columns).map(colName => ({
+            name: colName,
+            type: parsed.columns[colName].split(' ')[0] || 'unknown',
+            pk: parsed.primaryKey?.includes(colName) || false
+          })).slice(0, 15)
+        }
+      } catch (e) {
+        console.warn('[SchemaDiagram] IPC Parse failed', e)
+      }
+    }
+
+    if (i === 0) {
+        console.log('[SchemaDiagram] First Table:', table.name, 'DDL bytes:', ddl.length, 'Parsed columns:', columns?.length || 0);
     }
 
     // Adjust vertical spacing based on column count
@@ -255,49 +275,18 @@ const autoLayout = () => {
     
     return {
       ...table,
-      columns,
+      columns: columns && columns.length > 0 ? columns : null,
       x: col * horizontalSpacing + 100,
       y: dynamicY
     }
-  })
+  }))
   
+  tablesWithPos.value = positioned
   // Try to find relations based on naming conventions (id -> table_id)
   calculateEdges()
 }
 
-const parseColumnsFromDDL = (ddl: string): Column[] | null => {
-    try {
-        const columns: Column[] = []
-        const lines = ddl.split('\n')
-        lines.forEach(line => {
-             const trimmed = line.trim()
-             // Skip CREATE TABLE start, constraints, indices, etc
-             if (trimmed.toUpperCase().startsWith('CREATE') || 
-                 trimmed.toUpperCase().startsWith('PRIMARY') || 
-                 trimmed.toUpperCase().startsWith('KEY') || 
-                 trimmed.toUpperCase().startsWith('CONSTRAINT') || 
-                 trimmed.toUpperCase().startsWith('UNIQUE') || 
-                 trimmed.toUpperCase().startsWith('INDEX') || 
-                 trimmed.toUpperCase().startsWith('FOREIGN') || 
-                 trimmed.startsWith(')') || trimmed.startsWith('(') || !trimmed) {
-                 return
-             }
-             
-             // Match format: "column_name" data_type(...) ...
-             const match = trimmed.match(/^[`"]?([a-zA-Z0-9_]+)[`"]?\s+([a-zA-Z0-9_()]+)/i)
-             if (match) {
-                 columns.push({
-                     name: match[1],
-                     type: match[2].toLowerCase(),
-                     pk: trimmed.toUpperCase().includes('PRIMARY KEY')
-                 })
-             }
-        })
-        return columns.length > 0 ? columns.slice(0, 15) : null // Increase to 15 columns
-    } catch (e) {
-        return null
-    }
-}
+
 
 const calculateEdges = () => {
     // Look for potential FKs based on column names like 'user_id'
@@ -403,7 +392,7 @@ const exportAsPng = async () => {
     const watermark = document.createElement('div')
     watermark.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: flex-end; font-family: sans-serif; opacity: 0.8;">
-            <div style="font-size: 16px; font-weight: 800; color: #6366f1; letter-spacing: -0.5px;">The Andb</div>
+            <div style="font-size: 16px; font-weight: 800; color: #6366f1; letter-spacing: -0.5px;">TheAndb</div>
             <div style="font-size: 9px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px;">Schema Explorer</div>
         </div>
     `

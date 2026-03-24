@@ -43,21 +43,33 @@
         </div>
         
         <!-- Category Detail Pane -->
-        <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
-          <div class="max-w-4xl mx-auto">
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <div :class="activeCategory === 'env_pairs' ? 'w-full max-w-7xl mx-auto' : 'max-w-4xl mx-auto'">
             
-            <!-- ENVIRONMENTS SECTION -->
-            <div v-if="activeCategory === 'environment'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div class="flex items-center gap-4 mb-12">
+            <!-- ENVIRONMENTS & PAIRS SECTION -->
+            <div v-if="activeCategory === 'env_pairs'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+               <div class="flex items-center gap-4 mb-8">
                 <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shadow-inner">
-                  <Globe2 class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  <GitCompare class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.environment.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.environment.subtitle') }}</p>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.env_pairs.title', 'Environments & Sync Pairs') }}</h2>
+                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.env_pairs.subtitle', 'Build your infrastructure topology and migration paths') }}</p>
                 </div>
               </div>
-              <EnvironmentManager @show-connection-manager="activeCategory = 'connections'" />
+              
+              <!-- 50/50 Split View -->
+              <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                <!-- Left Column: Environments -->
+                <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
+                   <EnvironmentManager @show-connection-manager="activeCategory = 'connections'" />
+                </div>
+                
+                <!-- Right Column: Sync Pairs -->
+                <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative">
+                   <ConnectionPairManager />
+                </div>
+              </div>
             </div>
 
             <!-- CONNECTIONS SECTION -->
@@ -74,19 +86,7 @@
               <ConnectionManager />
             </div>
 
-            <!-- PAIRS SECTION -->
-            <div v-if="activeCategory === 'pairs' " class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shadow-inner">
-                  <GitCompare class="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.pairs.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.pairs.subtitle') }}</p>
-                </div>
-              </div>
-              <ConnectionPairManager />
-            </div>
+
 
             <!-- ENGINE SECTION (PROJECT LEVEL) -->
             <div v-if="activeCategory === 'engine'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -100,66 +100,117 @@
                 </div>
               </div>
 
-               <div class="space-y-8">
-                  <!-- Domain Normalization -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <GitCompare class="w-32 h-32" />
-                     </div>
-                     <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
-                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                           {{ $t('settings.engine.domainNormalization.desc') }}
+               <div class="space-y-6">
+                  <!-- Text Normalization -->
+                  <div class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all shadow-sm relative overflow-hidden">
+                    <div class="flex items-start gap-4 relative z-10">
+                      <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl shrink-0">
+                        <Type class="w-6 h-6" />
+                      </div>
+                      <div class="flex-1 w-full">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title', 'Text Replace Rules (Normalization)') }}</h3>
+                        <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                          Ignore superficial environment differences (e.g. changing <code>flo_dev_db</code> back to <code>flo_uat_db</code>, or stripping static emails) before running structural comparisons. The engine runs a Find & Replace on the SQL strings.
                         </p>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                           <div class="space-y-2">
-                              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Regex Pattern</label>
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                          <div class="flex-1 w-full space-y-1.5 relative">
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Find (Regex / Text)</label>
+                            <div class="relative">
+                              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                               <input 
                                  :value="projectsStore.currentProject?.settings?.domainNormalization?.pattern"
                                  @input="updateProjectSetting('domainNormalization', 'pattern', ($event.target as HTMLInputElement).value)"
                                  type="text"
-                                 class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                 placeholder="e.g. @[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                                 class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
+                                 placeholder="e.g. _dev_|_test_"
                               />
-                           </div>
-                           <div class="space-y-2">
-                              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Replacement</label>
+                            </div>
+                          </div>
+                          
+                          <ArrowRight class="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0 mt-6 hidden sm:block" />
+                          
+                          <div class="flex-1 w-full space-y-1.5 relative">
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Replace With</label>
+                            <div class="relative">
+                              <Wand2 class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                               <input 
                                  :value="projectsStore.currentProject?.settings?.domainNormalization?.replacement"
                                  @input="updateProjectSetting('domainNormalization', 'replacement', ($event.target as HTMLInputElement).value)"
                                  type="text"
-                                 class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                 placeholder="e.g. @<EMAIL_DOMAIN>"
+                                 class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
+                                 placeholder="e.g. _prod_"
                               />
-                           </div>
+                            </div>
+                          </div>
                         </div>
-                     </div>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Migration Exclusions -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                      <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <Shield class="w-32 h-32" />
-                     </div>
-                     <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
-                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                           {{ $t('settings.engine.migrationExclusions.desc') }}
+                  <div class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-red-500/30 dark:hover:border-red-500/30 transition-all shadow-sm relative overflow-hidden">
+                    <div class="flex items-start gap-4 relative z-10">
+                      <div class="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl shrink-0">
+                        <Ban class="w-6 h-6" /> 
+                      </div>
+                      <div class="flex-1 w-full">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title', 'Skip Objects (Exclusions)') }}</h3>
+                        <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                          Protect test tables or legacy backup views from ever being deployed. If an object's name matches this regex, TheAndb strictly ignores it during migrations.
                         </p>
-
-                        <div class="space-y-2">
-                              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Exclusion Pattern (Regex)</label>
+                        
+                        <div class="space-y-1.5">
+                          <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Exclude Pattern (Regex)</label>
+                          <div class="relative">
+                              <ShieldAlert class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                               <input 
                                  :value="projectsStore.currentProject?.settings?.isNotMigrateCondition"
                                  @input="updateProjectSetting('isNotMigrateCondition', null, ($event.target as HTMLInputElement).value)"
                                  type="text"
-                                 class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                 placeholder="e.g. test|OTE_"
+                                 class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
+                                 placeholder="e.g. ^temp_|backup$|test_"
                               />
-                              <p class="text-[10px] text-gray-400 font-medium pt-1">Objects matching this regex will be ignored during migration.</p>
+                          </div>
                         </div>
-                     </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Project Base Directory Override -->
+                  <div class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all shadow-sm relative overflow-hidden">
+                    <div class="flex items-start gap-4 relative z-10">
+                      <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl shrink-0">
+                        <Home class="w-6 h-6" />
+                      </div>
+                      <div class="flex-1 w-full">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Project Base Directory (Override)</h3>
+                        <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                          Override the global DDL storage directory for this specific project. If left empty, it inherits the global setting from <code>db-config.yaml</code>.
+                        </p>
+                        
+                        <div class="space-y-4">
+                           <div class="flex items-center gap-3">
+                              <div class="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
+                                 {{ projectsStore.currentProject?.settings?.projectBaseDir || 'Inheriting Global Setting' }}
+                              </div>
+                              <button 
+                                 v-if="projectsStore.currentProject?.settings?.projectBaseDir"
+                                 @click="updateProjectSetting('projectBaseDir', null, '')"
+                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 Clear
+                              </button>
+                              <button 
+                                 @click="pickProjectDir"
+                                 class="px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                              >
+                                 Select Directory
+                              </button>
+                           </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                </div>
             </div>
@@ -268,7 +319,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
   Layers,
-  Globe2, 
   Link2, 
   GitCompare, 
   Database,
@@ -278,7 +328,13 @@ import {
   Activity,
   RotateCcw,
   Cpu,
-  Shield
+  Type,
+  ArrowRight,
+  Wand2,
+  Ban,
+  ShieldAlert,
+  Search,
+  Home
 } from 'lucide-vue-next'
 import Header from '@/components/general/Header.vue'
 import Sidebar from '@/components/general/Sidebar.vue'
@@ -302,9 +358,8 @@ const route = useRoute()
 
 const categories = computed(() => {
   const projectCats = [
-    { id: 'environment', label: t('settings.categories.environment'), icon: Globe2 },
+    { id: 'env_pairs', label: t('settings.categories.env_pairs', 'Env & Sync Pairs'), icon: GitCompare },
     { id: 'connections', label: t('settings.categories.connections'), icon: Link2 },
-    { id: 'pairs', label: t('settings.categories.pairs'), icon: GitCompare },
     { id: 'engine', label: t('settings.categories.engine'), icon: Cpu }
   ]
   
@@ -387,9 +442,20 @@ const updateProjectSetting = (category: string, key: string | null, value: strin
      }
   } else if (category === 'isNotMigrateCondition') {
      settings.isNotMigrateCondition = value
+  } else if (category === 'projectBaseDir') {
+     settings.projectBaseDir = value
   }
 
   projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+}
+
+const pickProjectDir = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.pickDirectory) {
+        const result = await (window as any).electronAPI.pickDirectory()
+        if (result) {
+            updateProjectSetting('projectBaseDir', null, result)
+        }
+    }
 }
 </script>
 

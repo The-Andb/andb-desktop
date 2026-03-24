@@ -1,9 +1,9 @@
 {
   "name": "@the-andb/desktop",
   "productName": "TheAndb",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "private": true,
-  "description": "The Andb - Simplest Database Migration Tool",
+  "description": "TheAndb - Simplest Database Migration Tool",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -12,8 +12,8 @@
     "electron": "electron .",
     "build:electron": "node scripts/build-electron.mjs",
     "electron:dev": "pnpm run build:electron && NODE_ENV=development concurrently \"pnpm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "pnpm run build:electron && pnpm run build && electron-builder",
-    "electron:publish": "pnpm run build:electron && pnpm run build && electron-builder --publish always",
+    "electron:build": "pnpm run build:electron && pnpm run build && electron-builder && node scripts/verify-build.mjs",
+    "electron:publish": "pnpm run build:electron && pnpm run build && electron-builder --publish always && node scripts/verify-build.mjs",
     "test:prod": "pnpm run build:electron && pnpm run build && NODE_ENV=production npx electron .",
     "test:packaged": "open 'dist/TheAndb-3.0.0-arm64.dmg'",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore",
@@ -39,7 +39,7 @@
     "vue",
     "andb-core"
   ],
-  "author": "The Andb",
+  "author": "The Andb Team",
   "license": "Proprietary",
   "type": "commonjs",
   "bugs": {
@@ -47,42 +47,66 @@
   },
   "homepage": "https://github.com/The-Andb/andb-desktop#readme",
   "devDependencies": {
+    "@headlessui/vue": "^1.7.23",
     "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@playwright/test": "^1.58.0",
+    "@sentry/electron": "^7.9.0",
     "@tailwindcss/typography": "^0.5.10",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/user-event": "^14.6.1",
     "@testing-library/vue": "^8.1.0",
+    "@the-andb/core": "workspace:*",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.19.10",
+    "@types/prismjs": "^1.26.5",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "@vitejs/plugin-vue": "^4.5.2",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
+    "@vueuse/core": "^10.7.1",
+    "andb-logger": "^1.0.3",
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
     "electron": "34.0.0",
     "electron-builder": "24.13.3",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
+    "electron-serve": "^1.1.0",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.7.3",
     "esbuild": "^0.27.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-vue": "^10.7.0",
     "happy-dom": "^20.4.0",
+    "highcharts": "^12.5.0",
+    "highcharts-vue": "^2.0.1",
+    "html-to-image": "^1.11.13",
+    "js-yaml": "^4.1.1",
+    "lucide-vue-next": "^0.294.0",
+    "mysql2": "^3.16.2",
+    "pinia": "^2.1.7",
     "playwright": "^1.58.0",
     "postcss": "^8.5.6",
+    "posthog-js": "^1.358.1",
+    "prebuild-install": "^7.1.2",
     "prettier": "^3.8.1",
+    "prismjs": "^1.30.0",
+    "splitpanes": "^4.0.4",
     "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vite": "^5.0.8",
     "vitest": "^4.0.18",
+    "vue": "^3.5.27",
+    "vue-i18n": "^9.14.5",
+    "vue-router": "^4.6.4",
     "vue-tsc": "^3.2.4",
+    "vuedraggable": "^4.1.0",
     "wait-on": "^8.0.4"
   },
   "build": {
@@ -91,8 +115,8 @@
       "**/node_modules/better-sqlite3/**/*"
     ],
     "appId": "com.anph.andb.v3",
-    "productName": "The Andb",
-    "copyright": "Copyright © 2024 - 2026 The Andb",
+    "productName": "TheAndb",
+    "copyright": "Copyright © 2024 - 2026 TheAndb",
     "directories": {
       "output": "dist",
       "buildResources": "public"
@@ -104,8 +128,7 @@
       "package.json",
       "public/**/*",
       "!public/*.dmg",
-      "!public/*.zip",
-      "!node_modules"
+      "!public/*.zip"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
@@ -133,7 +156,7 @@
         "from": "../andb-cli",
         "to": "tools/andb-cli",
         "filter": [
-          "dist/**/*",
+          "dist/andb-cli-mac*",
           "package.json"
         ]
       },
@@ -141,36 +164,15 @@
         "from": "../andb-mcp",
         "to": "tools/andb-mcp",
         "filter": [
-          "dist/**/*",
+          "dist/andb-mcp-mac*",
           "package.json"
         ]
       }
     ]
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.23",
-    "@sentry/electron": "^7.9.0",
-    "@the-andb/core": "workspace:*",
-    "@types/prismjs": "^1.26.5",
-    "@vueuse/core": "^10.7.1",
-    "andb-logger": "^1.0.3",
     "better-sqlite3": "^12.6.2",
-    "electron-serve": "^1.1.0",
-    "electron-store": "^8.2.0",
-    "js-yaml": "^4.1.1",
-    "electron-updater": "^6.7.3",
-    "highcharts": "^12.5.0",
-    "highcharts-vue": "^2.0.1",
-    "html-to-image": "^1.11.13",
-    "lucide-vue-next": "^0.294.0",
-    "mysql2": "^3.16.2",
-    "pinia": "^2.1.7",
-    "posthog-js": "^1.358.1",
-    "prismjs": "^1.30.0",
-    "splitpanes": "^4.0.4",
-    "vue": "^3.5.27",
-    "vue-i18n": "^9.14.5",
-    "vue-router": "^4.6.4",
-    "vuedraggable": "^4.1.0"
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
   }
 }

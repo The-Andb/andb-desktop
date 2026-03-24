@@ -6,8 +6,8 @@
         - generic [ref=e6]:
             - generic [ref=e7]:
                 - generic [ref=e8] [cursor=pointer]:
-                    - img "The Andb" [ref=e9]
-                    - generic [ref=e10]: The Andb
+                    - img "TheAndb" [ref=e9]
+                    - generic [ref=e10]: TheAndb
                 - generic [ref=e11]:
                     - heading "Dashboard" [level=1] [ref=e12]
                     - navigation [ref=e14]:
@@ -76,7 +76,7 @@
             - generic [ref=e121]:
                 - generic [ref=e122]:
                     - heading "Integrations Hub" [level=1] [ref=e123]
-                    - paragraph [ref=e124]: Connect The Andb to your local workflows. We provide the tools; you keep the control.
+                    - paragraph [ref=e124]: Connect TheAndb to your local workflows. We provide the tools; you keep the control.
                 - generic [ref=e125]:
                     - generic [ref=e126]:
                         - generic [ref=e127]:
@@ -197,7 +197,7 @@
                                     - paragraph [ref=e269]: Transform your AI Agent into a Senior Database Architect.
                             - generic [ref=e271]: Revolutionary Mode
                         - generic [ref=e273]:
-                            - generic [ref=e274]: The Andb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering **Risk Analysis**, **Index Suggestions**, and **Safety Guards**.
+                            - generic [ref=e274]: TheAndb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering **Risk Analysis**, **Index Suggestions**, and **Safety Guards**.
                             - generic [ref=e276]:
                                 - generic [ref=e277]: '"the-andb": { "command": "node", "args": ["/Volumes/FlexibleWorkplace/The-Andb/node_modules/electron/dist/Electron.app/Contents/Resources/app.asar.unpacked/node_modules/@the-andb/mcp/dist/index.js"] }'
                                 - button "Copy to clipboard" [ref=e279] [cursor=pointer]:

@@ -65,7 +65,7 @@
         </div>
         
         <!-- Category Detail Pane -->
-        <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
           <div :class="activeCategory === 'templates' ? 'w-full' : 'max-w-4xl mx-auto'">
             
             <!-- INTERFACE & TYPOGRAPHY SECTION -->
@@ -384,7 +384,7 @@
                               <Terminal class="w-6 h-6" />
                            </div>
                            <div>
-                              <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.terminal.title') }}</h3>
+                              <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">CLI Tool & Smart MCP</h3>
                               <p class="text-xs text-gray-500 font-medium">{{ $t('settings.terminal.subtitle') }}</p>
                            </div>
                         </div>
@@ -433,9 +433,109 @@
                            </div>
                         </div>
                      </div>
+
+                  </div>
+                  
+                  <!-- Default CLI Project Selector -->
+                  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm rounded-2xl relative">
+                        <div class="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                           <div class="flex items-start gap-4 flex-1">
+                              <div class="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 shrink-0">
+                                 <Terminal class="w-5 h-5" />
+                              </div>
+                              <div>
+                                 <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                                    Default CLI Operation Scope
+                                 </h3>
+                                 <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-xl">
+                                    Select the target project when executing global command line tools like <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-primary-500 dark:text-primary-400">andb compare</code> without explicitly specifying a project context.
+                                 </p>
+                              </div>
+                           </div>
+                           
+                           <div class="md:w-64 shrink-0">
+                              <select 
+                                 v-model="defaultCliProject" 
+                                 @change="saveDefaultCliProject" 
+                                 class="w-full pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 dark:text-white appearance-none cursor-pointer"
+                              >
+                                 <option value="">[ No Default Context ]</option>
+                                 <option v-for="p in projectsStore.projects" :key="p.id" :value="p.id">
+                                    Project: {{ p.name }}
+                                 </option>
+                              </select>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Path Settings added from Integrations -->
+                     <div v-if="isCliInstalled" class="mt-8 space-y-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+                       <div class="text-sm text-gray-600 dark:text-gray-300">
+                          To run <code class="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400">andb</code> from your terminal without requiring administrator privileges, copy and paste one of the options below into your terminal.
+                       </div>
+
+                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 1: Add to PATH</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">Permanent access in .zshrc</p>
+                            <CopyableSnippet :content="`export PATH=\&quot;$PATH:${internalBinaryPath.split('/andb').join('')}\&quot;`" language="bash" />
+                          </div>
+                          
+                          <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 2: Symlink</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">Links binary into ~/.local/bin</p>
+                            <CopyableSnippet :content="`ln -sf &quot;${internalBinaryPath}&quot; ~/.local/bin/andb`" language="bash" />
+                          </div>
+                       </div>
+                     </div>
+
+                     <!-- Smart MCP Server (AI Architect) -->
+                     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-md">
+                       <div class="p-8 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                         <div class="flex items-center gap-4">
+                           <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-400 shadow-lg shadow-orange-500/10">
+                             <Cpu class="w-6 h-6" />
+                           </div>
+                           <div>
+                             <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Smart MCP Server</h2>
+                             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Transform your AI Agent into a Senior Database Architect.</p>
+                           </div>
+                         </div>
+                         
+                         <div class="flex items-center gap-3">
+                           <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-black border bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400 uppercase tracking-widest whitespace-nowrap">
+                             <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                             Revolutionary Mode
+                           </div>
+                         </div>
+                       </div>
+                       
+                       <div class="p-8 space-y-6">
+                          <div class="text-sm text-gray-600 dark:text-gray-300">
+                             TheAndb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering <strong>Risk Analysis</strong>, <strong>Index Suggestions</strong>, and <strong>Safety Guards</strong>.
+                          </div>
+
+                          <div class="bg-gray-950 rounded-2xl p-5 border border-white/5 shadow-inner">
+                             <CopyableSnippet 
+                               :content="`{\n  \&quot;mcpServers\&quot;: {\n    \&quot;the-andb\&quot;: {\n      \&quot;command\&quot;: \&quot;node\&quot;,\n      \&quot;args\&quot;: [\&quot;${mcpBinaryPath}\&quot;]\n    }\n  }\n}`" 
+                               language="json" 
+                             />
+                          </div>
+
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+                             <div class="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-blue-500/50 transition-colors">
+                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">Cursor config location</h4>
+                               <code class="text-xs text-gray-600 dark:text-gray-400 break-all select-all block bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700">~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json</code>
+                             </div>
+                             <div class="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-teal-500/50 transition-colors">
+                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">Windsurf config location</h4>
+                               <code class="text-xs text-gray-600 dark:text-gray-400 break-all select-all block bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700">~/.codeium/windsurf/mcp_config.json</code>
+                             </div>
+                          </div>
+                       </div>
+                     </div>
                   </div>
                </div>
-            </div>
 
             <!-- CONNECTION TEMPLATES SECTION -->
             <div v-if="activeCategory === 'templates'" class="animate-in fade-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
@@ -536,6 +636,43 @@
                            </div>
                            <p v-if="settingsStore.settings.sqlitePath" class="text-[10px] text-gray-400 font-medium">
                              Current database is located at the path above. Restart the app for changes to take full effect.
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Project Base Directory -->
+                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
+                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <Home class="w-32 h-32" />
+                     </div>
+                     <div class="relative z-10">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Project Base Directory</h3>
+                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
+                          Define the root directory where the Desktop app will read and write <code>.sql</code> files on your local filesystem (e.g., your Git repository for DDLs).
+                        </p>
+                        
+                        <div class="space-y-4">
+                           <div class="flex items-center gap-3">
+                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
+                                 {{ currentProjectDir || 'Not set (using current working directory)' }}
+                              </div>
+                              <button 
+                                 v-if="currentProjectDir"
+                                 @click="resetProjectDir"
+                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 Reset
+                              </button>
+                              <button 
+                                 @click="pickProjectDir"
+                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 Select Directory
+                              </button>
+                           </div>
+                           <p v-if="currentProjectDir" class="text-[10px] text-gray-400 font-medium">
+                             Restart the app for changes to take full effect.
                            </p>
                         </div>
                      </div>
@@ -797,9 +934,11 @@ import {
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
+import CopyableSnippet from '@/components/general/CopyableSnippet.vue'
 import ConnectionTemplateManager from '@/components/connection/ConnectionTemplateManager.vue'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
+import { useProjectsStore } from '@/stores/projects'
 import { useFeaturesStore } from '@/stores/features'
 import { useSettingsStore, themeOptions } from '@/stores/settings'
 import { useOperationsStore } from '@/stores/operations'
@@ -816,18 +955,39 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const appStore = useAppStore()
+const projectsStore = useProjectsStore()
 const router = useRouter()
 const featuresStore = useFeaturesStore()
 
 const currentDbPath = ref('')
+const currentProjectDir = ref('')
 const fetchDbPath = async () => {
     if ((window as any).electronAPI && (window as any).electronAPI.getDbPath) {
         const res = await (window as any).electronAPI.getDbPath()
-        if (res && res.success) {
-            currentDbPath.value = res.data
+        if (res) {
+            if (res.success && typeof res.data === 'string') {
+                currentDbPath.value = res.data
+            } else if (typeof res === 'string') {
+                currentDbPath.value = res
+            }
         }
     }
 }
+
+const fetchProjectDir = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.getProjectDir) {
+        const res = await (window as any).electronAPI.getProjectDir()
+        if (res && res.success) {
+            currentProjectDir.value = res.path
+        }
+    }
+}
+
+onMounted(() => {
+    loadPublicKey()
+    fetchDbPath()
+    fetchProjectDir()
+})
 
 // Navigation Configuration Setup
 const navItems = computed(() => {
@@ -944,6 +1104,32 @@ const pickSqlitePath = async () => {
     }
 }
 
+const resetProjectDir = async () => {
+    if (confirm('Are you sure you want to clear the Project Base Directory? The app will revert to using the current working directory.')) {
+        if ((window as any).electronAPI && (window as any).electronAPI.resetProjectDir) {
+            await (window as any).electronAPI.resetProjectDir()
+            currentProjectDir.value = ''
+            alert('Project directory cleared. Please restart the app for changes to take full effect.')
+        }
+    }
+}
+
+const pickProjectDir = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.pickProjectDir) {
+        const result = await (window as any).electronAPI.pickProjectDir()
+        
+        if (result && result.success && result.path) {
+            currentProjectDir.value = result.path
+            const actionMsg = result.copied 
+                ? 'Project directory updated and data successfully copied!' 
+                : 'Project directory updated (no data copied).';
+            alert(`${actionMsg}\n${result.path}\n\nPlease restart the app for changes to take full effect.`)
+        } else if (result && !result.success && !result.canceled) {
+            alert('Failed to set project directory: ' + result.error)
+        }
+    }
+}
+
 // CLI Installation Logic
 const isCliInstalled = ref(false)
 const isInstallingCli = ref(false)
@@ -983,9 +1169,37 @@ watch(activeCategory, (newVal) => {
     }
 })
 
+const internalBinaryPath = ref('')
+const mcpBinaryPath = ref('')
+const defaultCliProject = ref('')
+
+const loadPaths = async () => {
+  try {
+    internalBinaryPath.value = await window.electronAPI?.cli?.getBinaryPath() || '/path/to/andb'
+    mcpBinaryPath.value = await window.electronAPI?.mcp?.getMcpPath() || '/path/to/mcp/dist/index.js'
+    
+    // Load Default CLI Project Selection
+    const settings = await (window.electronAPI?.storage as any)?.getUserSettings()
+    if (settings && settings.default_cli_project_id) {
+       defaultCliProject.value = settings.default_cli_project_id
+    }
+  } catch (error) {
+    console.error('Failed to load internal paths', error)
+  }
+}
+
+const saveDefaultCliProject = async () => {
+   try {
+      await (window.electronAPI?.storage as any)?.saveUserSetting('default_cli_project_id', defaultCliProject.value)
+   } catch (error) {
+      console.error('Failed to save default CLI project', error)
+   }
+}
+
 onMounted(() => {
     checkCliStatus()
     fetchDbPath()
+    loadPaths()
 })
 
 const categories = computed(() => {
@@ -993,7 +1207,7 @@ const categories = computed(() => {
     { id: 'interface', label: t('settings.categories.interface'), icon: markRaw(MonitorSmartphone), subtitle: t('settings.interface.subtitle') },
     { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },
-    { id: 'terminal', label: t('settings.terminal.title'), icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
+    { id: 'terminal', label: 'CLI & MCP', icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
     { id: 'security', label: t('settings.categories.security'), icon: markRaw(Shield), subtitle: t('settings.security.subtitle') },
     { id: 'backup', label: t('settings.categories.backup'), icon: markRaw(Database), subtitle: t('settings.backup.subtitle') },
     { id: 'update', label: t('settings.categories.update'), icon: markRaw(DownloadCloud), subtitle: t('settings.update.subtitle') }

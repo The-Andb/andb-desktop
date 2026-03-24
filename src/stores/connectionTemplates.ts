@@ -95,9 +95,14 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
   function updateTemplate(id: string, updates: Partial<ConnectionTemplate>) {
     const index = templates.value.findIndex(t => t.id === id)
     if (index !== -1) {
-      const merged = { ...templates.value[index], ...updates }
-      if (checkDuplicate(merged, id)) {
-        throw new Error('DUPLICATE_CONNECTION')
+      const original = templates.value[index]
+      const merged = { ...original, ...updates }
+      
+      // Only check for duplicates if the name is actually being changed
+      if (updates.name && updates.name.toLowerCase() !== original.name.toLowerCase()) {
+        if (checkDuplicate(merged, id)) {
+          throw new Error('DUPLICATE_CONNECTION')
+        }
       }
 
       templates.value[index] = {

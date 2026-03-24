@@ -307,7 +307,7 @@ const loadSnapshots = async () => {
   loading.value = true
   try {
     const result = await Andb.getAllSnapshots(500)
-    snapshots.value = result
+    snapshots.value = result.data || []
   } catch (err: any) {
     notificationStore.add({
       type: 'error',

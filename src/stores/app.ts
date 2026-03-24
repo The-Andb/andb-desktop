@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { Andb } from '@/utils/andb'
 import { storage } from '../utils/storage-ipc'
-import { useProjectsStore } from './projects'
+import { useProjectsStore, projectChangedBus } from './projects'
 import { useConnectionTemplatesStore } from './connectionTemplates'
 
 
@@ -252,6 +252,10 @@ export const useAppStore = defineStore('app', () => {
   // Global selected connection for exploration (Schema view, etc)
   const selectedConnectionId = ref<string>('')
 
+  projectChangedBus.on(() => {
+    selectedConnectionId.value = ''
+  })
+
   const filteredConnections = computed(() => {
     const projectsStore = useProjectsStore()
     const project = projectsStore.currentProject
@@ -331,11 +335,12 @@ export const useAppStore = defineStore('app', () => {
 
   // Auto-select first connection if current one becomes invalid (e.g. project switch)
   watch(() => filteredConnections.value, (newConns) => {
+    const projectsStore = useProjectsStore()
     if (newConns.length > 0) {
       if (!newConns.some(c => c.id === selectedConnectionId.value)) {
         selectedConnectionId.value = newConns[0].id
       }
-    } else {
+    } else if (projectsStore.isLoaded) {
       selectedConnectionId.value = ''
     }
   }, { immediate: true })

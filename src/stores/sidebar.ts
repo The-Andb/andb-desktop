@@ -67,26 +67,30 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   function loadFromStorage() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const data = JSON.parse(stored)
-        // Only restore environments
-        if (data.environments) {
-          environments.value = data.environments
-          lastFetchTime.value = data.lastFetchTime || 0
-        }
+      if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
+        (window as any).electronAPI.storage.get(STORAGE_KEY).then((result: any) => {
+          if (result && result.success && result.data) {
+            const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data
+            if (data.environments) {
+              environments.value = data.environments
+              lastFetchTime.value = data.lastFetchTime || 0
+            }
+          }
+        })
       }
     } catch (e) {
-      console.warn('Failed to load sidebar cache')
+      console.warn('Failed to load sidebar cache', e)
     }
   }
 
   function saveToStorage() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        environments: environments.value,
-        lastFetchTime: lastFetchTime.value
-      }))
+      if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
+        (window as any).electronAPI.storage.set(STORAGE_KEY, {
+          environments: JSON.parse(JSON.stringify(environments.value)),
+          lastFetchTime: lastFetchTime.value
+        })
+      }
     } catch (e) {
       // Ignore
     }

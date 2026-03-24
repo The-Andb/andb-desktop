@@ -15,7 +15,6 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
-import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useFeaturesStore } from '@/stores/features'
 import { useProjectsStore } from '@/stores/projects'
@@ -28,7 +27,6 @@ import MigrationChangelogModal from '@/components/general/MigrationChangelogModa
 const appStore = useAppStore()
 const updaterStore = useUpdaterStore()
 const consoleStore = useConsoleStore()
-const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
 const projectsStore = useProjectsStore()
@@ -64,15 +62,20 @@ const handleDatabaseRefreshRequested = async (e: any) => {
     // Clear data first for full refresh
     await Andb.clearConnectionData(conn)
     
-    // Fetch all types
-    const objTypes = ['tables', 'procedures', 'functions', 'triggers', 'views']
-    await Promise.all(objTypes.map(type => 
-       Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
-         .then(res => consoleStore.addLog(`Fetched ${res.data?.length || 0} ${type}`, 'success'))
-    ))
+    // Fetch all types efficiently
+    const cmd = `andb export --source ${conn.environment}`
+    consoleStore.addLog(cmd, 'cmd')
+    
+    await Andb.export(conn, null as any, { type: 'all' as any, environment: conn.environment })
+      .then((summary) => {
+         if (summary) {
+           consoleStore.addLog(`Exported schema for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
+         } else {
+           consoleStore.addLog(`export success.`, 'success')
+         }
+      })
     
     sidebarStore.triggerRefresh()
-    notificationStore.add({ type: 'success', title: 'Refreshed', message: `Database ${db} refreshed successfully` })
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
   }
@@ -91,10 +94,15 @@ const handleCategoryRefreshRequested = async (e: any) => {
     consoleStore.setVisibility(true)
     
     await Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
-      .then(res => consoleStore.addLog(`Fetched ${res.data?.length || 0} ${type}`, 'success'))
+      .then((summary) => {
+         if (summary) {
+           consoleStore.addLog(`Exported ${type} for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
+         } else {
+           consoleStore.addLog(`export success.`, 'success')
+         }
+      })
     
     sidebarStore.triggerRefresh()
-    notificationStore.add({ type: 'success', title: 'Refreshed', message: `${type} refreshed successfully` })
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
   }
@@ -113,10 +121,15 @@ const handleObjectRefreshRequested = async (e: any) => {
     consoleStore.setVisibility(true)
     
     await Andb.export(conn, null as any, { type: type as any, environment: conn.environment, name })
-      .then(() => consoleStore.addLog(`Fetched ${name}`, 'success'))
+      .then((summary) => {
+         if (summary) {
+           consoleStore.addLog(`Exported ${type} ${name} for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
+         } else {
+           consoleStore.addLog(`export success.`, 'success')
+         }
+      })
       
     sidebarStore.triggerRefresh()
-    notificationStore.add({ type: 'success', title: 'Refreshed', message: `${name} updated` })
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
   }
@@ -150,6 +163,25 @@ onMounted(async () => {
   if (window.electronAPI?.updater) {
     window.electronAPI.updater.onUpdateStatus((response: any) => {
       updaterStore.setStatus(response.status, response.info || response.progress || response.error)
+    })
+  }
+
+  // Global IPC progress listener
+  if (window.electronAPI?.onAndbProgress) {
+    window.electronAPI.onAndbProgress((_event: any, data: any) => {
+      if (data.operation === 'export') {
+        appStore.schemaFetchProgress = {
+          current: data.current || 0,
+          total: data.total || 0,
+          type: data.type || '',
+          objectName: data.objectName || ''
+        }
+
+        if (data.state === 'starting_type' && data.type) {
+          // Suppress redundant log spam per user request. 
+          // Final summary will be logged upon successful export resolution.
+        }
+      }
     })
   }
 

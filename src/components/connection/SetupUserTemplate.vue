@@ -173,7 +173,7 @@
                       </div>
                       <div>
                           <span class="text-sm font-bold text-gray-900 dark:text-white block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Schema Change Support (ALTER TABLE)</span>
-                          <p class="text-xs text-gray-500 mt-1">Allow The Andb to suggest and apply table modifications for synchronization.</p>
+                          <p class="text-xs text-gray-500 mt-1">Allow TheAndb to suggest and apply table modifications for synchronization.</p>
                       </div>
                   </div>
                   <input type="checkbox" v-model="store.permissions.writeAlter" class="sr-only" />
@@ -245,7 +245,7 @@
                   <div>
                     <h4 class="font-black text-base text-gray-900 dark:text-white mb-2">Automatic Setup</h4>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                      The Andb will execute the configuration for you immediately.
+                      TheAndb will execute the configuration for you immediately.
                     </p>
                     <div class="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded inline-block">
                         RECOMMENDED
@@ -358,7 +358,7 @@
                   <span v-else>Approve & Execute Configuration</span>
                   <Check v-if="!isExecuting" class="w-4 h-4 group-hover:scale-125 transition-transform" />
                 </button>
-                <p class="text-[10px] text-gray-400 text-center mt-3">By clicking above, you authorize The Andb to execute these commands using the provided admin credentials.</p>
+                <p class="text-[10px] text-gray-400 text-center mt-3">By clicking above, you authorize TheAndb to execute these commands using the provided admin credentials.</p>
             </div>
             
             <div v-if="store.setupMode === 'manual'" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl flex items-start gap-3">

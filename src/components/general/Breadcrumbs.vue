@@ -1,5 +1,5 @@
 <template>
-  <nav v-if="!appStore.projectManagerMode" class="flex items-center text-[10px] uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-500 mt-0.5">
+  <nav v-if="breadcrumbs.length > 0 && !appStore.projectManagerMode" class="flex items-center text-[10px] uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-500 mt-0.5">
     <ol class="flex items-center">
       <li v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
         <span v-if="index > 0" class="mx-2 text-gray-300 dark:text-gray-700 select-none">/</span>
@@ -33,9 +33,11 @@ const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 
 const breadcrumbs = computed(() => {
-  const crumbs: Array<{ label: string; action?: () => void }> = [
-    { label: t('common.dashboard'), action: () => router.push('/') }
-  ]
+  if (route.path === '/projects' || route.path === '/') {
+    return []
+  }
+
+  const crumbs: Array<{ label: string; action?: () => void }> = []
 
   const projectsStore = useProjectsStore()
   const currentProject = projectsStore.currentProject
@@ -48,10 +50,7 @@ const breadcrumbs = computed(() => {
     })
   }
 
-  // Add page-specific breadcrumbs
-  if (route.path === '/projects') {
-    crumbs.push({ label: t('projects.title') })
-  } else if (route.path === '/schema') {
+  if (route.path === '/schema') {
     crumbs.push({ label: t('common.schema') })
     // TODO: Add selected database/table context here
   } else if (route.path === '/compare') {

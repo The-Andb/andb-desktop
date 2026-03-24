@@ -7,6 +7,7 @@ export interface Project {
   connectionIds: string[]
   pairIds: string[]
   isActive?: boolean
+  isProtected?: boolean
   enabledEnvironmentIds: string[]
   pinnedColumnTypes?: string[]
   settings?: {
@@ -15,6 +16,7 @@ export interface Project {
       replacement: string
     }
     isNotMigrateCondition?: string
+    projectBaseDir?: string
   }
   createdAt: string
   updatedAt: string

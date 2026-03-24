@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, fork, ChildProcess } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import { EventEmitter } from 'events'
@@ -27,84 +27,56 @@ export class BackgroundWorker extends EventEmitter {
   public async init(userDataPath: string, sqlitePath: string = '') {
     this.userDataPath = userDataPath
     this.sqlitePath = sqlitePath
-    
-    // Find CLI path. 
-    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-    
-    if (isDev) {
-      this.cliPath = path.join(app.getAppPath(), '..', 'andb-cli', 'andb.js');
-    } else {
-      // In production/test:prod, the CLI is bundled in extraResources
-      // app.getAppPath() = /Applications/The Andb.app/Contents/Resources/app.asar (Packaged)
-      // app.getAppPath() = /path/to/andb-desktop (Unpackaged test:prod)
-      let baseResourcePath = ''
-      if (app.isPackaged) {
-        // Packaged Mac/Win app: resources are next to the app.asar bundle
-        baseResourcePath = path.dirname(app.getAppPath())
-      } else {
-        // Unpackaged prod test: resources are in the dist folder, or root project
-        baseResourcePath = app.getAppPath()
-      }
-      
-      this.cliPath = path.join(baseResourcePath, 'tools', 'andb-cli', 'andb.js')
-      
-      if (!fs.existsSync(this.cliPath)) {
-        // Fallback for asar Unpack config
-        this.cliPath = path.join(baseResourcePath, 'app.asar.unpacked', 'tools', 'andb-cli', 'andb.js')
-      }
-      
-      // Ultimate fallback: running unpacked prod (`npm run test:prod`) 
-      // where baseResourcePath is `/Volumes/.../The-Andb/andb-desktop`
-      if (!fs.existsSync(this.cliPath)) {
-        this.cliPath = path.join(app.getAppPath(), '..', 'andb-cli', 'andb.js')
-      }
+
+    // Core worker is bundled into dist-electron inside the app (both dev & prod)
+    this.cliPath = path.join(app.getAppPath(), 'dist-electron', 'core-worker.cjs')
+
+    if (!fs.existsSync(this.cliPath)) {
+       console.error(`[BackgroundWorker] CRITICAL: core-worker.cjs not found at ${this.cliPath}`);
     }
-    
+
     await this.startProcess()
   }
 
   private async startProcess() {
     if (this.process) return
 
-    const args = ['rpc', '--user-data-path', this.userDataPath]
+    const args = ['--user-data-path', this.userDataPath]
     if (this.sqlitePath) {
       args.push('--sqlite-path', this.sqlitePath)
     }
 
-    console.log(`🚀 [BackgroundWorker] Spawning CLI: ${process.execPath} ${this.cliPath} ${args.join(' ')}`)
+    console.log(`🚀 [BackgroundWorker] Spawning Internal Core Worker: ${process.execPath} ${this.cliPath} ${args.join(' ')}`)
     console.log(`🚀 [BackgroundWorker] Using Electron environment (ABI compatibility)`)
 
-    this.process = spawn(process.execPath, [this.cliPath, ...args], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: { 
-        ...process.env, 
+    this.process = fork(this.cliPath, args, {
+      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+      env: {
+        ...process.env,
         ANDB_QUIET: '1',
         ELECTRON_RUN_AS_NODE: '1'
-      }
+      },
+      execPath: process.execPath
     })
 
-    let buffer = ''
+    this.process.on('message', (message: any) => {
+      this.handleMessage(message)
+    })
+
     this.process.stdout?.on('data', (data) => {
-      buffer += data.toString()
-      const lines = buffer.split('\n')
-      
-      // Keep the last partial line in the buffer
-      buffer = lines.pop() || ''
-      
-      for (const line of lines) {
-        if (!line.trim()) continue
-        this.handleMessage(line)
-      }
+      const output = data.toString().trim()
+      if (output) console.log(`[CLI Stdout] ${output}`)
     })
 
     this.process.stderr?.on('data', (data) => {
-      console.error(`[BackgroundWorker Error] ${data.toString()}`)
+      const output = data.toString().trim()
+      if (output) console.log(`[CLI Stderr] ${output}`)
     })
 
     this.process.on('close', (code) => {
       console.log(`[BackgroundWorker] Process exited with code ${code}`)
       this.process = null
-      
+
       // Reject all pending requests
       for (const [id, handler] of this.pendingRequests.entries()) {
         handler.reject(new Error(`Background process exited with code ${code}`))
@@ -122,19 +94,23 @@ export class BackgroundWorker extends EventEmitter {
     })
   }
 
-  private handleMessage(line: string) {
-    const trimmed = line.trim()
-    if (!trimmed) return
-
-    // Only attempt to parse if it looks like a JSON object
-    if (!trimmed.startsWith('{')) {
-      console.log(`[CLI Output] ${trimmed}`)
-      return
+  private handleMessage(message: any) {
+    if (typeof message === 'string') {
+      const trimmed = message.trim()
+      if (!trimmed || !trimmed.startsWith('{')) {
+        console.log(`[CLI Output] ${trimmed}`)
+        return
+      }
+      try {
+        message = JSON.parse(trimmed)
+      } catch (e) {
+        console.warn(`[BackgroundWorker] Potential JSON message failed to parse: ${trimmed}`)
+        return
+      }
     }
 
     try {
-      const message = JSON.parse(trimmed)
-      
+
       // Handle notifications
       if (message.method && message.method.startsWith('event:')) {
         const eventName = message.method.split(':')[1]
@@ -155,8 +131,7 @@ export class BackgroundWorker extends EventEmitter {
         }
       }
     } catch (e) {
-      // If parsing fails despite starting with {, log it but don't crash
-      console.warn(`[BackgroundWorker] Potential JSON message failed to parse: ${trimmed}`)
+      console.warn(`[BackgroundWorker] Failed to process IPC message:`, e)
     }
   }
 
@@ -173,7 +148,12 @@ export class BackgroundWorker extends EventEmitter {
       }
 
       this.pendingRequests.set(id, { resolve, reject })
-      this.process?.stdin?.write(JSON.stringify(request) + '\n')
+      
+      if (this.process?.send) {
+        this.process.send(request)
+      } else {
+        this.process?.stdin?.write(JSON.stringify(request) + '\n')
+      }
     })
   }
 
@@ -320,7 +300,7 @@ export class BackgroundWorker extends EventEmitter {
 
   public stop() {
     if (this.process) {
-      this.call('exit', {}).catch(() => {})
+      this.call('exit', {}).catch(() => { })
       this.process.kill()
       this.process = null
     }

@@ -14,7 +14,7 @@ export function createWindow() {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    title: 'The Andb',
+    title: 'TheAndb',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -42,7 +42,7 @@ export function createWindow() {
     if (process.platform === 'darwin') {
       try {
         app.dock.setIcon(path.join(__dirname, '../public/icon.png'))
-      } catch (e) {}
+      } catch (e) { }
     }
     mainWindow?.show()
   })

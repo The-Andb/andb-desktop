@@ -1,6 +1,6 @@
-# The Andb Scripts
+# TheAndb Scripts
 
-Utility scripts for The Andb development and testing.
+Utility scripts for TheAndb development and testing.
 
 ## Load Sample Data
 

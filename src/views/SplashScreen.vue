@@ -9,7 +9,7 @@
             alt="Andb Icon" 
             class="w-20 h-auto"
           />
-          <h3 class="text-5xl font-black text-white tracking-tighter">The Andb</h3>
+          <h3 class="text-5xl font-black text-white tracking-tighter">TheAndb</h3>
         </div>
         <p class="text-xl font-bold text-primary-100 tracking-tight opacity-80">Keep Going. Keep Syncing.</p>
       </div>
@@ -36,7 +36,7 @@
             © 2024 - 2026 {{ author }}
           </p>
           <p class="text-[10px] text-primary-500 uppercase tracking-widest font-bold">
-            DMCA Protected | Built for Engineers
+           Built for Engineers
           </p>
         </div>
       </div>
@@ -54,7 +54,7 @@ const { t } = useI18n()
 
 // App metadata from package.json
 const version = __APP_VERSION__
-const author = 'The Andb'
+const author = 'TheAndb'
 // const license = 'Proprietary'
 
 // Loading state

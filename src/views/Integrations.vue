@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
-import CopyableSnippet from '@/components/general/CopyableSnippet.vue'
-import { CheckCircle2, AlertCircle, RefreshCw, Terminal, Cpu, GitBranch, Lock, Folder, Save, Upload, HelpCircle, ExternalLink } from 'lucide-vue-next'
+import { CheckCircle2, AlertCircle, GitBranch, Lock, Folder, Save, Upload, HelpCircle, ExternalLink } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useProjectsStore } from '@/stores/projects'
@@ -315,8 +314,8 @@ watch(currentProjectId, () => {
     <div class="flex-1 overflow-y-auto p-6">
       <div class="max-w-5xl mx-auto w-full pb-12">
       <div class="mb-8">
-        <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-2">Integrations Hub</h1>
-        <p class="text-gray-500 dark:text-gray-400">Connect The Andb to your local workflows. We provide the tools; you keep the control.</p>
+        <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-2">Git Sync</h1>
+        <p class="text-gray-500 dark:text-gray-400">Version control your Schema DDL natively with Git.</p>
       </div>
 
       <div class="grid grid-cols-1 gap-8">
@@ -590,103 +589,7 @@ watch(currentProjectId, () => {
           </div>
         </div>
 
-        <!-- CLI Integration -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                <Terminal class="w-5 h-5" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">CLI Tool</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Access full power from your terminal.</p>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-3">
-              <button @click="checkCliStatus" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors hidden sm:block" title="Refresh Status">
-                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': cliStatus === 'checking' }" />
-              </button>
-              <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border whitespace-nowrap"
-                   :class="{
-                     'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400': cliStatus === 'detected',
-                     'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400': cliStatus === 'not_found',
-                     'bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400': cliStatus === 'checking'
-                   }">
-                <CheckCircle2 v-if="cliStatus === 'detected'" class="w-4 h-4" />
-                <AlertCircle v-else-if="cliStatus === 'not_found'" class="w-4 h-4" />
-                <div v-else class="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"></div>
-                {{ cliStatus === 'detected' ? 'Detected' : cliStatus === 'not_found' ? 'Not configured' : 'Checking...' }}
-              </div>
-            </div>
-          </div>
-          
-          <div class="p-6 space-y-6">
-             <div class="text-sm text-gray-600 dark:text-gray-300">
-                To run <code class="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400">andb</code> from your terminal without requiring administrator privileges, copy and paste one of the options below into your terminal.
-             </div>
 
-             <div class="space-y-4">
-                <div>
-                  <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 1: Add to PATH (Recommended)</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Add this to your `~/.zshrc` or `~/.bashrc` file for permanent access.</p>
-                  <CopyableSnippet :content="`export PATH=\&quot;$PATH:${internalBinaryPath.split('/andb').join('')}\&quot;`" language="bash" />
-                </div>
-                
-                <div>
-                  <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 2: Create a Local Symlink</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Links the binary into your user's local bin folder.</p>
-                  <CopyableSnippet :content="`ln -sf &quot;${internalBinaryPath}&quot; ~/.local/bin/andb`" language="bash" />
-                </div>
-             </div>
-          </div>
-        </div>
-
-        <!-- Smart MCP Server (AI Architect) -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-400 shrink-0">
-                <Cpu class="w-5 h-5" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Smart MCP Server</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Transform your AI Agent into a Senior Database Architect.</p>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400 whitespace-nowrap">
-                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                Revolutionary Mode
-              </div>
-            </div>
-          </div>
-          
-          <div class="p-6 space-y-6">
-             <div class="text-sm text-gray-600 dark:text-gray-300">
-                The Andb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering **Risk Analysis**, **Index Suggestions**, and **Safety Guards**.
-             </div>
-
-             <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto relative group">
-                <CopyableSnippet 
-                  :content="`\&quot;the-andb\&quot;: {\n  \&quot;command\&quot;: \&quot;node\&quot;,\n  \&quot;args\&quot;: [\&quot;${mcpBinaryPath}\&quot;]\n}`" 
-                  language="json" 
-                />
-             </div>
-
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
-                <div class="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-1">Cursor location</h4>
-                  <code class="text-xs text-gray-500 dark:text-gray-400 break-all">~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json</code>
-                </div>
-                <div class="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-1">Windsurf location</h4>
-                  <code class="text-xs text-gray-500 dark:text-gray-400 break-all">~/.codeium/windsurf/mcp_config.json</code>
-                </div>
-             </div>
-          </div>
-        </div>
 
       </div>
     </div>

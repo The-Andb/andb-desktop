@@ -1,167 +1,177 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center justify-between mb-4">
       <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold">
         {{ $t('backup.appData') }}
       </p>
     </div>
 
+    <!-- Export & Import Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Export Card -->
       <button 
-        @click="handleExport"
-        class="group flex items-center justify-between p-4 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 active:scale-[0.98] text-left"
+        @click="showExportModal = true"
+        class="group relative flex flex-col p-6 overflow-hidden rounded-3xl bg-white dark:bg-gray-900/40 border border-gray-200/60 dark:border-gray-800/60 hover:border-primary-500/50 hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 text-left backdrop-blur-xl"
       >
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl group-hover:scale-110 transition-transform">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div class="relative z-10 flex items-start justify-between mb-4">
+          <div class="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform duration-500 shadow-sm">
             <Download class="w-6 h-6" />
           </div>
-          <div>
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white">{{ $t('backup.export.title') }}</h3>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">{{ $t('backup.export.desc') }}</p>
+          <div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-primary-500 group-hover:text-white transition-all duration-300">
+            <ArrowRight class="w-4 h-4 group-hover:-rotate-45 transition-transform duration-300" />
           </div>
         </div>
-        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-500 group-hover:text-white transition-colors">
-          <ArrowRight class="w-4 h-4" />
+        
+        <div class="relative z-10">
+          <h3 class="text-base font-black text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ $t('backup.export.title') }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[90%]">Choose exactly which connections, environments, or settings to backup into a secure JSON file.</p>
         </div>
       </button>
 
-      <label class="group cursor-pointer flex items-center justify-between p-4 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 active:scale-[0.98] text-left">
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
+      <!-- Import Card -->
+      <label class="group relative cursor-pointer flex flex-col p-6 overflow-hidden rounded-3xl bg-white dark:bg-gray-900/40 border border-gray-200/60 dark:border-gray-800/60 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 text-left backdrop-blur-xl">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div class="relative z-10 flex items-start justify-between mb-4">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-500 shadow-sm">
             <Upload class="w-6 h-6" />
           </div>
-          <div>
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white">{{ $t('backup.import.title') }}</h3>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">{{ $t('backup.import.desc') }}</p>
+          <div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+            <ArrowRight class="w-4 h-4 group-hover:-rotate-45 transition-transform duration-300" />
           </div>
         </div>
-        <input type="file" @change="handleImport" class="hidden" accept=".json" />
-        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-          <ArrowRight class="w-4 h-4" />
+        
+        <div class="relative z-10">
+          <h3 class="text-base font-black text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $t('backup.import.title') }}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[90%]">Analyze a backup file and smartly merge its contents with your current workspace.</p>
         </div>
+        <input type="file" @change="onFileImportSelected" class="hidden" accept=".json" />
       </label>
     </div>
 
-    <!-- Warning Area -->
-    <div class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg flex items-start gap-3">
-      <AlertTriangle class="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-      <div class="text-[11px] text-red-700 dark:text-red-300">
-        <p class="font-bold uppercase tracking-tight mb-1">{{ $t('backup.import.warningTitle') }}</p>
-        <p>{{ $t('backup.import.warningMsg') }}</p>
-      </div>
-    </div>
-
-    <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
+    <!-- DDL Auto-Snapshots Section -->
+    <div class="pt-8 mt-4 border-t border-gray-100 dark:border-gray-800/50">
       <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-4">
         {{ $t('backup.ddlSnapshots') }}
       </p>
       
-      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-              <HistoryIcon class="w-5 h-5" />
+      <div class="p-6 bg-white dark:bg-gray-900/40 rounded-3xl border border-gray-200/60 dark:border-gray-800/60 shadow-sm backdrop-blur-xl">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <div class="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 shadow-sm">
+              <HistoryIcon class="w-6 h-6" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-gray-900 dark:text-white">{{ $t('backup.history.title') }}</h3>
-              <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ $t('backup.history.desc') }}</p>
+              <h3 class="text-base font-black text-gray-900 dark:text-white">{{ $t('backup.history.title') }}</h3>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{{ $t('backup.history.desc') }}</p>
             </div>
           </div>
-          <router-link to="/history" class="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
+          <router-link to="/history" class="px-5 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-xs font-bold text-purple-600 dark:text-purple-400 transition-colors flex items-center gap-2">
             {{ $t('backup.history.view') }}
             <ArrowRight class="w-3.5 h-3.5" />
           </router-link>
         </div>
 
-        <div class="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-100 dark:border-gray-800 flex items-center justify-between shadow-sm">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-400">
-              <Folder class="w-5 h-5" />
+        <!-- Physical Path Explorer Box -->
+        <div class="bg-gray-50/50 dark:bg-gray-950/20 border border-gray-100 dark:border-gray-800/50 rounded-2xl p-4 flex items-center justify-between hover:border-gray-200 dark:hover:border-gray-700 transition-colors group">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-400 shadow-sm group-hover:text-purple-500 group-hover:border-purple-200 dark:group-hover:border-purple-800 transition-colors">
+              <Folder class="w-4 h-4 ml-0.5" />
             </div>
-            <div>
-              <span class="text-[10px] block font-bold text-gray-400 uppercase tracking-tighter mb-0.5">{{ $t('backup.physicalPath') }}</span>
-              <span class="text-[11px] text-gray-600 dark:text-gray-400 font-mono bg-gray-100/50 dark:bg-gray-800/50 px-1.5 py-0.5 rounded">/backups/*.sql</span>
+            <div class="min-w-0 pr-4">
+              <span class="text-[10px] block font-bold text-gray-400 uppercase tracking-widest mb-1">{{ $t('backup.physicalPath') }}</span>
+              <div class="flex items-center gap-2">
+                <span v-if="physicalBackupPath" class="text-xs text-gray-600 dark:text-gray-400 font-mono bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 px-2.5 py-1 rounded-lg truncate shadow-sm">
+                  {{ physicalBackupPath }}
+                </span>
+                <span v-else class="text-xs text-gray-400 italic">Detecting path...</span>
+              </div>
             </div>
           </div>
           <button 
             @click="handleOpenFolder"
-            class="font-bold uppercase tracking-widest transition-all active:scale-95"
-            :class="appStore.buttonStyle === 'full'
-              ? 'px-5 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-primary-600 dark:hover:bg-primary-500 hover:text-white rounded-xl text-[11px] shadow-lg shadow-gray-900/10'
-              : 'px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-[10px]'"
+            class="shrink-0 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
           >
             {{ $t('backup.exploreFiles') }}
           </button>
         </div>
       </div>
     </div>
+
+    <ExportBackupModal 
+      :isOpen="showExportModal" 
+      @close="showExportModal = false" 
+      @success="onExportSuccess" 
+    />
+
+    <ImportBackupModal 
+      :isOpen="showImportModal" 
+      :fileToRead="importFile"
+      @close="showImportModal = false" 
+      @success="onImportSuccess" 
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Download, Upload, AlertTriangle, History as HistoryIcon, Folder, ArrowRight } from 'lucide-vue-next'
-import backup from '@/utils/backup'
+import { Download, Upload, History as HistoryIcon, Folder, ArrowRight } from 'lucide-vue-next'
+import ExportBackupModal from './ExportBackupModal.vue'
+import ImportBackupModal from './ImportBackupModal.vue'
 import Andb from '@/utils/andb'
 import { useNotificationStore } from '@/stores/notification'
-import { useAppStore } from '@/stores/app'
 
 const { t } = useI18n()
-const appStore = useAppStore()
-
 const notificationStore = useNotificationStore()
 
-const handleExport = async () => {
-  try {
-    await backup.download()
-    notificationStore.add({
-      type: 'success',
-      title: t('backup.export.successTitle'),
-      message: t('backup.export.successMsg')
-    })
-  } catch (error: any) {
-    notificationStore.add({
-      type: 'error',
-      title: t('backup.export.failedTitle'),
-      message: `${t('backup.export.failedTitle')}: ${error.message}`
-    })
-  }
-}
+const showExportModal = ref(false)
+const showImportModal = ref(false)
+const importFile = ref<File | null>(null)
+const physicalBackupPath = ref<string>('')
 
-const handleImport = async (event: Event) => {
+onMounted(async () => {
+  try {
+    physicalBackupPath.value = await (window as any).electronAPI.getBackupPath()
+  } catch (error) {
+    console.error('Failed to fetch backup path:', error)
+  }
+})
+
+const onFileImportSelected = (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  if (!file) return
-
-  if (!confirm(t('backup.import.confirm'))) {
-    target.value = ''
-    return
+  if (file) {
+    importFile.value = file
+    showImportModal.value = true
   }
+  // Reset input so the same file can be selected again if needed
+  target.value = ''
+}
 
-  try {
-    const success = await backup.importFromFile(file)
-    if (success) {
-      notificationStore.add({
-        type: 'success',
-        title: t('backup.import.successTitle'),
-        message: t('backup.import.successMsg')
-      })
-      // Optional: force reload
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
-    } else {
-      throw new Error(t('backup.import.failedTitle'))
-    }
-  } catch (error: any) {
-    notificationStore.add({
-      type: 'error',
-      title: t('backup.import.failedTitle'),
-      message: `${t('backup.import.failedTitle')}: ${error.message}`
-    })
-  } finally {
-    target.value = ''
-  }
+const onExportSuccess = () => {
+  showExportModal.value = false
+  notificationStore.add({
+    type: 'success',
+    title: t('backup.export.successTitle'),
+    message: t('backup.export.successMsg')
+  })
+}
+
+const onImportSuccess = () => {
+  showImportModal.value = false
+  importFile.value = null
+  notificationStore.add({
+    type: 'success',
+    title: 'Import Successful',
+    message: 'Selected configurations were smartly merged into your workspace.'
+  })
+  // Let the user see the success message briefly before reload
+  setTimeout(() => {
+    window.location.reload()
+  }, 1000)
 }
 
 const handleOpenFolder = async () => {

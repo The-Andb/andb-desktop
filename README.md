@@ -1,4 +1,4 @@
-# The Andb Desktop
+# TheAndb Desktop
 
 **The Intelligent Database Orchestrator** — Professional desktop application for seamless schema visualization, comparison, and synchronization.
 
@@ -60,8 +60,8 @@ npm run dev:desktop
 - ❌ **No Commercial Use**: Production deployment, SaaS distribution, or redistribution are strictly prohibited without a commercial license.
 - 🛡️ **DMCA Protected**: Unauthorized reproduction or distribution is prohibited under DMCA guidelines.
 
-© 2024 - 2026 The Andb. All rights reserved.
+© 2024 - 2026 TheAndb. All rights reserved.
 
 ---
 
-**Made with ❤️ by The Andb**
+**Made with ❤️ by TheAndb**

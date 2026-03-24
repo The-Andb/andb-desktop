@@ -117,7 +117,7 @@ import { Github, Bug, Tag, User } from 'lucide-vue-next'
 
 // App metadata (Could be imported from package.json in a real setup, hardcoded for safety here)
 const version = __APP_VERSION__
-const author = 'The Andb'
+const author = 'TheAndb'
 const license = 'Proprietary'
 
 defineProps<{

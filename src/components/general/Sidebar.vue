@@ -86,18 +86,38 @@
       </nav>
 
       <!-- Explorer Header -->
-      <div v-show="!isCollapsed" class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0" :style="{ fontSize: (appStore.fontSizes.schema - 2) + 'px', fontWeight: 'bold' }">
-        <span>{{ route.path === '/compare' ? $t('navigation.explorer.source') : (route.path === '/history' ? $t('navigation.explorer.history') : $t('navigation.explorer.schema')) }}</span>
-        <div class="flex items-center space-x-1">
-          <button @click="sidebarStore.requestRefresh()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.refresh')">
-            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
-          </button>
-          <!-- Collapse Sidebar Button -->
-          <button @click="appStore.toggleSidebar()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors" :title="$t('common.collapse')">
-            <PanelLeftClose class="w-3.5 h-3.5" />
-          </button>
+        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0" :style="{ fontSize: (appStore.fontSizes.schema - 2) + 'px', fontWeight: 'bold' }">
+          <span>{{ route.path === '/compare' ? $t('navigation.explorer.source') : (route.path === '/history' ? $t('navigation.explorer.history') : $t('navigation.explorer.schema')) }}</span>
+          <div class="flex items-center space-x-1">
+            <button @click="sidebarStore.requestRefresh()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.refresh')">
+              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            </button>
+            <!-- Collapse Sidebar Button -->
+            <button @click="appStore.toggleSidebar()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors" :title="$t('common.collapse')">
+              <PanelLeftClose class="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-      </div>
+
+        <!-- Sync Pair Selector (Sidebar specific for Compare view) -->
+        <div v-if="route.path === '/compare'" class="px-3 pb-2 bg-white dark:bg-gray-900 shrink-0 shadow-sm z-10">
+           <div class="relative group">
+               <select
+                 v-model="selectedPairId"
+                 class="w-full py-1.5 pl-3 pr-8 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-bold focus:ring-1 focus:ring-primary-500 cursor-pointer appearance-none truncate transition-colors"
+                 :class="{'text-gray-400 font-normal': !selectedPairId}"
+                 :title="$t('header.pairContext')"
+               >
+                 <option value="" disabled class="text-gray-400 bg-white dark:bg-gray-800">{{ $t('header.selectPair') }}</option>
+                 <option v-for="pair in availablePairs" :key="pair.id" :value="pair.id" class="bg-white dark:bg-gray-800 font-bold text-gray-900 dark:text-white">
+                   {{ pair.name }}
+                 </option>
+               </select>
+               <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
+                    <ChevronDown class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+               </div>
+           </div>
+        </div>
 
       <!-- Tree Content -->
       <div v-show="!isCollapsed" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900">
@@ -284,7 +304,6 @@ import {
   ShieldAlert,
   Activity,
   Box,
-  Terminal,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -296,7 +315,8 @@ import {
   Settings2,
   Network,
   GitBranch,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronDown
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -311,6 +331,14 @@ const featuresStore = useFeaturesStore()
 
 const isCollapsed = computed(() => appStore.sidebarCollapsed)
 const activePair = computed(() => connectionPairsStore.activePair)
+
+const availablePairs = computed(() => connectionPairsStore.availablePairs || [])
+const selectedPairId = computed({
+  get: () => connectionPairsStore.selectedPairId || '',
+  set: (val: string) => {
+    if (val) connectionPairsStore.setSelectedPair(val)
+  }
+})
 
 const isGlobalLayer = computed(() => {
   const globalRoutes = ['Settings', 'Projects']
@@ -329,7 +357,7 @@ const navItems = computed(() => {
     { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
     { name: t('common.history'), path: '/history', icon: History, visible: true },
     { name: 'Instant Compare', path: '/instant-compare', icon: Workflow, visible: true },
-    { name: 'Integrations', path: '/integrations', icon: Terminal, visible: true },
+    { name: 'Git Sync', path: '/integrations', icon: GitBranch, visible: true },
     { name: 'ER Diagram', path: '/er-diagram', icon: Network, visible: featuresStore.isEnabled('erDiagram') },
     { name: t('settings.project_settings'), path: '/project-settings', icon: Settings2, visible: true }, 
   ]
@@ -524,6 +552,16 @@ const toggleType = (envName: string, dbName: string, type: string) => {
 
 const selectDatabase = async (env: string, db: string) => {
   toggleDatabase(env, db)
+  
+  // Update global selected connection
+  const envData = displayEnvironments.value.find((e: any) => e.name === env)
+  if (envData) {
+     const dbData = envData.databases.find((d: any) => d.name === db)
+     if (dbData && dbData.connectionId) {
+        appStore.selectedConnectionId = dbData.connectionId
+     }
+  }
+
   if (route.path === '/compare') {
     window.dispatchEvent(new CustomEvent('category-selected', { detail: { env, db, type: 'all' } }))
   } else {

@@ -20,15 +20,15 @@
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative">
         <!-- Toolbar Row (Operational context) -->
-        <div v-if="$slots.toolbar || isGlobalLayer" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10">
+        <div v-if="$slots.toolbar || isGlobalLayer" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-2 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10">
           <div class="flex-1 flex items-center min-w-0">
             <slot name="toolbar"></slot>
           </div>
           <!-- Console Toggle (Operational Views Only) -->
-          <div v-if="isMainOperationTab" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
-            <button 
-              @click="consoleStore.toggleVisibility()" 
-              class="p-1.5 rounded-lg transition-colors border border-transparent"
+          <div v-if="isMainOperationTab" class="flex items-center ml-2 dark:border-gray-700 shrink-0">
+            <button
+              @click="consoleStore.toggleVisibility()"
+              class="p-1.5 rounded-lg transition-colors border border-transparent shrink-0"
               :class="consoleStore.isVisible ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
               :title="$t('console.toggle')"
             >
@@ -37,10 +37,10 @@
           </div>
 
           <!-- Close Global Layer (Settings/Project Manager) -->
-          <div v-else-if="isGlobalLayer" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+          <div v-else-if="isGlobalLayer" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700 shrink-0">
             <button 
               @click="closeGlobalLayer" 
-              class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all border border-transparent"
+              class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all border border-transparent shrink-0"
               :title="$t('navigation.closeGlobal')"
             >
               <X class="w-5 h-5" />
@@ -75,7 +75,7 @@
                 :style="{ width: `${Math.min(100, Math.max(0, (appStore.schemaFetchProgress.current / appStore.schemaFetchProgress.total) * 100))}%` }"
               ></div>
             </div>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 shrink-0 whitespace-nowrap">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 shrink-0 whitespace-nowrap text-right w-60 tabular-nums overflow-hidden text-ellipsis">
               FETCHING {{ appStore.schemaFetchProgress.current }}/{{ appStore.schemaFetchProgress.total }} {{ appStore.schemaFetchProgress.type?.toUpperCase() }}
             </span>
           </div>

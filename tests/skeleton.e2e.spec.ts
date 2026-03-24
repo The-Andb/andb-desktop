@@ -17,7 +17,7 @@ test('verify app skeleton', async () => {
   await window.waitForLoadState('domcontentloaded');
 
   // Verify Window Title (Wait for it to be non-empty)
-  await expect.poll(async () => window.title()).toContain('The Andb');
+  await expect.poll(async () => window.title()).toContain('TheAndb');
 
   // Verify Main App Container
   // Verify Main App Container (Target specific class to avoid duplicate ID issues with mount container)

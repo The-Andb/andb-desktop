@@ -6,8 +6,8 @@
         - generic [ref=e6]:
             - generic [ref=e7]:
                 - generic [ref=e8] [cursor=pointer]:
-                    - img "The Andb" [ref=e9]
-                    - generic [ref=e10]: The Andb
+                    - img "TheAndb" [ref=e9]
+                    - generic [ref=e10]: TheAndb
                 - generic [ref=e11]:
                     - heading "Diff & Sync" [level=1] [ref=e12]
                     - navigation [ref=e14]:

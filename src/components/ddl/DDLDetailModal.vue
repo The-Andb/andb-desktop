@@ -137,6 +137,7 @@ import { useI18n } from 'vue-i18n'
 import { X, FileCode, Copy, CheckCircle, Code2, LayoutTemplate } from 'lucide-vue-next'
 import DDLVisualizer from '@/components/ddl/DDLVisualizer.vue'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
+import Andb from '@/utils/andb'
 
 const { t } = useI18n()
 
@@ -216,134 +217,31 @@ const ddlStatements = computed(() => {
 })
 
 // Visual Parsing Logic
-const parsedColumns = computed(() => {
-    const ddl = ddlStatements.value.find(s => s.toUpperCase().includes('CREATE TABLE')) || ddlStatements.value[0] || ''
-    if (!ddl) return []
-    return parseColumnsFromDDL(ddl) || []
-})
+const parsedColumns = ref<Column[]>([])
+const isParsingVisual = ref(false)
 
-const parseColumnsFromDDL = (ddl: string): Column[] | null => {
-    if (!ddl) return null
-    if (!ddl.toUpperCase().includes('CREATE TABLE')) return null
+watch(() => ddlStatements.value, async (statements) => {
+    const ddl = statements.find(s => s.toUpperCase().includes('CREATE TABLE')) || statements[0] || ''
+    if (!ddl || !ddl.toUpperCase().includes('CREATE TABLE')) {
+        parsedColumns.value = []
+        return
+    }
     
-    // Normalize logic
-    const content = ddl
-        .replace(/\n/g, ' ')
-        .replace(/\s+/g, ' ')
-    
-    // Simple regex for extracting inside parenthesis
-    const match = content.match(/CREATE TABLE.*?\((.*)\)(?:\s|$)/i) || content.match(/CREATE TABLE.*?\((.*)\)/i)
-    
-    if (!match) return null
-    
-    const body = match[1]
-    
-    const parts: string[] = []
-    let current = ''
-    let parenLevel = 0
-    let inQuote = false
-    let quoteChar = ''
-    
-    for (let i = 0; i < body.length; i++) {
-        const char = body[i]
-        
-        if (inQuote) {
-            current += char
-            if (char === quoteChar && body[i-1] !== '\\') {
-                inQuote = false
-            }
+    isParsingVisual.value = true
+    try {
+        const result = await Andb.parseTable(ddl)
+        if (result.success && result.data?.columns) {
+            parsedColumns.value = result.data.columns
         } else {
-            if (char === "'" || char === '"' || char === '`') {
-                inQuote = true
-                quoteChar = char
-                current += char
-            } else if (char === '(') {
-                parenLevel++
-                current += char
-            } else if (char === ')') {
-                parenLevel--
-                current += char
-            } else if (char === ',' && parenLevel === 0) {
-                parts.push(current.trim())
-                current = ''
-            } else {
-                current += char
-            }
+            parsedColumns.value = []
         }
+    } catch (e) {
+        console.error('Failed to parse DDL for visualizer:', e)
+        parsedColumns.value = []
+    } finally {
+        isParsingVisual.value = false
     }
-    if (current.trim()) parts.push(current.trim())
-    
-    const columns: Column[] = []
-    const pkColumns = new Set<string>()
-    
-    for (const p of parts) {
-        if (!p) continue
-        
-        const up = p.toUpperCase()
-        
-        // Handle PRIMARY KEY definitions
-        if (up.startsWith('PRIMARY KEY') || (up.startsWith('CONSTRAINT') && up.includes('PRIMARY KEY'))) {
-             const pkMatch = p.match(/PRIMARY KEY\s*\((.*?)\)/i)
-             if (pkMatch) {
-                 const cols = pkMatch[1].split(',').map(c => c.trim().replace(/^[`"]|[`"]$/g, ''))
-                 cols.forEach(c => pkColumns.add(c))
-             }
-             continue
-        }
-        
-        // Skip keys definitions
-        if (/^(KEY|UNIQUE KEY|CONSTRAINT|FOREIGN KEY|FULLTEXT|SPATIAL|INDEX)/i.test(p)) continue
-        
-        // Match column name
-        const colMatch = p.match(/^`?([a-zA-Z0-9_]+)`?\s+([a-zA-Z0-9_().,'"\s]+?)(?=\s|$)/)
-        
-        if (colMatch) {
-            const name = colMatch[1]
-            const fullType = colMatch[2]
-            
-            // Extract attributes
-            let isPk = up.includes('PRIMARY KEY')
-            if (isPk) pkColumns.add(name)
-
-            const isNotNull = up.includes('NOT NULL')
-            const isUnsigned = up.includes('UNSIGNED')
-            const isAutoInc = up.includes('AUTO_INCREMENT')
-            const isUnique = up.includes('UNIQUE')
-            
-            let defVal = null
-            const defMatch = p.match(/DEFAULT\s+('([^']*)'|([^,\s]+))/)
-            if (defMatch) {
-                defVal = defMatch[2] || defMatch[3]
-                if (defVal === 'NULL') defVal = 'NULL'
-            }
-            
-            let comment = ''
-            const commentMatch = p.match(/COMMENT\s+'([^']*)'/)
-            if (commentMatch) {
-                comment = commentMatch[1]
-            }
-
-            let type = fullType.replace(/UNSIGNED/i, '').replace(/ZEROFILL/i, '').trim()
-            
-            columns.push({
-                name,
-                type,
-                pk: false, // Updated in return statement (see below)
-                notNull: isNotNull,
-                unique: isUnique,
-                unsigned: isUnsigned,
-                autoIncrement: isAutoInc,
-                default: defVal,
-                comment
-            })
-        }
-    }
-    
-    return columns.map(col => ({
-        ...col,
-        pk: pkColumns.has(col.name)
-    }))
-}
+}, { immediate: true })
 
 // Helpers
 const getStatusBadgeClass = (status?: string) => {

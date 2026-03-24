@@ -48,34 +48,44 @@ const defaultSettings: Settings = {
   sqlitePath: ''
 }
 
-const loadSettings = (): Settings => {
+const loadSettingsAsync = async (currentSettings: any) => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings
-  } catch {
-    return defaultSettings
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
+      const res = await (window as any).electronAPI.storage.get(STORAGE_KEY)
+      if (res && res.success && res.data) {
+        const parsed = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+        Object.assign(currentSettings.value, { ...defaultSettings, ...parsed })
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load settings from DB', err)
   }
 }
 
-const saveSettings = (settings: Settings) => {
+const saveSettings = async (settings: Settings) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
+      await (window as any).electronAPI.storage.set(STORAGE_KEY, JSON.parse(JSON.stringify(settings)))
+    }
   } catch (error: any) {
     if (window.electronAPI) {
-      window.electronAPI.log.send('error', 'Failed to save settings to localStorage', error.message)
+      window.electronAPI.log.send('error', 'Failed to save ui settings to storage', error.message)
     }
   }
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<Settings>(loadSettings())
+  const settings = ref<Settings>({ ...defaultSettings })
 
-  // Watch for changes and save to localStorage
+  // Watch for changes and save to IPC Storage
   watch(settings, (newSettings) => {
     saveSettings(newSettings)
     applyTheme(newSettings.theme)
     setLanguage(newSettings.language)
   }, { deep: true })
+
+  // Async load immediately
+  loadSettingsAsync(settings)
 
   const applyTheme = (theme: Theme) => {
     const root = document.documentElement

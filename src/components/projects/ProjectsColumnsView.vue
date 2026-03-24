@@ -46,6 +46,18 @@
 
             <template #node-actions="{ node }">
                 <div v-if="node.type === 'projects'" class="flex items-center gap-2">
+                    <span v-if="defaultCliProjectId === node.id" class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[8px] font-black tracking-widest uppercase border border-gray-200 dark:border-gray-700 shrink-0" title="Default CLI Target">
+                       CLI
+                    </span>
+                    <button 
+                      @click.stop="toggleProtectProject(node)"
+                      class="p-1.5 rounded-md transition-colors"
+                      :class="node.rawData.isProtected ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/10' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/10'"
+                      :title="node.rawData.isProtected ? 'Unprotect Project' : 'Protect Project'"
+                    >
+                      <ShieldAlert v-if="node.rawData.isProtected" class="w-3.5 h-3.5" />
+                      <Shield v-else class="w-3.5 h-3.5" />
+                    </button>
                     <button 
                       @click.stop="cloneProject(node)"
                       class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 text-gray-400 hover:text-primary-500 transition-colors"
@@ -54,8 +66,10 @@
                       <Copy class="w-3.5 h-3.5" />
                     </button>
                     <button 
-                      @click.stop="deleteProject(node)"
-                      class="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 text-gray-400 hover:text-red-500 transition-colors"
+                      @click.stop="!node.rawData.isProtected && deleteProject(node)"
+                      :disabled="node.rawData.isProtected"
+                      class="p-1.5 rounded-md transition-colors"
+                      :class="node.rawData.isProtected ? 'text-gray-300 dark:text-gray-700 opacity-50 cursor-not-allowed' : 'hover:bg-red-50 dark:hover:bg-red-900/10 text-gray-400 hover:text-red-500'"
                       title="Delete Project"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
@@ -255,6 +269,12 @@
 
     <!-- Quick Dump Modal -->
     <QuickDumpPairModal :is-open="isQuickDumpModalOpen" @close="isQuickDumpModalOpen = false" />
+    <DeleteProjectConfirmModal
+      :is-open="isDeleteModalOpen"
+      :project-name="nodeToDelete?.name || ''"
+      @close="isDeleteModalOpen = false"
+      @confirm="confirmDeleteProject"
+    />
   </div>
 </template>
 
@@ -266,6 +286,7 @@ import MirrorDiffView from '@/components/compare/MirrorDiffView.vue'
 import SchemaDiagram from '@/components/ddl/SchemaDiagram.vue'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
 import QuickDumpPairModal from './QuickDumpPairModal.vue'
+import DeleteProjectConfirmModal from './DeleteProjectConfirmModal.vue'
 import Andb from '@/utils/andb'
 import { 
   Database,
@@ -282,7 +303,9 @@ import {
   Variable,
   Play,
   Network,
-  ChevronRight
+  ChevronRight,
+  Shield,
+  ShieldAlert
 } from 'lucide-vue-next'
 
 // Package Import
@@ -297,6 +320,8 @@ const navStore = useProjectNavigationStore()
 const projectsStore = useProjectsStore()
 const appStore = useAppStore()
 const millerStore = useMillerStore()
+
+const defaultCliProjectId = ref('')
 
 const previewObject = ref<any>(null)
 const previewCode = ref('')
@@ -389,7 +414,8 @@ const handleAbstractSelect = async (node: MillerNode, level: number, skipFetch?:
         try {
           const raw = node.rawData as any
           if (raw && raw.objectName && raw.objectType) {
-            const schemas = await Andb.getSchemas()
+            const schemasRes = await Andb.getSchemas()
+            const schemas = schemasRes.data || []
             
             // Shared lookup logic (same as nav)
             const envData = Array.isArray(schemas) 
@@ -423,7 +449,8 @@ const handleAbstractSelect = async (node: MillerNode, level: number, skipFetch?:
       previewObject.value = node
       try {
         const conn = node.rawData as any
-        const schemas = await Andb.getSchemas()
+        const schemasRes = await Andb.getSchemas()
+        const schemas = schemasRes.data || []
         
         // Correct lookup for Array-based schemas
         const envData = Array.isArray(schemas) 
@@ -599,10 +626,29 @@ const addNewProject = async () => {
     await navStore.loadRoot(newP.id)
 }
 
+const isDeleteModalOpen = ref(false)
+const nodeToDelete = ref<MillerNode | null>(null)
+
 const deleteProject = async (node: MillerNode) => {
-    console.log('Deleting project:', node.id)
-    if (confirm(`Are you sure you want to delete "${node.name}"?`)) {
-        projectsStore.removeProject(node.id)
+    console.log('Request deleting project:', node.id)
+    nodeToDelete.value = node
+    isDeleteModalOpen.value = true
+}
+
+const confirmDeleteProject = async () => {
+    if (nodeToDelete.value) {
+        console.log('Confirmed deleting project:', nodeToDelete.value.id)
+        projectsStore.removeProject(nodeToDelete.value.id)
+        await navStore.loadRoot()
+        isDeleteModalOpen.value = false
+        nodeToDelete.value = null
+    }
+}
+
+const toggleProtectProject = async (node: MillerNode) => {
+    const project = node.rawData
+    if (project) {
+        projectsStore.updateProject(project.id, { isProtected: !project.isProtected })
         await navStore.loadRoot()
     }
 }
@@ -644,5 +690,15 @@ onMounted(async () => {
 
     // 2. Initialize Miller Root with real data
     await navStore.loadRoot(projectsStore.selectedProjectId || undefined)
+    
+    // 3. Load Default CLI Setting
+    try {
+        const settings = await (window.electronAPI?.storage as any)?.getUserSettings()
+        if (settings?.default_cli_project_id) {
+            defaultCliProjectId.value = settings.default_cli_project_id
+        }
+    } catch (e) {
+        console.error(e)
+    }
 })
 </script>

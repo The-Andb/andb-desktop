@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useProjectsStore } from '@/stores/projects'
 import { 
   Plus, 
@@ -17,12 +17,27 @@ import {
   Play,
   Loader,
   Check,
-  X
+  X,
+  Terminal,
+  Shield,
+  ShieldAlert
 } from 'lucide-vue-next'
 import QuickDumpPairModal from './QuickDumpPairModal.vue'
 import BulkDeleteConfirmModal from './BulkDeleteConfirmModal.vue'
 
 const projectsStore = useProjectsStore()
+
+const defaultCliProjectId = ref('')
+onMounted(async () => {
+    try {
+        const settings = await (window.electronAPI?.storage as any)?.getUserSettings()
+        if (settings?.default_cli_project_id) {
+            defaultCliProjectId.value = settings.default_cli_project_id
+        }
+    } catch (e) {
+        console.error('Failed to load default CLI project', e)
+    }
+})
 
 const viewMode = ref<'grid' | 'list'>('list')
 const searchQuery = ref('')
@@ -45,6 +60,7 @@ const emit = defineEmits<{
   (e: 'delete', id: string): void
   (e: 'rename', id: string, newName: string): void
   (e: 'duplicate', id: string): void
+  (e: 'toggle-protect', id: string): void
 }>()
 
 const renamingId = ref<string | null>(null)
@@ -128,14 +144,14 @@ const toggleSelectAll = () => {
 
 const isBulkDeleteModalOpen = ref(false)
 const projectsToDelete = computed(() => {
-  return projectsStore.projects.filter(p => selectedIds.value.includes(p.id))
+  return projectsStore.projects.filter(p => selectedIds.value.includes(p.id) && !p.isProtected)
 })
 
 const handleBulkDelete = () => {
   if (selectedIds.value.length === 0) return
   
-  // Bulk delete logic without protection
-  const targets = selectedIds.value
+  // Bulk delete logic (respecting protection)
+  const targets = projectsToDelete.value
   if (targets.length === 0) {
     selectedIds.value = []
     return
@@ -145,8 +161,8 @@ const handleBulkDelete = () => {
 }
 
 const confirmBulkDelete = () => {
-  const targets = selectedIds.value
-  targets.forEach(id => projectsStore.removeProject(id))
+  const targets = projectsToDelete.value
+  targets.forEach(p => projectsStore.removeProject(p.id))
   selectedIds.value = []
   isBulkDeleteModalOpen.value = false
 }
@@ -224,18 +240,24 @@ const isQuickDumpModalOpen = ref(false)
 
         <button 
           @click="isQuickDumpModalOpen = true"
-          class="flex items-center gap-2 px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-bold shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+          class="whitespace-nowrap shrink-0 group relative flex items-center justify-center gap-2.5 px-7 py-3 rounded-2xl font-black text-[11px] tracking-[0.2em] uppercase text-white overflow-hidden transition-all duration-500 active:scale-95 shadow-[0_8px_20px_-6px_rgba(99,102,241,0.5)] hover:shadow-[0_14px_25px_-8px_rgba(99,102,241,0.7)] hover:-translate-y-0.5"
         >
-          <Zap class="w-4 h-4 fill-white/20" />
-          QUICK COMPARE
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-600 transition-transform duration-500 group-hover:scale-105"></div>
+          <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/20"></div>
+          <div class="absolute -top-10 -left-10 w-20 h-20 bg-white/20 blur-xl rounded-full group-hover:bg-white/30 transition-colors"></div>
+          <Zap class="w-4 h-4 fill-white/80 relative z-10 group-hover:scale-110 group-hover:fill-white transition-all duration-300 drop-shadow-md" />
+          <span class="relative z-10 drop-shadow-md">Instant Compare</span>
         </button>
 
         <button 
           @click="emit('create')"
-          class="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold shadow-lg shadow-primary-500/20 active:scale-95 transition-all"
+          class="whitespace-nowrap shrink-0 group relative flex items-center justify-center gap-2.5 px-7 py-3 rounded-2xl font-black text-[11px] tracking-[0.2em] uppercase text-white overflow-hidden transition-all duration-500 active:scale-95 shadow-[0_8px_20px_-6px_var(--primary-500,rgba(14,165,233,0.5))] hover:shadow-[0_14px_25px_-8px_var(--primary-500,rgba(14,165,233,0.7))] hover:-translate-y-0.5"
         >
-          <Plus class="w-5 h-5 stroke-[3px]" />
-          NEW BASE
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 transition-transform duration-500 group-hover:scale-105"></div>
+          <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/20"></div>
+          <div class="absolute -top-10 -left-10 w-20 h-20 bg-white/20 blur-xl rounded-full group-hover:bg-white/30 transition-colors"></div>
+          <Plus class="w-4 h-4 stroke-[3.5px] relative z-10 group-hover:rotate-90 group-hover:scale-110 transition-all duration-500 drop-shadow-md" />
+          <span class="relative z-10 drop-shadow-md">New Project</span>
         </button>
       </div>
     </div>
@@ -351,7 +373,12 @@ const isQuickDumpModalOpen = ref(false)
                 <button @click.stop="emit('duplicate', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <Copy class="w-4 h-4" /> Duplicate Project
                 </button>
-                <button @click.stop="emit('delete', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button @click.stop="emit('toggle-protect', project.id)" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold transition-colors" :class="project.isProtected ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                  <ShieldAlert v-if="project.isProtected" class="w-4 h-4" />
+                  <Shield v-else class="w-4 h-4" />
+                  {{ project.isProtected ? 'Unprotect Project' : 'Protect Project' }}
+                </button>
+                <button @click.stop="!project.isProtected && emit('delete', project.id)" :disabled="project.isProtected" class="w-full px-4 py-2.5 text-left flex items-center gap-3 text-sm font-bold transition-colors" :class="project.isProtected ? 'text-gray-400 opacity-50 cursor-not-allowed' : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'">
                   <Trash2 class="w-4 h-4" /> Delete Project
                 </button>
               </div>
@@ -362,7 +389,12 @@ const isQuickDumpModalOpen = ref(false)
           <div class="space-y-1 mb-8 relative z-10">
             <h3 v-if="renamingId !== project.id" class="text-xl font-black text-gray-900 dark:text-white leading-tight flex items-center gap-2">
               {{ project.name }}
+              <ShieldAlert v-if="project.isProtected" class="w-3.5 h-3.5 text-amber-500" title="Protected Project" />
               <span v-if="project.isActive" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span v-if="defaultCliProjectId === project.id" class="px-2 py-0.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[8px] uppercase tracking-widest font-black rounded-md flex items-center gap-1 ml-2 shrink-0">
+                 <Terminal class="w-3 h-3" />
+                 CLI Default
+              </span>
             </h3>
             <div v-else class="relative z-50">
               <input 
@@ -400,7 +432,7 @@ const isQuickDumpModalOpen = ref(false)
             </div>
             
             <div class="flex items-center gap-1 text-primary-500 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">
-              OPEN BASE
+              OPEN PROJECT
               <ChevronRight class="w-4 h-4" />
             </div>
           </div>
@@ -485,6 +517,10 @@ const isQuickDumpModalOpen = ref(false)
               <h3 v-if="renamingId !== project.id" class="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2 truncate">
                 {{ project.name }}
                 <span v-if="project.isActive" class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                <span v-if="defaultCliProjectId === project.id" title="CLI Default Target" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 text-[8px] uppercase tracking-widest font-black rounded flex items-center gap-1 ml-2 shrink-0">
+                   <Terminal class="w-2.5 h-2.5" />
+                   CLI
+                </span>
               </h3>
               <div v-else class="relative z-50">
                 <input 
@@ -547,11 +583,21 @@ const isQuickDumpModalOpen = ref(false)
             >
               <Copy class="w-4 h-4" />
             </button>
-            
+            <button 
+              @click.stop="emit('toggle-protect', project.id)" 
+              class="p-2 rounded-xl transition-all"
+              :class="project.isProtected ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20'"
+              :title="project.isProtected ? 'Unprotect Project' : 'Protect Project'"
+            >
+              <ShieldAlert v-if="project.isProtected" class="w-4 h-4" />
+              <Shield v-else class="w-4 h-4" />
+            </button>
             <!-- Delete Button -->
             <button 
-              @click.stop="emit('delete', project.id)" 
-              class="p-2 rounded-xl transition-all text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500"
+              @click.stop="!project.isProtected && emit('delete', project.id)" 
+              :disabled="project.isProtected"
+              class="p-2 rounded-xl transition-all"
+              :class="project.isProtected ? 'text-gray-300 dark:text-gray-700 opacity-50 cursor-not-allowed' : 'text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500'"
               title="Delete Project"
             >
               <Trash2 class="w-4 h-4" />

@@ -6,6 +6,8 @@ import BackgroundWorker from './background-worker'
 // @ts-ignore
 const Logger = require('andb-logger')
 
+const INITIAL_CWD = process.cwd()
+
 /**
  * AndbBuilder Service
  * 
@@ -309,7 +311,7 @@ export class AndbBuilder {
     sender?: WebContents
   ): Promise<any> {
     const fs = require('fs')
-    const originalCwd = process.cwd()
+    const originalCwd = INITIAL_CWD
     const userDataDir = AndbBuilder.userDataPath
     console.log(`[AndbBuilder] execute called for operation: ${operation}`);
 
@@ -345,13 +347,26 @@ export class AndbBuilder {
       // before ExporterService looks it up by env name.
       const buildConfig = (conn: DatabaseConnection | null) => {
         if (!conn) return null;
+        
+        let resolvedHost = conn.host;
+        let resolvedPath = (conn as any).path || ((conn as any).type === 'sqlite' ? conn.host : undefined);
+        
+        if ((conn as any).type === 'dump' || (conn as any).type === 'sqlite' || (conn as any).type === 'file') {
+          if (resolvedHost && typeof resolvedHost === 'string' && !require('path').isAbsolute(resolvedHost)) {
+            resolvedHost = require('path').resolve(originalCwd, resolvedHost);
+          }
+          if (resolvedPath && typeof resolvedPath === 'string' && !require('path').isAbsolute(resolvedPath)) {
+            resolvedPath = require('path').resolve(originalCwd, resolvedPath);
+          }
+        }
+        
         return {
-          host: conn.host,
+          host: resolvedHost,
           port: conn.port,
           user: conn.username,
           password: conn.password || '',
           database: conn.database || conn.name,
-          path: (conn as any).path || ((conn as any).type === 'sqlite' ? conn.host : undefined),
+          path: resolvedPath,
           type: (conn as any).type || 'mysql',
           sshConfig: (conn as any).ssh || (conn as any).sshConfig,
         };
@@ -370,6 +385,7 @@ export class AndbBuilder {
         // and other orchestrators can call configService.getConnection(env).
         sourceConfig: buildConfig(sourceConn),
         ...(targetConn ? { targetConfig: buildConfig(targetConn) } : {}),
+        projectBaseDir: options.options?.projectBaseDir
       };
 
       console.log(`[AndbBuilder] Prepared payload for ${operation}:`, JSON.stringify({

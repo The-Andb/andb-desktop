@@ -108,7 +108,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     set: (key: string, value: any) => ipcRenderer.invoke('storage-set', key, value),
     delete: (key: string) => ipcRenderer.invoke('storage-delete', key),
     has: (key: string) => ipcRenderer.invoke('storage-has', key),
-    clear: () => ipcRenderer.invoke('storage-clear')
+    clear: () => ipcRenderer.invoke('storage-clear'),
+    getUserSettings: async () => {
+      const res = await ipcRenderer.invoke('get-user-settings')
+      if (res.success) return res.data
+      throw new Error(res.error)
+    },
+    saveUserSetting: async (key: string, value: any) => {
+      const res = await ipcRenderer.invoke('save-user-setting', key, value)
+      if (!res.success) throw new Error(res.error)
+      return res
+    }
   },
 
   andbClearStorage: () => {
@@ -151,6 +161,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   openBackupFolder: () => {
     return ipcRenderer.invoke('open-backup-folder')
+  },
+  getBackupPath: () => {
+    return ipcRenderer.invoke('get-backup-path')
   },
   andbCreateSnapshot: (args: { connection: any, type: string, name: string }) => {
     return ipcRenderer.invoke('andb-create-snapshot', args)
@@ -197,6 +210,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pickAndMoveSqliteDb: () => ipcRenderer.invoke('pick-and-move-sqlite-db'),
   resetDbPath: () => ipcRenderer.invoke('reset-db-path'),
   getDbPath: () => ipcRenderer.invoke('get-db-path'),
+  
+  pickDirectory: () => ipcRenderer.invoke('pick-directory'),
+  pickProjectDir: () => ipcRenderer.invoke('pick-project-dir'),
+  resetProjectDir: () => ipcRenderer.invoke('reset-project-dir'),
+  getProjectDir: () => ipcRenderer.invoke('get-project-dir'),
+  
   saveDumpFile: (sourcePath: string) => ipcRenderer.invoke('save-dump-file', sourcePath),
 
   // Integrations (CLI & MCP)

@@ -93,21 +93,33 @@
                <div class="absolute inset-0 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/10 pointer-events-none rounded transition-colors"></div>
 
                <!-- LEFT SIDE (Source) -->
-               <div :style="{ width: leftColWidth + '%' }" class="shrink-0 flex items-center pr-8 relative transition-[width] duration-0 ease-linear">
-                  <!-- Tree Lines (Source) -->
-                  <div v-if="hasInSource(item)" class="absolute top-0 bottom-0 left-[12px] pointer-events-none z-0 opacity-50">
-                      <div class="absolute left-0 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600"></div>
-                      <div class="absolute left-0 top-1/2 w-3.5 h-px bg-gray-300 dark:bg-gray-600"></div>
-                  </div>
+               <div :style="{ width: leftColWidth + '%' }" class="shrink-0 flex items-center pr-8 relative transition-[width] duration-0 ease-linear group/left">
+                  <div class="flex-1 min-w-0 px-2 flex items-center justify-between text-left group-hover/left:bg-gray-100 dark:group-hover/left:bg-gray-800/50 rounded transition-colors"
+                       :class="{ 'bg-orange-50 dark:bg-orange-900/20 ring-1 ring-orange-200 dark:ring-orange-800/50': appStore.compareStack?.source?.name === item.name && hasInSource(item) }"
+                  >
+                     <div class="flex items-center truncate py-1">
+                       <template v-if="hasInSource(item)">
+                          <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
+                          <span class="truncate font-mono" :class="getSourceClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                       </template>
+                       <template v-else>
+                          <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-6">{{ $t('compare.treeViewData.missingSource') }}</span>
+                       </template>
+                     </div>
 
-                  <div class="flex-1 min-w-0 pr-2 pl-8 flex items-center justify-start text-left">
-                     <template v-if="hasInSource(item)">
-                        <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
-                        <span class="truncate font-mono" :class="getSourceClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
-                     </template>
-                     <template v-else>
-                        <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-6">{{ $t('compare.treeViewData.missingSource') }}</span>
-                     </template>
+                     <!-- Source Instant Compare Button -->
+                     <button 
+                       v-if="hasInSource(item)"
+                       @click.stop="emit('send-to-instant', item, 'source')"
+                       class="shrink-0 p-1 rounded-full transition-all flex items-center gap-1.5 mr-1 group/btn"
+                       :class="[
+                         appStore.compareStack?.source?.name === item.name ? 'opacity-100 bg-orange-500 text-white dark:bg-orange-600 shadow-sm' : 'opacity-0 group-hover/left:opacity-100 text-gray-400 hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                       ]"
+                       title="Set as Source Base"
+                     >
+                       <Flame class="w-3.5 h-3.5 transition-colors" :class="appStore.compareStack?.source?.name === item.name ? 'text-white fill-white/20' : 'text-orange-400 group-hover/btn:text-orange-500'" />
+                       <span v-if="appStore.compareStack?.source?.name === item.name" class="text-[9px] font-black tracking-widest uppercase pr-1">SRC</span>
+                     </button>
                   </div>
                </div>
 
@@ -116,7 +128,7 @@
                  <div 
                    class="p-1 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 group/icon transition-all duration-200"
                    :class="canMigrate(item) ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700' : ''"
-                   @click="handleMigrateClick(item)"
+                   @click.stop="handleMigrateClick(item)"
                  >
                     <component 
                       v-if="canMigrate(item)"
@@ -129,34 +141,6 @@
                       :class="[getStatusClass(item.status), canMigrate(item) ? 'group-hover/icon:hidden' : '']" 
                     />
                  </div>
-                  <!-- Send to Instant Buttons -->
-                  <div class="absolute left-full ml-8 hidden group-hover:flex items-center px-1 bg-white/90 dark:bg-gray-800/90 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm backdrop-blur-sm z-20 p-0.5">
-                    <button 
-                      @click.stop="emit('send-to-instant', item, 'source')"
-                      :disabled="appStore.compareStack?.target?.name === item.name"
-                      class="p-1 rounded-full transition-all group/src"
-                      :class="[
-                        appStore.compareStack?.source?.name === item.name ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
-                        appStore.compareStack?.target?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
-                      ]"
-                      title="Add as Source"
-                    >
-                      <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.source?.name === item.name ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
-                    </button>
-                    <span class="text-[8px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
-                    <button 
-                      @click.stop="emit('send-to-instant', item, 'target')"
-                      :disabled="appStore.compareStack?.source?.name === item.name"
-                      class="p-1 rounded-full transition-all group/tgt"
-                      :class="[
-                        appStore.compareStack?.target?.name === item.name ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-                        appStore.compareStack?.source?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
-                      ]"
-                      title="Add as Target"
-                    >
-                      <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.target?.name === item.name ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
-                    </button>
-                  </div>
                  
                  <!-- Connector Lines -->
                  <div v-if="hasInSource(item)" class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 -mr-1"></div>
@@ -164,21 +148,33 @@
                </div>
 
                <!-- RIGHT SIDE (Target) -->
-               <div class="flex-1 min-w-0 flex items-center pl-4 relative">
-                  <!-- Tree Lines (Target) -->
-                  <div v-if="hasInTarget(item)" class="absolute top-0 bottom-0 left-[18px] pointer-events-none z-0 opacity-50">
-                      <div class="absolute left-0 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600"></div>
-                      <div class="absolute left-0 top-1/2 w-3.5 h-px bg-gray-300 dark:bg-gray-600"></div>
-                  </div>
+               <div class="flex-1 min-w-0 flex items-center pl-4 relative group/right">
+                  <div class="flex-1 min-w-0 px-2 flex items-center text-left group-hover/right:bg-gray-100 dark:group-hover/right:bg-gray-800/50 rounded transition-colors"
+                       :class="{ 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-800/50': appStore.compareStack?.target?.name === item.name && hasInTarget(item) }"
+                  >
+                     <!-- Target Instant Compare Button (Moved closer to center) -->
+                     <button 
+                       v-if="hasInTarget(item)"
+                       @click.stop="emit('send-to-instant', item, 'target')"
+                       class="shrink-0 p-1 rounded-full transition-all flex items-center gap-1.5 mr-2 ml-1 group/btn"
+                       :class="[
+                         appStore.compareStack?.target?.name === item.name ? 'opacity-100 bg-blue-500 text-white dark:bg-blue-600 shadow-sm' : 'opacity-0 group-hover/right:opacity-100 text-gray-400 hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                       ]"
+                       title="Set as Target Base"
+                     >
+                       <span v-if="appStore.compareStack?.target?.name === item.name" class="text-[9px] font-black tracking-widest uppercase pl-1">TGT</span>
+                       <Flame class="w-3.5 h-3.5 transition-colors" :class="appStore.compareStack?.target?.name === item.name ? 'text-white fill-white/20' : 'text-blue-400 group-hover/btn:text-blue-500'" />
+                     </button>
 
-                  <div class="flex-1 min-w-0 pl-7 flex items-center">
-                     <template v-if="hasInTarget(item)">
-                        <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
-                        <span class="truncate font-mono" :class="getTargetClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
-                     </template>
-                     <template v-else>
-                        <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-4">{{ $t('compare.treeViewData.missingTarget') }}</span>
-                     </template>
+                     <div class="flex items-center truncate py-1">
+                       <template v-if="hasInTarget(item)">
+                          <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
+                          <span class="truncate font-mono" :class="getTargetClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                       </template>
+                       <template v-else>
+                          <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-4">{{ $t('compare.treeViewData.missingTarget') }}</span>
+                       </template>
+                     </div>
                   </div>
                </div>
              </div>
@@ -205,7 +201,8 @@ import {
   Eye,
   Cpu,
   CalendarClock,
-  Flame
+  Flame,
+  Ban
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 
@@ -251,7 +248,8 @@ const filterOptions = computed(() => [
   { id: 'new', label: t('compare.treeViewData.filter.new'), activeClass: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400', icon: ArrowRight },
   { id: 'modified', label: t('compare.treeViewData.filter.modified'), activeClass: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400', icon: AlertCircle },
   { id: 'identical', label: t('compare.treeViewData.filter.identical'), activeClass: 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400', icon: CheckCircle2 },
-  { id: 'deprecated', label: t('compare.treeViewData.filter.deprecated'), activeClass: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400', icon: XCircle }
+  { id: 'deprecated', label: t('compare.treeViewData.filter.deprecated'), activeClass: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400', icon: XCircle },
+  { id: 'excluded', label: t('compare.treeViewData.filter.excluded', 'Excluded'), activeClass: 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300', icon: Ban }
 ])
 
 const startResize = () => {
@@ -281,14 +279,21 @@ const hasData = computed(() => props.results && props.results.length > 0)
 
 const getFilterCount = (filterId: string) => {
   if (!props.results) return 0
-  if (filterId === 'all') return props.results.length
   
-  return props.results.filter(item => {
+  let baseItems = props.results
+  if (props.activeType !== 'all') {
+    baseItems = baseItems.filter(r => r.type === props.activeType)
+  }
+
+  if (filterId === 'all') return baseItems.length
+  
+  return baseItems.filter(item => {
     const s = item.status?.toLowerCase()
     if (filterId === 'new') return s === 'new' || s === 'missing_in_target'
     if (filterId === 'modified') return s === 'modified' || s === 'different' || s === 'updated'
     if (filterId === 'identical') return s === 'equal' || s === 'same' || s === 'identical'
     if (filterId === 'deprecated') return s === 'deprecated' || s === 'missing_in_source'
+    if (filterId === 'excluded') return s === 'excluded' || s === 'ignored'
     return false
   }).length
 }
@@ -312,6 +317,7 @@ const categories = computed(() => {
         if (currentFilter.value === 'modified') return s === 'modified' || s === 'different' || s === 'updated'
         if (currentFilter.value === 'identical') return s === 'equal' || s === 'same' || s === 'identical'
         if (currentFilter.value === 'deprecated') return s === 'deprecated' || s === 'missing_in_source'
+        if (currentFilter.value === 'excluded') return s === 'excluded' || s === 'ignored'
         return false
       })
     }
@@ -346,7 +352,7 @@ const handleMigrateClick = (item: any) => {
 const canMigrate = (item: any) => {
   if (props.targetIsStatic) return false
   const s = item.status?.toLowerCase()
-  return s !== 'equal' && s !== 'same'
+  return s !== 'equal' && s !== 'same' && s !== 'excluded' && s !== 'ignored'
 }
 
 // Helpers
@@ -398,6 +404,7 @@ const getStatusIcon = (status: string) => {
     case 'equal': case 'same': return CheckCircle2
     case 'new': case 'missing_in_target': return ArrowRight
     case 'deprecated': case 'missing_in_source': return XCircle 
+    case 'excluded': case 'ignored': return Ban
     case 'modified': case 'different': case 'updated': return AlertCircle
     default: return AlertCircle
   }
@@ -408,6 +415,7 @@ const getStatusClass = (status: string) => {
     case 'equal': case 'same': return 'text-teal-500 dark:text-teal-400'
     case 'new': case 'missing_in_target': return 'text-emerald-500 dark:text-emerald-400'
     case 'deprecated': case 'missing_in_source': return 'text-rose-500 dark:text-rose-400'
+    case 'excluded': case 'ignored': return 'text-gray-500 dark:text-gray-400'
     case 'modified': case 'different': case 'updated': return 'text-amber-500 dark:text-amber-400'
     default: return 'text-gray-400'
   }

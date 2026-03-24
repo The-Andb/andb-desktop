@@ -13,6 +13,7 @@ export function registerIpcHandlers() {
   // --- System & CLI ---
   ipcMain.handle('open-backup-folder', system.handleOpenBackupFolder)
   ipcMain.handle('pick-file', system.handlePickFile)
+  ipcMain.handle('pick-directory', system.handlePickDirectory)
   ipcMain.handle('check-file-permissions', system.handleCheckFilePermissions)
   ipcMain.handle('save-dump-file', system.handleSaveDumpFile)
   ipcMain.handle('app-log', system.handleAppLog)
@@ -33,6 +34,8 @@ export function registerIpcHandlers() {
   ipcMain.handle('storage-clear', storage.handleStorageClear)
   ipcMain.handle('andb-clear-storage', storage.handleAndbClearStorage)
   ipcMain.handle('update-feature-flag', storage.handleUpdateFeatureFlag)
+  ipcMain.handle('get-user-settings', storage.handleGetUserSettings)
+  ipcMain.handle('save-user-setting', storage.handleSaveUserSetting)
 
   ipcMain.handle('security-get-public-key', storage.handleSecurityGetPublicKey)
   ipcMain.handle('security-encrypt-token', storage.handleSecurityEncryptToken)
@@ -96,4 +99,8 @@ export function registerIpcHandlers() {
   ipcMain.handle('pick-and-move-sqlite-db', andb.handlePickAndMoveDb)
   ipcMain.handle('reset-db-path', andb.handleResetDbPath)
   ipcMain.handle('get-db-path', andb.handleAndbGetDbPath)
+
+  ipcMain.handle('pick-project-dir', andb.handlePickProjectDir)
+  ipcMain.handle('reset-project-dir', andb.handleResetProjectDir)
+  ipcMain.handle('get-project-dir', andb.handleGetProjectDir)
 }

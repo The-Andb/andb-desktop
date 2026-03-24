@@ -21,7 +21,7 @@
               class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
             >
               <option value="mysql">{{ $t('connections.types.mysql') }}</option>
-              <option value="postgres" disabled>{{ $t('connections.types.postgres') }}</option>
+              <option value="postgres">{{ $t('connections.types.postgres') }}</option>
               <option value="sqlite">{{ $t('connections.types.sqlite') }}</option>
               <option value="dump">{{ $t('connections.types.dump') }}</option>
             </select>
@@ -369,8 +369,11 @@ const pickSqliteFile = async () => {
       ]
     })
     if (path) {
-      updateField('host', path)
-      updateField('database', '')
+      emit('update:modelValue', {
+        ...props.modelValue,
+        host: path,
+        database: ''
+      })
     }
   }
 }

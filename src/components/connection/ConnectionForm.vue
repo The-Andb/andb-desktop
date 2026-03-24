@@ -205,7 +205,10 @@ const connectionPairsStore = useConnectionPairsStore()
 const templatesStore = useConnectionTemplatesStore()
 
 const enabledEnvironments = computed(() => connectionPairsStore.enabledEnvironments)
-const templates = computed(() => templatesStore.templates)
+const templates = computed(() => {
+  if (!form.value.environment) return templatesStore.templates;
+  return templatesStore.templates.filter(t => !t.environment || t.environment.split(',').map(s=>s.trim()).includes(form.value.environment))
+})
 
 interface Props {
   connection?: Partial<DatabaseConnection>

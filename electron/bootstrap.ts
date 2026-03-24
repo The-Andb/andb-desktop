@@ -5,6 +5,12 @@ import { init as sentryInit } from '@sentry/electron/main'
 import { CoreBridge } from '@the-andb/core'
 import { AndbBuilder } from './services/andb-builder'
 import * as yaml from 'js-yaml'
+import { StorageMigrator } from './services/storage-migrator'
+import { ApplicationUpdater } from './services/application-updater'
+import { DesktopStorageStrategy } from './storage/strategy/desktop-storage.strategy'
+
+// Singleton instance to be used by IPC handlers
+export const desktopStorageStrategy = new DesktopStorageStrategy();
 
 export const isDev = process.env.NODE_ENV === 'development'
 export const isTest = process.env.NODE_ENV === 'test'
@@ -23,19 +29,19 @@ export function initSentry() {
  */
 export function configureAppPaths() {
   if (isTest) {
-    app.name = 'The Andb Test'
+    app.name = 'TheAndb Test'
     const userDataPath = app.getPath('userData')
     if (!userDataPath.endsWith('_v3_test')) {
       app.setPath('userData', userDataPath + '_v3_test')
     }
   } else if (isDev) {
-    app.name = 'The Andb Dev'
+    app.name = 'TheAndb Dev'
     const userDataPath = app.getPath('userData')
     if (!userDataPath.endsWith('_v3_dev')) {
       app.setPath('userData', userDataPath + '_v3_dev')
     }
   } else {
-    app.name = 'The Andb'
+    app.name = 'TheAndb'
     const userDataPath = app.getPath('userData')
     if (!userDataPath.endsWith('_v3')) {
       app.setPath('userData', userDataPath + '_v3')
@@ -63,12 +69,12 @@ export function initLogger() {
     }
 
     if (loggerInstance) {
-      ;(global as any).logger = loggerInstance
+      ; (global as any).logger = loggerInstance
       // Compatibility shim: andb-logger uses .dev() instead of .debug()
       if (typeof (global as any).logger.debug !== 'function') {
-        ;(global as any).logger.debug = (...args: any[]) => {
+        ; (global as any).logger.debug = (...args: any[]) => {
           if (typeof (global as any).logger.dev === 'function') {
-            ;(global as any).logger.dev(...args)
+            ; (global as any).logger.dev(...args)
           } else {
             console.debug(...args)
           }
@@ -108,13 +114,17 @@ export function initAutoUpdater() {
 export async function initCoreServices() {
   const userDataPath = app.getPath('userData')
   const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
-  
+
   let customDbPath = undefined
+  let projectBaseDir = undefined
   if (fs.existsSync(dbConfigPath)) {
     try {
       const dbConfig: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8'))
       if (dbConfig?.dbPath) {
         customDbPath = dbConfig.dbPath
+      }
+      if (dbConfig?.projectBaseDir) {
+        projectBaseDir = dbConfig.projectBaseDir
       }
     } catch (e) {
       if ((global as any).logger) (global as any).logger.warn('Failed to read db-config.yaml', e)
@@ -122,14 +132,18 @@ export async function initCoreServices() {
   }
 
   try {
-    await CoreBridge.init(userDataPath, customDbPath)
+    if ((global as any).logger) (global as any).logger.info(`Booting CoreEngine against SQLite: ${customDbPath}, BaseDir: ${projectBaseDir}`)
+    await CoreBridge.init(userDataPath, customDbPath, desktopStorageStrategy, projectBaseDir)
     if ((global as any).logger) (global as any).logger.info(`Core Engine Initialized successfully. DB: ${CoreBridge.getDbPath()}`)
 
     AndbBuilder.initialize(userDataPath, app.getAppPath(), CoreBridge.getDbPath())
 
     // Migration Changelog Capture
     await syncAppVersionAndChangelog(CoreBridge)
-    
+
+    // Run legacy settings migration to SQLite TypeORM
+    await StorageMigrator.runMigration()
+
     // Seed Docker Connections in Dev Mode
     if (isDev) {
       await seedDockerConnections(CoreBridge)

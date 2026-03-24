@@ -2,12 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { storage } from '../utils/storage-ipc'
 import type { Project } from '@/types/project'
+import { useEventBus } from '@vueuse/core'
 import { useAppStore } from './app'
 import { useConnectionPairsStore } from './connectionPairs'
-import { useConsoleStore } from './console'
-import { useOperationsStore } from './operations'
 
-
+export const projectChangedBus = useEventBus<string>('project-changed')
 export const useProjectsStore = defineStore('projects', () => {
   // State
   const projects = ref<Project[]>([])
@@ -54,17 +53,6 @@ export const useProjectsStore = defineStore('projects', () => {
       const settings = await storage.getSettings()
       let lastSelected = settings?.lastSelectedProjectId
 
-      // Simplicity Fallback: Direct LocalStorage read for Dev Mode
-      let lastSelectedName: string | null = null
-      if ((!lastSelected || lastSelected === 'default') && typeof window !== 'undefined') {
-        const directSave = localStorage.getItem('andb_last_pid')
-        if (directSave) {
-          console.log('[Projects] Recovered ID from direct storage:', directSave)
-          lastSelected = directSave
-        }
-        lastSelectedName = localStorage.getItem('andb_last_pname')
-      }
-
       console.log('[Projects] Init - Last Selected ID:', lastSelected)
 
       // 5. Data Sanitization (Fix duplicate IDs from previous bugs)
@@ -92,11 +80,9 @@ export const useProjectsStore = defineStore('projects', () => {
         found = true
       }
 
-      // Attempt 2: Match by Name (Heuristic Recovery) - If user was on "Andb Live Demo", keep them there even if ID changed
+      // Attempt 2: Match by Name (Heuristic Recovery)
       if (!found && projects.value.length > 0) {
-        // Try to recover by name if ID failed (e.g. demo project recreated with new ID)
-        const targetName = lastSelectedName || lastSelected // lastSelected might be a name if user hacked localstorage, or just try it
-
+        const targetName = lastSelected
         const nameMatch = projects.value.find(p => p.name === targetName)
         if (nameMatch) {
           console.log('[Projects] Recovered selection by Name:', targetName, '->', nameMatch.id)
@@ -146,35 +132,12 @@ export const useProjectsStore = defineStore('projects', () => {
         // @ts-ignore
         await storage.updateSettings({ lastSelectedProjectId: newId })
         console.log('[Projects] Persisted selection setting:', newId)
-
-        // Simplicity Fallback: Direct LocalStorage save for Dev Mode
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('andb_last_pid', newId)
-          // Save Name too for heuristic recovery
-          const p = projects.value.find(proj => proj.id === newId)
-          if (p) localStorage.setItem('andb_last_pname', p.name)
-        }
       } catch (err) {
         console.error('[Projects] Failed to persist selection:', err)
       }
 
-      // DECOUPLING & INDEPENDENCE: Sync satellite stores
-      const appStore = useAppStore()
-      const connectionPairsStore = useConnectionPairsStore()
-      const consoleStore = useConsoleStore()
-      const operationsStore = useOperationsStore()
-
-      // 1. Reset Global Connection Selection (Prevents Schema Tab leaking)
-      appStore.selectedConnectionId = ''
-
-      // 2. Reset Active Compare Pair (Prevents Compare Tab leaking)
-      connectionPairsStore.selectPair('')
-
-      // 3. Clear Logs (Ensures fresh start for the new project context)
-      consoleStore.clearLogs()
-
-      // 4. Clear ongoing UI operations (Keep context clean)
-      operationsStore.clearOperations()
+      // DECOUPLING & INDEPENDENCE: Emit event to sync satellite stores
+      projectChangedBus.emit(newId)
     }
   })
 
@@ -377,7 +340,7 @@ export const useProjectsStore = defineStore('projects', () => {
     const appStore = useAppStore()
     const connectionPairsStore = useConnectionPairsStore()
 
-    const projectName = name || `Quick Compare ${new Date().toLocaleTimeString()}`
+    const projectName = name || `Instant Compare ${new Date().toLocaleTimeString()}`
 
     // Extract file names for labels
     const sourceFileName = sourcePath.split(/[/\\]/).pop() || 'Source'
@@ -451,6 +414,16 @@ export const useProjectsStore = defineStore('projects', () => {
 
   async function setupSystemProject(dbPath: string) {
     const appStore = useAppStore()
+
+    if (!import.meta.env.DEV) {
+      // Clean up if it leaked into production previously
+      const leakedProject = projects.value.find(p => p.name === 'TheAndb System')
+      if (leakedProject) {
+        projects.value = projects.value.filter(p => p.id !== leakedProject.id)
+        storage.saveProjects(projects.value)
+      }
+      return
+    }
 
     // 1. Ensure System Project exists
     let systemProject = projects.value.find(p => p.name === 'TheAndb System')

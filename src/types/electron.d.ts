@@ -62,6 +62,7 @@ declare global {
       onAndbProgress: (callback: (event: any, data: any) => void) => void
 
       andbGetSchemas: (args?: any) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbParseTable: (ddl: string) => Promise<{ success: boolean; data?: any; error?: string }>
       andbGetSavedComparisonResults: (args: {
         sourceConnection: any
         targetConnection: any

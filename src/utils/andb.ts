@@ -1,6 +1,7 @@
 import type { DatabaseConnection } from '@/stores/app'
 import { useSettingsStore } from '@/stores/settings'
 import { useProjectsStore } from '@/stores/projects'
+import type { Result } from '@the-andb/core'
 
 /**
  * Andb Service - Programmatic API Wrapper
@@ -70,7 +71,8 @@ export class Andb {
       return {
         domainNormalization: projectSettings.domainNormalization || globalSettings.domainNormalization,
         isNotMigrateCondition: projectSettings.isNotMigrateCondition || globalSettings.isNotMigrateCondition,
-        gitConfig: (projectSettings as any).gitConfig || null
+        gitConfig: (projectSettings as any).gitConfig || null,
+        projectBaseDir: projectSettings.projectBaseDir || null
       }
     } catch (e) {
       // Pinia might not be ready in some edge cases
@@ -101,14 +103,6 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-      // Diagnostic Log (Sensitive info masked)
-      console.log(`[Andb] Calling export for ${sourceConnection.environment}/${sourceConnection.database || sourceConnection.name}`, {
-        host: sourceConnection.host,
-        user: sourceConnection.username,
-        hasPassword: !!sourceConnection.password,
-        templateId: sourceConnection.templateId,
-        options
-      })
 
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
@@ -134,14 +128,6 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-      // Diagnostic Log (Sensitive info masked)
-      console.log(`[Andb] Calling compare for ${sourceConnection.environment}/${sourceConnection.database || sourceConnection.name} -> ${targetConnection.environment}`, {
-        host: sourceConnection.host,
-        user: sourceConnection.username,
-        hasPassword: !!sourceConnection.password,
-        templateId: sourceConnection.templateId,
-        options
-      })
 
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
@@ -190,14 +176,6 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-      // Diagnostic Log (Sensitive info masked)
-      console.log(`[Andb] Calling migrate for ${targetConnection.environment}/${targetConnection.database || targetConnection.name}`, {
-        host: targetConnection.host,
-        user: targetConnection.username,
-        hasPassword: !!targetConnection.password,
-        templateId: targetConnection.templateId,
-        options
-      })
 
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
@@ -256,14 +234,17 @@ export class Andb {
   /**
    * Get all registered schemas from core
    */
-  static async getSchemas(): Promise<any> {
-    if (!isElectron) return []
+  static async getSchemas(): Promise<Result<any[]>> {
+    if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
       const result = await window.electronAPI.andbGetSchemas()
-      if (result.success) return result.data
-      return []
-    } catch (error) {
-      return []
+      if (result.success) return { success: true, data: result.data }
+      
+      // FATAL error if core returns success: false
+      throw new Error(result.error || 'Failed to fetch schemas')
+    } catch (error: any) {
+      // Propagation
+      throw new Error(`Failed to fetch schemas: ${error.message}`)
     }
   }
 
@@ -283,28 +264,28 @@ export class Andb {
   /**
    * Get snapshots for a table
    */
-  static async getSnapshots(environment: string, database: string, type: string, name: string): Promise<any[]> {
-    if (!isElectron) return []
+  static async getSnapshots(environment: string, database: string, type: string, name: string): Promise<Result<any[]>> {
+    if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
       const result = await window.electronAPI.getSnapshots(environment, database, type, name)
-      if (result.success) return result.data
-      return []
-    } catch (error) {
-      return []
+      if (result.success) return { success: true, data: result.data }
+      throw new Error(result.error || 'Failed to fetch snapshots')
+    } catch (error: any) {
+      throw new Error(`Failed to fetch snapshots: ${error.message}`)
     }
   }
 
   /**
    * Get global snapshots list
    */
-  static async getAllSnapshots(limit: number = 50): Promise<any[]> {
-    if (!isElectron) return []
+  static async getAllSnapshots(limit: number = 50): Promise<Result<any[]>> {
+    if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
       const result = await window.electronAPI.getAllSnapshots(limit)
-      if (result.success) return result.data
-      return []
-    } catch (error) {
-      return []
+      if (result.success) return { success: true, data: result.data }
+      throw new Error(result.error || 'Failed to fetch all snapshots')
+    } catch (error: any) {
+      throw new Error(`Failed to fetch all snapshots: ${error.message}`)
     }
   }
 
@@ -435,7 +416,7 @@ export class Andb {
   /**
    * Install andb CLI globally
    */
-  static async installCli(): Promise<{ success: boolean; message: string }> {
+  static async installCli(): Promise<Result<void>> {
     if (!isElectron) return { success: false, message: 'Not in Electron' }
     try {
       return await window.electronAPI.invoke('andb-install-cli')
@@ -453,6 +434,20 @@ export class Andb {
       return await window.electronAPI.invoke('andb-check-cli-installed')
     } catch (error) {
       return false
+    }
+  }
+
+  /**
+   * Parse DDL string into structural components
+   */
+  static async parseTable(ddl: string): Promise<any> {
+    if (!isElectron) return null
+    try {
+      const result = await window.electronAPI.andbParseTable(ddl)
+      if (result.success) return result.data
+      return null
+    } catch (error) {
+      return null
     }
   }
 }

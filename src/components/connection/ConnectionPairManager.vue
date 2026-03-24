@@ -18,114 +18,65 @@
       <div
         v-for="pair in connectionPairs"
         :key="pair.id"
-        class="card p-3 border border-gray-200 dark:border-gray-700"
+        class="group relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300"
       >
-        <div class="flex items-center space-x-4">
-          <!-- Pair Name -->
-          <div class="flex-1">
-            <input
-              v-model="pair.name"
-              type="text"
-              class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-1 focus:ring-primary-500 focus:border-transparent outline-none"
-              :placeholder="$t('connectionPairs.pairNamePlaceholder')"
-              @blur="updatePair(pair)"
-            />
-          </div>
+        <div class="flex flex-col gap-3">
+           <!-- Top Row: Name & Actions -->
+           <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-2.5">
+              <input 
+                v-model="pair.name" 
+                type="text" 
+                class="flex-1 bg-transparent border-none text-xs font-black text-gray-700 dark:text-gray-200 focus:ring-0 p-0 outline-none uppercase tracking-widest placeholder:text-gray-300" 
+                :placeholder="$t('connectionPairs.pairNamePlaceholder')"
+                @blur="updatePair(pair)"
+              />
+              
+              <div class="flex items-center gap-1 shrink-0 ml-4">
+                <button v-if="!isDumpPair(pair)" @click="testPair(pair)" :disabled="!pair.sourceEnv || !pair.targetEnv" class="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg"><ShieldQuestion class="w-3.5 h-3.5" /></button>
+                <button @click="setAsDefault(pair)" :class="pair.isDefault ? 'text-green-500' : 'text-gray-400 hover:text-green-600'" class="p-1.5 transition-colors rounded-lg"><Star class="w-3.5 h-3.5" :fill="pair.isDefault ? 'currentColor' : 'none'" /></button>
+                <button @click="duplicatePair(pair)" class="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors rounded-lg"><Copy class="w-3.5 h-3.5" /></button>
+                <button @click="removePair(pair)" class="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg"><Trash2 class="w-3.5 h-3.5" /></button>
+              </div>
+           </div>
 
-          <!-- Source Environment -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('connectionPairs.source') }}</span>
-            <select
-              :value="pair.sourceConnectionId"
-              class="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-1 focus:ring-primary-500 focus:border-transparent max-w-[180px] outline-none"
-              @change="updateSource(pair, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">{{ $t('connectionPairs.selectConnection') }}</option>
-              <optgroup v-for="env in enabledEnvironments" :key="env.id" :label="env.name">
-                <option v-for="conn in getConnectionsByEnv(env.name)" :key="conn.id" :value="conn.id">
-                  {{ conn.name }}
-                </option>
-              </optgroup>
-            </select>
-          </div>
+           <!-- Bottom Row: Source -> Target Pickers -->
+           <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest pl-1">{{ $t('connectionPairs.source') }}</span>
+                <select 
+                  :value="pair.sourceConnectionId" 
+                  class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg px-2.5 py-2 text-xs font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all truncate" 
+                  @change="updateSource(pair, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">{{ $t('connectionPairs.selectConnection') }}</option>
+                  <optgroup v-for="env in enabledEnvironments" :key="env.id" :label="env.name">
+                    <option v-for="conn in getConnectionsByEnv(env.name)" :key="conn.id" :value="conn.id">{{ conn.name }}</option>
+                  </optgroup>
+                </select>
+              </div>
+              
+              <div class="mt-4 shrink-0 px-1">
+                 <!-- Status graphic mixed with arrow -->
+                 <div class="relative w-6 h-6 flex items-center justify-center">
+                    <ArrowRight class="w-4 h-4 text-gray-300 dark:text-gray-600 absolute" :class="{'opacity-0': pair.status && pair.status !== 'idle'}" />
+                    <div v-if="pair.status && pair.status !== 'idle'" :class="getPairStatusClass(pair)" class="w-2.5 h-2.5 rounded-full absolute shadow-[0_0_8px_rgba(0,0,0,0.1)]"></div>
+                 </div>
+              </div>
 
-          <!-- Arrow -->
-          <ArrowRight class="w-4 h-4 text-gray-400" />
-
-          <!-- Target Environment -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('connectionPairs.target') }}</span>
-            <select
-              :value="pair.targetConnectionId"
-              class="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-1 focus:ring-primary-500 focus:border-transparent max-w-[180px] outline-none"
-              @change="updateTarget(pair, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">{{ $t('connectionPairs.selectTarget') }}</option>
-              <optgroup v-for="env in enabledEnvironments" :key="env.id" :label="env.name">
-                <option v-for="conn in getConnectionsByEnv(env.name)" :key="conn.id" :value="conn.id">
-                  {{ conn.name }}
-                </option>
-              </optgroup>
-            </select>
-          </div>
-
-          <!-- Status Indicator -->
-          <div class="flex items-center space-x-2">
-            <div
-              :class="[
-                'w-2 h-2 rounded-full',
-                getPairStatusClass(pair)
-              ]"
-            ></div>
-            <span class="text-xs text-gray-500">{{ getPairStatusText(pair) }}</span>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center space-x-2">
-            <button
-              v-if="!isDumpPair(pair)"
-              @click="testPair(pair)"
-              class="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-              :title="$t('connectionPairs.testConnection')"
-              :disabled="!pair.sourceEnv || !pair.targetEnv"
-            >
-              <ShieldQuestion class="w-4 h-4" />
-            </button>
-            <div v-else class="w-6"></div>
-            <button
-              @click="setAsDefault(pair)"
-              class="p-1 text-gray-400 hover:text-green-600 dark:hover:text-green-400"
-              :title="$t('connectionPairs.setAsDefault')"
-              :class="{ 'text-green-600 dark:text-green-400': pair.isDefault }"
-            >
-              <Star class="w-4 h-4" />
-            </button>
-            <button
-              @click="duplicatePair(pair)"
-              class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              :title="$t('connectionPairs.duplicate')"
-            >
-              <Copy class="w-4 h-4" />
-            </button>
-            <button
-              @click="removePair(pair)"
-              class="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-              :title="$t('connectionPairs.remove')"
-            >
-              <Trash2 class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="mt-3">
-          <input
-            v-model="pair.description"
-            type="text"
-            class="w-full px-2 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-transparent"
-            :placeholder="$t('connectionPairs.descPlaceholder')"
-            @blur="updatePair(pair)"
-          />
+              <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest pl-1">{{ $t('connectionPairs.target') }}</span>
+                <select 
+                  :value="pair.targetConnectionId" 
+                  class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg px-2.5 py-2 text-xs font-medium text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all truncate" 
+                  @change="updateTarget(pair, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">{{ $t('connectionPairs.selectTarget') }}</option>
+                  <optgroup v-for="env in enabledEnvironments" :key="env.id" :label="env.name">
+                    <option v-for="conn in getConnectionsByEnv(env.name)" :key="conn.id" :value="conn.id">{{ conn.name }}</option>
+                  </optgroup>
+                </select>
+              </div>
+           </div>
         </div>
       </div>
     </div>
@@ -156,13 +107,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { Plus, ArrowRight, ShieldQuestion, Star, Copy, Trash2 } from 'lucide-vue-next'
 import { useConnectionPairsStore, type ConnectionPair } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 
-const { t } = useI18n()
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 const route = useRoute()
@@ -295,18 +244,7 @@ const getPairStatusClass = (pair: ConnectionPair) => {
   }
 }
 
-const getPairStatusText = (pair: ConnectionPair) => {
-  switch (pair.status) {
-    case 'testing':
-      return t('connectionPairs.status.testing')
-    case 'success':
-      return t('connectionPairs.status.connected')
-    case 'failed':
-      return t('connectionPairs.status.failed')
-    default:
-      return t('connectionPairs.status.notTested')
-  }
-}
+// Removed getPairStatusText as it's no longer used
 
 // Expose methods and data for parent component
 defineExpose({

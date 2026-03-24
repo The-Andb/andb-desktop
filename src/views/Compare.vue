@@ -27,10 +27,8 @@
      <div class="flex items-center gap-4">
         <!-- View Mode Switch -->
         <div 
-          v-if="!showMigrateModal && appStore.compareMode === 'auto'"
-          class="flex items-center gap-3"
-        >
-          <!-- Segmented Control for View Mode -->
+          v-if="appStore.compareMode === 'auto'"
+          class="flex items-center space-x-2 shrink-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 shadow-sm">
           <div 
             class="flex items-center bg-gray-100 dark:bg-gray-900 p-1 rounded-xl"
             :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''"
@@ -110,7 +108,7 @@
             v-if="appStore.compareMode === 'auto'"
             @click="runComparison()" 
             :disabled="loading || !activePair"
-            class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale"
+            class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale shrink-0"
             :class="[
               appStore.buttonStyle === 'full' ? 'px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs tracking-wide shadow-md active:scale-95 gap-2' : '',
               appStore.buttonStyle === 'minimal' ? 'px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm gap-2' : '',
@@ -133,29 +131,48 @@
           <!-- Comparison Area (Top) -->
           <div class="flex-1 flex overflow-hidden relative min-w-0">
             <main class="flex-1 flex flex-col overflow-hidden relative min-w-0">
+              
+              <!-- MIGRATION INLINE PANEL -->
+              <div v-if="migrationTerminal.isOpen" class="absolute inset-0 z-[100] bg-white dark:bg-gray-900 flex flex-col animate-in slide-in-from-right-8 duration-300">
+                <MigrationConfirm
+                  :is-open="true"
+                  :inline="true"
+                  :loading="isMigrating"
+                  :item="migrationTerminal.type === 'batch' ? { isBatch: true, items: migrationTerminal.items } : migrationTerminal.items[0]"
+                  :source-name="sourceName"
+                  :target-name="targetName"
+                  :sql-script="migrationTerminal.sqlScript"
+                  :sql-map="migrationTerminal.sqlMap"
+                  :fetching-sql="migrationTerminal.fetching"
+                  :target-is-static="isTargetDump"
+                  @close="closeMigrationTerminal"
+                  @confirm="executeConfirmedMigration"
+                  @select="fetchBatchItemSql"
+                />
+              </div>
+
               <!-- Removed Manual Compare Dropdowns per user request -->
 
           <!-- Vertical Split: Object List vs DDL View -->
           <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0">
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
-            <div :style="{ width: showMigrateModal ? '60px' : resultsWidth + 'px' }" class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300">
+            <div :style="{ width: resultsWidth + 'px' }" class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300">
               <!-- Results Header with Breadcrumb-like stack navigation -->
-              <div class="p-2 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 h-10 flex items-center shrink-0 justify-center">
+              <div class="px-3 py-2 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 h-12 flex items-center shrink-0 justify-center">
                 <button 
                   v-if="selectedFilterType !== 'all'"
                   @click="selectedFilterType = 'all'"
-                  class="p-1 hover:bg-white dark:hover:bg-gray-700 rounded transition-colors text-gray-500"
-                  :class="showMigrateModal ? '' : 'mr-2'"
+                  class="p-1 hover:bg-white dark:hover:bg-gray-700 rounded transition-colors text-gray-500 mr-2"
                   title="Back to Database Overview"
                 >
                   <ChevronLeft class="w-4 h-4" />
                 </button>
-                <div class="flex items-center min-w-0" :class="showMigrateModal ? 'justify-center' : 'flex-1'">
-                  <span class="text-primary-600 dark:text-primary-400 shrink-0" :class="showMigrateModal ? '' : 'mr-1.5'">
+                <div class="flex items-center min-w-0 flex-1">
+                  <span class="text-primary-600 dark:text-primary-400 shrink-0 mr-1.5">
                     <Database v-if="selectedFilterType === 'all'" class="w-3.5 h-3.5" />
                     <component v-else :is="getIconForType(selectedFilterType)" class="w-3.5 h-3.5" />
                   </span>
-                  <div v-if="!showMigrateModal" class="flex flex-col min-w-0">
+                  <div class="flex flex-col min-w-0">
                     <span class="truncate text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300">
                       <span v-if="selectedFilterType === 'all'">{{ selectedPath.db || $t('common.database') }} {{ $t('common.overview') }}</span>
                       <span v-else>{{ selectedFilterType }}</span>
@@ -167,17 +184,20 @@
                 </div>
                 <!-- Batch Migrate for single type or entire schema -->
                 <button 
-                  v-if="hasChanges(selectedFilterType) && !showMigrateModal"
-                  @click="openBatchMigrateModal(selectedFilterType === 'all' ? 'Schema' : selectedFilterType)"
-                  class="ml-auto p-1.5 rounded-lg bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 hover:bg-primary-600 hover:text-white transition-all shadow-sm"
+                  v-if="hasChanges(selectedFilterType)"
+                  @click="migrateBatchInline(selectedFilterType === 'all' ? 'Schema' : selectedFilterType)"
+                  class="ml-auto p-1.5 rounded-lg transition-all shadow-sm flex items-center"
+                  :class="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType) ? 'bg-orange-500 text-white cursor-wait' : 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 hover:bg-primary-600 hover:text-white'"
+                  :disabled="isMigratingBatch !== null"
                   :title="selectedFilterType === 'all' ? 'Migrate Entire Schema' : 'Migrate All in this category'"
                 >
-                  <Zap class="w-3.5 h-3.5" />
+                  <Loader2 v-if="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType)" class="w-3.5 h-3.5 animate-spin" />
+                  <Zap v-else class="w-3.5 h-3.5" />
                 </button>
               </div>
 
               <!-- Filter & Search Bar -->
-              <div v-if="hasResults && !showMigrateModal" class="p-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 space-y-2 shrink-0">
+              <div v-if="hasResults" class="p-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 space-y-2 shrink-0">
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                     <Search class="w-3.5 h-3.5 text-gray-400" />
@@ -242,105 +262,120 @@
               <div class="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-2">
                 <div v-if="!hasResults" class="p-8 text-center text-gray-400 h-full flex flex-col justify-center">
                   <ScanSearch class="w-12 h-12 mx-auto mb-2 opacity-20" />
-                  <p v-if="!showMigrateModal" class="text-xs uppercase tracking-widest font-bold">{{ $t('history.noHistory') }}</p>
+                  <p class="text-xs uppercase tracking-widest font-bold">{{ $t('history.noHistory') }}</p>
                 </div>
 
-                <!-- OVERVIEW MODE: Stack view of categories or when modal is open -->
-                <div v-else-if="selectedFilterType === 'all' || showMigrateModal" class="space-y-2">
+                <!-- CATEGORY ACCORDIONS (List Mode) -->
+                <div v-else class="space-y-2 pb-4">
                   <div 
                     v-for="cat in resultsByCategory" :key="cat.type"
-                    @click="selectedFilterType = cat.type; showMigrateModal = false"
-                    class="rounded-xl transition-all cursor-pointer group flex flex-col relative"
-                    :class="showMigrateModal 
-                      ? 'p-2 justify-center hover:bg-gray-100 dark:hover:bg-gray-800' 
-                      : 'p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-primary-500/30'"
-                    :title="showMigrateModal ? `${cat.type} (${cat.items.length})` : ''"
+                    class="rounded-xl transition-all flex flex-col relative"
+                    :class="selectedFilterType === cat.type ? 'bg-white dark:bg-gray-800 border border-primary-200 dark:border-primary-500/30 shadow-md ring-1 ring-primary-500/10' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-primary-500/30'"
                   >
-                    <div class="flex items-center justify-between w-full">
-                      <div class="flex items-center min-w-0" :class="showMigrateModal ? 'justify-center w-full' : ''">
-                        <div class="rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 transition-transform group-hover:scale-110 relative" :class="showMigrateModal ? 'p-2' : 'p-2 mr-3'">
+                    <!-- Header -->
+                    <div 
+                      @click="selectedFilterType = selectedFilterType === cat.type ? 'all' : cat.type"
+                      class="flex items-center justify-between w-full cursor-pointer group p-3"
+                    >
+                      <div class="flex items-center min-w-0">
+                        <div class="rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 transition-transform group-hover:scale-110 relative p-2 mr-3">
                           <component :is="getIconForType(cat.type)" />
-                          <!-- Collapsed Badge -->
-                          <div v-if="showMigrateModal && cat.changes > 0" class="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-orange-500 text-white text-[9px] font-bold shadow-sm ring-2 ring-white dark:ring-gray-900 z-10">
-                            {{ cat.changes }}
-                          </div>
                         </div>
-                        <div v-if="!showMigrateModal" class="min-w-0">
-                          <div class="font-bold text-gray-900 dark:text-white uppercase text-[10px] tracking-widest">{{ cat.type }}</div>
-                          <div class="text-[10px] text-gray-400">{{ cat.items.length }} items</div>
+                        <div class="min-w-0">
+                          <div class="font-bold text-gray-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2">
+                             {{ cat.type }}
+                             <span v-if="selectedFilterType === cat.type" class="px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 text-[8px]">{{ cat.items.length }}</span>
+                          </div>
+                          <div v-if="selectedFilterType !== cat.type" class="text-[10px] text-gray-400">{{ cat.items.length }} items</div>
                         </div>
                       </div>
-                      <div v-if="!showMigrateModal" class="flex items-center gap-3">
+                      <div class="flex items-center gap-3">
                         <button
                           v-if="cat.changes > 0"
+                          @click.stop="migrateBatchInline(cat.type)"
                           class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-600 hover:shadow-md dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800/50 dark:hover:bg-orange-600 dark:hover:text-white transition-all group/badge shadow-sm disabled:opacity-50 disabled:grayscale"
                           :title="isTargetDump ? 'Cannot migrate to a static file' : 'Click to Migrate All Changes'"
-                          :disabled="isTargetDump"
+                          :disabled="isTargetDump || isMigratingBatch === cat.type"
                         >
-                          <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-900/50 rounded w-4 h-4 group-hover/badge:bg-white/20 group-hover/badge:text-white transition-colors">
-                            <Zap class="w-2.5 h-2.5 fill-current" />
+                          <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-900/50 rounded w-4 h-4 group-hover/badge:bg-white/20 group-hover/badge:text-white transition-colors" :class="isMigratingBatch === cat.type ? 'animate-pulse' : ''">
+                            <Loader2 v-if="isMigratingBatch === cat.type" class="w-2.5 h-2.5 animate-spin" />
+                            <Zap v-else class="w-2.5 h-2.5 fill-current" />
                           </div>
-                          <span class="font-bold text-[10px] tracking-wider">{{ cat.changes }}</span>
+                          <span class="font-bold text-[10px] tracking-wider">
+                            <span v-if="isMigratingBatch === cat.type">{{ $t('common.processing') || 'PROCESSING...' }}</span>
+                            <span v-else>{{ cat.changes }}</span>
+                          </span>
                         </button>
-                        <ChevronRight class="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-all group-hover:translate-x-0.5" />
+                        <ChevronDown v-if="selectedFilterType === cat.type" class="w-3.5 h-3.5 text-primary-500 transition-all" />
+                        <ChevronRight v-else class="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-all group-hover:translate-x-0.5" />
                       </div>
                     </div>
-                    <!-- Micro progress bar -->
-                    <div v-if="!showMigrateModal" class="mt-3 h-1.5 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden flex ring-1 ring-inset ring-black/5">
-                      <div 
-                        class="h-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
-                        :style="{ width: (cat.changes / cat.items.length * 100) + '%' }"
-                      ></div>
-                      <div 
-                        class="h-full bg-gray-200 dark:bg-gray-600" 
-                        :style="{ width: ((cat.items.length - cat.changes) / cat.items.length * 100) + '%' }"
-                      ></div>
+                    
+                    <!-- Micro progress bar (Only show if collapsed) -->
+                    <div v-if="selectedFilterType !== cat.type" class="px-3 pb-3">
+                      <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden flex ring-1 ring-inset ring-black/5">
+                        <div 
+                          class="h-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
+                          :style="{ width: (cat.changes / cat.items.length * 100) + '%' }"
+                        ></div>
+                        <div 
+                          class="h-full bg-gray-200 dark:bg-gray-600" 
+                          :style="{ width: ((cat.items.length - cat.changes) / cat.items.length * 100) + '%' }"
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <!-- LIST MODE: Flat list of objects in category -->
-                <div v-else class="space-y-1">
-                  <div v-for="item in filteredResults" :key="item.name" 
-                    @click="selectItem(item)"
-                    class="cursor-pointer rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all flex items-center group"
-                    :class="[
-                      showMigrateModal ? 'p-2 justify-center' : 'p-2.5 justify-between',
-                      { 'bg-white dark:bg-gray-800 shadow-sm border border-primary-500/20 ring-1 ring-primary-500/10': selectedItem?.name === item.name }
-                    ]"
-                  >
-                    <div class="min-w-0" :class="showMigrateModal ? '' : 'pr-2'">
-                      <div v-if="!showMigrateModal" class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">
-                        {{ item.name }}
+                    <!-- Items List (Expanded) -->
+                    <div v-if="selectedFilterType === cat.type" class="px-2 pb-2 space-y-0.5 border-t border-gray-100 dark:border-gray-700/50 pt-2 bg-gray-50/50 dark:bg-gray-900/20 rounded-b-xl border-x-0 border-b-0 relative">
+                      <!-- Inner stroke -->
+                      <div class="absolute top-0 bottom-2 left-4 w-px bg-gray-200 dark:bg-gray-700/50 z-0"></div>
+
+                      <div v-for="item in cat.items" :key="item.name" 
+                        @click="selectItem(item)"
+                        class="cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center group p-2 relative z-10"
+                        :class="[
+                          { 'bg-white dark:bg-gray-800 shadow-sm border border-primary-500/20 ring-1 ring-primary-500/10': selectedItem?.name === item.name }
+                        ]"
+                      >
+                        <div class="min-w-0 pr-2 relative z-10 ml-6 flex-1">
+                          <!-- connector line for tree feeling -->
+                          <div class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 mr-2 -ml-6"></div>
+
+                          <div class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">
+                            {{ item.name }}
+                          </div>
+                          <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">
+                            <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
+                            <span>{{ item.type }}</span>
+                          </div>
+                        </div>
+                        <div class="flex items-center justify-center w-6 h-6 shrink-0 group/status z-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                          <component 
+                            v-if="item.status === 'equal' || item.status === 'same'"
+                            :is="getStatusIcon(item.status)" 
+                            class="w-3.5 h-3.5 transition-all"
+                            :class="getStatusClass(item.status)"
+                            :title="getStatusText(item.status)"
+                          />
+                          <template v-else>
+                            <component 
+                              :is="getStatusIcon(item.status)" 
+                              class="w-3.5 h-3.5 transition-all group-hover/status:hidden"
+                              :class="getStatusClass(item.status)"
+                            />
+                            <Zap 
+                              v-if="!isTargetDump && isMigratingItemId !== item.name"
+                              @click.stop="migrateSingleItem(item)"
+                              class="w-3.5 h-3.5 text-primary-500 hidden group-hover/status:block cursor-pointer hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)] active:scale-95 animate-in fade-in zoom-in-75 duration-200"
+                              title="Click to Migrate"
+                            />
+                            <RefreshCw 
+                              v-if="isMigratingItemId === item.name"
+                              class="w-3.5 h-3.5 text-primary-500 animate-spin hidden group-hover/status:block animate-in fade-in"
+                            />
+                          </template>
+                        </div>
                       </div>
-                      <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">
-                        <component :is="getIconForType(item.type)" class="mr-1" :class="showMigrateModal ? 'w-4 h-4' : 'w-2.5 h-2.5'" :title="showMigrateModal ? item.name : ''" />
-                        <span v-if="!showMigrateModal">{{ item.type }}</span>
-                      </div>
-                    </div>
-                    <div v-if="!showMigrateModal" class="flex items-center justify-center w-6 h-6 shrink-0 group/status">
-                      <!-- Always show status icon if identical -->
-                      <component 
-                        v-if="item.status === 'equal' || item.status === 'same'"
-                        :is="getStatusIcon(item.status)" 
-                        class="w-4 h-4 transition-all"
-                        :class="getStatusClass(item.status)"
-                        :title="getStatusText(item.status)"
-                      />
-                      <!-- Show status icon by default, swap to Zap on hover if can migrate -->
-                      <template v-else>
-                        <component 
-                          :is="getStatusIcon(item.status)" 
-                          class="w-4 h-4 transition-all group-hover/status:hidden"
-                          :class="getStatusClass(item.status)"
-                        />
-                        <Zap 
-                          v-if="!isTargetDump"
-                          @click.stop="openMigrateModal(item)"
-                          class="w-4 h-4 text-primary-500 hidden group-hover/status:block cursor-pointer hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)] active:scale-95 animate-in fade-in zoom-in-75 duration-200"
-                          title="Click to Migrate"
-                        />
-                      </template>
                     </div>
                   </div>
                 </div>
@@ -355,24 +390,10 @@
 
             <!-- Right: Split DDL Detail -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
-               <!-- Migration Overlay -->
-               <MigrationConfirm
-                  v-if="showMigrateModal"
-                  :is-open="showMigrateModal"
-                  :loading="isMigrating"
-                  :item="migratingItem"
-                  :source-name="sourceName"
-                  :target-name="targetName"
-                  :target-is-static="isTargetDump"
-                  :sql-script="migrationSql"
-                  :sql-map="migrationSqlMap"
-                  :fetching-sql="fetchingMigrationSql"
-                  @close="showMigrateModal = false"
-                  @confirm="confirmMigration"
-                />
+               <!-- Migration Overlay (Moved to global scope) -->
 
               <div v-if="selectedItem" class="h-full flex flex-col">
-                <div class="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between">
+                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0">
                   <div class="flex items-center text-xs space-x-2 overflow-hidden">
                     <div class="flex items-center text-gray-500 dark:text-gray-400">
                       <Server class="w-3.5 h-3.5 mr-1" />
@@ -399,13 +420,14 @@
                   <div class="flex space-x-2 items-center">
                     <button 
                       v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
-                      @click="openMigrateModal(selectedItem)" 
+                      @click="migrateSingleItem(selectedItem)" 
                       class="btn btn-primary py-1.5 px-4 text-[11px] h-9 flex items-center gap-2 group overflow-hidden relative shadow-lg shadow-primary-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      :disabled="isMigrating || isTargetDump"
+                      :disabled="isMigratingItemId === selectedItem.name || isMigrating || isTargetDump"
                       :title="isTargetDump ? 'Target is read-only (Static Dump)' : $t('compare.migrateTo', { name: targetName })"
                     >
-                      <Zap class="w-4 h-4 group-hover:animate-pulse" />
-                      <span class="font-bold">{{ $t('compare.migrateTo', { name: targetName }) }}</span>
+                      <RefreshCw v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
+                      <Zap v-else class="w-4 h-4 group-hover:animate-pulse" />
+                      <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? $t('common.processing') : $t('compare.migrateTo', { name: targetName }) }}</span>
                       <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 linear skew-x-[-20deg]"></div>
                     </button>
                   </div>
@@ -432,15 +454,16 @@
             </div>
           </div>
           
-          <!-- Tree Mode View -->
+            <!-- Tree Mode View -->
           <div v-else class="flex-1 relative">
              <CompareTreeMode 
                :results="allResults"
                :source-name="sourceName"
                :target-name="targetName"
                :target-is-static="isTargetDump"
+               :migrating-item-id="isMigratingItemId"
                v-model:active-type="selectedFilterType"
-               @migrate="openMigrateModal"
+               @migrate="migrateSingleItem"
                @select="selectItem"
                @send-to-instant="(item, slot) => sendToInstant(item, slot)"
              />
@@ -450,8 +473,6 @@
       </div>
     </div>
   </MainLayout>
-
-    <!-- Modals & Notifications -->
 
     <!-- Error Details Modal -->
     <div v-if="showErrorModal && error" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -489,6 +510,8 @@
       </div>
     </div>
 
+    <!-- Error Details Modal -->
+
 </template>
 
 <script setup lang="ts">
@@ -510,6 +533,7 @@ import {
   RefreshCw,
   MousePointer2,
   ChevronRight,
+  ChevronDown,
   Database,
   Server,
   Table,
@@ -530,12 +554,12 @@ import {
   ChevronLeft,
   PlusCircle,
   XCircle
-} from 'lucide-vue-next'
-import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
+} from 'lucide-vue-next' // Added missing closing bracket for import
 import { useOperationsStore } from '@/stores/operations'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import CompareTreeMode from '@/components/compare/CompareTreeMode.vue'
+import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
@@ -609,9 +633,9 @@ onMounted(async () => {
     
     if (route.query.pairId) {
         connectionPairsStore.selectPair(route.query.pairId as string)
-    } else if (connectionPairsStore.connectionPairs.length > 0 && !connectionPairsStore.activePair) {
+    } else if (connectionPairsStore.availablePairs.length > 0 && !connectionPairsStore.activePair) {
         // Auto-select first pair if none selected
-        const firstPairId = connectionPairsStore.connectionPairs[0].id
+        const firstPairId = connectionPairsStore.availablePairs[0].id
         if (firstPairId) {
             connectionPairsStore.selectPair(firstPairId)
         }
@@ -704,15 +728,12 @@ const statusFilters = computed(() => [
 
 // Migration State
 const isMigrating = ref(false)
-const showMigrateModal = ref(false)
-const migratingItem = ref<any>(null)
-const migrationSql = ref('')
-const migrationSqlMap = ref<Record<string, string>>({})
-const fetchingMigrationSql = ref(false)
-const batchType = ref<string | null>(null)
+const isMigratingBatch = ref<string | null>(null)
+const isMigratingItemId = ref<string | null>(null)
+
 
 const hasChanges = (type: string) => {
-  return allResults.value.some(i => (type === 'all' || i.type.toLowerCase() === type.toLowerCase()) && i.status !== 'equal' && i.status !== 'same')
+  return allResults.value.some(i => (type === 'all' || i.type.toLowerCase() === type.toLowerCase()) && i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same')
 }
 
 const selectedPath = ref({
@@ -781,17 +802,17 @@ const filteredResults = computed(() => {
   }
 
   // Filter by status
-  if (selectedStatusFilter.value !== 'all') {
-    const filter = selectedStatusFilter.value
-    filtered = filtered.filter(i => {
-      const status = i.status.toLowerCase()
-      if (filter === 'modified') return status === 'modified' || status === 'different' || status === 'updated'
-      if (filter === 'new') return status === 'new' || status === 'missing_in_target'
-      if (filter === 'deprecated') return status === 'deprecated' || status === 'missing_in_source'
-      if (filter === 'equal') return status === 'equal' || status === 'same'
-      return true
-    })
-  }
+  const filter = selectedStatusFilter.value
+  filtered = filtered.filter(i => {
+    const status = i.status.toLowerCase()
+    if (filter === 'modified') return status === 'modified' || status === 'different' || status === 'updated'
+    if (filter === 'new') return status === 'new' || status === 'missing_in_target'
+    if (filter === 'deprecated') return status === 'deprecated' || status === 'missing_in_source'
+    if (filter === 'equal') return status === 'equal' || status === 'same'
+    // Default 'all' means all DIFFERENCES. We hide 'equal/same' by default to clear them from the list after migration
+    if (filter === 'all') return status !== 'equal' && status !== 'same'
+    return true
+  })
 
   // Filter by search query
   // Filter by search query
@@ -836,8 +857,8 @@ const handleNavigateToDefinition = (name: string) => {
 }
 
 const hasResults = computed(() => allResults.value.length > 0)
-const totalChanges = computed(() => allResults.value.filter(i => i.status !== 'equal' && i.status !== 'same').length)
-const filteredTotalChanges = computed(() => filteredResults.value.filter(i => i.status !== 'equal' && i.status !== 'same').length)
+const totalChanges = computed(() => allResults.value.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length)
+const filteredTotalChanges = computed(() => filteredResults.value.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length)
 
 const resultsByCategory = computed(() => {
   const categories = ['tables', 'views', 'procedures', 'functions', 'triggers']
@@ -847,7 +868,7 @@ const resultsByCategory = computed(() => {
     return {
       type: cat,
       items,
-      changes: items.filter(i => i.status !== 'equal' && i.status !== 'same').length
+      changes: items.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length
     }
   }).filter(c => c.items.length > 0)
 })
@@ -921,11 +942,38 @@ const runComparison = async () => {
     // Map results based on what we fetched
     objTypes.forEach((type, index) => {
       const res = Array.isArray(results[index]) ? results[index] : []
-      if (type === 'tables') tableResults.value = res
-      if (type === 'procedures') procedureResults.value = res
-      if (type === 'functions') functionResults.value = res
-      if (type === 'views') viewResults.value = res
-      if (type === 'triggers') triggerResults.value = res
+      
+      if (compareName) {
+        let targetArray: any[] = []
+        if (type === 'tables') targetArray = tableResults.value
+        else if (type === 'procedures') targetArray = procedureResults.value
+        else if (type === 'functions') targetArray = functionResults.value
+        else if (type === 'views') targetArray = viewResults.value
+        else if (type === 'triggers') targetArray = triggerResults.value
+        
+        const newArray = [...targetArray]
+        res.forEach(newItem => {
+          const existingIdx = newArray.findIndex(item => item.name === newItem.name)
+          if (existingIdx >= 0) {
+            newArray[existingIdx] = newItem
+          } else {
+            newArray.push(newItem)
+          }
+        })
+        
+        if (type === 'tables') tableResults.value = newArray
+        else if (type === 'procedures') procedureResults.value = newArray
+        else if (type === 'functions') functionResults.value = newArray
+        else if (type === 'views') viewResults.value = newArray
+        else if (type === 'triggers') triggerResults.value = newArray
+
+      } else {
+        if (type === 'tables') tableResults.value = res
+        else if (type === 'procedures') procedureResults.value = res
+        else if (type === 'functions') functionResults.value = res
+        else if (type === 'views') viewResults.value = res
+        else if (type === 'triggers') triggerResults.value = res
+      }
     })
     
     const totalCount = tableResults.value.length + procedureResults.value.length + functionResults.value.length + viewResults.value.length + triggerResults.value.length
@@ -970,7 +1018,6 @@ defineExpose({})
 
 const selectItem = (item: any) => {
   selectedItem.value = item
-  showMigrateModal.value = false
 }
 
 const handleObjectSelected = (event: any) => {
@@ -1074,121 +1121,199 @@ const getStatusText = (status: string) => {
 }
 
 // Migration Actions
-const openMigrateModal = async (item: any) => {
-  console.log('[Compare] openMigrateModal for item:', item.name, item.status)
-  consoleStore.addLog(`Preparing migration for ${item.name} (${item.type})...`, 'info')
-  
-  migratingItem.value = item
-  batchType.value = null
-  migrationSql.value = ''
-  showMigrateModal.value = true
-  
-  // 1. If item already has generated DDL (from comparison), use it immediately!
-  const hasExistingDdl = item.ddl && (Array.isArray(item.ddl) ? item.ddl.length > 0 : !!item.ddl)
-  if (hasExistingDdl) {
-    console.log('[Compare] Using existing DDL from item:', item.ddl)
-    migrationSql.value = Array.isArray(item.ddl) ? item.ddl.join('\n') : item.ddl
-    consoleStore.addLog(`Using pre-generated SQL for ${item.name}`, 'success')
-    return
-  }
 
-  // 2. Otherwise, if it's an individual item, try to fetch/generate SQL
-  if (!item.isBatch && activePair.value) {
-    fetchingMigrationSql.value = true
-    try {
-      const { source, target } = activePair.value
-      let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
-      if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') status = 'UPDATED'
-      if (item.status === 'deprecated' || item.status === 'missing_in_source') status = 'DEPRECATED'
-      
-      console.log('[Compare] Fetching dry-run SQL for:', item.name, 'with status:', status)
-      
-      const result = await Andb.migrate(source, target, {
-        type: item.type as any,
+const migrationTerminal = ref<{
+  isOpen: boolean
+  items: any[]
+  sqlScript: string
+  sqlMap?: Record<string, string>
+  fetching: boolean
+  type: 'single' | 'batch'
+  batchType?: string
+}>({
+  isOpen: false,
+  items: [],
+  sqlScript: '',
+  sqlMap: {},
+  fetching: false,
+  type: 'single'
+})
+
+const fetchBatchItemSql = async (item: { type: string, name: string }) => {
+   if (!migrationTerminal.value.isOpen || migrationTerminal.value.type !== 'batch') return
+   if (!activePair.value) return
+   
+   const key = `${item.type}-${item.name}`
+   if (migrationTerminal.value.sqlMap && migrationTerminal.value.sqlMap[key]) return // Already fetched
+   
+   migrationTerminal.value.fetching = true
+   try {
+      const { source, target } : any = activePair.value
+      const result = await Andb.generate(source, target, {
+        type: item.type, // e.g., 'tables', 'procedures'
+        name: item.name,
         sourceEnv: source.environment,
         targetEnv: target.environment,
-        name: item.name,
-        status: status,
-        dryRun: true // DRY RUN to get SQL
+        dryRun: true
       })
-      
-      console.log('[Compare] Dry run raw result:', result)
-      
-      let sql = ''
-      if (result !== null && result !== undefined && result !== '') {
-        // Robust parsing of dry-run result
-        if (typeof result === 'string') {
-          sql = result
-        } else if (typeof result === 'number') {
-          // If it's a number (like 0), it's probably NOT the SQL unless the SQL is just '0'
-          sql = '' 
-        } else if (Array.isArray(result)) {
-          sql = result.join('\n')
-        } else {
-          // Object results
-          const rawData = result.data || result
-          if (typeof rawData === 'string') {
-            sql = rawData
-          } else if (rawData.sql) {
-            sql = rawData.sql
-          } else if (rawData.script) {
-            sql = rawData.script
-          } else if (Array.isArray(rawData)) {
-            sql = rawData.join('\n')
-          } else if (rawData.ddl) {
-            sql = Array.isArray(rawData.ddl) ? rawData.ddl.join('\n') : rawData.ddl
-          }
-        }
-      }
-      
-      migrationSql.value = sql
-      
-      if (migrationSql.value) {
-        consoleStore.addLog(`Successfully fetched SQL preview for ${item.name}`, 'success')
-      } else {
-        console.log('[Compare] Dry run returned no content. Trying fallbacks...')
-        consoleStore.addLog(`No direct SQL from dry-run for ${item.name}, checking fallbacks...`, 'info')
-      }
-      
-      // Extended Fallbacks
-      if (!migrationSql.value) {
-        // PRIORITY 1: Use pre-generated ALTER ddl from item (from comparison result)
-        const cachedAlter = item.ddl && (Array.isArray(item.ddl) ? item.ddl.join('\n') : item.ddl)
-        if (status === 'UPDATED' && cachedAlter) {
-          console.log('[Compare] Fallback: Using cached ALTER statement from comparison')
-          migrationSql.value = cachedAlter
-        } 
-        // PRIORITY 2: New items get Source DDL
-        else if (status === 'NEW' && item.diff?.source) {
-          console.log('[Compare] Fallback: Using Source DDL for NEW item')
-          migrationSql.value = Array.isArray(item.diff.source) ? item.diff.source.join('\n') : item.diff.source
-        } 
-        // PRIORITY 3: Deprecated items get DROP
-        else if (status === 'DEPRECATED') {
-          console.log('[Compare] Fallback: Generating DROP for DEPRECATED item')
-          const objectType = item.type.toLowerCase().replace(/s$/, '').toUpperCase()
-          migrationSql.value = `DROP ${objectType} IF EXISTS \`${item.name}\`;`
-        } 
-        // PRIORITY 4: Worst case fallback for UPDATED (Show warning and Source DDL)
-        else if (status === 'UPDATED' && item.diff?.source) {
-          console.log('[Compare] Fallback: No ALTER found, showing Source DDL as warning')
-          const sourceCode = Array.isArray(item.diff.source) ? item.diff.source.join('\n') : item.diff.source
-          migrationSql.value = `-- Warning: No ALTER script generated. Displaying new full DDL:\n\n${sourceCode}`
-        }
-      }
-    } catch (e: any) {
-      console.error('Failed to fetch migration SQL preview:', e)
-      consoleStore.addLog(`Error fetching preview: ${e.message}`, 'error')
-    } finally {
-      fetchingMigrationSql.value = false
-    }
+      if (!migrationTerminal.value.sqlMap) migrationTerminal.value.sqlMap = {}
+      migrationTerminal.value.sqlMap[key] = result.sql || `-- Result: ${result.message}`
+   } catch (e: any) {
+      if (!migrationTerminal.value.sqlMap) migrationTerminal.value.sqlMap = {}
+      migrationTerminal.value.sqlMap[key] = `-- Error generating SQL preview: ${e.message || 'Unknown'}`
+   } finally {
+      migrationTerminal.value.fetching = false
+   }
+}
+
+const closeMigrationTerminal = () => {
+  migrationTerminal.value.isOpen = false
+  migrationTerminal.value.items = []
+  migrationTerminal.value.sqlScript = ''
+  migrationTerminal.value.sqlMap = {}
+}
+
+const executeConfirmedMigration = () => {
+  if (!migrationTerminal.value.isOpen) return;
+  const dialog = { ...migrationTerminal.value };
+  closeMigrationTerminal();
+  
+  if (dialog.type === 'single') {
+    migrateSingleItem(dialog.items[0], true);
+  } else if (dialog.type === 'batch') {
+    migrateBatchInline(dialog.batchType!, true);
   }
 }
 
-const openBatchMigrateModal = (type: string) => {
-  console.log('[Compare] openBatchMigrateModal called with type:', type)
+const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
+  if (!activePair.value || !item || !item.name || isMigratingItemId.value === item.name || isMigrating.value || isTargetDump.value) return
   
-  // DBA Rule: Cannot migrate to a static SQL dump file
+  // Prompt user for confirmation to prevent accidental clicks if not skipped
+  if (!skipConfirm) {
+    migrationTerminal.value = {
+      isOpen: true,
+      items: [item],
+      sqlScript: '',
+      fetching: true,
+      type: 'single'
+    }
+    
+    // fetch SQL
+    try {
+      const { source, target } : any = activePair.value
+      const result = await Andb.generate(source, target, {
+        type: item.type,
+        name: item.name,
+        sourceEnv: source.environment,
+        targetEnv: target.environment,
+        dryRun: true
+      })
+      migrationTerminal.value.sqlScript = result.sql || `-- Result: ${result.message}`
+    } catch (e: any) {
+      migrationTerminal.value.sqlScript = `-- Error generating SQL preview: ${e.message || 'Unknown'}`
+    } finally {
+      migrationTerminal.value.fetching = false
+    }
+    
+    return;
+  }
+  
+  isMigratingItemId.value = item.name
+  isMigrating.value = true
+  
+  try {
+    const { source, target } = activePair.value
+    
+    let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
+    if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') status = 'UPDATED'
+    if (item.status === 'deprecated' || item.status === 'missing_in_source') {
+      notificationStore.add({ type: 'warning', title: 'Migration Skipped', message: `"${item.name}" is deprecated. DROP operations are not allowed by default.` })
+      isMigrating.value = false
+      isMigratingItemId.value = null
+      return
+    }
+
+    const opId = operationsStore.addOperation({
+      type: 'migrate',
+      sourceEnv: source.environment,
+      targetEnv: target.environment,
+      status: 'pending',
+      startTime: new Date()
+    })
+    
+    try {
+        await Andb.migrate(source, target, {
+          type: item.type as any,
+          sourceEnv: source.environment,
+          targetEnv: target.environment,
+          name: item.name,
+          status: status,
+          dryRun: appStore.safeMode
+        })
+        
+        await applyAtomicVerify(item)
+        
+        if (!appStore.safeMode) {
+          try {
+            await Andb.createSnapshot(target, item.type, item.name)
+          } catch (snapshotErr: any) {
+            console.warn(`[Compare] Failed to create snapshot for ${item.name}:`, snapshotErr)
+          }
+        }
+        
+        notificationStore.add({
+          type: appStore.safeMode ? 'info' : 'success',
+          title: appStore.safeMode ? t('compare.dryRunComplete') : 'Migration Successful',
+          message: appStore.safeMode 
+            ? t('compare.dryRunDesc', { name: item.name })
+            : `${item.name} (${item.type}) has been migrated and verified.`
+        })
+        
+        sidebarStore.setComparisonResults(allResults.value)
+        sidebarStore.triggerRefresh()
+
+        operationsStore.completeOperation(opId, true)
+        
+        try {
+          const projectId = projectsStore.selectedProjectId
+          if (projectId) {
+            const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
+            if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
+              window.electronAPI?.andbExecute({
+                sourceConnection: {} as any,
+                targetConnection: {} as any,
+                operation: 'git-sync' as any,
+                options: {
+                  config: gitConfRes.data,
+                  env: target.environment,
+                  db: target.database || target.name,
+                  message: `chore(schema): auto-sync after migration of ${item.name}`
+                }
+              })
+            }
+          }
+        } catch (gitErr) {
+          console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
+        }
+    } catch (e: any) {
+      operationsStore.completeOperation(opId, false, { error: e.message })
+      throw e
+    }
+  } catch (e: any) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Migration Failed',
+      message: e.message || 'An unknown error occurred during migration.'
+    })
+    if (window.electronAPI) {
+      window.electronAPI.log.send('error', `Migration failed for ${item.name}`, e.message)
+    }
+  } finally {
+    isMigrating.value = false
+    isMigratingItemId.value = null
+  }
+}
+const migrateBatchInline = async (type: string, skipConfirm: boolean = false) => {
   if (isTargetDump.value) {
     notificationStore.add({
       type: 'warning',
@@ -1198,69 +1323,46 @@ const openBatchMigrateModal = (type: string) => {
     return
   }
   
-  consoleStore.addLog(`Opening batch migration for ${type}`, 'info')
+  if (!activePair.value || isMigratingBatch.value) return
   
-  batchType.value = type
-  
-  // Collect all items that will be migrated
-  let itemsToMigrate = []
-  if (type === 'Schema') {
-    itemsToMigrate = allResults.value.filter(i =>
-      i.status !== 'equal' && i.status !== 'same' &&
-      i.status !== 'deprecated' && i.status !== 'missing_in_source'  // Rule: Never migrate DROP
-    )
-  } else {
-    itemsToMigrate = allResults.value.filter(i =>
-      i.type.toLowerCase() === type.toLowerCase() &&
-      i.status !== 'equal' &&
-      i.status !== 'same' &&
-      i.status !== 'deprecated' && i.status !== 'missing_in_source'  // Rule: Never migrate DROP
-    )
-  }
-
-  console.log('[Compare] Items to migrate:', itemsToMigrate.length)
-  consoleStore.addLog(`Found ${itemsToMigrate.length} items to migrate`, 'info')
-
-  migratingItem.value = {
-    name: `All ${type}`,
-    type: type,
-    isBatch: true,
-    items: itemsToMigrate
-  }
-  
-  // Populate migration SQL for batch preview (Combined)
-  migrationSql.value = itemsToMigrate.map(i => {
-    let sql = Array.isArray(i.ddl) ? i.ddl.join('\n') : i.ddl
+  if (!skipConfirm) {
+    const batchTypeLower = type.toLowerCase()
+    const ddlTypes = batchTypeLower === 'schema' 
+      ? ['tables', 'views', 'procedures', 'functions', 'triggers']
+      : [batchTypeLower]
     
-    // Fallback for New items
-    const isNew = i.status === 'new' || i.status === 'missing_in_target'
-    if (!sql && isNew && i.diff?.source) {
-       sql = Array.isArray(i.diff.source) ? i.diff.source.join('\n') : i.diff.source
+    let pendingItems: any[] = []
+    const resultsMap: Record<string, any> = { tables: tableResults.value, procedures: procedureResults.value, functions: functionResults.value, views: viewResults.value, triggers: triggerResults.value }
+    for (const dtype of ddlTypes) {
+       pendingItems.push(...(resultsMap[dtype] || []).filter((i: any) => {
+         const s = i.status?.toLowerCase()
+         return s === 'new' || s === 'updated' || s === 'different' || s === 'modified' || s === 'missing_in_target'
+       }))
     }
     
-    // Fallback for Deprecated items
-    const isDeprecated = i.status === 'deprecated' || i.status === 'missing_in_source'
-    if (!sql && isDeprecated) {
-       const objectType = i.type.toLowerCase().replace(/s$/, '').toUpperCase()
-       sql = `DROP ${objectType} IF EXISTS \`${i.name}\`;`
+    if (pendingItems.length === 0) {
+      notificationStore.add({ type: 'info', title: 'Nothing to migrate', message: 'There are no pending changes in this category.' })
+      return
+    }
+
+    if (pendingItems.length === 1) {
+      // Smart Fallback: If only 1 item, treat as single item for better UX (shows SQL Preview)
+      return migrateSingleItem(pendingItems[0], skipConfirm)
     }
     
-    const finalSql = `-- OBJECT: ${i.name} (${i.type})\n${sql || '-- No SQL script available'}`
-    
-    // Populate Map for individual selection
-    migrationSqlMap.value[`${i.type}-${i.name}`] = finalSql
-    
-    return finalSql
-  }).join('\n\n')
-
-  showMigrateModal.value = true
-}
-
-const confirmMigration = async () => {
-  if (!activePair.value || !migratingItem.value) return
+    migrationTerminal.value = {
+      isOpen: true,
+      items: pendingItems,
+      sqlScript: '-- Note: Interactive preview is not available for batch mode migrations.\n-- All selected items will be executed consecutively.',
+      sqlMap: {},
+      fetching: false,
+      type: 'batch',
+      batchType: type
+    }
+    return
+  }
   
-  const item = migratingItem.value
-  isMigrating.value = true
+  isMigratingBatch.value = type
   
   try {
     const { source, target } = activePair.value
@@ -1275,13 +1377,11 @@ const confirmMigration = async () => {
     })
 
     try {
-      if (batchType.value) {
-        // Batch Migration
-        const type = batchType.value.toLowerCase()
+        const batchTypeLower = type.toLowerCase()
         
-        const ddlTypes = type === 'schema' 
+        const ddlTypes = batchTypeLower === 'schema' 
           ? ['tables', 'views', 'procedures', 'functions', 'triggers']
-          : [type]
+          : [batchTypeLower]
         
         // Rule: Never migrate DROP. Only NEW and UPDATED.
         const statuses: ('NEW' | 'UPDATED')[] = ['NEW', 'UPDATED']
@@ -1321,16 +1421,12 @@ const confirmMigration = async () => {
           
           // 4. Update UI State immediately
           if (Array.isArray(results) && resultsMap[ddlType]) {
-             resultsMap[ddlType].value = results.map(r => ({ ...r, type: ddlType.endsWith('s') ? ddlType : ddlType + 's' }))
+             resultsMap[ddlType].value = results.map((r: any) => ({ ...r, type: ddlType.endsWith('s') ? ddlType : ddlType + 's' }))
              
-             // If selected item is in this category, try to refresh it or deselect if gone
              if (selectedItem.value && selectedItem.value.type === ddlType) {
                const found = results.find((r: any) => r.name === selectedItem.value.name)
                if (found) {
                  selectedItem.value = { ...found, type: ddlType }
-               } else {
-                 // Item might have been deleted/renamed (though rare in migrate), or status changed to equal and filter hides it
-                 // We keep it selected but update content
                }
              }
           }
@@ -1339,41 +1435,8 @@ const confirmMigration = async () => {
         notificationStore.add({
           type: 'success',
           title: 'Batch Migration Successful',
-          message: `${type === 'schema' ? 'Entire schema' : 'All ' + batchType.value} has been migrated and verified.`
+          message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been migrated and verified.`
         })
-      } else {
-        // Individual Migration — Rule: Never migrate DROP
-        let status: 'NEW' | 'UPDATED' = 'NEW'
-        if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') status = 'UPDATED'
-        if (item.status === 'deprecated' || item.status === 'missing_in_source') {
-          notificationStore.add({ type: 'warning', title: 'Migration Skipped', message: `"${item.name}" is deprecated. DROP operations are not allowed.` })
-          isMigrating.value = false
-          showMigrateModal.value = false
-          return
-        }
-        
-        await Andb.migrate(source, target, {
-          type: item.type as any,
-          sourceEnv: source.environment,
-          targetEnv: target.environment,
-          name: item.name,
-          status: status,
-          dryRun: appStore.safeMode
-        })
-        
-        // Atomic Verification
-        await applyAtomicVerify(item)
-        
-        notificationStore.add({
-          type: appStore.safeMode ? 'info' : 'success',
-          title: appStore.safeMode ? t('compare.dryRunComplete') : 'Migration Successful',
-          message: appStore.safeMode 
-            ? t('compare.dryRunDesc', { name: item.name })
-            : `${item.name} (${item.type}) has been migrated and verified.`
-        })
-      }
-      
-      showMigrateModal.value = false
       
       // Update Sidebar with new results
       sidebarStore.setComparisonResults(allResults.value)
@@ -1388,7 +1451,6 @@ const confirmMigration = async () => {
         if (projectId) {
           const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
           if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
-            console.log(`[Compare] Hybrid Model: Triggering auto-sync to Git for project ${projectId}...`)
             window.electronAPI?.andbExecute({
               sourceConnection: {} as any,
               targetConnection: {} as any,
@@ -1397,7 +1459,7 @@ const confirmMigration = async () => {
                 config: gitConfRes.data,
                 env: target.environment,
                 db: target.database || target.name,
-                message: `chore(schema): auto-sync after migration of ${batchType.value || item.name}`
+                message: `chore(schema): auto-sync after migration of ${type}`
               }
             })
           }
@@ -1416,10 +1478,10 @@ const confirmMigration = async () => {
       message: e.message || 'An unknown error occurred during migration.'
     })
     if (window.electronAPI) {
-      window.electronAPI.log.send('error', `Migration failed for ${item.name}`, e.message)
+      window.electronAPI.log.send('error', `Migration failed for ${type}`, e.message)
     }
   } finally {
-    isMigrating.value = false
+    isMigratingBatch.value = null
   }
 }
 
@@ -1449,10 +1511,12 @@ const applyAtomicVerify = async (item: any) => {
     })
     
     if (Array.isArray(results)) {
-      const updatedItem = results.find((r: any) => r.name === item.name)
+      let updatedItem = results.find((r: any) => r.name === item.name)
       
+      // If theCLI comparison output excludes items with no differences,
+      // it means the item is now fully identical! We must synthesize the status update.
       if (!updatedItem) {
-        return
+        updatedItem = { ...item, status: 'EQUAL', diff: { source: '', target: '' } }
       }
       
       // 3. Patch the specific result list

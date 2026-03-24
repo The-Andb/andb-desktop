@@ -46,7 +46,7 @@ async function buildAll() {
     platform: 'node',
     target: 'node20',
     outfile: 'dist-electron/main.cjs',
-    external: ['electron', 'better-sqlite3', 'fsevents', 'path', 'fs', 'child_process', 'events', 'electron-updater', '@sentry/electron/main'],
+    external: ['electron', 'better-sqlite3', 'fsevents', 'path', 'fs', 'child_process', 'events'],
     sourcemap: process.env.NODE_ENV !== 'production',
     minify: process.env.NODE_ENV === 'production',
     format: 'cjs',
@@ -65,6 +65,21 @@ async function buildAll() {
     sourcemap: process.env.NODE_ENV !== 'production',
     minify: process.env.NODE_ENV === 'production',
     format: 'cjs',
+    define: defineMap
+  });
+
+  // Build Core Worker
+  await esbuild.build({
+    entryPoints: ['electron/services/core-worker.ts'],
+    bundle: true,
+    platform: 'node',
+    target: 'node20',
+    outfile: 'dist-electron/core-worker.cjs',
+    external: ['electron', 'better-sqlite3', 'fsevents', 'path', 'fs', 'child_process', 'events'],
+    sourcemap: process.env.NODE_ENV !== 'production',
+    minify: process.env.NODE_ENV === 'production',
+    format: 'cjs',
+    plugins: [nativeNodeModulesPlugin],
     define: defineMap
   });
 

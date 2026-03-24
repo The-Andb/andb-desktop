@@ -44,6 +44,18 @@
                           <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
                         </div>
                       </label>
+                      <label class="flex items-start cursor-pointer group mt-3">
+                        <div class="relative flex items-center mt-0.5">
+                          <input type="checkbox" v-model="internalIgnoreCase" class="sr-only" />
+                          <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': internalIgnoreCase }">
+                            <Check v-show="internalIgnoreCase" class="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                        <div class="ml-2">
+                          <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.ignoreCase') }}</div>
+                          <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.ignoreCaseDesc') }}</div>
+                        </div>
+                      </label>
                     </div>
                     <!-- Line Wrapping -->
                     <div>
@@ -97,7 +109,7 @@
           <div v-if="isEmptySource && isEmptyTarget" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
             {{ $t('compare.diffView.sourceEmpty') }}
           </div>
-          <div v-else class="ddl-container pb-4 flex flex-col" :class="wrapLines ? 'w-full' : 'w-fit min-w-full'">
+          <div v-else class="ddl-container pb-4 flex flex-col" :class="wrapLines ? 'w-full' : 'w-full min-w-0'">
             <template v-for="(chunk, cIdx) in alignedChunks" :key="'sp-chk-' + chunk.id">
               
               <!-- VISIBLE ROWS: Render Both Panes Side-by-Side per row -->
@@ -110,7 +122,7 @@
                   <!-- Source Side -->
                   <div 
                     :style="{ width: leftPaneWidth + '%' }"
-                    class="shrink-0 flex line-row group"
+                    class="shrink-0 flex line-row group min-w-0"
                     :class="getLineClass(row.source.type)"
                   >
                     <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
@@ -120,9 +132,9 @@
                       {{ row.source.type === 'added' ? '+' : '' }}
                     </div>
                     <div 
-                      class="line-content px-2 py-0.5 grow ddl-code overflow-hidden"
+                      class="line-content px-2 py-0.5 grow ddl-code min-w-0"
                       :class="[
-                        wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
+                        wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar',
                         { 'is-navigating': isNavigating }
                       ]"
                       v-html="highlightNavLinks(row.source.highlighted || row.source.content)"
@@ -142,8 +154,8 @@
                       {{ row.target.type === 'removed' ? '-' : '' }}
                     </div>
                     <div 
-                      class="line-content px-2 py-0.5 grow ddl-code overflow-hidden"
-                      :class="wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'"
+                      class="line-content px-2 py-0.5 grow ddl-code min-w-0"
+                      :class="wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar'"
                       v-html="row.target.highlighted || row.target.content"
                     ></div>
                   </div>
@@ -151,24 +163,23 @@
               </template>
 
               <!-- COLLAPSED BLOCK: Full width across both panes -->
-              <div v-else class="w-full flex flex-col items-stretch bg-blue-50/10 dark:bg-[#1f2937]/30 border-y border-blue-100/50 dark:border-[#30363d]/50 text-blue-500/80 dark:text-blue-400/60 relative group/expandbtn" style="height: 48px">
-                 <button class="flex-1 flex items-center justify-center border-b border-transparent hover:border-blue-200 dark:hover:border-gray-700 hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromTop(cIdx)" v-if="cIdx > 0" title="Expand Down">
-                   <ChevronDown class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
-                 </button>
-                 <div v-else class="flex-1 border-b border-transparent"></div>
-                 <button class="flex-1 flex items-center justify-center hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromBottom(cIdx)" v-if="cIdx < alignedChunks.length - 1" title="Expand Up">
-                   <ChevronUp class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
-                 </button>
-                 <div v-else class="flex-1"></div>
-                 
+              <div v-else class="w-full flex items-center justify-center bg-gray-50/30 dark:bg-gray-900/30 border-y py-2 border-gray-100 dark:border-[#30363d]/50 relative group/expandbtn shadow-inner" style="height: 48px">
                  <!-- Vertical Split Line continuation behind the badge -->
                  <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-gray-800 pointer-events-none z-0" :style="{ left: `calc(${leftPaneWidth}% - 1px)` }"></div>
-                 
-                 <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
-                    <button class="bg-blue-50 dark:bg-gray-900 px-3 py-1 rounded-md text-[10px] font-bold border border-blue-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors pointer-events-auto flex items-center text-blue-600 dark:text-blue-400 shadow-sm" @click.stop="expandAll(cIdx)" title="Expand All">
-                      <ChevronsUpDown class="w-3 h-3 mr-1.5" />
-                      Expand {{ chunk.rows.length }} unchanged lines
-                    </button>
+
+                 <div class="flex items-center isolate z-10 bg-white dark:bg-gray-800 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10 p-0.5 pointer-events-auto transition-transform hover:scale-105">
+                   <button class="w-8 h-6 flex items-center justify-center rounded-l-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromTop(cIdx)" :disabled="cIdx === 0" :class="{ 'opacity-30 cursor-not-allowed': cIdx === 0 }" title="Expand Down">
+                     <ChevronDown class="w-4 h-4" />
+                   </button>
+
+                   <button class="px-3 h-6 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" @click.stop="expandAll(cIdx)" title="Expand All">
+                     <ChevronsUpDown class="w-3 h-3 mr-1 opacity-50" />
+                     {{ chunk.rows.length }} Lines
+                   </button>
+
+                   <button class="w-8 h-6 flex items-center justify-center rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromBottom(cIdx)" :disabled="cIdx >= alignedChunks.length - 1" :class="{ 'opacity-30 cursor-not-allowed': cIdx >= alignedChunks.length - 1 }" title="Expand Up">
+                     <ChevronUp class="w-4 h-4" />
+                   </button>
                  </div>
               </div>
 
@@ -212,6 +223,18 @@
                   <div class="ml-2">
                     <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.hideWhitespace') }}</div>
                     <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
+                  </div>
+                </label>
+                <label class="flex items-start cursor-pointer group mt-3">
+                  <div class="relative flex items-center mt-0.5">
+                    <input type="checkbox" v-model="internalIgnoreCase" class="sr-only" />
+                    <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': internalIgnoreCase }">
+                      <Check v-show="internalIgnoreCase" class="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <div class="ml-2">
+                    <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.ignoreCase') }}</div>
+                    <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.ignoreCaseDesc') }}</div>
                   </div>
                 </label>
               </div>
@@ -270,9 +293,9 @@
                   {{ row.type === 'added' ? '+' : (row.type === 'removed' ? '-' : '') }}
                 </div>
                 <div 
-                  class="line-content px-2 py-0.5 grow ddl-code"
+                  class="line-content px-2 py-0.5 grow ddl-code min-w-0"
                   :class="[
-                    wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre',
+                    wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar',
                     { 'is-navigating': isNavigating }
                   ]"
                   v-html="highlightNavLinks(row.highlighted || row.content)"
@@ -280,22 +303,21 @@
                 ></div>
               </div>
             </template>
-            <div v-else class="flex flex-col items-stretch bg-blue-50/10 dark:bg-[#1f2937]/30 border-y border-blue-100/50 dark:border-[#30363d]/50 text-blue-500/80 dark:text-blue-400/60 relative group/expandbtn" style="height: 48px">
-               <button class="flex-1 flex items-center justify-center border-b border-transparent hover:border-blue-200 dark:hover:border-gray-700 hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromTop(cIdx)" v-if="cIdx > 0" title="Expand Down">
-                 <ChevronDown class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
-               </button>
-               <div v-else class="flex-1 border-b border-transparent"></div>
-               <button class="flex-1 flex items-center justify-center hover:bg-blue-200/50 dark:hover:bg-gray-800 transition-colors w-full" @click.stop="expandFromBottom(cIdx)" v-if="cIdx < unifiedChunks.length - 1" title="Expand Up">
-                 <ChevronUp class="w-4 h-4 opacity-70 group-hover/expandbtn:opacity-100" />
-               </button>
-               <div v-else class="flex-1"></div>
-               
-               <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
-                  <button class="bg-blue-50 dark:bg-gray-900 px-3 py-1 rounded-md text-[10px] font-bold border border-blue-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors pointer-events-auto flex items-center text-blue-600 dark:text-blue-400 shadow-sm" @click.stop="expandAll(cIdx)" title="Expand All">
-                    <ChevronsUpDown class="w-3 h-3 mr-1.5" />
-                    Expand {{ chunk.rows.length }} unchanged lines
-                  </button>
-               </div>
+            <div v-else class="flex items-center justify-center bg-gray-50/30 dark:bg-gray-900/30 border-y py-2 border-gray-100 dark:border-[#30363d]/50 relative group/expandbtn shadow-inner" style="height: 48px">
+                 <div class="flex items-center isolate z-10 bg-white dark:bg-gray-800 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10 p-0.5 pointer-events-auto transition-transform hover:scale-105">
+                   <button class="w-8 h-6 flex items-center justify-center rounded-l-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromTop(cIdx)" :disabled="cIdx === 0" :class="{ 'opacity-30 cursor-not-allowed': cIdx === 0 }" title="Expand Down">
+                     <ChevronDown class="w-4 h-4" />
+                   </button>
+
+                   <button class="px-3 h-6 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" @click.stop="expandAll(cIdx)" title="Expand All">
+                     <ChevronsUpDown class="w-3 h-3 mr-1 opacity-50" />
+                     {{ chunk.rows.length }} Lines
+                   </button>
+
+                   <button class="w-8 h-6 flex items-center justify-center rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromBottom(cIdx)" :disabled="cIdx >= unifiedChunks.length - 1" :class="{ 'opacity-30 cursor-not-allowed': cIdx >= unifiedChunks.length - 1 }" title="Expand Up">
+                     <ChevronUp class="w-4 h-4" />
+                   </button>
+                 </div>
             </div>
           </template>
       </div>
@@ -319,7 +341,7 @@ const props = defineProps<{
   sourceLabel: string
   targetLabel: string
   status: string
-  diffOptions?: any
+  diffOptions?: { showChangesOnly?: boolean, ignoreCase?: boolean }
   navigatableNames?: string[]
 }>()
 
@@ -336,6 +358,7 @@ const settingsRef = ref<HTMLElement | null>(null)
 const settingsRefUnified = ref<HTMLElement | null>(null)
 const viewType = ref<'split' | 'unified'>('split')
 const hideWhitespace = ref(false)
+const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
 const wrapLines = ref(false)
 
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
@@ -358,6 +381,8 @@ let chunkIdCounter = 0;
 const highlightedSourceLines = computed(() => {
   if (!props.sourceDdl) return []
   const normalize = (s: string) => s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+                                    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                                    .replace(/&amp;/g, '&');
   const html = Prism.highlight(normalize(props.sourceDdl), Prism.languages.sql, 'sql')
   return html.split('\n')
 })
@@ -365,23 +390,18 @@ const highlightedSourceLines = computed(() => {
 const highlightedTargetLines = computed(() => {
   if (!props.targetDdl) return []
   const normalize = (s: string) => s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+                                    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                                    .replace(/&amp;/g, '&');
   const html = Prism.highlight(normalize(props.targetDdl), Prism.languages.sql, 'sql')
   return html.split('\n')
 })
 
-watch([() => props.sourceDdl, () => props.targetDdl, () => props.diffOptions?.showChangesOnly], () => {
-  const oldLines = props.sourceDdl ? props.sourceDdl.split('\n') : []
-  const newLines = props.targetDdl ? props.targetDdl.split('\n') : []
+watch([() => props.sourceDdl, () => props.targetDdl, () => props.diffOptions?.showChangesOnly, hideWhitespace, internalIgnoreCase], () => {
+  const unescapeHtml = (s: string) => s ? s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : ''
+  const oldLines = props.sourceDdl ? unescapeHtml(props.sourceDdl).split('\n') : []
+  const newLines = props.targetDdl ? unescapeHtml(props.targetDdl).split('\n') : []
 
-  let baseRows = [];
-  if (props.status === 'equal' || props.status === 'same') {
-    baseRows = oldLines.map((line, i) => ({
-      source: { line: i + 1, content: line, highlighted: highlightedSourceLines.value[i], type: 'equal' },
-      target: { line: i + 1, content: line, highlighted: highlightedTargetLines.value[i], type: 'equal' }
-    }))
-  } else {
-    baseRows = computeAlignedDiff(oldLines, newLines)
-  }
+  const baseRows = computeAlignedDiff(oldLines, newLines)
   
   const segments: { isDiff: boolean, rows: any[] }[] = [];
   let currentSegment: { isDiff: boolean, rows: any[] } | null = null;
@@ -530,8 +550,12 @@ const expandAll = (index: number) => {
 function computeAlignedDiff(sourceLines: string[], targetLines: string[]) {
   const compare = (s1: string | undefined, s2: string | undefined) => {
     if (s1 === undefined || s2 === undefined) return false
-    const str1 = hideWhitespace.value ? s1.trim() : s1
-    const str2 = hideWhitespace.value ? s2.trim() : s2
+    let str1 = hideWhitespace.value ? s1.trim() : s1
+    let str2 = hideWhitespace.value ? s2.trim() : s2
+    if (internalIgnoreCase.value) {
+      str1 = str1.toLowerCase()
+      str2 = str2.toLowerCase()
+    }
     return str1 === str2
   }
 
@@ -769,5 +793,13 @@ onUnmounted(() => {
 
 .custom-scrollbar-diff:hover::-webkit-scrollbar-thumb {
   background: rgba(139, 148, 158, 0.4);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>

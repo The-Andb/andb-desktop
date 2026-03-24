@@ -13,6 +13,8 @@ common:
   import: 'Import'
   scripts: 'Scripts'
   settings: 'Settings'
+  integrations: 'Integrations'
+  instantCompare: 'Instant Compare'
   save: 'Save'
   saving: 'Saving...'
   cancel: 'Cancel'
@@ -41,6 +43,7 @@ common:
 
   refresh: 'Refresh'
   loading: 'Loading...'
+  processing: 'Processing...'
   error: 'Error'
   success: 'Success'
   warning: 'Warning'
@@ -61,6 +64,8 @@ common:
     hourAgo: '{n} hour{s} ago'
   close: 'Close'
   copy: 'Copy'
+  collapse: 'Collapse'
+  expand: 'Expand'
   duplicate: 'Duplicate'
   copied: 'Copied'
   comingSoon: 'Coming Soon'
@@ -194,10 +199,10 @@ header:
   about: 'About'
 
 about:
-  title: 'The Andb'
+  title: 'TheAndb'
   subtitle: 'Simplest Database Migration Tool'
   version: 'Version'
-  author: 'The Andb'
+  author: 'TheAndb'
   license: 'GPL-3.0'
   copyright: '© 2024 - 2026 {author}. All rights reserved.'
   dmca: 'DMCA Protected | Proprietary Software'
@@ -506,7 +511,7 @@ settings:
     subtitle: 'Manage encryption and access validation'
     publicKey: 'Public Key'
     active: 'Active'
-    publicKeyDesc: 'This public key is used to encrypt your connection passwords locally. It is unique to this installation.'
+    publicKeyDesc: 'This public key is used to encrypt your database connection passwords locally before they are safely stored in the SQLite configs. The Private Key is securely stored in your OS keychain, ensuring that only this specific device can decrypt the passwords.'
     dangerZone: 'Danger Zone'
     regenerateWarning: 'Regenerating encryption keys will invalidate ALL password data currently saved in your connections. You will need to re-enter credentials for every connection. Use only if you suspect your keys are compromised.'
     regenerateKeys: 'Regenerate & Rotate Keys'
@@ -650,7 +655,7 @@ migration:
   objectLabel: 'Object to Migrate'
   confirmBatch: 'Start batch migration from {source} to {target}?'
   totalItems: 'Total Items'
-  typesChanged: 'Types Changed'
+  typesChanged: 'Object Categories'
   snapshotNote: 'A pre-migration DDL snapshot will be saved to history.'
   confirmBtnBatch: 'Migrate {count} Items'
   confirmBtnSingle: 'Confirm Migration'
@@ -758,7 +763,7 @@ connectionPairs:
 
 restrictedUserSetup:
   title: 'Operational Account Setup'
-  description: 'The Andb uses this dedicated account to safely interact with your database. Please ensure the permissions align with your security requirements.'
+  description: 'TheAndb uses this dedicated account to safely interact with your database. Please ensure the permissions align with your security requirements.'
   reconfigure:
     title: 'Reconfigure Privileges'
     adminNote: 'Enter admin credentials to update privileges for user {username}. These credentials are not saved.'
