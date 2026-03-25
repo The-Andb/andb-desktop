@@ -25,7 +25,7 @@
             class="w-full flex items-center gap-3 px-6 py-5 border-b border-gray-200 dark:border-gray-800 bg-gray-100/50 dark:bg-gray-950/30 hover:bg-white dark:hover:bg-gray-800 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all group"
           >
             <ChevronLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span class="text-xs font-black uppercase tracking-widest">Back</span>
+            <span class="text-xs font-black uppercase tracking-widest">{{ $t('common.back') }}</span>
           </button>
 
           <div class="p-8 pb-4">
@@ -159,8 +159,8 @@
                   <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{{ $t('settings.interface.language.label') }}</label>
                   <div class="relative group">
                     <select v-model="settings.language" @change="updateLanguage" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold appearance-none outline-none focus:ring-2 focus:ring-primary-500/20 group-hover:border-primary-500 transition-all">
-                      <option value="en">English (Global)</option>
-                      <option value="vi">Tiếng Việt (Vietnam)</option>
+                      <option value="en">{{ $t('settings.english') }}</option>
+                      <option value="vi">{{ $t('settings.vietnamese') }}</option>
                     </select>
                     <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
@@ -219,7 +219,7 @@
                    
                    <!-- Visible Tabs Configuration -->
                    <div v-if="appStore.navStyle === 'horizontal-tabs'" class="mt-4 p-5 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-2">
-                     <label class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Visible Configuration</label>
+                     <label class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">{{ $t('settings.interface.visibleConfig') }}</label>
                      <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
                        <label v-for="item in navItems" :key="item.path" class="flex items-center px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-xl cursor-pointer gap-3 transition-colors shadow-sm group">
                          <input type="checkbox" :checked="!appStore.hiddenHorizontalTabs.includes(item.path)" @change="toggleHorizontalTab(item.path)" class="w-4 h-4 rounded text-primary-500 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:ring-primary-500 focus:ring-offset-0" />
@@ -257,21 +257,25 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div class="space-y-2">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-tight">{{ $t('settings.interface.typography.mainFont') }}</label>
-                    <select v-model="appStore.fontFamilies.general" class="w-full px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary-500/10 outline-none shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-900">
-                      <option value="'Inter', sans-serif">Inter (Modern)</option>
-                      <option value="'Roboto', sans-serif">Roboto (Legacy)</option>
-                      <option value="'Outfit', sans-serif">Outfit (Geometric)</option>
-                      <option value="'Segoe UI', sans-serif">System Native</option>
+                    <select v-model="appStore.fontFamilies.general"
+                      class="w-full pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 dark:text-white appearance-none cursor-pointer">
+                      <option value="'Inter', sans-serif">{{ $t('settings.interface.typography.fonts.inter') }}</option>
+                      <option value="'Roboto', sans-serif">{{ $t('settings.interface.typography.fonts.roboto') }}</option>
+                      <option value="'Outfit', sans-serif">{{ $t('settings.interface.typography.fonts.outfit') }}</option>
+                      <option value="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">{{ $t('settings.interface.typography.fonts.systemNative') }}</option>
                     </select>
                   </div>
-
-                  <div class="space-y-2">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-tight">{{ $t('settings.interface.typography.codeFont') }}</label>
-                    <select v-model="appStore.fontFamilies.code" class="w-full px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold font-mono focus:ring-2 focus:ring-primary-500/10 outline-none shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-900">
-                      <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-                      <option value="'Fira Code', monospace">Fira Code</option>
-                      <option value="'Source Code Pro', monospace">Source Code Pro</option>
-                      <option value="ui-monospace, monospace">System Native Mono</option>
+                  <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-tight mb-3 flex items-center gap-2">
+                       <Code class="w-4 h-4 text-primary-500" />
+                       {{ $t('settings.interface.typography.codeFont') }}
+                    </label>
+                    <select v-model="appStore.fontFamilies.code"
+                      class="w-full pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 dark:text-white appearance-none cursor-pointer font-mono">
+                      <option value="'JetBrains Mono', monospace">{{ $t('settings.interface.typography.fonts.jetbrains') }}</option>
+                      <option value="'Fira Code', monospace">{{ $t('settings.interface.typography.fonts.fira') }}</option>
+                      <option value="'Source Code Pro', monospace">{{ $t('settings.interface.typography.fonts.sourceCode') }}</option>
+                      <option value="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">{{ $t('settings.interface.typography.fonts.systemNativeMono') }}</option>
                     </select>
                   </div>
 
@@ -384,7 +388,7 @@
                               <Terminal class="w-6 h-6" />
                            </div>
                            <div>
-                              <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">CLI Tool & Smart MCP</h3>
+                              <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.terminal.cliTitle') }}</h3>
                               <p class="text-xs text-gray-500 font-medium">{{ $t('settings.terminal.subtitle') }}</p>
                            </div>
                         </div>
@@ -445,7 +449,7 @@
                               </div>
                               <div>
                                  <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
-                                    Default CLI Operation Scope
+                                    {{ $t('settings.terminal.defaultScope') }}
                                  </h3>
                                  <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-xl">
                                     Select the target project when executing global command line tools like <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-primary-500 dark:text-primary-400">andb compare</code> without explicitly specifying a project context.
@@ -459,7 +463,7 @@
                                  @change="saveDefaultCliProject" 
                                  class="w-full pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 dark:text-white appearance-none cursor-pointer"
                               >
-                                 <option value="">[ No Default Context ]</option>
+                                 <option value="">{{ $t('settings.terminal.noDefaultContext') }}</option>
                                  <option v-for="p in projectsStore.projects" :key="p.id" :value="p.id">
                                     Project: {{ p.name }}
                                  </option>
@@ -476,14 +480,14 @@
 
                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
-                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 1: Add to PATH</h3>
-                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">Permanent access in .zshrc</p>
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">{{ $t('settings.terminal.option1') }}</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">{{ $t('settings.terminal.option1Desc') }}</p>
                             <CopyableSnippet :content="`export PATH=\&quot;$PATH:${internalBinaryPath.split('/andb').join('')}\&quot;`" language="bash" />
                           </div>
                           
                           <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
-                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-2">Option 2: Symlink</h3>
-                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">Links binary into ~/.local/bin</p>
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">{{ $t('settings.terminal.option2') }}</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-3">{{ $t('settings.terminal.option2Desc') }}</p>
                             <CopyableSnippet :content="`ln -sf &quot;${internalBinaryPath}&quot; ~/.local/bin/andb`" language="bash" />
                           </div>
                        </div>
@@ -497,23 +501,21 @@
                              <Cpu class="w-6 h-6" />
                            </div>
                            <div>
-                             <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Smart MCP Server</h2>
-                             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Transform your AI Agent into a Senior Database Architect.</p>
+                             <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.terminal.mcpTitle') }}</h2>
+                             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ $t('settings.terminal.mcpDesc') }}</p>
                            </div>
                          </div>
                          
                          <div class="flex items-center gap-3">
                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-black border bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/20 dark:border-orange-800 dark:text-orange-400 uppercase tracking-widest whitespace-nowrap">
                              <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                             Revolutionary Mode
-                           </div>
+                              {{ $t('settings.terminal.mcpMode') }}
+                            </div>
                          </div>
                        </div>
                        
                        <div class="p-8 space-y-6">
-                          <div class="text-sm text-gray-600 dark:text-gray-300">
-                             TheAndb MCP Server provides advanced intelligence to AI agents. It goes beyond DDL, offering <strong>Risk Analysis</strong>, <strong>Index Suggestions</strong>, and <strong>Safety Guards</strong>.
-                          </div>
+                          <div class="text-sm text-gray-600 dark:text-gray-300" v-html="$t('settings.terminal.mcpInfo')"></div>
 
                           <div class="bg-gray-950 rounded-2xl p-5 border border-white/5 shadow-inner">
                              <CopyableSnippet 
@@ -524,18 +526,19 @@
 
                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
                              <div class="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-blue-500/50 transition-colors">
-                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">Cursor config location</h4>
+                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">{{ $t('settings.terminal.cursorConfig') }}</h4>
                                <code class="text-xs text-gray-600 dark:text-gray-400 break-all select-all block bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700">~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json</code>
                              </div>
                              <div class="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-teal-500/50 transition-colors">
-                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">Windsurf config location</h4>
+                               <h4 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-2">{{ $t('settings.terminal.windsurfConfig') }}</h4>
                                <code class="text-xs text-gray-600 dark:text-gray-400 break-all select-all block bg-white dark:bg-gray-800 p-2 rounded border border-gray-100 dark:border-gray-700">~/.codeium/windsurf/mcp_config.json</code>
                              </div>
                           </div>
                        </div>
                      </div>
-                  </div>
                </div>
+            </div>
+            </div>
 
             <!-- CONNECTION TEMPLATES SECTION -->
             <div v-if="activeCategory === 'templates'" class="animate-in fade-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
@@ -553,10 +556,8 @@
                        <GitCompare class="w-32 h-32" />
                     </div>
                     <div class="relative z-10">
-                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Domain Normalization</h3>
-                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                          Use this to ignore differences that vary by environment (like hardcoded email domains defining <code>@dev.local</code> vs <code>@prod.com</code>). This ensures the comparison tool focuses on <strong>structure</strong> changes, not environment configuration.
-                       </p>
+                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
+                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.domainNormalization.desc')"></p>
                        
                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div class="space-y-2">
@@ -587,10 +588,8 @@
                        <Shield class="w-32 h-32" />
                     </div>
                     <div class="relative z-10">
-                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Migration Exclusions</h3>
-                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                          Prevent accidental deployment of temporary or test objects. Any table, procedure, or view matching this pattern will be <strong>strictly skipped</strong> during migration, keeping your production environment clean.
-                       </p>
+                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
+                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
 
                        <div class="space-y-2">
                              <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Exclusion Pattern (Regex)</label>
@@ -604,80 +603,48 @@
                        </div>
                     </div>
                  </div>
-                  <!-- SQLite Storage Path -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <Database class="w-32 h-32" />
-                     </div>
-                     <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">SQLite Storage Path</h3>
-                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                          Define the location of your internal metadata database (<code>andb-storage.db</code>). Move this to a custom folder to ensure your data stays safe during app reinstalls.
-                        </p>
-                        
-                        <div class="space-y-4">
-                           <div class="flex items-center gap-3">
-                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
-                                 {{ currentDbPath || 'Loading path...' }}
-                              </div>
-                              <button 
-                                 v-if="currentDbPath && !currentDbPath.includes('Application Support') && !currentDbPath.includes('AppData')"
-                                 @click="resetSqlitePath"
-                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 Reset
-                              </button>
-                              <button 
-                                 @click="pickSqlitePath"
-                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 Relocate
-                              </button>
-                           </div>
-                           <p v-if="settingsStore.settings.sqlitePath" class="text-[10px] text-gray-400 font-medium">
-                             Current database is located at the path above. Restart the app for changes to take full effect.
-                           </p>
-                        </div>
-                     </div>
-                  </div>
-
-                  <!-- Project Base Directory -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <Home class="w-32 h-32" />
-                     </div>
-                     <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Project Base Directory</h3>
-                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed">
-                          Define the root directory where the Desktop app will read and write <code>.sql</code> files on your local filesystem (e.g., your Git repository for DDLs).
-                        </p>
-                        
-                        <div class="space-y-4">
-                           <div class="flex items-center gap-3">
-                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
-                                 {{ currentProjectDir || 'Not set (using current working directory)' }}
-                              </div>
-                              <button 
-                                 v-if="currentProjectDir"
-                                 @click="resetProjectDir"
-                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 Reset
-                              </button>
-                              <button 
-                                 @click="pickProjectDir"
-                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 Select Directory
-                              </button>
-                           </div>
-                           <p v-if="currentProjectDir" class="text-[10px] text-gray-400 font-medium">
-                             Restart the app for changes to take full effect.
-                           </p>
-                        </div>
-                     </div>
-                  </div>
                </div>
+            </div>
+
+            <!-- WORKSPACE VAULT SECTION -->
+            <div v-if="activeCategory === 'vault'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div class="grid grid-cols-1 gap-8">
+                  <!-- Workspace Directory -->
+                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
+                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <Cloud class="w-32 h-32" />
+                     </div>
+                     <div class="relative z-10">
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">{{ $t('settings.vault.title') }} <span class="bg-primary-500 text-white px-2 py-0.5 rounded-md text-[9px] tracking-widest animate-pulse-slow">{{ $t('settings.vault.localFirst') }}</span></h3>
+                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.vault.desc')"></p>
+                        
+                        <div class="space-y-4">
+                           <div class="flex items-center gap-3">
+                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
+                                 {{ currentWorkspaceDir || $t('settings.vault.notSet') }}
+                              </div>
+                              <button 
+                                 v-if="currentWorkspaceDir"
+                                 @click="resetWorkspaceDir"
+                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 {{ $t('settings.vault.reset') }}
+                              </button>
+                              <button 
+                                 @click="pickWorkspaceDir"
+                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                              >
+                                 {{ $t('settings.vault.relocate') }}
+                              </button>
+                           </div>
+                           <p v-if="currentWorkspaceDir" class="text-[10px] text-gray-400 font-medium">
+                             {{ $t('settings.vault.activeWorkspace') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentWorkspaceDir }}</code><br/>{{ $t('settings.vault.activeDatabase') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentDbPath }}</code><br /><span class="text-amber-500">{{ $t('settings.vault.restartRequired') }}</span>
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+                </div>
+                  <!-- This block was extracted to Vault tab -->
             </div>
 
             <!-- SECURITY SECTION -->
@@ -726,14 +693,11 @@
 
             <!-- BACKUP SECTION -->
             <div v-if="activeCategory === 'backup'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-
               <BackupManager />
             </div>
 
             <!-- UPDATE SECTION -->
             <div v-if="activeCategory === 'update'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-
-
                  <div class="space-y-6">
                  <!-- Status Card -->
                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col items-center text-center">
@@ -795,14 +759,10 @@
                        </div>
                     </label>
                  </div>
-
-
                </div>
             </div>
-
-          </div>
         </div>
-      </main>
+    </main>
 
     <!-- Reset Data Confirmation Modal (Pro Style) -->
     <div v-if="showResetModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -912,6 +872,7 @@ import {
   MonitorSmartphone, 
   History as HistoryIcon,
   Database,
+  Cloud,
   Trash2,
   X,
   FileCode,
@@ -959,34 +920,22 @@ const projectsStore = useProjectsStore()
 const router = useRouter()
 const featuresStore = useFeaturesStore()
 
+const currentWorkspaceDir = ref('')
 const currentDbPath = ref('')
-const currentProjectDir = ref('')
-const fetchDbPath = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.getDbPath) {
-        const res = await (window as any).electronAPI.getDbPath()
-        if (res) {
-            if (res.success && typeof res.data === 'string') {
-                currentDbPath.value = res.data
-            } else if (typeof res === 'string') {
-                currentDbPath.value = res
-            }
-        }
-    }
-}
 
-const fetchProjectDir = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.getProjectDir) {
-        const res = await (window as any).electronAPI.getProjectDir()
+const loadWorkspacePaths = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.getWorkspaceStatus) {
+        const res = await (window as any).electronAPI.getWorkspaceStatus()
         if (res && res.success) {
-            currentProjectDir.value = res.path
+            currentWorkspaceDir.value = res.path
+            currentDbPath.value = res.dbPath
         }
     }
 }
 
 onMounted(() => {
     loadPublicKey()
-    fetchDbPath()
-    fetchProjectDir()
+    loadWorkspacePaths()
 })
 
 // Navigation Configuration Setup
@@ -1077,55 +1026,28 @@ const regenerateKeys = async () => {
     }
 }
 
-const resetSqlitePath = async () => {
-    if (confirm('Are you sure you want to revert to the default database location? Your current custom database file will NOT be deleted, but the app will start reading from the default system folder. Please restart the app for changes to take full effect.')) {
-        if ((window as any).electronAPI && (window as any).electronAPI.resetDbPath) {
-            await (window as any).electronAPI.resetDbPath()
-            settingsStore.settings.sqlitePath = ''
-            alert('Settings reset. Please restart the app for changes to take full effect.')
+const resetWorkspaceDir = async () => {
+    if (confirm('Are you sure you want to clear your custom Workspace? The app will revert to using the internal system cache storage.')) {
+        if ((window as any).electronAPI && (window as any).electronAPI.resetWorkspaceDir) {
+            await (window as any).electronAPI.resetWorkspaceDir()
+            currentWorkspaceDir.value = ''
+            alert('Workspace cleared. Please restart the app for changes to take full effect.')
         }
     }
 }
 
-const pickSqlitePath = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.pickAndMoveSqliteDb) {
-        const result = await (window as any).electronAPI.pickAndMoveSqliteDb()
+const pickWorkspaceDir = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.pickWorkspaceDir) {
+        const result = await (window as any).electronAPI.pickWorkspaceDir()
         
         if (result && result.success && result.path) {
-            settingsStore.settings.sqlitePath = result.path
-            currentDbPath.value = result.path
-            const actionMsg = result.action === 'used_existing' 
-              ? 'Now using the existing database in the selected folder.' 
-              : 'Database moved/overwritten successfully.';
-            alert(`${actionMsg}\nPlease restart the app for changes to take full effect.`)
-        } else if (result && !result.success && !result.canceled) {
-            alert('Failed to move database: ' + result.error)
-        }
-    }
-}
-
-const resetProjectDir = async () => {
-    if (confirm('Are you sure you want to clear the Project Base Directory? The app will revert to using the current working directory.')) {
-        if ((window as any).electronAPI && (window as any).electronAPI.resetProjectDir) {
-            await (window as any).electronAPI.resetProjectDir()
-            currentProjectDir.value = ''
-            alert('Project directory cleared. Please restart the app for changes to take full effect.')
-        }
-    }
-}
-
-const pickProjectDir = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.pickProjectDir) {
-        const result = await (window as any).electronAPI.pickProjectDir()
-        
-        if (result && result.success && result.path) {
-            currentProjectDir.value = result.path
-            const actionMsg = result.copied 
-                ? 'Project directory updated and data successfully copied!' 
-                : 'Project directory updated (no data copied).';
+            currentWorkspaceDir.value = result.path
+            const actionMsg = result.action === 'linked' 
+              ? 'Now running out of the existing Workspace vault.' 
+              : 'Workspace moved successfully.';
             alert(`${actionMsg}\n${result.path}\n\nPlease restart the app for changes to take full effect.`)
         } else if (result && !result.success && !result.canceled) {
-            alert('Failed to set project directory: ' + result.error)
+            alert('Failed to set workspace: ' + result.error)
         }
     }
 }
@@ -1198,13 +1120,13 @@ const saveDefaultCliProject = async () => {
 
 onMounted(() => {
     checkCliStatus()
-    fetchDbPath()
     loadPaths()
 })
 
 const categories = computed(() => {
   const appCats = [
     { id: 'interface', label: t('settings.categories.interface'), icon: markRaw(MonitorSmartphone), subtitle: t('settings.interface.subtitle') },
+    { id: 'vault', label: 'Workspace Vault', icon: markRaw(Cloud), subtitle: 'Local storage & future cloud sync' },
     { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },
     { id: 'terminal', label: 'CLI & MCP', icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
@@ -1261,9 +1183,10 @@ const updateLanguage = () => {
 }
 
 const getFontSizeRange = (key: string) => {
-  if (key === 'ddlHeader') return [12,14,16,18,20,22,24,26,28]
-  if (key === 'button') return [9,10,11,12,13,14,15]
-  return [9,10,11,12,13,14,15,16,17,18,20]
+  if (key === 'title') return [14, 16, 18, 20, 22, 24, 26, 28, 32]
+  if (key === 'subtitle') return [11, 12, 13, 14, 15, 16, 18, 20, 22]
+  if (key === 'quote') return [9, 10, 11, 12, 13, 14]
+  return [10, 11, 12, 13, 14, 15, 16, 17, 18, 20] // content and code
 }
 
 const buttonStyles = computed<{ id: 'full' | 'minimal' | 'icons', label: string, icon: any, desc: string }[]>(() => [

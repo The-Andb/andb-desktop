@@ -100,7 +100,7 @@
                      <div class="flex items-center truncate py-1">
                        <template v-if="hasInSource(item)">
                           <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
-                          <span class="truncate font-mono" :class="getSourceClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                          <span class="truncate font-mono" :class="getSourceClass(item)">{{ item.name }}</span>
                        </template>
                        <template v-else>
                           <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-6">{{ $t('compare.treeViewData.missingSource') }}</span>
@@ -169,7 +169,7 @@
                      <div class="flex items-center truncate py-1">
                        <template v-if="hasInTarget(item)">
                           <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2 opacity-50 shrink-0" />
-                          <span class="truncate font-mono" :class="getTargetClass(item)" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                          <span class="truncate font-mono" :class="getTargetClass(item)">{{ item.name }}</span>
                        </template>
                        <template v-else>
                           <span class="text-gray-300 dark:text-gray-600 italic text-[10px] pl-4">{{ $t('compare.treeViewData.missingTarget') }}</span>

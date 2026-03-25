@@ -228,11 +228,11 @@
                       <component :is="getIconForType(selectedItem.type)" class="w-4 h-4" />
                     </div>
                     <div class="min-w-0" v-if="selectedItem.type === 'diagrams'">
-                      <h2 class="font-bold text-gray-900 dark:text-white truncate" :style="{ fontSize: appStore.fontSizes.ddlHeader + 'px' }">{{ $t('schema.visualDiagram') }}</h2>
+                      <h2 class="font-bold text-gray-900 dark:text-white text-title truncate">{{ $t('schema.visualDiagram') }}</h2>
                       <p class="text-[10px] uppercase font-bold text-gray-400 tracking-wider transition-colors duration-200">{{ activeConnectionName }}</p>
                     </div>
                     <div class="min-w-0" v-else>
-                      <h2 class="font-bold text-gray-900 dark:text-white truncate" :style="{ fontSize: appStore.fontSizes.ddlHeader + 'px' }">{{ selectedItem.name }}</h2>
+                      <h2 class="font-bold text-gray-900 dark:text-white text-title truncate">{{ selectedItem.name }}</h2>
                       <div class="flex items-center space-x-2 mt-0.5">
                         <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider transition-colors duration-200">{{ selectedItem.type }}</span>
                         <div v-if="selectedDbLastUpdated" class="flex items-center text-[10px] text-gray-400 ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">

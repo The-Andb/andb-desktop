@@ -22,12 +22,10 @@ interface AppSchema {
     navStyle: 'vertical-list' | 'horizontal-tabs'
     fontSize: number
     fontSizes: {
-      main: number
-      menu: number
-      button: number
-      ddlHeader: number
-      schema: number
-      ddlName: number
+      title: number
+      subtitle: number
+      content: number
+      quote: number
       code: number
     }
     fontFamilies: {
@@ -37,12 +35,10 @@ interface AppSchema {
     fontSizeProfile?: 'small' | 'medium' | 'large' | 'custom'
     hiddenHorizontalTabs: string[]
     lastCustomFontSizes?: {
-      main: number
-      menu: number
-      button: number
-      ddlHeader: number
-      schema: number
-      ddlName: number
+      title: number
+      subtitle: number
+      content: number
+      quote: number
       code: number
     }
     installationId?: string
@@ -257,12 +253,10 @@ export const storage = {
       navStyle: 'vertical-list' as const,
       fontSize: 13,
       fontSizes: {
-        main: 13,
-        menu: 12,
-        button: 11,
-        ddlHeader: 16,
-        schema: 12,
-        ddlName: 14,
+        title: 18,
+        subtitle: 14,
+        content: 13,
+        quote: 11,
         code: 12
       },
       fontFamilies: {

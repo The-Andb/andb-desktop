@@ -69,9 +69,16 @@ const router = createRouter({
 
 const { posthog } = usePostHog()
 import { useProjectsStore } from '@/stores/projects'
+import { useSettingsStore } from '@/stores/settings'
 
 router.beforeEach(async (to, _from, next) => {
-  if (to.path === '/splash' || to.path === '/projects') {
+  const settingsStore = useSettingsStore()
+  if (!settingsStore.settings.setupCompleted && to.path !== '/splash') {
+    return next({ path: '/splash' })
+  }
+
+  const publicPaths = ['/splash', '/projects', '/settings', '/project-settings', '/integrations']
+  if (publicPaths.includes(to.path)) {
     return next()
   }
 

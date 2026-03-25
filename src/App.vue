@@ -17,8 +17,6 @@ import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useFeaturesStore } from '@/stores/features'
-import { useProjectsStore } from '@/stores/projects'
-import { useSettingsStore } from '@/stores/settings'
 import Andb from '@/utils/andb'
 
 import UpdateModal from '@/components/general/UpdateModal.vue'
@@ -29,8 +27,17 @@ const updaterStore = useUpdaterStore()
 const consoleStore = useConsoleStore()
 const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
-const projectsStore = useProjectsStore()
-const settingsStore = useSettingsStore()
+
+// Inject Dynamic Typography Variables into DOM root
+watch(() => appStore.fontSizes, (sizes) => {
+  if (!sizes) return
+  const root = document.documentElement
+  root.style.setProperty('--font-title', `${sizes.title || 18}px`)
+  root.style.setProperty('--font-subtitle', `${sizes.subtitle || 14}px`)
+  root.style.setProperty('--font-content', `${sizes.content || 13}px`)
+  root.style.setProperty('--font-quote', `${sizes.quote || 11}px`)
+  root.style.setProperty('--font-code', `${sizes.code || 12}px`)
+}, { deep: true, immediate: true })
 
 // Migration Changelog state
 const showMigrationChangelog = ref(false)
@@ -224,33 +231,7 @@ onMounted(async () => {
      // Actual recovery logic is better placed in the store itself, which we improved.
   }, 1000)
 
-  // System Db Dogfooding: Automatically setup the "TheAndb System" project
-  const assureSystemDb = async () => {
-    let dbPath = settingsStore.settings.sqlitePath
-    
-    // Fetch from backend if store is empty
-    if (!dbPath && (window as any).electronAPI?.getDbPath) {
-      const res = await (window as any).electronAPI.getDbPath()
-      if (res?.success) {
-        dbPath = res.data
-        settingsStore.settings.sqlitePath = res.data
-      }
-    }
 
-    if (!dbPath) {
-       dbPath = 'default' 
-    }
-    if (dbPath && projectsStore.isLoaded) {
-      await projectsStore.setupSystemProject(dbPath)
-      // Force UI observation after manual store injections
-      await projectsStore.reloadData()
-    }
-  }
-
-  // Watch for Project Load & Path changes
-  watch([() => settingsStore.settings.sqlitePath, () => projectsStore.isLoaded], () => {
-    if (projectsStore.isLoaded) assureSystemDb()
-  }, { immediate: true })
 
 })
 

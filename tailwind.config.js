@@ -6,6 +6,17 @@ export default {
   ],
   theme: {
     extend: {
+      fontSize: {
+        '2xs': ['calc(var(--font-quote) * 0.85)', { lineHeight: '1rem' }],
+        'xs': ['var(--font-quote)', { lineHeight: '1.25rem' }],
+        'sm': ['var(--font-content)', { lineHeight: '1.5rem' }],
+        'base': ['calc(var(--font-content) * 1.1)', { lineHeight: '1.5rem' }],
+        'lg': ['var(--font-subtitle)', { lineHeight: '1.75rem' }],
+        'xl': ['var(--font-title)', { lineHeight: '2rem' }],
+        '2xl': ['calc(var(--font-title) * 1.25)', { lineHeight: '2.25rem' }],
+        '3xl': ['calc(var(--font-title) * 1.5)', { lineHeight: '2.5rem' }],
+        '4xl': ['calc(var(--font-title) * 1.8)', { lineHeight: '3rem' }],
+      },
       colors: {
         "panel-dark": "#111621",
         "background-dark": "#0a0e17",

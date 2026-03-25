@@ -186,13 +186,6 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   const removeProject = (id: string) => {
-    // Check if we are deleting the protected system project
-    const projectToDelete = projects.value.find(p => p.id === id)
-    if (projectToDelete?.name === 'TheAndb System') {
-      console.warn('Cannot delete the protected system project.')
-      return
-    }
-
     // Check if we are deleting the currently selected project
     const wasSelected = selectedProjectId.value === id
 
@@ -412,64 +405,6 @@ export const useProjectsStore = defineStore('projects', () => {
     return quickPair
   }
 
-  async function setupSystemProject(dbPath: string) {
-    const appStore = useAppStore()
-
-    if (!import.meta.env.DEV) {
-      // Clean up if it leaked into production previously
-      const leakedProject = projects.value.find(p => p.name === 'TheAndb System')
-      if (leakedProject) {
-        projects.value = projects.value.filter(p => p.id !== leakedProject.id)
-        storage.saveProjects(projects.value)
-      }
-      return
-    }
-
-    // 1. Ensure System Project exists
-    let systemProject = projects.value.find(p => p.name === 'TheAndb System')
-    
-    if (!systemProject) {
-      systemProject = addProject({
-        name: 'TheAndb System',
-        description: 'System internal configuration database for TheAndb. Use caution.',
-        connectionIds: [],
-        pairIds: [],
-        enabledEnvironmentIds: ['DEV']
-      })
-    }
-
-    // 2. Check if a connection for this specific dbPath already exists in the project
-    const hasExistingConn = systemProject.connectionIds.some(connId => {
-      const conn = appStore.connections.find(c => c.id === connId)
-      return conn && conn.host === dbPath
-    })
-
-    if (hasExistingConn) {
-      return // Don't duplicate if it already exists
-    }
-
-    // 3. Create Connection pointing to internal DB
-    const isNew = systemProject.connectionIds.length === 0
-    const sysConn = appStore.addConnection({
-      name: isNew ? 'TheAndb Internal DB' : `TheAndb Internal DB (${new Date().toLocaleDateString()})`,
-      host: dbPath,
-      port: 0,
-      database: 'andb',
-      username: 'root',
-      environment: 'DEV',
-      status: 'idle',
-      type: 'sqlite'
-    }, systemProject.id)
-    
-    if (!systemProject.connectionIds.includes(sysConn.id)) systemProject.connectionIds.push(sysConn.id)
-
-    // Force explicit persist to catch edge cases during boot watcher
-    await Promise.all([
-      storage.saveProjects(projects.value),
-      storage.saveConnections(appStore.connections)
-    ])
-  }
-
   /**
    * Deep cleanup of duplicates and orphaned data
    */
@@ -556,7 +491,6 @@ export const useProjectsStore = defineStore('projects', () => {
     addItemToProject,
     removeItemFromProject,
     setupDemo,
-    setupSystemProject,
     createQuickDumpPair,
     cleanGarbageConnections,
     reloadData: init,

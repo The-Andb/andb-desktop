@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex flex-col pt-0 bg-gray-50 dark:bg-gray-900" :style="{ fontFamily: appStore.fontFamilies.general, fontSize: appStore.fontSizes.main + 'px' }">
+  <div class="h-screen flex flex-col pt-0 bg-gray-50 dark:bg-gray-900" :style="{ fontFamily: appStore.fontFamilies.general }">
     <Header />
     <div class="flex-1 flex overflow-hidden">
       <Sidebar />
@@ -176,42 +176,6 @@
                       </div>
                     </div>
                   </div>
-                  
-                  <!-- Project Base Directory Override -->
-                  <div class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all shadow-sm relative overflow-hidden">
-                    <div class="flex items-start gap-4 relative z-10">
-                      <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl shrink-0">
-                        <Home class="w-6 h-6" />
-                      </div>
-                      <div class="flex-1 w-full">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Project Base Directory (Override)</h3>
-                        <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
-                          Override the global DDL storage directory for this specific project. If left empty, it inherits the global setting from <code>db-config.yaml</code>.
-                        </p>
-                        
-                        <div class="space-y-4">
-                           <div class="flex items-center gap-3">
-                              <div class="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
-                                 {{ projectsStore.currentProject?.settings?.projectBaseDir || 'Inheriting Global Setting' }}
-                              </div>
-                              <button 
-                                 v-if="projectsStore.currentProject?.settings?.projectBaseDir"
-                                 @click="updateProjectSetting('projectBaseDir', null, '')"
-                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 Clear
-                              </button>
-                              <button 
-                                 @click="pickProjectDir"
-                                 class="px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
-                              >
-                                 Select Directory
-                              </button>
-                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                </div>
             </div>
 
@@ -333,8 +297,7 @@ import {
   Wand2,
   Ban,
   ShieldAlert,
-  Search,
-  Home
+  Search
 } from 'lucide-vue-next'
 import Header from '@/components/general/Header.vue'
 import Sidebar from '@/components/general/Sidebar.vue'
@@ -449,14 +412,6 @@ const updateProjectSetting = (category: string, key: string | null, value: strin
   projectsStore.updateProject(projectsStore.currentProject.id, { settings })
 }
 
-const pickProjectDir = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.pickDirectory) {
-        const result = await (window as any).electronAPI.pickDirectory()
-        if (result) {
-            updateProjectSetting('projectBaseDir', null, result)
-        }
-    }
-}
 </script>
 
 

@@ -257,22 +257,23 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       if (!pair) return null
 
       const appStore = useAppStore()
-      if (!appStore || !appStore.resolvedConnections) return null
+      if (!appStore || !appStore.filteredConnections) return null
 
+      // ONLY use connections assigned to the current project
       let source = null
       if (pair.sourceConnectionId) {
-        source = appStore.resolvedConnections.find(c => c.id === pair.sourceConnectionId)
+        source = appStore.filteredConnections.find(c => c.id === pair.sourceConnectionId)
       }
       if (!source) {
-        source = appStore.resolvedConnections.find(c => c.environment === pair.sourceEnv)
+        source = appStore.filteredConnections.find(c => c.environment === pair.sourceEnv)
       }
 
       let target = null
       if (pair.targetConnectionId) {
-        target = appStore.resolvedConnections.find(c => c.id === pair.targetConnectionId)
+        target = appStore.filteredConnections.find(c => c.id === pair.targetConnectionId)
       }
       if (!target) {
-        target = appStore.resolvedConnections.find(c => c.environment === pair.targetEnv)
+        target = appStore.filteredConnections.find(c => c.environment === pair.targetEnv)
       }
 
       if (!source || !target) return null

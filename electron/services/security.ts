@@ -24,6 +24,21 @@ export class SecurityService {
     return SecurityService.instance;
   }
 
+  public reinitialize(dbPath: string) {
+    if (!dbPath || dbPath === 'default') return;
+    try {
+      const parentDir = path.dirname(dbPath);
+      const newKeyDir = path.join(parentDir, 'security');
+      
+      this.keyDir = newKeyDir;
+      this.privateKeyPath = path.join(this.keyDir, 'private.pem');
+      this.publicKeyPath = path.join(this.keyDir, 'public.pem');
+      this.ensureKeysExist();
+    } catch (e) {
+      console.error('Failed to reinitialize secure keys to dbPath:', e);
+    }
+  }
+
   private ensureKeysExist() {
     if (!fs.existsSync(this.keyDir)) {
       fs.mkdirSync(this.keyDir, { recursive: true });

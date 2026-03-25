@@ -17,6 +17,38 @@ export async function handleOpenBackupFolder() {
 }
 
 /**
+ * Relaunch the application
+ */
+export async function handleRelaunchApp() {
+  const options: any = {
+    args: process.argv.slice(1).concat(['--relaunch'])
+  }
+  
+  // If we're not packaged, the execPath is the generic Electron binary, 
+  // and we must explicitly pass the app root directory instead of letting it infer from the mutated CWD.
+  if (!app.isPackaged) {
+    options.execPath = process.execPath;
+    
+    // In dev, our current working directory was mutated by CoreBridge initialization 
+    // to point to the userData folder. We MUST revert it so that when app.relaunch() 
+    // inherits the CWD, it evaluates '.' or local paths correctly instead of crashing.
+    try {
+      const rootAppPath = app.getAppPath();
+      process.chdir(rootAppPath);
+      if ((global as any).logger) (global as any).logger.info(`Reverted CWD to ${rootAppPath} for safe relaunch.`);
+    } catch (e) {
+      console.warn('Failed to revert CWD for relaunch', e);
+    }
+    
+    options.args = [app.getAppPath(), '--relaunch'];
+  }
+
+  app.relaunch(options)
+  app.exit(0)
+  return { success: true }
+}
+
+/**
  * Open file dialog
  */
 export async function handlePickFile(_event: any, options: any) {

@@ -50,7 +50,7 @@
                   </div>
               </div>
 
-              <div class="flex items-center gap-2">
+              <div class="flex items-center justify-end gap-2 ml-auto w-full sm:w-auto">
                   <!-- Bulk Actions -->
                   <div v-if="selectedTemplates.length > 0" class="flex items-center gap-2 mr-2 animate-in fade-in zoom-in duration-200">
                       <span class="text-xs text-gray-500 font-bold">{{ selectedTemplates.length }} selected</span>

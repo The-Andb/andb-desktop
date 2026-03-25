@@ -207,14 +207,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // File System Operations
   pickFile: (options: any) => ipcRenderer.invoke('pick-file', options),
-  pickAndMoveSqliteDb: () => ipcRenderer.invoke('pick-and-move-sqlite-db'),
-  resetDbPath: () => ipcRenderer.invoke('reset-db-path'),
-  getDbPath: () => ipcRenderer.invoke('get-db-path'),
-  
-  pickDirectory: () => ipcRenderer.invoke('pick-directory'),
-  pickProjectDir: () => ipcRenderer.invoke('pick-project-dir'),
-  resetProjectDir: () => ipcRenderer.invoke('reset-project-dir'),
-  getProjectDir: () => ipcRenderer.invoke('get-project-dir'),
+  pickWorkspaceDir: () => ipcRenderer.invoke('pick-workspace-dir'),
+  resetWorkspaceDir: () => ipcRenderer.invoke('reset-workspace-dir'),
+  getWorkspaceStatus: () => ipcRenderer.invoke('get-workspace-status'),
   
   saveDumpFile: (sourcePath: string) => ipcRenderer.invoke('save-dump-file', sourcePath),
 

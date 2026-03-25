@@ -53,13 +53,15 @@
           </select>
 
           <!-- Visible Label -->
-          <div class="flex items-center text-gray-900 dark:text-gray-100 transition-colors">
-            <Folder class="w-4 h-4 text-primary-500 shrink-0 mr-1.5" />
-            <span class="font-extrabold text-sm tracking-tight truncate leading-none mt-px">
-              {{ currentProjectName }}
-            </span>
+          <div class="flex items-center justify-between w-full text-gray-900 dark:text-gray-100 transition-colors">
+            <div class="flex items-center min-w-0">
+              <Folder class="w-4 h-4 text-primary-500 shrink-0 mr-1.5" />
+              <span class="font-extrabold text-sm tracking-tight truncate leading-none mt-px">
+                {{ currentProjectName }}
+              </span>
+            </div>
             <!-- Hover marker -->
-            <ChevronDown class="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity ml-1 shrink-0" />
+            <ChevronDown class="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0" />
           </div>
 
           <!-- Subtitle -->

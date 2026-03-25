@@ -90,53 +90,28 @@
         </div>
         
         <div class="space-y-6 flex-1">
-          <!-- SQLite Setup -->
-          <div class="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative group hover:border-primary-500/50 transition-colors">
-            <h4 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
-               <Database class="w-4 h-4 text-primary-500"/>
-               SQLite Metadata Folder
-            </h4>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-4 tracking-tight leading-relaxed">
-               Location of the internal mapping history. <strong>Requires Relocation</strong> to save to a designated persistent folder.
-            </p>
-            <div class="flex items-center gap-3">
-              <div class="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-3 text-[10px] font-mono font-bold text-gray-500 truncate shadow-inner h-[46px] flex items-center">
-                 {{ currentDbPath || 'Click RELOCATE to ensure permanence' }}
-              </div>
-              <button 
-                 @click="pickSqlitePath"
-                 class="px-6 h-[46px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 hover:text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all shadow-sm active:scale-95 shrink-0"
-              >
-                 Relocate
-              </button>
-            </div>
-            <div v-if="sqliteMsg" class="absolute -top-3 right-6 bg-green-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-fade-in shadow-sm">
-              <span class="flex items-center gap-1"><Check class="w-3 h-3"/> {{ sqliteMsg }}</span>
-            </div>
-          </div>
-
-          <!-- Base Dir Setup -->
+          <!-- Workspace Setup -->
           <div class="bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative group hover:border-primary-500/50 transition-colors">
             <h4 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
                <FolderGit2 class="w-4 h-4 text-primary-500"/>
-               Project Base Directory (Git Root)
+               Workspace Vault Directory
             </h4>
             <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-4 tracking-tight leading-relaxed">
-               The root folder where TheAndb will read/write your <code>.sql</code> snapshot schemas and migrations. Optional, but highly recommended.
+               Select a root folder where your SQL definitions, SQLite metadata, and security keys will be centrally stored. Select an existing vault to <strong class="text-primary-600 dark:text-primary-400">Link Existing Data</strong>, or an empty one to <strong>Start Fresh</strong>.
             </p>
             <div class="flex items-center gap-3">
               <div class="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 rounded-xl px-4 py-3 text-[10px] font-mono font-bold text-gray-500 truncate shadow-inner h-[46px] flex items-center">
-                 {{ currentProjectDir || 'Not specified (CLI uses cwd)' }}
+                 {{ currentWorkspaceDir || 'Not specified (App runs out of internal cache)' }}
               </div>
               <button 
-                 @click="pickProjectDir"
+                 @click="pickWorkspaceDir"
                  class="px-6 h-[46px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 hover:text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all shadow-sm active:scale-95 shrink-0"
               >
-                 Select Dir
+                 Select Target
               </button>
             </div>
-             <div v-if="projectMsg" class="absolute -top-3 right-6 bg-green-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-fade-in shadow-sm">
-              <span class="flex items-center gap-1"><Check class="w-3 h-3"/> {{ projectMsg }}</span>
+            <div v-if="workspaceMsg" class="absolute -top-3 right-6 bg-green-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-fade-in shadow-sm">
+              <span class="flex items-center gap-1"><Check class="w-3 h-3"/> {{ workspaceMsg }}</span>
             </div>
           </div>
         </div>
@@ -175,11 +150,8 @@ const progress = ref(0)
 const statusText = ref(t('splash.status.init'))
 const showSetup = ref(false)
 
-const currentDbPath = ref('')
-const currentProjectDir = ref('')
-
-const sqliteMsg = ref('')
-const projectMsg = ref('')
+const currentWorkspaceDir = ref('')
+const workspaceMsg = ref('')
 
 const statusMessages = [
   t('splash.status.init'),
@@ -189,60 +161,44 @@ const statusMessages = [
   t('splash.status.ready')
 ]
 
-const loadCurrentPaths = async () => {
+const loadWorkspacePath = async () => {
   if ((window as any).electronAPI) {
-    if ((window as any).electronAPI.getDbPath) {
-      const res = await (window as any).electronAPI.getDbPath()
-      if (res && res.success && typeof res.data === 'string') {
-        currentDbPath.value = res.data
-      } else if (res && typeof res === 'string') {
-        currentDbPath.value = res
-      }
-    }
-    if ((window as any).electronAPI.getProjectDir) {
-      const res = await (window as any).electronAPI.getProjectDir()
-      if (res && res.success) {
-        currentProjectDir.value = res.path
+    if ((window as any).electronAPI.getWorkspaceStatus) {
+      const res = await (window as any).electronAPI.getWorkspaceStatus()
+      if (res && res.success && res.path) {
+         currentWorkspaceDir.value = res.path
       }
     }
   }
 }
 
-const pickSqlitePath = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.pickAndMoveSqliteDb) {
-        const result = await (window as any).electronAPI.pickAndMoveSqliteDb()
+const pickWorkspaceDir = async () => {
+    if ((window as any).electronAPI && (window as any).electronAPI.pickWorkspaceDir) {
+        const result = await (window as any).electronAPI.pickWorkspaceDir()
         if (result && result.success && result.path) {
-            settingsStore.settings.sqlitePath = result.path
-            currentDbPath.value = result.path
-            sqliteMsg.value = result.action === 'used_existing' 
-              ? 'Mapped' 
-              : 'Relocated';
-            setTimeout(() => { sqliteMsg.value = '' }, 3000)
+            currentWorkspaceDir.value = result.path
+            workspaceMsg.value = result.action === 'linked' ? 'Linked Existing Vault' 
+              : result.action === 'overwrote' ? 'Overwrote Data' 
+              : 'Relocated Successfully';
+            setTimeout(() => { workspaceMsg.value = '' }, 3000)
         } else if (result && !result.success && !result.canceled) {
-            alert('Failed to move database: ' + result.error)
+            alert('Failed to set workspace: ' + result.error)
         }
     }
 }
 
-const pickProjectDir = async () => {
-    if ((window as any).electronAPI && (window as any).electronAPI.pickProjectDir) {
-        const result = await (window as any).electronAPI.pickProjectDir()
-        if (result && result.success && result.path) {
-            currentProjectDir.value = result.path
-            projectMsg.value = result.copied ? 'Mapped & Copied' : 'Mapped'
-            setTimeout(() => { projectMsg.value = '' }, 3000)
-        } else if (result && !result.success && !result.canceled) {
-            alert('Failed to set project directory: ' + result.error)
-        }
-    }
-}
-
-const completeSetup = () => {
+const completeSetup = async () => {
   settingsStore.settings.setupCompleted = true
-  // Force a small delay for visual transition
-  setTimeout(() => {
-    router.push('/')
-  }, 100)
+  
+  if ((window as any).electronAPI) {
+    // Hard reboot Electron to allow the Core Engine side to re-index the newly configured SQLite / Projects paths
+    await (window as any).electronAPI.invoke('relaunch-app')
+  } else {
+    // Dev fallback
+    setTimeout(() => {
+      router.push('/')
+    }, 100)
+  }
 }
 
 const simulateLoading = () => {
@@ -267,7 +223,7 @@ const simulateLoading = () => {
 onMounted(async () => {
   // Give settings a split second to hydrate from window IPC
   setTimeout(async () => {
-    await loadCurrentPaths()
+    await loadWorkspacePath()
     
     // Ignore DEV bypass if we want to test setup wizard properly
     // if (import.meta.env.DEV) {

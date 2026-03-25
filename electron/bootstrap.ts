@@ -136,6 +136,12 @@ export async function initCoreServices() {
     await CoreBridge.init(userDataPath, customDbPath, desktopStorageStrategy, projectBaseDir)
     if ((global as any).logger) (global as any).logger.info(`Core Engine Initialized successfully. DB: ${CoreBridge.getDbPath()}`)
 
+    // Sync RSA Keychain directory to DB path to ensure password decryptions survive cross-device syncing
+    if (customDbPath && customDbPath !== 'default') {
+      const { SecurityService } = require('./services/security')
+      SecurityService.getInstance().reinitialize(customDbPath)
+    }
+
     AndbBuilder.initialize(userDataPath, app.getAppPath(), CoreBridge.getDbPath())
 
     // Migration Changelog Capture

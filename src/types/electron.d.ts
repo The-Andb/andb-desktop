@@ -105,7 +105,6 @@ declare global {
         offUpdateStatus: () => void
       }
 
-      // Integrations (CLI & MCP)
       cli: {
         checkPath: () => Promise<boolean>
         getBinaryPath: () => Promise<string>
@@ -114,6 +113,10 @@ declare global {
       mcp: {
         getMcpPath: () => Promise<string>
       }
+
+      pickWorkspaceDir: () => Promise<{ success: boolean; path?: string; action?: string; error?: string }>
+      resetWorkspaceDir: () => Promise<{ success: boolean; error?: string }>
+      getWorkspaceStatus: () => Promise<{ success: boolean; path: string; dbPath: string }>
 
       security: {
         encryptToken: (token: string) => Promise<{ success: boolean; data?: string; error?: string }>

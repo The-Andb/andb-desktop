@@ -53,30 +53,24 @@ export interface ConnectionPair {
 
 export const FONT_SIZE_PROFILES = {
   small: {
-    main: 12,
-    menu: 11,
-    button: 10,
-    ddlHeader: 14,
-    schema: 11,
-    ddlName: 11,
+    title: 16,
+    subtitle: 13,
+    content: 12,
+    quote: 10,
     code: 11
   },
   medium: {
-    main: 13,
-    menu: 12,
-    button: 11,
-    ddlHeader: 16,
-    schema: 12,
-    ddlName: 12,
+    title: 18,
+    subtitle: 14,
+    content: 13,
+    quote: 11,
     code: 12
   },
   large: {
-    main: 15,
-    menu: 14,
-    button: 13,
-    ddlHeader: 20,
-    schema: 14,
-    ddlName: 14,
+    title: 22,
+    subtitle: 16,
+    content: 15,
+    quote: 13,
     code: 14
   }
 }
@@ -101,12 +95,10 @@ export const useAppStore = defineStore('app', () => {
   const buttonStyle = ref<'full' | 'minimal' | 'icons'>('full')
   const navStyle = ref<'vertical-list' | 'horizontal-tabs'>('vertical-list')
   const fontSizes = ref({
-    main: 13,
-    menu: 12,
-    button: 11,
-    ddlHeader: 16,
-    schema: 12,
-    ddlName: 12,
+    title: 18,
+    subtitle: 14,
+    content: 13,
+    quote: 11,
     code: 12
   })
   const fontFamilies = ref({

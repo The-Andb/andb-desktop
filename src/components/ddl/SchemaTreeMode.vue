@@ -54,7 +54,7 @@
                           appStore.compareStack?.source?.name === item.name ? 'text-orange-900 dark:text-orange-100 font-bold' : '',
                           appStore.compareStack?.target?.name === item.name ? 'text-blue-900 dark:text-blue-100 font-bold' : ''
                         ]" 
-                        :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ item.name }}</span>
+                        >{{ item.name }}</span>
                   <div class="flex items-center">
                     <span v-if="item.matches?.length > 0" class="px-1 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 text-[8px] font-black rounded-sm border border-primary-200 dark:border-primary-800">
                       {{ item.matches.length }}

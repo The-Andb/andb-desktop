@@ -341,7 +341,7 @@
                           <!-- connector line for tree feeling -->
                           <div class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 mr-2 -ml-6"></div>
 
-                          <div class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">
+                          <div class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name">
                             {{ item.name }}
                           </div>
                           <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">

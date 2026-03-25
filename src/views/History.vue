@@ -94,7 +94,7 @@
                     <component :is="getIconForType(snapshot.ddl_type)" class="w-3.5 h-3.5" />
                   </span>
                   <div class="flex flex-col min-w-0">
-                    <span class="font-bold text-gray-900 dark:text-white truncate" :style="{ fontSize: appStore.fontSizes.ddlName + 'px' }">{{ snapshot.ddl_name }}</span>
+                    <span class="font-bold text-gray-900 dark:text-white truncate text-title">{{ snapshot.ddl_name }}</span>
                     <div class="flex items-center space-x-2 text-[10px] uppercase tracking-tighter text-gray-400 font-bold mt-0.5">
                       <span class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{{ snapshot.environment }}</span>
                       <span class="truncate">{{ snapshot.database_name }}</span>
@@ -138,7 +138,7 @@
               </span>
               <div class="flex flex-col min-w-0">
                     <div class="flex items-center space-x-2 mb-1.5 min-w-0">
-                      <h2 class="font-bold text-gray-900 dark:text-gray-100 truncate" :style="{ fontSize: appStore.fontSizes.ddlHeader + 'px' }">{{ selectedSnapshot.ddl_name }}</h2>
+                      <h2 class="font-bold text-gray-900 dark:text-gray-100 truncate text-title">{{ selectedSnapshot.ddl_name }}</h2>
                       <span class="text-[9px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500 whitespace-nowrap">{{ selectedSnapshot.ddl_type }}</span>
                     </div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center">

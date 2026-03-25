@@ -38,7 +38,6 @@
                   ? (appStore.navStyle === 'horizontal-tabs' ? 'text-primary-600 dark:text-primary-400' : 'bg-white dark:bg-gray-800 text-primary-600 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-gray-700')
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               ]"
-              :style="{ fontSize: appStore.fontSizes.menu + 'px' }"
               :title="item.name"
             >
               <div 
@@ -86,7 +85,7 @@
       </nav>
 
       <!-- Explorer Header -->
-        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0" :style="{ fontSize: (appStore.fontSizes.schema - 2) + 'px', fontWeight: 'bold' }">
+        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0 font-bold text-subtitle">
           <span>{{ route.path === '/compare' ? $t('navigation.explorer.source') : (route.path === '/history' ? $t('navigation.explorer.history') : $t('navigation.explorer.schema')) }}</span>
           <div class="flex items-center space-x-1">
             <button @click="sidebarStore.requestRefresh()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.refresh')">
@@ -140,13 +139,12 @@
                 'border-blue-500 bg-blue-50 dark:bg-gray-800': isSourceEnvironment(env.name)
               }"
               @click="toggleEnvironment(env.name)"
-              :style="{ fontSize: appStore.fontSizes.schema + 'px' }"
             >
               <span class="w-1 flex items-center justify-center mr-1">
               </span>
               <component :is="getEnvIcon(env.name)" class="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
               <span class="font-semibold truncate flex-1">{{ env.name }}</span>
-              <span v-if="isSourceEnvironment(env.name)" :style="{ fontSize: (appStore.fontSizes.schema - 3) + 'px' }" class="ml-auto text-blue-600 dark:text-blue-400 font-mono bg-blue-100 dark:bg-blue-400/10 px-1 rounded uppercase font-bold">SRC</span>
+              <span v-if="isSourceEnvironment(env.name)" class="ml-auto text-blue-600 dark:text-blue-400 font-mono bg-blue-100 dark:bg-blue-400/10 px-1 rounded uppercase font-bold text-[10px]">SRC</span>
             </div>
 
             <!-- Databases -->
@@ -164,7 +162,6 @@
                     expandedDatabases.has(`${env.name}-${db.name}`) && !isActiveDatabase(db) ? 'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800' : ''
                   ]"
                   @click="selectDatabase(env.name, db.name)"
-                  :style="{ fontSize: (appStore.fontSizes.schema - 1) + 'px' }"
                 >
                   <span 
                     class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
@@ -197,7 +194,6 @@
                         class="group/cat flex items-center h-7 px-2 pl-[44px] cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent transition-colors"
                         :class="{ 'text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/50': expandedTypes.has(`${env.name}-${db.name}-${type.key}`) }"
                         @click="selectCategory(env.name, db.name, type.key)"
-                        :style="{ fontSize: (appStore.fontSizes.schema - 1) + 'px' }"
                       >
                         <span 
                           class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"

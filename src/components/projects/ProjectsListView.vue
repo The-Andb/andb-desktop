@@ -51,7 +51,7 @@ const filteredProjects = computed(() => {
 })
 
 const selectableProjects = computed(() => {
-  return filteredProjects.value.filter(p => p.name !== 'TheAndb System')
+  return filteredProjects.value
 })
 
 const emit = defineEmits<{
@@ -355,7 +355,6 @@ const isQuickDumpModalOpen = ref(false)
 
             <div class="relative">
               <button 
-                v-if="project.name !== 'TheAndb System'"
                 @click.stop="toggleMenu(project.id)"
                 class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 hover:text-gray-900 transition-colors"
               >
@@ -568,7 +567,7 @@ const isQuickDumpModalOpen = ref(false)
           </div>
 
           <!-- Inline Actions Area (No longer using Menu) -->
-          <div v-if="project.name !== 'TheAndb System'" class="relative z-30 ml-4 shrink-0 flex items-center gap-1 opacity-10 sm:opacity-40 group-hover:opacity-100 transition-opacity">
+          <div class="relative z-30 ml-4 shrink-0 flex items-center gap-1 opacity-10 sm:opacity-40 group-hover:opacity-100 transition-opacity">
             <button 
               @click.stop="startRename(project)" 
               class="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-400 hover:text-primary-500 rounded-xl transition-all"

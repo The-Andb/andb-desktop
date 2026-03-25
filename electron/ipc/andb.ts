@@ -426,60 +426,126 @@ export async function handleAndbGetFeaturesStatus() {
 }
 
 /**
- * Handle Pick and Move SQLite DB
+ * Handle Pick Unified Workspace Directory
  */
-export async function handlePickAndMoveDb() {
+export async function handlePickWorkspaceDir() {
   const result = await dialog.showOpenDialog({
-    title: 'Select Destination Folder for Database',
+    title: 'Select Workspace Directory',
     properties: ['openDirectory', 'createDirectory']
   })
 
   if (result.canceled || result.filePaths.length === 0) return null
 
   const targetDir = result.filePaths[0]
-  const targetPath = path.join(targetDir, 'andb-storage.db')
-  const currentPath = CoreBridge.getDbPath()
-
-  if (currentPath === targetPath) {
-     return { success: false, error: 'Database is already in this folder.' }
+  const targetDbPath = path.join(targetDir, 'andb-storage.db')
+  const currentDbPath = CoreBridge.getDbPath()
+  
+  const userDataPath = app.getPath('userData')
+  const yaml = require('js-yaml')
+  const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
+  let config: any = {}
+  if (fs.existsSync(dbConfigPath)) {
+    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
   }
 
-  const userDataPath = app.getPath('userData')
+  let oldProjectDir = config.projectBaseDir || process.cwd()
 
   try {
-    // If a DB exists in the current path, copy it.
-    // (In a perfect world we would close the db first, but sqlite gracefully handles file copying usually)
-    if (fs.existsSync(currentPath)) {
-      fs.copyFileSync(currentPath, targetPath)
+    let action = 'moved'
+    
+    // Check if target directory already has a workspace
+    const hasDb = fs.existsSync(targetDbPath)
+    const hasProjectDb = fs.existsSync(path.join(targetDir, 'db'))
+    
+    if (hasDb || hasProjectDb) {
+      const { response } = await dialog.showMessageBox({
+        type: 'warning',
+        title: 'Existing Workspace Detected',
+        message: 'A workspace already exists in this folder.',
+        detail: 'Do you want to Link to this existing Workspace, or Overwrite it with your current data? (Overwriting will permanently delete previous data in that folder).',
+        buttons: ['Link to Workspace', 'Overwrite with Current Data', 'Cancel'],
+        defaultId: 0,
+        cancelId: 2
+      })
+
+      if (response === 2) {
+        return { success: false, canceled: true }
+      } else if (response === 1) {
+        // Overwrite
+        if (fs.existsSync(currentDbPath)) {
+          fs.copyFileSync(currentDbPath, targetDbPath)
+          try {
+            const oldKeyDir = path.join(path.dirname(currentDbPath), 'security')
+            const newKeyDir = path.join(targetDir, 'security')
+            if (fs.existsSync(oldKeyDir)) {
+               const fsPromises = require('fs/promises')
+               await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
+            }
+          } catch (e) {
+            console.warn('Failed to relocate security keys', e)
+          }
+        }
+        
+        // Copy project DDLs
+        const fsPromises = require('fs/promises');
+        if (oldProjectDir && oldProjectDir !== targetDir) {
+           if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
+               await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
+           }
+           if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
+               await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
+           }
+        }
+        
+        action = 'overwrote'
+      } else {
+        // Link
+        if ((global as any).logger) (global as any).logger.info(`Linking to existing Workspace at ${targetDir}`);
+        action = 'linked'
+      }
+    } else {
+      // Clean slate - move current data there
+      if (fs.existsSync(currentDbPath)) {
+        fs.copyFileSync(currentDbPath, targetDbPath)
+        try {
+          const oldKeyDir = path.join(path.dirname(currentDbPath), 'security')
+          const newKeyDir = path.join(targetDir, 'security')
+          if (fs.existsSync(oldKeyDir)) {
+             const fsPromises = require('fs/promises')
+             await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
+          }
+        } catch (e) {
+          console.warn('Failed to relocate security keys', e)
+        }
+      }
+      
+      const fsPromises = require('fs/promises');
+      if (oldProjectDir && oldProjectDir !== targetDir) {
+         if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
+             await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
+         }
+         if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
+             await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
+         }
+      }
     }
 
-    // Update db-config.yaml
-    const yaml = require('js-yaml')
-    const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
-    let config: any = {}
-    if (fs.existsSync(dbConfigPath)) {
-      try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
-    }
-    config.dbPath = targetPath
+    // Update config
+    config.dbPath = targetDbPath
+    config.projectBaseDir = targetDir
     config.lastUpdated = new Date().toISOString()
     fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
 
-    // Delete old database if it was inside the app data to clean up
-    if (fs.existsSync(currentPath) && currentPath !== targetPath && currentPath.includes(userDataPath)) {
-        try {
-           fs.unlinkSync(currentPath)
-        } catch (e) {
-           console.warn('Could not delete old db file:', e)
-        }
-    }
-
-    return { success: true, path: targetPath, action: 'moved' }
+    return { success: true, path: targetDir, action }
   } catch (e: any) {
     return { success: false, error: e.message }
   }
 }
 
-export async function handleResetDbPath() {
+/**
+ * Handle Reset Workspace
+ */
+export async function handleResetWorkspace() {
   const userDataPath = app.getPath('userData')
   const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
   if (fs.existsSync(dbConfigPath)) {
@@ -487,89 +553,6 @@ export async function handleResetDbPath() {
     let config: any = {}
     try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
     delete config.dbPath
-    config.lastUpdated = new Date().toISOString()
-    fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
-  }
-  return { success: true }
-}
-
-/**
- * Handle Pick Project Base Directory
- */
-export async function handlePickProjectDir() {
-  const result = await dialog.showOpenDialog({
-    title: 'Select Project Base Directory',
-    properties: ['openDirectory', 'createDirectory']
-  })
-
-  if (result.canceled || result.filePaths.length === 0) return null
-
-    const targetDir = result.filePaths[0]
-  const userDataPath = app.getPath('userData')
-
-  try {
-    const yaml = require('js-yaml')
-    const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
-    let config: any = {}
-    if (fs.existsSync(dbConfigPath)) {
-      try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
-    }
-    
-    let oldDir = config.projectBaseDir || process.cwd()
-    if (!fs.existsSync(path.join(oldDir, 'db')) && fs.existsSync(path.join(oldDir, 'andb-core', 'db'))) {
-       oldDir = path.join(oldDir, 'andb-core');
-    }
-    
-    let copied = false;
-
-    if (oldDir && oldDir !== targetDir) {
-       const hasDb = fs.existsSync(path.join(oldDir, 'db'));
-       const hasMapMigrate = fs.existsSync(path.join(oldDir, 'map-migrate'));
-       
-       if (hasDb || hasMapMigrate) {
-          const { response } = await dialog.showMessageBox({
-             type: 'question',
-             buttons: ['Yes, Copy Data', 'No, Select Only'],
-             title: 'Copy Existing Data?',
-             message: 'It looks like you have existing SQL data in your current project directory.',
-             detail: `Would you like to copy the "db" and "map-migrate" folders to the new project directory?\n\nFrom: ${oldDir}\nTo: ${targetDir}`,
-             defaultId: 0
-          });
-
-          if (response === 0) {
-             const fsPromises = require('fs/promises');
-             if (hasDb) {
-                 await fsPromises.cp(path.join(oldDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
-             }
-             if (hasMapMigrate) {
-                 await fsPromises.cp(path.join(oldDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
-             }
-             copied = true;
-          }
-       }
-    }
-
-    config.projectBaseDir = targetDir
-    config.lastUpdated = new Date().toISOString()
-    
-    fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
-
-    return { success: true, path: targetDir, copied }
-  } catch (e: any) {
-    return { success: false, error: e.message }
-  }
-}
-
-/**
- * Handle Reset Project Base Directory
- */
-export async function handleResetProjectDir() {
-  const userDataPath = app.getPath('userData')
-  const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
-  if (fs.existsSync(dbConfigPath)) {
-    const yaml = require('js-yaml')
-    let config: any = {}
-    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
     delete config.projectBaseDir
     config.lastUpdated = new Date().toISOString()
     fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
@@ -578,21 +561,22 @@ export async function handleResetProjectDir() {
 }
 
 /**
- * Handle Get Project Base Directory
+ * Handle Get Workspace Status
  */
-export async function handleGetProjectDir() {
+export async function handleGetWorkspaceStatus() {
   const userDataPath = app.getPath('userData')
   const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
+  let pathVal = ''
   if (fs.existsSync(dbConfigPath)) {
     const yaml = require('js-yaml')
     try { 
       const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
-      return { success: true, path: config.projectBaseDir || '' }
+      pathVal = config.projectBaseDir || ''
     } catch (e: any) {
-      return { success: false, error: e.message }
+      console.warn('Failed to parse db-config', e)
     }
   }
-  return { success: true, path: '' }
+  return { success: true, path: pathVal, dbPath: CoreBridge.getDbPath() }
 }
 
 // Internal Mock Helper (Keep it here as Utility if needed)

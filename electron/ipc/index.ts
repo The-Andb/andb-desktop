@@ -18,6 +18,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('save-dump-file', system.handleSaveDumpFile)
   ipcMain.handle('app-log', system.handleAppLog)
   ipcMain.handle('app-log-write', system.handleAppLogWrite)
+  ipcMain.handle('relaunch-app', system.handleRelaunchApp)
 
   ipcMain.handle('cli-check-path', system.handleCliCheckPath)
   ipcMain.handle('cli-get-binary-path', system.handleCliGetBinaryPath)
@@ -96,11 +97,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('probe-restricted-user', andb.handleAndbProbeRestrictedUser)
   ipcMain.handle('generate-user-setup-script', andb.handleAndbGenerateUserSetupScript)
 
-  ipcMain.handle('pick-and-move-sqlite-db', andb.handlePickAndMoveDb)
-  ipcMain.handle('reset-db-path', andb.handleResetDbPath)
-  ipcMain.handle('get-db-path', andb.handleAndbGetDbPath)
-
-  ipcMain.handle('pick-project-dir', andb.handlePickProjectDir)
-  ipcMain.handle('reset-project-dir', andb.handleResetProjectDir)
-  ipcMain.handle('get-project-dir', andb.handleGetProjectDir)
+  ipcMain.handle('pick-workspace-dir', andb.handlePickWorkspaceDir)
+  ipcMain.handle('reset-workspace-dir', andb.handleResetWorkspace)
+  ipcMain.handle('get-workspace-status', andb.handleGetWorkspaceStatus)
 }
