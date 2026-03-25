@@ -78,8 +78,6 @@ export const FONT_SIZE_PROFILES = {
 export const useAppStore = defineStore('app', () => {
   // State
   const sidebarCollapsed = ref(false)
-  const projectManagerMode = ref(false)
-  const autoCollapseColumns = ref(false) // Default to false, will be synced from features
   const safeMode = ref(true) // Default to true for safety
   const compareMode = ref<'auto' | 'instant'>('auto')
   const compareStack = ref<{
@@ -148,8 +146,6 @@ export const useAppStore = defineStore('app', () => {
         lastCustomFontSizes.value = { ...lastCustomFontSizes.value, ...savedSettings.lastCustomFontSizes }
       }
 
-      projectManagerMode.value = savedSettings.projectManagerMode || false
-      autoCollapseColumns.value = savedSettings.autoCollapseColumns !== undefined ? savedSettings.autoCollapseColumns : true
       safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
 
       // If we loaded 'custom', we should ensure fontSizes reflects the loaded values (already done by fontSizes loading logic above)
@@ -341,13 +337,6 @@ export const useAppStore = defineStore('app', () => {
     storage.updateSettings({ sidebarCollapsed: newValue })
   })
 
-  watch(projectManagerMode, newValue => {
-    storage.updateSettings({ projectManagerMode: newValue })
-  })
-
-  watch(autoCollapseColumns, newValue => {
-    storage.updateSettings({ autoCollapseColumns: newValue })
-  })
 
   watch(safeMode, newValue => {
     storage.updateSettings({ safeMode: newValue })
@@ -629,8 +618,6 @@ export const useAppStore = defineStore('app', () => {
   return {
     // State
     sidebarCollapsed,
-    projectManagerMode,
-    autoCollapseColumns,
     safeMode,
     isDark,
     buttonStyle,
@@ -671,6 +658,11 @@ export const useAppStore = defineStore('app', () => {
     testConnection,
     resetConnections,
     applyFontSizeProfile,
+    clearAllStatuses: () => {
+      connections.value.forEach(conn => {
+        conn.status = 'idle'
+      })
+    },
     reloadData: init
   }
 })

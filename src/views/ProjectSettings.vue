@@ -44,7 +44,7 @@
         
         <!-- Category Detail Pane -->
         <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div :class="activeCategory === 'env_pairs' ? 'w-full max-w-7xl mx-auto' : 'max-w-4xl mx-auto'">
+          <div :class="activeCategory === 'env_pairs' || activeCategory === 'connections' ? 'w-full max-w-7xl mx-auto' : 'max-w-4xl mx-auto'">
             
             <!-- ENVIRONMENTS & PAIRS SECTION -->
             <div v-if="activeCategory === 'env_pairs'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -74,17 +74,9 @@
 
             <!-- CONNECTIONS SECTION -->
             <div v-if="activeCategory === 'connections'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shadow-inner">
-                  <Link2 class="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $t('settings.connections.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{ $t('settings.connections.subtitle') }}</p>
-                </div>
-              </div>
               <ConnectionManager />
             </div>
+
 
 
 

@@ -1,5 +1,28 @@
 <template>
   <div class="space-y-6">
+    <!-- Environment Selection - NOW AT THE TOP -->
+    <div class="space-y-2">
+      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.environment') }} *</label>
+      <div class="relative group">
+        <select
+          v-model="form.environment"
+          class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none font-bold leading-tight"
+          :class="{ 'border-red-500 ring-4 ring-red-500/10': errors.environment }"
+        >
+          <option value="">{{ $t('common.select') }}</option>
+          <option 
+            v-for="env in enabledEnvironments" 
+            :key="env.name" 
+            :value="env.name"
+          >
+            {{ $t(`environments.${env.name.toLowerCase()}`) }}
+          </option>
+        </select>
+        <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
+      </div>
+      <p v-if="errors.environment" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ errors.environment }}</p>
+    </div>
+
     <!-- Template Selection - MANDATORY -->
     <div class="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/30">
         <div class="flex items-center justify-between mb-3">
@@ -7,7 +30,7 @@
                 <LayoutTemplate class="w-4 h-4" />
                 {{ $t('connections.template.source') }}
             </label>
-            <router-link to="/settings?cat=templates" class="text-[9px] font-black text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 uppercase tracking-wider flex items-center gap-1 transition-colors">
+            <router-link to="/settings?cat=templates" class="text-[9px] font-black text-indigo-500 hover:text-indigo-600 dark:hover:hover:text-indigo-400 uppercase tracking-wider flex items-center gap-1 transition-colors">
                 <Settings class="w-3 h-3" />
                 {{ $t('connections.template.manage') }}
             </router-link>
@@ -79,29 +102,6 @@
           <p v-if="errors.name" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ errors.name }}</p>
         </div>
 
-        <!-- Environment -->
-        <div class="space-y-2">
-          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.environment') }} *</label>
-          <div class="relative group">
-            <select
-              v-model="form.environment"
-              class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none font-bold leading-tight"
-              :class="{ 'border-red-500 ring-4 ring-red-500/10': errors.environment }"
-            >
-              <option value="">{{ $t('common.select') }}</option>
-              <option 
-                v-for="env in enabledEnvironments" 
-                :key="env.name" 
-                :value="env.name"
-              >
-                {{ $t(`environments.${env.name.toLowerCase()}`) }}
-              </option>
-            </select>
-            <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
-          </div>
-          <p v-if="errors.environment" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ errors.environment }}</p>
-        </div>
-
         <!-- Database Name (Most Important Project-level Override) -->
         <div class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.database') }} *</label>
@@ -129,6 +129,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Test Result -->
     <div v-if="testResult" class="p-4 rounded-xl border" :class="testResult.success ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50/50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'">

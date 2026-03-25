@@ -198,8 +198,8 @@ const isQuickDumpModalOpen = ref(false)
         </h1>
         <p class="text-gray-500 dark:text-gray-400 font-medium tracking-wide flex items-center gap-2">
           Organize and switch between your database environments
-          <span class="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-[10px] font-black rounded-full uppercase">
-            {{ projectsStore.projects.length }} Total
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black rounded-full border border-emerald-100 dark:border-emerald-800/30 uppercase tracking-[0.1em] leading-none shrink-0 whitespace-nowrap ml-2">
+            {{ projectsStore.projects.length }} PROJECT{{ projectsStore.projects.length > 1 ? 'S' : '' }} TOTAL
           </span>
         </p>
       </div>
@@ -211,7 +211,7 @@ const isQuickDumpModalOpen = ref(false)
           <button 
             @click="viewMode = 'list'"
             class="p-2 rounded-xl transition-all"
-            :class="viewMode === 'list' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+            :class="viewMode === 'list' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
             title="List View"
           >
             <LayoutList class="w-4 h-4" />
@@ -220,7 +220,7 @@ const isQuickDumpModalOpen = ref(false)
            <button 
             @click="viewMode = 'grid'"
             class="p-2 rounded-xl transition-all"
-            :class="viewMode === 'grid' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+            :class="viewMode === 'grid' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
             title="Grid View"
           >
             <LayoutGrid class="w-4 h-4" />

@@ -13,8 +13,6 @@ interface AppSchema {
     sidebarCollapsed: boolean
     lastSelectedConnectionId: string
     lastSelectedProjectId?: string
-    projectManagerMode?: boolean
-    autoCollapseColumns?: boolean
     safeMode?: boolean
     theme: 'light' | 'dark' | 'system'
     language: 'en' | 'vi'
@@ -243,8 +241,6 @@ export const storage = {
       sidebarCollapsed: false,
       lastSelectedConnectionId: '',
       lastSelectedProjectId: 'default',
-      projectManagerMode: false,
-      autoCollapseColumns: true,
       safeMode: true,
       theme: 'system' as const,
 

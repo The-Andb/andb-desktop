@@ -3,23 +3,44 @@
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full gap-4">
         <!-- Title & Page Status -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6">
           <div class="flex flex-col gap-0.5">
-            <h1 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
-              <GitMerge class="w-5 h-5 mr-2 text-primary-500" />
+            <h1 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter flex items-center gap-2">
+              <div class="p-1.5 bg-primary-500 text-white rounded-lg shadow-lg shadow-primary-500/20">
+                <GitMerge class="w-4 h-4" />
+              </div>
               {{ $t('common.compare') }}
             </h1>
-            <div v-if="activePair && activePair.source && activePair.target" class="flex items-center text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-               <span class="text-blue-500">{{ activePair.source.name }}</span>
-               <span v-if="isSourceDump" class="ml-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[8px] font-black border border-orange-200 dark:border-orange-800/50">STATIC</span>
-               <ArrowRightLeft class="w-3 h-3 mx-2 opacity-50 text-gray-400" />
-               <span class="text-green-500">{{ activePair.target.name }}</span>
-               <span v-if="isTargetDump" class="ml-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[8px] font-black border border-orange-200 dark:border-orange-800/50">STATIC</span>
-               <span v-if="hasResults" class="ml-3 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full border border-indigo-100 dark:border-indigo-800/30">
-                 {{ countSummary }}
-               </span>
+            <div v-if="activePair && activePair.source && activePair.target" class="flex items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest ml-2">
+               <div class="flex flex-col">
+                 <div class="flex items-center gap-1.5">
+                   <span class="text-primary-600 dark:text-primary-400 font-black px-1.5 py-0.5 rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors cursor-default whitespace-nowrap">
+                      {{ activePair.source.name }}
+                   </span>
+                   <span v-if="isSourceDump" class="px-1.5 py-0.5 rounded bg-orange-100/50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[8px] font-black border border-orange-200/50">STATIC</span>
+                 </div>
+                 <span class="text-[9px] text-gray-400 font-mono pl-1.5 opacity-60 truncate max-w-[120px]">{{ activePair.source.database }}</span>
+               </div>
+               
+               <div class="flex items-center mx-6 gap-1 opacity-20 transition-opacity">
+                 <div class="w-1 h-1 rounded-full bg-current"></div>
+                 <div class="w-8 h-[1px] bg-current"></div>
+                 <ArrowRightLeft class="w-3 h-3 mx-1" />
+                 <div class="w-8 h-[1px] bg-current"></div>
+                 <div class="w-1 h-1 rounded-full bg-current"></div>
+               </div>
+
+               <div class="flex flex-col">
+                 <div class="flex items-center gap-1.5">
+                   <span class="text-emerald-600 dark:text-emerald-400 font-black px-1.5 py-0.5 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors cursor-default whitespace-nowrap">
+                      {{ activePair.target.name }}
+                   </span>
+                   <span v-if="isTargetDump" class="px-1.5 py-0.5 rounded bg-orange-100/50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[8px] font-black border border-orange-200/50">STATIC</span>
+                 </div>
+                 <span class="text-[9px] text-gray-400 font-mono pl-1.5 opacity-60 truncate max-w-[120px]">{{ activePair.target.database }}</span>
+               </div>
             </div>
-            <p v-else class="text-[10px] text-gray-400 uppercase tracking-widest font-bold italic">{{ $t('compare.noPair') }}</p>
+            <p v-else class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-30 ml-2 animate-pulse">{{ $t('compare.noPair') }}</p>
           </div>
         </div>
 
@@ -28,7 +49,7 @@
         <!-- View Mode Switch -->
         <div 
           v-if="appStore.compareMode === 'auto'"
-          class="flex items-center space-x-2 shrink-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-1.5 shadow-sm">
+          class="flex items-center space-x-2 shrink-0 bg-white dark:bg-gray-900 p-1.5 shadow-sm">
           <div 
             class="flex items-center bg-gray-100 dark:bg-gray-900 p-1 rounded-xl"
             :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''"
@@ -186,13 +207,13 @@
                 <button 
                   v-if="hasChanges(selectedFilterType)"
                   @click="migrateBatchInline(selectedFilterType === 'all' ? 'Schema' : selectedFilterType)"
-                  class="ml-auto p-1.5 rounded-lg transition-all shadow-sm flex items-center"
-                  :class="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType) ? 'bg-orange-500 text-white cursor-wait' : 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 hover:bg-primary-600 hover:text-white'"
+                  class="ml-auto w-8 h-8 rounded-full transition-all shadow-md flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30"
+                  :class="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType) ? 'bg-emerald-600 text-white cursor-wait' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white shadow-emerald-500/10'"
                   :disabled="isMigratingBatch !== null"
                   :title="selectedFilterType === 'all' ? 'Migrate Entire Schema' : 'Migrate All in this category'"
                 >
                   <Loader2 v-if="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType)" class="w-3.5 h-3.5 animate-spin" />
-                  <Zap v-else class="w-3.5 h-3.5" />
+                  <Zap v-else class="w-3.5 h-3.5 fill-current" />
                 </button>
               </div>
 
@@ -265,69 +286,70 @@
                   <p class="text-xs uppercase tracking-widest font-bold">{{ $t('history.noHistory') }}</p>
                 </div>
 
-                <!-- CATEGORY ACCORDIONS (List Mode) -->
-                <div v-else class="space-y-2 pb-4">
+                <div v-else class="space-y-1 pb-4">
                   <div 
                     v-for="cat in resultsByCategory" :key="cat.type"
-                    class="rounded-xl transition-all flex flex-col relative"
-                    :class="selectedFilterType === cat.type ? 'bg-white dark:bg-gray-800 border border-primary-200 dark:border-primary-500/30 shadow-md ring-1 ring-primary-500/10' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-primary-500/30'"
+                    class="flex flex-col group/card transition-all duration-300 relative"
                   >
-                    <!-- Header -->
                     <div 
+                      class="transition-all duration-300 cursor-pointer relative"
                       @click="selectedFilterType = selectedFilterType === cat.type ? 'all' : cat.type"
-                      class="flex items-center justify-between w-full cursor-pointer group p-3"
                     >
-                      <div class="flex items-center min-w-0">
-                        <div class="rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 transition-transform group-hover:scale-110 relative p-2 mr-3">
-                          <component :is="getIconForType(cat.type)" />
-                        </div>
-                        <div class="min-w-0">
-                          <div class="font-bold text-gray-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2">
-                             {{ cat.type }}
-                             <span v-if="selectedFilterType === cat.type" class="px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 text-[8px]">{{ cat.items.length }}</span>
+                      <!-- Active Indicator -->
+                      <div v-if="selectedFilterType === cat.type" class="absolute left-0 top-1 bottom-1 w-1 bg-primary-500 rounded-r-full z-20"></div>
+
+                      <div 
+                        class="flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200"
+                        :class="selectedFilterType === cat.type ? 'bg-primary-50 dark:bg-primary-900/10' : 'bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+                      >
+                        <div class="flex items-center min-w-0">
+                          <!-- Subtle Icon -->
+                          <div 
+                            class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/card:scale-110 shadow-sm border border-black/5"
+                            :class="selectedFilterType === cat.type ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 group-hover/card:text-primary-500'"
+                          >
+                            <component :is="getIconForType(cat.type)" class="w-5 h-5" />
                           </div>
-                          <div v-if="selectedFilterType !== cat.type" class="text-[10px] text-gray-400">{{ cat.items.length }} items</div>
+                          
+                          <div class="ml-3 min-w-0">
+                            <div class="flex items-center gap-2">
+                               <span class="font-black text-[13px] tracking-tight uppercase" :class="selectedFilterType === cat.type ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'">
+                                 {{ cat.type }}
+                               </span>
+                               <span v-if="cat.changes > 0" class="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-black shadow-lg shadow-emerald-500/20">
+                                 {{ cat.changes }}
+                               </span>
+                               <span v-else class="text-[10px] text-emerald-500 opacity-50"><CheckCircle2 class="w-3.5 h-3.5" /></span>
+                            </div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5 opacity-60">
+                              {{ cat.total }} DDL Items
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="w-6 h-6 flex items-center justify-center text-gray-300 group-hover/card:text-primary-400 transition-colors">
+                            <ChevronRight class="w-4 h-4" :class="{ 'rotate-90 text-primary-500': selectedFilterType === cat.type }" />
+                          </div>
+
+                          <button
+                            v-if="cat.changes > 0"
+                            @click.stop="migrateBatchInline(cat.type)"
+                            class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all shadow-md shadow-emerald-500/10 active:scale-90 border border-emerald-100 dark:border-emerald-800/30"
+                            :disabled="isTargetDump || isMigratingBatch === cat.type"
+                            title="Sync All"
+                          >
+                            <Loader2 v-if="isMigratingBatch === cat.type" class="w-3 h-3 animate-spin" />
+                            <Zap v-else class="w-3 h-3 fill-current" />
+                          </button>
                         </div>
                       </div>
-                      <div class="flex items-center gap-3">
-                        <button
-                          v-if="cat.changes > 0"
-                          @click.stop="migrateBatchInline(cat.type)"
-                          class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-600 hover:shadow-md dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800/50 dark:hover:bg-orange-600 dark:hover:text-white transition-all group/badge shadow-sm disabled:opacity-50 disabled:grayscale"
-                          :title="isTargetDump ? 'Cannot migrate to a static file' : 'Click to Migrate All Changes'"
-                          :disabled="isTargetDump || isMigratingBatch === cat.type"
-                        >
-                          <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-900/50 rounded w-4 h-4 group-hover/badge:bg-white/20 group-hover/badge:text-white transition-colors" :class="isMigratingBatch === cat.type ? 'animate-pulse' : ''">
-                            <Loader2 v-if="isMigratingBatch === cat.type" class="w-2.5 h-2.5 animate-spin" />
-                            <Zap v-else class="w-2.5 h-2.5 fill-current" />
-                          </div>
-                          <span class="font-bold text-[10px] tracking-wider">
-                            <span v-if="isMigratingBatch === cat.type">{{ $t('common.processing') || 'PROCESSING...' }}</span>
-                            <span v-else>{{ cat.changes }}</span>
-                          </span>
-                        </button>
-                        <ChevronDown v-if="selectedFilterType === cat.type" class="w-3.5 h-3.5 text-primary-500 transition-all" />
-                        <ChevronRight v-else class="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-all group-hover:translate-x-0.5" />
-                      </div>
-                    </div>
-                    
-                    <!-- Micro progress bar (Only show if collapsed) -->
-                    <div v-if="selectedFilterType !== cat.type" class="px-3 pb-3">
-                      <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden flex ring-1 ring-inset ring-black/5">
-                        <div 
-                          class="h-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" 
-                          :style="{ width: (cat.changes / cat.items.length * 100) + '%' }"
-                        ></div>
-                        <div 
-                          class="h-full bg-gray-200 dark:bg-gray-600" 
-                          :style="{ width: ((cat.items.length - cat.changes) / cat.items.length * 100) + '%' }"
-                        ></div>
-                      </div>
+                      
+                      <!-- Progress underline (subtle) -->
+                      <div v-if="selectedFilterType !== cat.type" class="absolute bottom-0 left-16 right-4 h-[1px] bg-gray-100 dark:bg-gray-800/50"></div>
                     </div>
 
                     <!-- Items List (Expanded) -->
                     <div v-if="selectedFilterType === cat.type" class="px-2 pb-2 space-y-0.5 border-t border-gray-100 dark:border-gray-700/50 pt-2 bg-gray-50/50 dark:bg-gray-900/20 rounded-b-xl border-x-0 border-b-0 relative">
-                      <!-- Inner stroke -->
                       <div class="absolute top-0 bottom-2 left-4 w-px bg-gray-200 dark:bg-gray-700/50 z-0"></div>
 
                       <div v-for="item in cat.items" :key="item.name" 
@@ -338,10 +360,9 @@
                         ]"
                       >
                         <div class="min-w-0 pr-2 relative z-10 ml-6 flex-1">
-                          <!-- connector line for tree feeling -->
                           <div class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 mr-2 -ml-6"></div>
 
-                          <div class="font-mono truncate text-gray-900 dark:text-gray-100" :class="{ 'font-bold': selectedItem?.name === item.name }" :title="item.name">
+                          <div class="font-mono truncate text-gray-900 dark:text-gray-100 italic" :class="{ 'font-bold not-italic': selectedItem?.name === item.name }" :title="item.name">
                             {{ item.name }}
                           </div>
                           <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">
@@ -353,8 +374,7 @@
                           <component 
                             v-if="item.status === 'equal' || item.status === 'same'"
                             :is="getStatusIcon(item.status)" 
-                            class="w-3.5 h-3.5 transition-all"
-                            :class="getStatusClass(item.status)"
+                            class="w-3.5 h-3.5 transition-all text-emerald-500"
                             :title="getStatusText(item.status)"
                           />
                           <template v-else>
@@ -366,12 +386,12 @@
                             <Zap 
                               v-if="!isTargetDump && isMigratingItemId !== item.name"
                               @click.stop="migrateSingleItem(item)"
-                              class="w-3.5 h-3.5 text-primary-500 hidden group-hover/status:block cursor-pointer hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)] active:scale-95 animate-in fade-in zoom-in-75 duration-200"
+                              class="w-3.5 h-3.5 text-emerald-500 hidden group-hover/status:block cursor-pointer hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] active:scale-95 animate-in fade-in zoom-in-75 duration-200"
                               title="Click to Migrate"
                             />
                             <RefreshCw 
                               v-if="isMigratingItemId === item.name"
-                              class="w-3.5 h-3.5 text-primary-500 animate-spin hidden group-hover/status:block animate-in fade-in"
+                              class="w-3.5 h-3.5 text-emerald-500 animate-spin hidden group-hover/status:block animate-in fade-in"
                             />
                           </template>
                         </div>
@@ -420,15 +440,14 @@
                   <div class="flex space-x-2 items-center">
                     <button 
                       v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
-                      @click="migrateSingleItem(selectedItem)" 
-                      class="btn btn-primary py-1.5 px-4 text-[11px] h-9 flex items-center gap-2 group overflow-hidden relative shadow-lg shadow-primary-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      :disabled="isMigratingItemId === selectedItem.name || isMigrating || isTargetDump"
+                      @click="migrateSingleItem(selectedItem)"
+                      class="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-emerald-500/10 active:scale-95 group border border-emerald-100 dark:border-emerald-800/30"
+                      :disabled="isMigrating || isTargetDump"
                       :title="isTargetDump ? 'Target is read-only (Static Dump)' : $t('compare.migrateTo', { name: targetName })"
                     >
-                      <RefreshCw v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
-                      <Zap v-else class="w-4 h-4 group-hover:animate-pulse" />
-                      <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? $t('common.processing') : $t('compare.migrateTo', { name: targetName }) }}</span>
-                      <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 linear skew-x-[-20deg]"></div>
+                      <Loader2 v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
+                      <Zap v-else class="w-4 h-4 fill-emerald-500/20 group-hover:fill-white/20 group-hover:animate-pulse" />
+                      <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? $t('common.processing') : 'Sync Now' }}</span>
                     </button>
                   </div>
                 </div>
@@ -532,8 +551,6 @@ import {
   Zap,
   RefreshCw,
   MousePointer2,
-  ChevronRight,
-  ChevronDown,
   Database,
   Server,
   Table,
@@ -857,27 +874,26 @@ const handleNavigateToDefinition = (name: string) => {
 }
 
 const hasResults = computed(() => allResults.value.length > 0)
-const totalChanges = computed(() => allResults.value.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length)
 const filteredTotalChanges = computed(() => filteredResults.value.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length)
 
 const resultsByCategory = computed(() => {
   const categories = ['tables', 'views', 'procedures', 'functions', 'triggers']
   return categories.map(cat => {
-    // Use filteredResults to respect search and status filters
+    // 1. Get raw items (unfiltered by search) to show total DDL count
+    const rawItems = allResults.value.filter(i => i.type === cat)
+    
+    // 2. respect search and status filters for active display
     const items = filteredResults.value.filter(i => i.type === cat)
+    
     return {
       type: cat,
       items,
+      total: rawItems.length,
       changes: items.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length
     }
-  }).filter(c => c.items.length > 0)
+  }).filter(c => c.total > 0)
 })
 
-const countSummary = computed(() => {
-  const total = allResults.value.length
-  const changes = totalChanges.value
-  return `${changes} changes, ${total - changes} identical`
-})
 
 // Actions
 const runComparison = async () => {

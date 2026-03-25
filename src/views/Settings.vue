@@ -19,14 +19,6 @@
         <!-- Settings Category Sidebar -->
         <div class="w-64 border-r border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 backdrop-blur-md flex flex-col shrink-0">
           <!-- Back to Project Button (Moved to Top) -->
-          <button 
-            v-if="appStore.projectManagerMode"
-            @click="router.push('/projects')"
-            class="w-full flex items-center gap-3 px-6 py-5 border-b border-gray-200 dark:border-gray-800 bg-gray-100/50 dark:bg-gray-950/30 hover:bg-white dark:hover:bg-gray-800 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all group"
-          >
-            <ChevronLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span class="text-xs font-black uppercase tracking-widest">{{ $t('common.back') }}</span>
-          </button>
 
           <div class="p-8 pb-4">
             <h1 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter flex items-center gap-2 mb-1">
@@ -178,7 +170,7 @@
                 </div>
 
                 <!-- Navigation Style -->
-                <div v-if="!appStore.projectManagerMode" class="md:col-span-2 space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-2">
+                <div class="md:col-span-2 space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-2">
                    <div class="flex items-center justify-between">
                       <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] ml-1">{{ $t('settings.interface.navigation.label') }}</label>
                    </div>
@@ -294,7 +286,7 @@
               </div>
 
               <!-- Button Style / Visual Density -->
-              <div v-if="!appStore.projectManagerMode" class="pt-8 border-t border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2">
+              <div class="pt-8 border-t border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2">
                 <div class="mb-8">
                   <h3 class="text-sm font-black text-gray-600 dark:text-gray-300 uppercase tracking-widest mb-1">{{ $t('settings.interface.buttons.title') }}</h3>
                   <p class="text-xs text-gray-400 uppercase tracking-tighter">{{ $t('settings.interface.buttons.subtitle') }}</p>
@@ -859,10 +851,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, markRaw } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   ChevronDown, 
-  ChevronLeft,
   ChevronRight,
   Zap, 
   Check, 
@@ -897,10 +889,12 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
 import CopyableSnippet from '@/components/general/CopyableSnippet.vue'
 import ConnectionTemplateManager from '@/components/connection/ConnectionTemplateManager.vue'
+import { setLanguage } from '@/i18n'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useFeaturesStore } from '@/stores/features'
+import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
 import { useSettingsStore, themeOptions } from '@/stores/settings'
 import { useOperationsStore } from '@/stores/operations'
 import { useUpdaterStore } from '@/stores/updater'
@@ -908,16 +902,10 @@ import { useConsoleStore } from '@/stores/console'
 import Andb from '@/utils/andb'
 
 
-import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
-import { setLanguage } from '@/i18n'
-
-
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
-const router = useRouter()
 const featuresStore = useFeaturesStore()
 
 const currentWorkspaceDir = ref('')
@@ -1008,7 +996,7 @@ const regenerateKeys = async () => {
                 // Also clear templates
                 const templatesStore = useConnectionTemplatesStore()
                 if (templatesStore.templates) {
-                    templatesStore.templates.forEach(t => {
+                    templatesStore.templates.forEach((t: any) => {
                         t.password = ''
                     })
                 }

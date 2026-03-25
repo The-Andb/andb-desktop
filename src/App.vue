@@ -154,10 +154,6 @@ const handleKeydown = (event: KeyboardEvent) => {
 onMounted(async () => {
   await featuresStore.fetchFeatures()
   
-  // Sync Focus Mode setting
-  if (featuresStore.isEnabled('focusColumnMode')) {
-    appStore.autoCollapseColumns = true
-  }
   
   document.addEventListener('keydown', handleKeydown)
   

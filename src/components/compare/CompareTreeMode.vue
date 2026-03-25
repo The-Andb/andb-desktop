@@ -77,7 +77,7 @@
             
             <!-- Diff Count Badge -->
             <div v-if="category.diffCount > 0" class="ml-auto flex items-center space-x-2">
-               <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">
+               <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                  {{ $t('compare.treeViewData.differences', { count: category.diffCount }) }}
                </span>
             </div>
@@ -127,14 +127,14 @@
                <div class="shrink-0 w-12 flex justify-center z-10 relative">
                  <div 
                    class="p-1 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 group/icon transition-all duration-200"
-                   :class="canMigrate(item) ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700' : ''"
+                   :class="canMigrate(item) ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:border-emerald-500/50 dark:hover:border-emerald-500/50' : ''"
                    @click.stop="handleMigrateClick(item)"
                  >
-                    <component 
-                      v-if="canMigrate(item)"
-                      :is="Zap"
-                      class="w-3.5 h-3.5 text-primary-500 hidden group-hover/icon:block animate-in zoom-in spin-in-12 duration-300" 
-                    />
+                     <component 
+                       v-if="canMigrate(item)"
+                       :is="Zap"
+                       class="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/20 hidden group-hover/icon:block animate-in zoom-in spin-in-12 duration-300" 
+                     />
                     <component 
                       :is="getStatusIcon(item.status)" 
                       class="w-3.5 h-3.5 transition-transform" 

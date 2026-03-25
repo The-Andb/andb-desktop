@@ -20,7 +20,7 @@
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative">
         <!-- Toolbar Row (Operational context) -->
-        <div v-if="$slots.toolbar || isGlobalLayer" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-2 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10">
+        <div v-if="$slots.toolbar || isGlobalLayer" class="min-h-[4rem] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 py-2">
           <div class="flex-1 flex items-center min-w-0">
             <slot name="toolbar"></slot>
           </div>

@@ -421,6 +421,10 @@ connections:
   utc: 'UTC (+00:00)'
   ho_chi_minh: 'Ho Chi Minh (+07:00)'
   singapore: 'Singapore/Shanghai (+08:00)'
+  compare:
+    sourceContext: 'Source Context'
+    changesByCategory: 'Changes By Category'
+    syncPairContent: 'Sync Pair Content'
   template:
     source: 'Global Connection Source'
     custom: 'Custom (No Global Connection)'

@@ -691,11 +691,6 @@ const comparePair = (pair: any) => {
 }
 
 onMounted(async () => {
-  if (appStore.projectManagerMode) {
-    router.push('/projects')
-    return
-  }
-
   // Load data from store (which loads from storage)
   if ((window as any).electronAPI) {
     await refreshData()

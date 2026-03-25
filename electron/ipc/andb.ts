@@ -453,7 +453,8 @@ export async function handlePickWorkspaceDir() {
   try {
     let action = 'moved'
     
-    // Check if target directory already has a workspace
+    const files = fs.readdirSync(targetDir)
+    const isEmpty = files.length === 0 || (files.length === 1 && files[0] === '.DS_Store')
     const hasDb = fs.existsSync(targetDbPath)
     const hasProjectDb = fs.existsSync(path.join(targetDir, 'db'))
     
@@ -503,8 +504,17 @@ export async function handlePickWorkspaceDir() {
         if ((global as any).logger) (global as any).logger.info(`Linking to existing Workspace at ${targetDir}`);
         action = 'linked'
       }
+    } else if (!isEmpty) {
+      // NOT empty and NO database. Invalid selection.
+      await dialog.showMessageBox({
+        type: 'error',
+        title: 'Invalid Directory',
+        message: 'This folder is not an empty folder nor a valid Andb workspace.',
+        detail: 'Please pick an empty folder or a folder that already contains an Andb workspace (andb-storage.db).\n\nIf you want to use this folder, please empty it first to avoid any data conflicts.'
+      })
+      return { success: false, error: 'Directory is not empty and contains no valid workspace.' }
     } else {
-      // Clean slate - move current data there
+      // Clean slate (Empty) - move current data there
       if (fs.existsSync(currentDbPath)) {
         fs.copyFileSync(currentDbPath, targetDbPath)
         try {

@@ -233,11 +233,7 @@ const selectedProjectModel = computed({
 })
 
 const handleLogoClick = () => {
-   if (appStore.projectManagerMode) {
-      router.push('/projects')
-   } else {
-      router.push('/')
-   }
+   router.push('/')
 }
 
 

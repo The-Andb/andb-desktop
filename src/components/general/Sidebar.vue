@@ -85,41 +85,34 @@
       </nav>
 
       <!-- Explorer Header -->
-        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 uppercase tracking-wider shrink-0 font-bold text-subtitle">
-          <span>{{ route.path === '/compare' ? $t('navigation.explorer.source') : (route.path === '/history' ? $t('navigation.explorer.history') : $t('navigation.explorer.schema')) }}</span>
-          <div class="flex items-center space-x-1">
-            <button @click="sidebarStore.requestRefresh()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" :title="$t('navigation.actions.refresh')">
+        <div 
+          v-if="!isCollapsed"
+          class="flex items-center justify-between px-4 py-4 shrink-0 transition-all duration-300 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800"
+        >
+          <div class="flex items-center gap-2">
+            <div v-if="route.path === '/compare'" class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></div>
+            <span class="uppercase tracking-[0.2em] font-black text-[10px]">{{ route.path === '/compare' ? 'Context Explorer' : (route.path === '/history' ? $t('navigation.explorer.history') : $t('navigation.explorer.schema')) }}</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button 
+              @click="sidebarStore.requestRefresh()" 
+              class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-900" 
+              :title="$t('navigation.actions.refresh')"
+            >
               <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
             </button>
-            <!-- Collapse Sidebar Button -->
-            <button @click="appStore.toggleSidebar()" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors" :title="$t('common.collapse')">
+            <button 
+              @click="appStore.toggleSidebar()" 
+              class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary-500"
+              :title="$t('common.collapse')"
+            >
               <PanelLeftClose class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        <!-- Sync Pair Selector (Sidebar specific for Compare view) -->
-        <div v-if="route.path === '/compare'" class="px-3 pb-2 bg-white dark:bg-gray-900 shrink-0 shadow-sm z-10">
-           <div class="relative group">
-               <select
-                 v-model="selectedPairId"
-                 class="w-full py-1.5 pl-3 pr-8 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 focus:border-primary-500 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-bold focus:ring-1 focus:ring-primary-500 cursor-pointer appearance-none truncate transition-colors"
-                 :class="{'text-gray-400 font-normal': !selectedPairId}"
-                 :title="$t('header.pairContext')"
-               >
-                 <option value="" disabled class="text-gray-400 bg-white dark:bg-gray-800">{{ $t('header.selectPair') }}</option>
-                 <option v-for="pair in availablePairs" :key="pair.id" :value="pair.id" class="bg-white dark:bg-gray-800 font-bold text-gray-900 dark:text-white">
-                   {{ pair.name }}
-                 </option>
-               </select>
-               <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
-                    <ChevronDown class="h-3.5 w-3.5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-               </div>
-           </div>
-        </div>
-
       <!-- Tree Content -->
-      <div v-show="!isCollapsed" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900">
+      <div v-show="!isCollapsed" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800">
         <!-- Loading State (Only if no data or requested refresh) -->
         <div v-if="sidebarStore.loading && sidebarStore.environments.length === 0" class="p-4 space-y-2 opacity-50">
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
@@ -127,8 +120,8 @@
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
         </div>
 
-        <!-- Tree Content (Always show if has data, even while loading in background) -->
-        <div v-else class="pb-4">
+        <!-- Tree Content (Standard View) -->
+        <div v-else-if="!isCompareView" class="pb-4">
           <div v-for="env in displayEnvironments" :key="env.name">
 
             <!-- Environment Node -->
@@ -235,6 +228,46 @@
             </div>
           </div>
         </div>
+
+        <!-- Sync Pair Navigation (Compare View Only) -->
+        <div v-if="isCompareView" class="p-3 space-y-1.5 animate-in fade-in slide-in-from-left-4 duration-500">
+           <div v-for="pair in availablePairs" :key="pair.id"
+             @click="connectionPairsStore.selectPair(pair.id)"
+             class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
+             :class="[
+               connectionPairsStore.selectedPairId === pair.id
+                 ? 'bg-primary-50 dark:bg-primary-900/10 border-primary-500/50'
+                 : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50'
+             ]"
+           >
+             <!-- Active Side Indicator -->
+             <div v-if="connectionPairsStore.selectedPairId === pair.id" class="absolute left-0 top-3 bottom-3 w-1 bg-primary-500 rounded-r-full"></div>
+
+             <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover:scale-110"
+               :class="[
+                  connectionPairsStore.selectedPairId === pair.id ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500'
+               ]"
+             >
+               <component :is="getPairIcon(pair)" class="w-5 h-5" />
+             </div>
+             <div class="min-w-0 flex-1">
+               <div class="text-[12px] font-black truncate tracking-tighter" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'">{{ pair.name }}</div>
+               <div class="text-[9px] font-bold truncate opacity-50 uppercase tracking-widest mt-0.5">
+                  {{ pair.sourceEnv }} <span class="mx-1 opacity-50">→</span> {{ pair.targetEnv }}
+               </div>
+             </div>
+             
+             <!-- Status Dot or Pulse -->
+             <div v-if="connectionPairsStore.selectedPairId === pair.id" class="relative flex h-2 w-2">
+               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75"></span>
+               <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+             </div>
+           </div>
+
+           <div v-if="availablePairs.length === 0" class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">
+             No sync pairs configured.
+           </div>
+        </div>
       </div>
       
       <!-- Git Sync Status Chip -->
@@ -311,8 +344,7 @@ import {
   Settings2,
   Network,
   GitBranch,
-  MoreHorizontal,
-  ChevronDown
+  MoreHorizontal
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -329,12 +361,6 @@ const isCollapsed = computed(() => appStore.sidebarCollapsed)
 const activePair = computed(() => connectionPairsStore.activePair)
 
 const availablePairs = computed(() => connectionPairsStore.availablePairs || [])
-const selectedPairId = computed({
-  get: () => connectionPairsStore.selectedPairId || '',
-  set: (val: string) => {
-    if (val) connectionPairsStore.setSelectedPair(val)
-  }
-})
 
 const isGlobalLayer = computed(() => {
   const globalRoutes = ['Settings', 'Projects']
@@ -342,7 +368,7 @@ const isGlobalLayer = computed(() => {
 })
 
 const shouldBlur = computed(() => {
-  return !appStore.projectManagerMode && isGlobalLayer.value
+  return isGlobalLayer.value
 })
 
 // Navigation Items
@@ -405,6 +431,7 @@ const getCategoryChangeCount = (db: any, typeKey: string) => {
     return res && res.status !== 'equal' && res.status !== 'same'
   }).length
 }
+
 
 const filteredEnvironments = computed(() => {
   let envs = environments.value
@@ -602,6 +629,13 @@ const getDatabaseDisplayName = (db: any) => {
   return db.name || conn.name
 }
 
+const getPairIcon = (pair: any) => {
+  if (pair.name.toLowerCase().includes('prod')) return ShieldAlert
+  if (pair.name.toLowerCase().includes('uat')) return ShieldCheck
+  if (pair.name.toLowerCase().includes('stage')) return Activity
+  return GitCompare
+}
+
 const refreshSchemas = async (force = false) => {
   try {
     const result = await sidebarStore.loadSchemas(force)
@@ -613,7 +647,7 @@ const refreshSchemas = async (force = false) => {
     const envMap = new Map<string, any>()
     
     // 1. Initialize with configured connections so they always appear
-    conns.forEach(c => {
+    conns.forEach((c: any) => {
       if (!envMap.has(c.environment)) {
         envMap.set(c.environment, { name: c.environment, databases: [] })
       }
@@ -649,7 +683,7 @@ const refreshSchemas = async (force = false) => {
           // 1. Can we match by Connection ID if available in remoteEnv? (Usually remote only has name/db)
           // 2. Normalize and check empty DB names for Dump files
           
-          const projectConn = conns.find(c => {
+          const projectConn = conns.find((c: any) => {
              const envMatch = (c.environment || '').toLowerCase() === (remoteEnv.name || '').toLowerCase()
              
              // 1. Strict ID Match (if remoteDb has connectionId, which it often doesn't from backend, but let's check)
@@ -728,7 +762,7 @@ const refreshSchemas = async (force = false) => {
     sidebarStore.setEnvironments(finalEnvs)
     
     // Auto-expand all environments by default to show connections
-    finalEnvs.forEach(env => expandedEnvironments.value.add(env.name))
+    finalEnvs.forEach((env: any) => expandedEnvironments.value.add(env.name))
   } catch (error: any) {
     if (window.electronAPI) {
       window.electronAPI.log.send('error', 'Failed to load schemas in sidebar', error.message)
