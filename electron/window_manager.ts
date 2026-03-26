@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import { isDev } from './bootstrap'
+import { ApplicationUpdater } from './services/application-updater'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -62,7 +63,27 @@ export function createWindow() {
 export function setupAppMenu() {
   const isMac = process.platform === 'darwin'
   const template: any[] = [
-    ...(isMac ? [{ role: 'appMenu' }] : []),
+    ...(isMac ? [{ 
+      role: 'appMenu',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Check for Updates...',
+          click: () => {
+            ApplicationUpdater.getInstance().init().checkForUpdates()
+          }
+        },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
     { role: 'fileMenu' },
     { role: 'editMenu' },
     { role: 'viewMenu' },
@@ -70,10 +91,19 @@ export function setupAppMenu() {
     {
       role: 'help',
       submenu: [
+        ...(!isMac ? [
+          {
+            label: 'Check for Updates...',
+            click: () => {
+              ApplicationUpdater.getInstance().init().checkForUpdates()
+            }
+          },
+          { type: 'separator' }
+        ] : []),
         {
           label: 'Learn More',
           click: async () => {
-            await shell.openExternal('https://the-andb.com')
+            await shell.openExternal('https://the-andb.xyz')
           }
         }
       ]
