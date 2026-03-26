@@ -13,7 +13,7 @@
     "build:electron": "node scripts/build-electron.mjs",
     "electron:dev": "pnpm run build:electron && NODE_ENV=development concurrently \"pnpm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "pnpm run build:electron && pnpm run build && electron-builder && node scripts/verify-build.mjs",
-    "electron:publish": "pnpm run build:electron && pnpm run build && electron-builder --publish always && node scripts/verify-build.mjs",
+    "electron:publish": "pnpm run build:electron && pnpm run build && electron-builder --publish always -c.releaseInfo.releaseNotesFile=../andb-www/releases/v$npm_package_version.md && node scripts/verify-build.mjs",
     "test:prod": "pnpm run build:electron && pnpm run build && NODE_ENV=production npx electron .",
     "test:packaged": "open 'dist/TheAndb-3.0.0-arm64.dmg'",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore",
