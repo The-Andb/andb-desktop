@@ -11,6 +11,14 @@ import {
 import { createWindow, setupAppMenu } from './window_manager'
 import { registerIpcHandlers } from './ipc'
 
+// 0. Global Error Handling (EPIPE mitigation)
+const handleEPIPE = (err: any) => {
+  if (err.code === 'EPIPE') return
+  process.exit(1)
+}
+process.stdout.on('error', handleEPIPE)
+process.stderr.on('error', handleEPIPE)
+
 // 1. Pre-init Logic (Sentry, Paths, Logger)
 initSentry()
 configureAppPaths()

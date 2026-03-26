@@ -3,27 +3,22 @@
 
 import { CoreBridge } from '@the-andb/core';
 import { DesktopStorageStrategy } from '../storage/strategy/desktop-storage.strategy';
+import { SafeLogger } from '../utils/logger';
 
 let globalProjectBaseDir = process.cwd();
 
-// Keep stdout/stderr logs recognizable
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
-const originalInfo = console.info;
+// Protect against EPIPE crashes in worker
+process.stdout.on('error', (err: any) => {
+  if (err.code === 'EPIPE') return;
+  process.exit(1);
+});
+process.stderr.on('error', (err: any) => {
+  if (err.code === 'EPIPE') return;
+  process.exit(1);
+});
 
-const formatArg = (a: any) => {
-  if (a instanceof Error) return a.stack || a.message;
-  if (typeof a === 'object') {
-    try { return JSON.stringify(a); } catch (e) { return String(a); }
-  }
-  return String(a);
-};
-
-console.log = (...args) => originalLog(`[CoreWorker Log]`, ...args);
-console.error = (...args) => originalError(`[CoreWorker Error]`, ...args);
-console.warn = (...args) => originalWarn(`[CoreWorker Warn]`, ...args);
-console.info = (...args) => originalInfo(`[CoreWorker Info]`, ...args);
+// Use SafeLogger for all worker logging
+const logger = SafeLogger;
 
 function sendResponse(id: any, result: any) {
   const response = {
@@ -207,13 +202,13 @@ async function handleRpcRequest(request: any) {
 
     sendResponse(id, result);
   } catch (err: any) {
-    console.error(`Error executing ${method}:`, err);
+    logger.error(`Error executing ${method}:`, err);
     sendError(id, -32603, err.message || 'Internal error');
   }
 }
 
 async function bootstrap() {
-  console.log('🚀 Internal Core-Worker starting...');
+  logger.log('🚀 Internal Core-Worker starting...');
 
   // Parse custom args since we don't use commander here
   let userDataPath = '';
@@ -229,7 +224,7 @@ async function bootstrap() {
   }
 
   if (!userDataPath) {
-    console.error('Missing --user-data-path arg.');
+    logger.error('Missing --user-data-path arg.');
     process.exit(1);
   }
 
@@ -245,31 +240,31 @@ async function bootstrap() {
        }
      }
   } catch (e) {
-     console.error('Failed to parse db-config.yaml in CoreWorker', e);
+     logger.error('Failed to parse db-config.yaml in CoreWorker', e);
   }
 
-  console.log(`[CoreWorker] Parsed projectBaseDir: ${globalProjectBaseDir}`);
+  logger.log(`[CoreWorker] Parsed projectBaseDir: ${globalProjectBaseDir}`);
 
   try {
     const strategy = new DesktopStorageStrategy();
     await CoreBridge.init(userDataPath, sqlitePath || undefined, strategy, globalProjectBaseDir);
-    console.log(`✅ DesktopStorageStrategy & Core Engine ready for RPC. BaseDir: ${globalProjectBaseDir}`);
+    logger.log(`✅ DesktopStorageStrategy & Core Engine ready for RPC. BaseDir: ${globalProjectBaseDir}`);
 
     if (process.send) {
-      console.log('👂 Listening on IPC message channel...');
+      logger.log('👂 Listening on IPC message channel...');
       process.on('message', async (message: any) => {
         try {
           const request = typeof message === 'string' ? JSON.parse(message) : message;
           await handleRpcRequest(request);
         } catch (e) {
-          console.error('Failed to parse IPC message:', e);
+          logger.error('Failed to parse IPC message:', e);
         }
       });
     } else {
-      console.warn('⚠️ No IPC channel found. This worker expects to be child_process.fork()ed from Electron.');
+      logger.warn('⚠️ No IPC channel found. This worker expects to be child_process.fork()ed from Electron.');
     }
   } catch (err: any) {
-    console.error('Failed to initialize internal Core Worker:', err);
+    logger.error('Failed to initialize internal Core Worker:', err);
     process.exit(1);
   }
 }
