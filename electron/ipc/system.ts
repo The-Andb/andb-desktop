@@ -216,3 +216,10 @@ export function handleMcpGetPath() {
     return path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', '@the-andb', 'mcp', 'dist', 'index.js')
   }
 }
+
+/**
+ * Get the current application version
+ */
+export async function handleGetAppVersion() {
+  return app.getVersion()
+}

@@ -20,6 +20,16 @@ export const useUpdaterStore = defineStore('updater', () => {
   const progress = ref<ProgressInfo | null>(null)
   const error = ref<string | null>(null)
   const showModal = ref(false)
+  const currentVersion = ref('...')
+
+  // Initialize
+  const init = async () => {
+    const api = window.electronAPI as any
+    if (api?.getAppVersion) {
+      currentVersion.value = await api.getAppVersion()
+    }
+  }
+  init()
 
   // Settings
   const autoDownload = ref(false) // If true, we skip the "Ask" phase
@@ -59,6 +69,7 @@ export const useUpdaterStore = defineStore('updater', () => {
 
   return {
     status,
+    currentVersion,
     updateInfo,
     progress,
     error,

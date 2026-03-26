@@ -109,8 +109,8 @@ import { useUpdaterStore } from '@/stores/updater'
 
 const store = useUpdaterStore()
 
-// Mock current version (in real app, get from API or defined const)
-const currentVersion = '2.0.0' 
+// Use real version from store
+const currentVersion = computed(() => store.currentVersion)
 
 const statusTitle = computed(() => {
     switch(store.status) {

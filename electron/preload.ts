@@ -19,6 +19,7 @@ export interface CommandResult {
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
   // andb-core CLI commands
   executeAndbCommand: (command: string, args: string[]): Promise<CommandResult> => {

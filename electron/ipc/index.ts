@@ -26,6 +26,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-check-cli-installed', system.handleCheckCliInstalled)
   ipcMain.handle('andb-install-cli', system.handleInstallCli)
   ipcMain.handle('execute-andb-command', system.handleExecuteAndbCommand)
+  ipcMain.handle('get-app-version', system.handleGetAppVersion)
 
   // --- Storage & Security ---
   ipcMain.handle('storage-get', storage.handleStorageGet)

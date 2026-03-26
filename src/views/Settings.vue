@@ -695,7 +695,7 @@
                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col items-center text-center">
                     <div class="mb-4">
                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.update.currentVersion') }}</span>
-                       <div class="text-3xl font-black text-gray-900 dark:text-white mt-1">2.0.0</div>
+                       <div class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ updaterStore.currentVersion }}</div>
                     </div>
 
                     <div v-if="updaterStore.status === 'checking'" class="flex items-center gap-2 text-primary-500 font-bold mb-4">
