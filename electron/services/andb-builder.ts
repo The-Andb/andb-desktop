@@ -1,5 +1,6 @@
 import { dialog, WebContents } from 'electron'
 import * as path from 'path'
+import { SafeLogger } from '../utils/logger'
 
 // Import dependencies safely
 import BackgroundWorker from './background-worker'
@@ -313,7 +314,7 @@ export class AndbBuilder {
     const fs = require('fs')
     const originalCwd = INITIAL_CWD
     const userDataDir = AndbBuilder.userDataPath
-    console.log(`[AndbBuilder] execute called for operation: ${operation}`);
+    SafeLogger.log(`[AndbBuilder] execute called for operation: ${operation}`);
 
     try {
       if (
@@ -388,7 +389,7 @@ export class AndbBuilder {
         projectBaseDir: options.options?.projectBaseDir
       };
 
-      console.log(`[AndbBuilder] Prepared payload for ${operation}:`, JSON.stringify({
+      SafeLogger.log(`[AndbBuilder] Prepared payload for ${operation}:`, JSON.stringify({
         operation,
         env: payload.env,
         db: sourceConn?.database || sourceConn?.name,

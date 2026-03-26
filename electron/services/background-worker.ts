@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { EventEmitter } from 'events'
 import { app } from 'electron'
+import { SafeLogger } from '../utils/logger'
 
 export class BackgroundWorker extends EventEmitter {
   private static instance: BackgroundWorker | null = null
@@ -32,7 +33,7 @@ export class BackgroundWorker extends EventEmitter {
     this.cliPath = path.join(app.getAppPath(), 'dist-electron', 'core-worker.cjs')
 
     if (!fs.existsSync(this.cliPath)) {
-       console.error(`[BackgroundWorker] CRITICAL: core-worker.cjs not found at ${this.cliPath}`);
+       SafeLogger.error(`[BackgroundWorker] CRITICAL: core-worker.cjs not found at ${this.cliPath}`);
     }
 
     await this.startProcess()
@@ -46,8 +47,8 @@ export class BackgroundWorker extends EventEmitter {
       args.push('--sqlite-path', this.sqlitePath)
     }
 
-    console.log(`🚀 [BackgroundWorker] Spawning Internal Core Worker: ${process.execPath} ${this.cliPath} ${args.join(' ')}`)
-    console.log(`🚀 [BackgroundWorker] Using Electron environment (ABI compatibility)`)
+    SafeLogger.log(`🚀 [BackgroundWorker] Spawning Internal Core Worker: ${process.execPath} ${this.cliPath} ${args.join(' ')}`)
+    SafeLogger.log(`🚀 [BackgroundWorker] Using Electron environment (ABI compatibility)`)
 
     this.process = fork(this.cliPath, args, {
       stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
@@ -65,16 +66,16 @@ export class BackgroundWorker extends EventEmitter {
 
     this.process.stdout?.on('data', (data) => {
       const output = data.toString().trim()
-      if (output) console.log(`[CLI Stdout] ${output}`)
+      if (output) SafeLogger.log(`[CLI Stdout] ${output}`)
     })
 
     this.process.stderr?.on('data', (data) => {
       const output = data.toString().trim()
-      if (output) console.log(`[CLI Stderr] ${output}`)
+      if (output) SafeLogger.log(`[CLI Stderr] ${output}`)
     })
 
     this.process.on('close', (code) => {
-      console.log(`[BackgroundWorker] Process exited with code ${code}`)
+      SafeLogger.log(`[BackgroundWorker] Process exited with code ${code}`)
       this.process = null
 
       // Reject all pending requests
@@ -85,7 +86,7 @@ export class BackgroundWorker extends EventEmitter {
     })
 
     this.process.on('error', (err: any) => {
-      console.error(`[BackgroundWorker] Process error:`, err)
+      SafeLogger.error(`[BackgroundWorker] Process error:`, err)
       // Reject all pending requests
       for (const [id, handler] of this.pendingRequests.entries()) {
         handler.reject(err)
@@ -98,7 +99,7 @@ export class BackgroundWorker extends EventEmitter {
     if (typeof message === 'string') {
       const trimmed = message.trim()
       if (!trimmed || !trimmed.startsWith('{')) {
-        console.log(`[CLI Output] ${trimmed}`)
+        SafeLogger.log(`[CLI Output] ${trimmed}`)
         return
       }
       try {
@@ -131,7 +132,7 @@ export class BackgroundWorker extends EventEmitter {
         }
       }
     } catch (e) {
-      console.warn(`[BackgroundWorker] Failed to process IPC message:`, e)
+      SafeLogger.warn(`[BackgroundWorker] Failed to process IPC message:`, e)
     }
   }
 

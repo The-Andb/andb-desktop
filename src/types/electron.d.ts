@@ -81,6 +81,13 @@ declare global {
       getMigrationChangelog: () => Promise<{ success: boolean; data?: any; error?: string }>
       dismissMigrationChangelog: () => Promise<{ success: boolean; error?: string }>
 
+      getAppChangelog: () => Promise<{ success: boolean; data?: any; error?: string }>
+      dismissAppChangelog: () => Promise<{ success: boolean; error?: string }>
+      checkForUpdates: () => Promise<{ success: boolean; result?: any; error?: string }>
+      downloadUpdate: () => Promise<{ success: boolean; result?: any; error?: string }>
+      quitAndInstall: () => Promise<void>
+      debugTestUpdate: (status: string) => Promise<void>
+
       loadMockCompareData: () => Promise<{ success: boolean; message?: string; error?: string }>
 
       storage: {

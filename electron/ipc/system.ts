@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
 import { isDev } from '../bootstrap'
+import { SafeLogger } from '../utils/logger'
 
 /**
  * Open backup folder in system explorer
@@ -37,7 +38,7 @@ export async function handleRelaunchApp() {
       process.chdir(rootAppPath);
       if ((global as any).logger) (global as any).logger.info(`Reverted CWD to ${rootAppPath} for safe relaunch.`);
     } catch (e) {
-      console.warn('Failed to revert CWD for relaunch', e);
+      SafeLogger.warn('Failed to revert CWD for relaunch', e);
     }
     
     options.args = [app.getAppPath(), '--relaunch'];
@@ -116,7 +117,7 @@ export function handleAppLog(_event: any, args: any) {
   const { level, message, data } = args || {}
   const logger = (global as any).logger;
   if (!logger) {
-    if (isDev) console.log(`[Renderer-${level}] ${message}`, data || '');
+    if (isDev) SafeLogger.log(`[Renderer-${level}] ${message}`, data || '');
     return;
   }
 
@@ -134,7 +135,7 @@ export function handleAppLog(_event: any, args: any) {
         break;
     }
   } catch (e) {
-    if (isDev) console.error('Logger direct call failed:', e);
+    if (isDev) SafeLogger.error('Logger direct call failed:', e);
   }
 }
 
@@ -144,10 +145,10 @@ export function handleAppLogWrite(_event: any, content: any) {
     try {
       logger.write(content);
     } catch (e) {
-      if (isDev) console.error('Logger.write failed:', e);
+      if (isDev) SafeLogger.error('Logger.write failed:', e);
     }
   } else if (isDev) {
-    console.log('[Renderer-Write]', content);
+    SafeLogger.log('[Renderer-Write]', content);
   }
 }
 

@@ -89,6 +89,7 @@
                     <Search class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500" />
                   </span>
                   <input 
+                    ref="searchInput"
                     v-model="searchQuery"
                     type="text" 
                     :placeholder="searchFlags.content ? 'Search content & names...' : 'Search names...'"
@@ -221,6 +222,14 @@
 
             <!-- Right: DDL Viewer (Simplified MirrorDiffView) -->
             <div class="flex-1 bg-white dark:bg-gray-950 overflow-hidden flex flex-col relative">
+              <!-- Tab Bar -->
+              <TabBar 
+                v-if="tabs.length > 0"
+                :tabs="tabs" 
+                :active-tab-id="activeTabId" 
+                @select="handleSelectTab" 
+                @close="handleCloseTab"
+              />
               <div v-if="selectedItem" class="flex-1 flex flex-col overflow-hidden">
                 <div class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14">
                   <div class="flex items-center overflow-hidden gap-3">
@@ -419,6 +428,7 @@ import { useSidebarStore } from '@/stores/sidebar'
 import { useNotificationStore } from '@/stores/notification'
 import TableDetailedView from '@/components/ddl/TableDetailedView.vue'
 import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
+import TabBar from '@/components/general/TabBar.vue'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
 
 const appStore = useAppStore()
@@ -429,6 +439,7 @@ const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const router = useRouter()
 const route = useRoute()
+const searchInput = ref<HTMLInputElement | null>(null)
 
 // Watch for project changes to reset schema selection
 watch(() => projectsStore.selectedProjectId, () => {
@@ -492,6 +503,52 @@ const activeSearchLine = ref<number | null>(null)
 const focusType = ref<string | undefined>(undefined)
 const treeExpandCmd = ref<{ action: 'expand' | 'collapse', ts: number } | null>(null)
 const ddlViewerRef = ref<any>(null)
+
+// Tabs State
+const tabs = ref<any[]>([])
+const activeTabId = ref<string | null>(null)
+
+const handleSelectTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (tab) {
+    activeTabId.value = id
+    // Restore state from tab to prevent flickering/loading
+    detailedTableData.value = tab.detailedData || null
+    selectedItem.value = tab.data
+    if (tab.viewMode) viewMode.value = tab.viewMode
+  }
+}
+
+const handleCloseTab = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index === -1) return
+  
+  tabs.value.splice(index, 1)
+  
+  if (activeTabId.value === id) {
+    if (tabs.value.length > 0) {
+      const nextTab = tabs.value[Math.min(index, tabs.value.length - 1)]
+      handleSelectTab(nextTab.id)
+    } else {
+      activeTabId.value = null
+      selectedItem.value = null
+    }
+  }
+}
+
+const handlePrevTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const prevIndex = (index - 1 + tabs.value.length) % tabs.value.length
+  handleSelectTab(tabs.value[prevIndex].id)
+}
+
+const handleNextTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const nextIndex = (index + 1) % tabs.value.length
+  handleSelectTab(tabs.value[nextIndex].id)
+}
 
 // Initialize schema loader
 const {
@@ -670,12 +727,27 @@ watch(selectedItem, async (newVal) => {
           try {
             const result = await (window as any).electronAPI.andbParseTable(formattedDDL.value)
             // Race condition guard: check if table is still selected
-            if (result.success && selectedItem.value?.name === targetName) {
+            if (selectedItem.value?.name === targetName) {
               await nextTick()
-              detailedTableData.value = result.data
+              if (result.success && result.data) {
+                detailedTableData.value = result.data
+              } else {
+                // Handle parsing failure: set minimal data to stop loading
+                 console.warn('Parser failed for', targetName, result.error)
+                 detailedTableData.value = {
+                    columns: [],
+                    indexes: [],
+                    foreignKeys: [],
+                    options: {},
+                    partitions: null
+                 }
+              }
             }
           } catch (e) {
             console.error('Failed to parse table detailed:', e)
+            if (selectedItem.value?.name === targetName) {
+               detailedTableData.value = { columns: [], indexes: [], foreignKeys: [], options: {}, partitions: null }
+            }
           }
         }
     }
@@ -688,12 +760,26 @@ watch(formattedDDL, async (newVal) => {
             try {
                 const result = await (window as any).electronAPI.andbParseTable(newVal)
                 // Race condition guard: check if table is still selected
-                if (result.success && selectedItem.value?.name === targetName) {
+                if (selectedItem.value?.name === targetName) {
                   await nextTick()
-                  detailedTableData.value = result.data
+                  if (result.success && result.data) {
+                    detailedTableData.value = result.data
+                  } else {
+                    console.warn('Parser failed for (DDL watch)', targetName, result.error)
+                    detailedTableData.value = {
+                        columns: [],
+                        indexes: [],
+                        foreignKeys: [],
+                        options: {},
+                        partitions: null
+                    }
+                  }
                 }
             } catch (e) {
                 console.error('Failed to parse table detailed (from DDL watch):', e)
+                if (selectedItem.value?.name === targetName) {
+                   detailedTableData.value = { columns: [], indexes: [], foreignKeys: [], options: {}, partitions: null }
+                }
             }
         }
     }
@@ -742,6 +828,20 @@ const fetchButtonText = computed(() => {
 })
 
 const viewMode = ref<'code' | 'visual'>('code')
+
+watch(viewMode, (newVal) => {
+  if (activeTabId.value) {
+    const tab = tabs.value.find(t => t.id === activeTabId.value)
+    if (tab) tab.viewMode = newVal
+  }
+})
+
+watch(detailedTableData, (newVal) => {
+  if (activeTabId.value && newVal) {
+    const tab = tabs.value.find(t => t.id === activeTabId.value)
+    if (tab) tab.detailedData = newVal
+  }
+})
 
 watch(selectedItem, () => {
     // Reset to code view when finding a new item
@@ -889,13 +989,38 @@ watch(() => sidebarStore.refreshKey, () => {
 
 const selectItem = (item: any) => {
   if (!item) return
+  
+  const tabId = `${item.type}-${item.name}`
+  const existingTab = tabs.value.find(t => t.id === tabId)
+  
+  if (!existingTab) {
+    tabs.value.push({
+      id: tabId,
+      name: item.name,
+      type: item.type,
+      icon: getIconForType(item.type),
+      data: item,
+      viewMode: item.type === 'tables' || item.type === 'table' ? 'visual' : 'code',
+      detailedData: null
+    })
+  } else {
+    // Restore state if tab exists
+    detailedTableData.value = existingTab.detailedData || null
+    existingTab.data = item
+  }
+  
+  activeTabId.value = tabId
+  selectedItem.value = item
+  
   if (selectedItem.value?.name !== item.name) {
     activeSearchLine.value = null
   }
-  selectedItem.value = item
   
+  // Sync viewMode from tab
+  const tab = tabs.value.find(t => t.id === tabId)
+  if (tab?.viewMode) viewMode.value = tab.viewMode
+
   // If we are currently strongly filtering by a DIFFERENT type, switch to the item's type so it's visible.
-  // But if we are already viewing 'all', keep it as 'all' so other headers don't disappear!
   if (item.type && item.type !== 'diagrams' && selectedFilterType.value !== 'all' && selectedFilterType.value !== item.type) {
     selectedFilterType.value = item.type
   }
@@ -1081,12 +1206,29 @@ onMounted(() => {
   watch(() => allResults.value.length, processDeepLink)
   
   processDeepLink()
+
+  // Shortcuts
+  window.addEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.addEventListener('andb-prev-tab', handlePrevTab)
+  window.addEventListener('andb-next-tab', handleNextTab)
+  window.addEventListener('andb-refresh-active-view', handleRefreshActiveView)
+  window.addEventListener('andb-focus-search', handleFocusSearch)
 })
+
+const handleCloseActiveTab = () => { if (activeTabId.value) handleCloseTab(activeTabId.value) }
+const handleRefreshActiveView = () => loadSchema(true)
+const handleFocusSearch = () => searchInput.value?.focus()
 
 onUnmounted(() => {
   window.removeEventListener('category-selected', handleCategorySelected)
   window.removeEventListener('object-selected', handleObjectSelected)
   window.removeEventListener('database-selected', handleDatabaseSelected)
+  
+  window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.removeEventListener('andb-prev-tab', handlePrevTab)
+  window.removeEventListener('andb-next-tab', handleNextTab)
+  window.removeEventListener('andb-refresh-active-view', handleRefreshActiveView)
+  window.removeEventListener('andb-focus-search', handleFocusSearch)
 })
 
 </script>

@@ -29,11 +29,16 @@
               <!-- Header -->
               <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                  <Database class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <Database v-if="!isAppUpdate" class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <Zap v-else class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">Database Updated</h2>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Internal storage migrated automatically</p>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                    {{ isAppUpdate ? "What's New" : "Database Updated" }}
+                  </h2>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ isAppUpdate ? `Version ${report.toVersion} is ready` : "Internal storage migrated automatically" }}
+                  </p>
                 </div>
               </div>
 
@@ -122,7 +127,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Database, ArrowRight, ChevronDown } from 'lucide-vue-next'
+import { Database, ArrowRight, ChevronDown, Zap } from 'lucide-vue-next'
 
 interface MigrationChange {
   action: 'CREATED' | 'MODIFIED'
@@ -140,6 +145,7 @@ interface MigrationReport {
 defineProps<{
   isOpen: boolean
   report: MigrationReport | null
+  isAppUpdate?: boolean
 }>()
 
 const emit = defineEmits<{

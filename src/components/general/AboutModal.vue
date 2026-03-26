@@ -64,6 +64,23 @@
                   </div>
                 </div>
 
+                <!-- Shortcuts Card -->
+                <div 
+                  @click="openShortcuts"
+                  class="col-span-2 bg-primary-50 dark:bg-primary-900/20 p-4 rounded-xl border border-primary-100 dark:border-primary-800/50 flex items-center justify-between hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all cursor-pointer group shadow-sm"
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-primary-500 text-white rounded-lg group-hover:scale-110 transition-transform">
+                      <Command class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span class="block text-sm font-bold text-primary-900 dark:text-primary-100">{{ $t('about.shortcutsTitle', 'Keyboard Shortcuts') }}</span>
+                      <span class="block text-[10px] text-primary-600 dark:text-primary-400 font-medium uppercase tracking-wider">{{ $t('about.shortcutsSubtitle', 'View all commands') }}</span>
+                    </div>
+                  </div>
+                  <ChevronRight class="w-4 h-4 text-primary-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+
                 <!-- Links Card (Full Width) -->
                 <div class="col-span-2 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex items-center justify-around group">
                   <a href="https://github.com/The-Andb/andb-desktop" target="_blank" class="flex flex-col items-center space-y-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
@@ -113,7 +130,8 @@
 </template>
 
 <script setup lang="ts">
-import { Github, Bug, Tag, User } from 'lucide-vue-next'
+import { Github, Bug, Tag, User, Command, ChevronRight } from 'lucide-vue-next'
+import { useShortcutStore } from '@/stores/shortcut'
 
 // App metadata (Could be imported from package.json in a real setup, hardcoded for safety here)
 const version = __APP_VERSION__
@@ -128,8 +146,15 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const shortcutStore = useShortcutStore()
+
 const close = () => {
   emit('close')
+}
+
+const openShortcuts = () => {
+  emit('close')
+  shortcutStore.openModal()
 }
 </script>
 

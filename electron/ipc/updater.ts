@@ -1,5 +1,6 @@
 import { autoUpdater } from 'electron-updater'
 import { isDev } from '../bootstrap'
+import ApplicationUpdater from '../services/application-updater'
 
 /**
  * Handle Checking for Updates
@@ -34,30 +35,35 @@ export async function handleDownloadUpdate() {
 }
 
 /**
- * Handle Debugging Mock Update Events (Dev Only)
+ * Handle Debugging Mock Update Events
  */
-export function handleDebugTestUpdate(_event: any, status: any) {
-  if (!isDev) return
-  const contents = _event.sender
+export async function handleDebugTestUpdate(_event: any, status: any) {
+  // Allow in Prod for power user debugging if explicitly called
+  const updater = ApplicationUpdater.getInstance()
+  return await updater.testUpdateFlow(_event.sender, status)
+}
 
-  if (status === 'available') {
-    contents.send('update-status', { status: 'available', info: { version: '9.9.9', releaseNotes: 'Test Update' } })
-  } else if (status === 'downloading') {
-    let progress = 0
-    const interval = setInterval(() => {
-      progress += 10
-      contents.send('update-status', {
-        status: 'downloading',
-        progress: { percent: progress, bytesPerSecond: 1024 * 1024, transferred: progress * 1000, total: 10000 }
-      })
-      if (progress >= 100) {
-        clearInterval(interval)
-        contents.send('update-status', { status: 'downloaded', info: { version: '9.9.9' } })
-      }
-    }, 500)
-  } else {
-    contents.send('update-status', { status })
+/**
+ * Handle Get App Changelog (post-update release notes)
+ */
+export async function handleGetAppChangelog() {
+  const updater = ApplicationUpdater.getInstance()
+  const changelog = await updater.getPendingChangelog()
+  
+  if (changelog) {
+    return { success: true, data: changelog }
   }
+
+  // Fallback: If no custom changelog, return generic version info if upgrade was detected
+  return { success: false }
+}
+
+/**
+ * Handle Dismiss App Changelog
+ */
+export async function handleDismissAppChangelog() {
+  ApplicationUpdater.getInstance().dismissChangelog()
+  return { success: true }
 }
 
 /**

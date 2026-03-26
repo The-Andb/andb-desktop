@@ -224,6 +224,7 @@
                     <Search class="w-3.5 h-3.5 text-gray-400" />
                   </span>
                   <input 
+                    ref="searchInput"
                     v-model="searchQuery"
                     type="text" 
                     :placeholder="$t('history.searchPlaceholder')"
@@ -410,6 +411,14 @@
 
             <!-- Right: Split DDL Detail -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
+               <!-- Tab Bar -->
+               <TabBar 
+                 v-if="tabs.length > 0"
+                 :tabs="tabs" 
+                 :active-tab-id="activeTabId" 
+                 @select="handleSelectTab" 
+                 @close="handleCloseTab"
+               />
                <!-- Migration Overlay (Moved to global scope) -->
 
               <div v-if="selectedItem" class="h-full flex flex-col">
@@ -577,6 +586,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import CompareTreeMode from '@/components/compare/CompareTreeMode.vue'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
+import TabBar from '@/components/general/TabBar.vue'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
@@ -586,6 +596,8 @@ const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
 const { t } = useI18n()
+
+const searchInput = ref<HTMLInputElement | null>(null)
 
 const activePair = computed(() => connectionPairsStore.activePair)
 const sourceName = computed(() => activePair.value?.source?.name || 'Source')
@@ -639,6 +651,8 @@ watch(() => projectsStore.selectedProjectId, () => {
   selectedItem.value = null
   selectedFilterType.value = 'all'
   error.value = null
+  tabs.value = []
+  activeTabId.value = null
 })
 
 // Deep Link Handling
@@ -732,6 +746,35 @@ const diffOptions = ref({
 const selectedStatusFilter = ref('all')
 const lastCompareTime = ref(0)
 const showErrorModal = ref(false)
+
+// Tabs State
+const tabs = ref<any[]>([])
+const activeTabId = ref<string | null>(null)
+
+const handleSelectTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (tab) {
+    activeTabId.value = id
+    selectedItem.value = tab.data
+  }
+}
+
+const handleCloseTab = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index === -1) return
+  
+  tabs.value.splice(index, 1)
+  
+  if (activeTabId.value === id) {
+    if (tabs.value.length > 0) {
+      const nextTab = tabs.value[Math.min(index, tabs.value.length - 1)]
+      handleSelectTab(nextTab.id)
+    } else {
+      activeTabId.value = null
+      selectedItem.value = null
+    }
+  }
+}
 
 
 
@@ -1033,6 +1076,24 @@ defineExpose({})
 
 
 const selectItem = (item: any) => {
+  if (!item) return
+  
+  const tabId = `${item.type || 'unknown'}-${item.name}`
+  const existingTab = tabs.value.find(t => t.id === tabId)
+  
+  if (!existingTab) {
+    tabs.value.push({
+      id: tabId,
+      name: item.name,
+      type: item.type,
+      icon: getIconForType(item.type),
+      data: item
+    })
+  } else {
+    existingTab.data = item
+  }
+  
+  activeTabId.value = tabId
   selectedItem.value = item
 }
 
@@ -1611,7 +1672,32 @@ onMounted(async () => {
   if (activePair.value) {
     runComparison()
   }
+
+  // Shortcuts
+  window.addEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.addEventListener('andb-prev-tab', handlePrevTab)
+  window.addEventListener('andb-next-tab', handleNextTab)
+  window.addEventListener('andb-refresh-active-view', handleRefreshActiveView)
+  window.addEventListener('andb-focus-search', handleFocusSearch)
 })
+
+const handlePrevTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const prevIndex = (index - 1 + tabs.value.length) % tabs.value.length
+  handleSelectTab(tabs.value[prevIndex].id)
+}
+
+const handleNextTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const nextIndex = (index + 1) % tabs.value.length
+  handleSelectTab(tabs.value[nextIndex].id)
+}
+
+const handleCloseActiveTab = () => { if (activeTabId.value) handleCloseTab(activeTabId.value) }
+const handleRefreshActiveView = () => runComparison()
+const handleFocusSearch = () => searchInput.value?.focus()
 
 onUnmounted(() => {
   window.removeEventListener('category-selected', handleCategorySelected as any)
@@ -1619,6 +1705,12 @@ onUnmounted(() => {
   window.removeEventListener('database-refresh-requested', handleDatabaseRefreshRequested as any)
   window.removeEventListener('category-refresh-requested', handleCategoryRefreshRequested as any)
   window.removeEventListener('object-refresh-requested', handleObjectRefreshRequested as any)
+  
+  window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.removeEventListener('andb-prev-tab', handlePrevTab)
+  window.removeEventListener('andb-next-tab', handleNextTab)
+  window.removeEventListener('andb-refresh-active-view', handleRefreshActiveView)
+  window.removeEventListener('andb-focus-search', handleFocusSearch)
 })
 
 // Auto-run comparison when sidebar refresh is clicked (Top refresh button)

@@ -3,13 +3,14 @@ import * as system from './system'
 import * as updater from './updater'
 import * as storage from './storage'
 import * as andb from './andb'
+import { SafeLogger } from '../utils/logger'
 
 /**
  * Register all IPC handlers
  * Following the Controller Pattern
  */
 export function registerIpcHandlers() {
-  console.log('--- REGISTERING IPC HANDLERS ---')
+  SafeLogger.log('--- REGISTERING IPC HANDLERS ---')
   // --- System & CLI ---
   ipcMain.handle('open-backup-folder', system.handleOpenBackupFolder)
   ipcMain.handle('pick-file', system.handlePickFile)
@@ -51,6 +52,8 @@ export function registerIpcHandlers() {
   ipcMain.handle('download-update', updater.handleDownloadUpdate)
   ipcMain.handle('quit-and-install', updater.handleQuitAndInstall)
   ipcMain.handle('debug-test-update', updater.handleDebugTestUpdate)
+  ipcMain.handle('get-app-changelog', updater.handleGetAppChangelog)
+  ipcMain.handle('dismiss-app-changelog', updater.handleDismissAppChangelog)
 
   // --- Andb Core Engine ---
   ipcMain.handle('andb-execute', andb.handleAndbExecute)

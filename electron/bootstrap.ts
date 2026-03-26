@@ -8,6 +8,7 @@ import * as yaml from 'js-yaml'
 import { StorageMigrator } from './services/storage-migrator'
 import { ApplicationUpdater } from './services/application-updater'
 import { DesktopStorageStrategy } from './storage/strategy/desktop-storage.strategy'
+import { SafeLogger } from './utils/logger'
 
 // Singleton instance to be used by IPC handlers
 export const desktopStorageStrategy = new DesktopStorageStrategy();
@@ -76,14 +77,14 @@ export function initLogger() {
           if (typeof (global as any).logger.dev === 'function') {
             ; (global as any).logger.dev(...args)
           } else {
-            console.debug(...args)
+            SafeLogger.debug(...args)
           }
         }
       }
     }
     return loggerInstance
   } catch (e) {
-    console.error('Failed to init logger', e)
+    SafeLogger.error('Failed to init logger', e)
     return null
   }
 }
@@ -92,20 +93,7 @@ export function initLogger() {
  * Initialize Auto Updater
  */
 export function initAutoUpdater() {
-  try {
-    const { autoUpdater } = require('electron-updater')
-    autoUpdater.logger = require('andb-logger').getInstance({
-      mode: isTest ? 'TEST' : (isDev ? 'DEV' : 'PROD'),
-      dirpath: app.getPath('userData'),
-      logName: 'UPDATER'
-    })
-    autoUpdater.autoDownload = false
-    autoUpdater.autoInstallOnAppQuit = true
-    return autoUpdater
-  } catch (e) {
-    console.warn('Auto updater not available', e)
-    return null
-  }
+  return ApplicationUpdater.getInstance().init()
 }
 
 /**
@@ -162,6 +150,9 @@ export async function initCoreServices() {
 
 async function syncAppVersionAndChangelog(CoreBridge: any) {
   try {
+    const updater = ApplicationUpdater.getInstance()
+    const isUpgrade = await updater.checkVersionUpgrade()
+    
     const storage = CoreBridge.getStorage()
     if (storage) {
       const settings = await storage.getUserSettings()
@@ -174,13 +165,13 @@ async function syncAppVersionAndChangelog(CoreBridge: any) {
           migrationReport.fromVersion = previousVersion || 'unknown'
           migrationReport.toVersion = currentVersion
           await storage.saveUserSetting('last_migration_report', JSON.stringify(migrationReport))
-          console.log(`📋 [Migration] Changelog saved: ${migrationReport.changes.length} changes (${previousVersion} → ${currentVersion})`)
+          SafeLogger.log(`📋 [Migration] Changelog saved: ${migrationReport.changes.length} changes (${previousVersion} → ${currentVersion})`)
         }
       }
       await storage.saveUserSetting('appVersion', currentVersion)
     }
   } catch (ve) {
-    if ((global as any).logger) (global as any).logger.warn('Could not sync appVersion', ve)
+    SafeLogger.warn('Could not sync appVersion', ve)
   }
 }
 

@@ -97,6 +97,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMigrationChangelog: () => ipcRenderer.invoke('get-migration-changelog'),
   dismissMigrationChangelog: () => ipcRenderer.invoke('dismiss-migration-changelog'),
 
+  // App Updater & Changelog
+  getAppChangelog: () => ipcRenderer.invoke('get-app-changelog'),
+  dismissAppChangelog: () => ipcRenderer.invoke('dismiss-app-changelog'),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+  debugTestUpdate: (status: any) => ipcRenderer.invoke('debug-test-update', status),
+  
+  onUpdateStatus: (callback: (data: any) => void) => {
+    const subscription = (_event: any, data: any) => callback(data)
+    ipcRenderer.on('update-status', subscription)
+    return () => ipcRenderer.removeListener('update-status', subscription)
+  },
+
   onAndbProgress: (callback: (event: any, data: any) => void) => {
     // Remove existing listener to prevent duplicate subscriptions on hot reload
     ipcRenderer.removeAllListeners('andb-progress');

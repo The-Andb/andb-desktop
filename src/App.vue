@@ -2,9 +2,14 @@
   <div id="app" class="h-screen bg-gray-50 dark:bg-gray-900">
     <router-view />
     <UpdateModal />
+    <ShortcutsModal 
+      :isOpen="shortcutStore.isModalOpen" 
+      @close="shortcutStore.closeModal" 
+    />
     <MigrationChangelogModal
       :isOpen="showMigrationChangelog"
       :report="migrationReport"
+      :isAppUpdate="isAppChangelog"
       @dismiss="dismissMigrationChangelog"
     />
   </div>
@@ -17,9 +22,11 @@ import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useFeaturesStore } from '@/stores/features'
+import { useShortcutStore } from '@/stores/shortcut'
 import Andb from '@/utils/andb'
 
 import UpdateModal from '@/components/general/UpdateModal.vue'
+import ShortcutsModal from '@/components/general/ShortcutsModal.vue'
 import MigrationChangelogModal from '@/components/general/MigrationChangelogModal.vue'
 
 const appStore = useAppStore()
@@ -27,6 +34,7 @@ const updaterStore = useUpdaterStore()
 const consoleStore = useConsoleStore()
 const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
+const shortcutStore = useShortcutStore()
 
 // Inject Dynamic Typography Variables into DOM root
 watch(() => appStore.fontSizes, (sizes) => {
@@ -42,12 +50,18 @@ watch(() => appStore.fontSizes, (sizes) => {
 // Migration Changelog state
 const showMigrationChangelog = ref(false)
 const migrationReport = ref<any>(null)
+const isAppChangelog = ref(false)
 
 const dismissMigrationChangelog = async () => {
   showMigrationChangelog.value = false
   migrationReport.value = null
   try {
-    await window.electronAPI?.dismissMigrationChangelog?.()
+    if (isAppChangelog.value) {
+      await window.electronAPI?.dismissAppChangelog?.()
+      isAppChangelog.value = false
+    } else {
+      await window.electronAPI?.dismissMigrationChangelog?.()
+    }
   } catch {
     // Silent fail
   }
@@ -144,10 +158,54 @@ const handleObjectRefreshRequested = async (e: any) => {
 
 // Global keyboard shortcuts
 const handleKeydown = (event: KeyboardEvent) => {
-  // Ctrl+B or Cmd+B to toggle sidebar
-  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
+  const isMod = event.ctrlKey || event.metaKey
+  const key = event.key.toLowerCase()
+
+  // Cmd+B: Toggle Sidebar
+  if (isMod && key === 'b') {
     event.preventDefault()
     appStore.toggleSidebar()
+    return
+  }
+
+  // Cmd+W: Close Tab (Emit global event)
+  if (isMod && key === 'w') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-close-active-tab'))
+    return
+  }
+
+  // Cmd+[ / Cmd+]: Prev/Next Tab
+  if (isMod && key === '[') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-prev-tab'))
+    return
+  }
+  if (isMod && key === ']') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-next-tab'))
+    return
+  }
+
+  // Cmd+R: Refresh
+  if (isMod && key === 'r') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-refresh-active-view'))
+    return
+  }
+
+  // Cmd+F: Focus Search
+  if (isMod && key === 'f') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-focus-search'))
+    return
+  }
+
+  // Cmd+/: Show Shortcuts
+  if (isMod && key === '/') {
+    event.preventDefault()
+    shortcutStore.openModal()
+    return
   }
 }
 
@@ -188,18 +246,31 @@ onMounted(async () => {
     })
   }
 
-  // Check for migration changelog (delayed to avoid blocking initial load)
+  // Check for app changelog or migration changelog
   setTimeout(async () => {
-    if (window.electronAPI?.getMigrationChangelog) {
-      try {
+    try {
+      // 1. Check for App Version Upgrade Changelog (Priority)
+      if (window.electronAPI?.getAppChangelog) {
+        const result = await window.electronAPI.getAppChangelog()
+        if (result?.success && result.data) {
+          migrationReport.value = result.data
+          isAppChangelog.value = true
+          showMigrationChangelog.value = true
+          return // Prioritize app changelog over migration changelog
+        }
+      }
+
+      // 2. Check for Database Migration Changelog
+      if (window.electronAPI?.getMigrationChangelog) {
         const result = await window.electronAPI.getMigrationChangelog()
         if (result?.success && result.data) {
           migrationReport.value = result.data
+          isAppChangelog.value = false
           showMigrationChangelog.value = true
         }
-      } catch (e) {
-        // Silent fail — changelog is non-critical
       }
+    } catch (e) {
+      // Silent fail
     }
   }, 2000)
 

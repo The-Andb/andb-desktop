@@ -61,6 +61,7 @@
           <div class="relative">
             <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input 
+              ref="searchInput"
               v-model="filters.query"
               type="text"
               :placeholder="$t('history.searchPlaceholder')"
@@ -84,7 +85,7 @@
             <div 
               v-for="snapshot in filteredSnapshots" 
               :key="snapshot.id"
-              @click="selectedSnapshot = snapshot"
+              @click="selectSnapshot(snapshot)"
               class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors relative group border-l-4 border-transparent"
               :class="{ 'bg-primary-50 dark:bg-primary-900/20 border-primary-500': selectedSnapshot?.id === snapshot.id }"
             >
@@ -119,6 +120,14 @@
 
       <!-- Detail View -->
       <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 relative overflow-hidden">
+        <!-- Tab Bar -->
+        <TabBar 
+          v-if="tabs.length > 0"
+          :tabs="tabs" 
+          :active-tab-id="activeTabId" 
+          @select="handleSelectTab" 
+          @close="handleCloseTab"
+        />
         <div v-if="!selectedSnapshot" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8">
            <div class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-8 opacity-50">
              <History class="w-24 h-24" />
@@ -195,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import MainLayout from '@/layouts/MainLayout.vue'
@@ -204,6 +213,7 @@ import Andb from '@/utils/andb'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useNotificationStore } from '@/stores/notification'
+import TabBar from '@/components/general/TabBar.vue'
 import { 
   History, 
   RefreshCw, 
@@ -232,12 +242,92 @@ const notificationStore = useNotificationStore()
 const route = useRoute()
 const { t } = useI18n()
 
+const searchInput = ref<HTMLInputElement | null>(null)
+
+// Tabs State
+const tabs = ref<any[]>([])
+const activeTabId = ref<string | null>(null)
+
+const formatDateShort = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('vi-VN', { month: '2-digit', day: '2-digit' }) + ' ' + 
+           date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  } catch (e) {
+    return ''
+  }
+}
+
+const selectSnapshot = (snapshot: any) => {
+  if (!snapshot) return
+  
+  const tabId = `history-${snapshot.id}`
+  const existingTab = tabs.value.find(t => t.id === tabId)
+  
+  if (!existingTab) {
+    tabs.value.push({
+      id: tabId,
+      name: `${snapshot.ddl_name} (${formatDateShort(snapshot.created_at)})`,
+      type: snapshot.ddl_type,
+      icon: getIconForType(snapshot.ddl_type),
+      data: snapshot
+    })
+  }
+  
+  activeTabId.value = tabId
+  selectedSnapshot.value = snapshot
+}
+
+const handlePrevTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const prevIndex = (index - 1 + tabs.value.length) % tabs.value.length
+  handleSelectTab(tabs.value[prevIndex].id)
+}
+
+const handleNextTab = () => {
+  if (tabs.value.length <= 1) return
+  const index = tabs.value.findIndex(t => t.id === activeTabId.value)
+  const nextIndex = (index + 1) % tabs.value.length
+  handleSelectTab(tabs.value[nextIndex].id)
+}
+
+const handleCloseActiveTab = () => { if (activeTabId.value) handleCloseTab(activeTabId.value) }
+const handleFocusSearch = () => searchInput.value?.focus()
+
+const handleSelectTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (tab) {
+    activeTabId.value = id
+    selectedSnapshot.value = tab.data
+  }
+}
+
+const handleCloseTab = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index === -1) return
+  
+  tabs.value.splice(index, 1)
+  
+  if (activeTabId.value === id) {
+    if (tabs.value.length > 0) {
+      const nextTab = tabs.value[Math.min(index, tabs.value.length - 1)]
+      handleSelectTab(nextTab.id)
+    } else {
+      activeTabId.value = null
+      selectedSnapshot.value = null
+    }
+  }
+}
+
 // Watch for project changes to reset state
 watch(() => projectsStore.selectedProjectId, () => {
   selectedSnapshot.value = null
   filters.value.query = ''
   filters.value.type = ''
   filters.value.environment = ''
+  tabs.value = []
+  activeTabId.value = null
 })
 
 const filters = ref({
@@ -421,6 +511,19 @@ onMounted(async () => {
       filters.value.type = type.toUpperCase()
     }
   })
+
+  // Shortcuts
+  window.addEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.addEventListener('andb-prev-tab', handlePrevTab)
+  window.addEventListener('andb-next-tab', handleNextTab)
+  window.addEventListener('andb-focus-search', handleFocusSearch)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
+  window.removeEventListener('andb-prev-tab', handlePrevTab)
+  window.removeEventListener('andb-next-tab', handleNextTab)
+  window.removeEventListener('andb-focus-search', handleFocusSearch)
 })
 </script>
 

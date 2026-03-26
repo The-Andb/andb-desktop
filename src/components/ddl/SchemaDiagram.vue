@@ -254,12 +254,17 @@ const autoLayout = async () => {
       try {
         const parsed = await Andb.parseTable(ddl)
         if (parsed && parsed.columns) {
-          // Flatten AST to UI Columns format
-          columns = Object.keys(parsed.columns).map(colName => ({
-            name: colName,
-            type: parsed.columns[colName].split(' ')[0] || 'unknown',
-            pk: parsed.primaryKey?.includes(colName) || false
-          })).slice(0, 15)
+          if (Array.isArray(parsed.columns)) {
+            // Detailed format from new parser
+            columns = parsed.columns.slice(0, 50)
+          } else {
+            // Flatten legacy AST/Record to UI Columns format
+            columns = Object.keys(parsed.columns).map(colName => ({
+              name: colName,
+              type: parsed.columns[colName].split(' ')[0] || 'unknown',
+              pk: parsed.primaryKey?.includes(colName) || false
+            })).slice(0, 50)
+          }
         }
       } catch (e) {
         console.warn('[SchemaDiagram] IPC Parse failed', e)

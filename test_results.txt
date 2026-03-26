@@ -1,0 +1,750 @@
+
+> @the-andb/desktop@3.3.0 test /Volumes/FlexibleWorkplace/The-Andb/andb-desktop
+> vitest --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Volumes/FlexibleWorkplace/The-Andb/andb-desktop[39m
+
+ [32m✓[39m src/composables/__tests__/useTableResizer.unit.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould initialize with default environments and pairs if storage is empty
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould initialize with default environments and pairs if storage is empty
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould initialize with default UI settings and demo connections if empty
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould initialize with default UI settings and demo connections if empty
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projectIsolation.unit.test.ts[2m > [22m[2mProject Isolation[2m > [22m[2mshould filter connections and pairs based on the selected project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+[Projects] Selected Project Changed: project-2
+[Projects] Init - Last Selected ID: [90mundefined[39m
+[Projects] Persisted selection setting: project-2
+[Projects] Selected Project Changed: project-1
+
+[90mstdout[2m | src/stores/__tests__/projectIsolation.unit.test.ts[2m > [22m[2mProject Isolation[2m > [22m[2mshould filter connections and pairs based on the selected project
+[22m[39m[Projects] Persisted selection setting: project-1
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould add a custom connection pair
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould add a custom connection pair
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould not add a duplicate connection pair but return existing
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould not add a duplicate connection pair but return existing
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould add a connection and link it to the selected project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould add a connection and link it to the selected project
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+ [32m✓[39m src/stores/__tests__/projectIsolation.unit.test.ts [2m([22m[2m2 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[32m 12[2mms[22m[39m
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould not add a duplicate connection pair but return existing
+[22m[39mPair already exists: 1774499602958
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould set default pair and auto-select it
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould set default pair and auto-select it
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould add a connection and link it to the selected project
+[22m[39m[Projects] Selected Project Changed: 2f72f047-3088-4dbf-932d-90afa46fa057
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould add a connection and link it to the selected project
+[22m[39m[Projects] Persisted selection setting: 2f72f047-3088-4dbf-932d-90afa46fa057
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould not add a duplicate connection but return the existing one
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould not add a duplicate connection but return the existing one
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould compute availablePairs combining custom and auto-generated pairs
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould compute availablePairs combining custom and auto-generated pairs
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould not add a duplicate connection but return the existing one
+[22m[39mConnection already exists: 3607c4d5-d717-48a3-a8d2-5fd353338db3
+[Projects] Selected Project Changed: 5bda65a1-a742-41b8-8f37-75c4ca4a70b2
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould not add a duplicate connection but return the existing one
+[22m[39m[Projects] Persisted selection setting: 5bda65a1-a742-41b8-8f37-75c4ca4a70b2
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould remove connection from global registry if it becomes orphaned
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould remove connection from global registry if it becomes orphaned
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould initialize with a default project if none exist
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould initialize with a default project if none exist
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould compute availablePairs combining custom and auto-generated pairs
+[22m[39m[Projects] Selected Project Changed: 6729ca28-1384-46b3-8288-ee50d34dd3f2
+
+[90mstdout[2m | src/stores/__tests__/connectionPairs.unit.test.ts[2m > [22m[2mConnectionPairs Store[2m > [22m[2mshould compute availablePairs combining custom and auto-generated pairs
+[22m[39m[Projects] Persisted selection setting: 6729ca28-1384-46b3-8288-ee50d34dd3f2
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould remove connection from global registry if it becomes orphaned
+[22m[39m[Projects] Selected Project Changed: e8f6fa67-a8a8-417d-908c-011db72e0785
+Connection 6e32385e-96c9-49c8-8133-00086fc78de7 is now orphaned. Removing from global registry.
+[Projects] Persisted selection setting: e8f6fa67-a8a8-417d-908c-011db72e0785
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould test a connection and update its status
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould test a connection and update its status
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+ [32m✓[39m src/stores/__tests__/connectionPairs.unit.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 75[2mms[22m[39m
+(node:15026) Warning: To load an ES module, set "type": "module" in the package.json or use the .mjs extension.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould add a new project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould add a new project
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould update an existing project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould update an existing project
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould duplicate a project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould duplicate a project
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould not allow removing the default project
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould not allow removing the default project
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould format storage output when saving projects
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould format storage output when saving projects
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould reset other stores when project selection changes
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould reset other stores when project selection changes
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould reset other stores when project selection changes
+[22m[39m[Projects] Selected Project Changed: 8e84e461-fb07-4e94-9dc3-656577cb03bc
+
+[90mstdout[2m | src/stores/__tests__/projects.unit.test.ts[2m > [22m[2mProjects Store[2m > [22m[2mshould reset other stores when project selection changes
+[22m[39m[Projects] Persisted selection setting: 8e84e461-fb07-4e94-9dc3-656577cb03bc
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould apply pre-defined font size profiles correctly
+[22m[39m[Projects] Init - Loaded projects: [33m0[39m []
+
+[90mstdout[2m | src/stores/__tests__/app.unit.test.ts[2m > [22m[2mApp Store (Connections & UI Settings)[2m > [22m[2mshould apply pre-defined font size profiles correctly
+[22m[39m[Projects] Init - Last Selected ID: [90mundefined[39m
+
+ [31m❯[39m src/stores/__tests__/projects.unit.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 105[2mms[22m[39m
+[31m     [31m×[31m should initialize with a default project if none exist[39m[32m 18[2mms[22m[39m
+     [32m✓[39m should add a new project[32m 14[2mms[22m[39m
+     [32m✓[39m should update an existing project[32m 12[2mms[22m[39m
+     [32m✓[39m should duplicate a project[32m 12[2mms[22m[39m
+[31m     [31m×[31m should not allow removing the default project[39m[32m 12[2mms[22m[39m
+     [32m✓[39m should format storage output when saving projects[32m 12[2mms[22m[39m
+     [32m✓[39m should reset other stores when project selection changes[32m 24[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/app.unit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 100[2mms[22m[39m
+ [31m❯[39m src/components/connection/__tests__/ConnectionManager.unit.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[32m 18[2mms[22m[39m
+[31m     [31m×[31m renders the connection manager empty state when no connections exist[39m[32m 11[2mms[22m[39m
+[31m     [31m×[31m renders a list of connections[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m switches to add form when "Add Connection" is clicked[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m switches to environment tabs view when "BY ENVIRONMENT" is clicked[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m calls delete bulk action when bulk delete is used[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m calls duplicate connection action[39m[32m 1[2mms[22m[39m
+[90mstdout[2m | src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22m[2mSchemaDiagram.vue[2m > [22m[2mrenders tables correctly and parses columns from DDL
+[22m[39m[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+
+[90mstdout[2m | src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22m[2mSchemaDiagram.vue[2m > [22m[2mtoggles detail levels (names, keys, all)
+[22m[39m[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+
+[90mstdout[2m | src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22m[2mSchemaDiagram.vue[2m > [22m[2mcalculates edges between tables based on naming conventions
+[22m[39m[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+
+ [32m✓[39m src/components/compare/__tests__/MigrationConfirm.unit.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 61[2mms[22m[39m
+[90mstdout[2m | src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22m[2mSchemaDiagram.vue[2m > [22m[2mfilters tables based on search query by applying grayscale to non-matching
+[22m[39m[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+[SchemaDiagram] First Table: users DDL bytes: [33m105[39m Parsed columns: [33m0[39m
+
+ [31m❯[39m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts [2m([22m[2m4 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 57[2mms[22m[39m
+[31m     [31m×[31m renders tables correctly and parses columns from DDL[39m[32m 32[2mms[22m[39m
+[31m     [31m×[31m toggles detail levels (names, keys, all)[39m[32m 11[2mms[22m[39m
+[31m     [31m×[31m calculates edges between tables based on naming conventions[39m[32m 5[2mms[22m[39m
+[31m     [31m×[31m filters tables based on search query by applying grayscale to non-matching[39m[32m 9[2mms[22m[39m
+ [32m✓[39m src/components/compare/__tests__/MirrorDiffView.unit.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 12 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/stores/__tests__/projects.unit.test.ts[2m > [22mProjects Store[2m > [22mshould initialize with a default project if none exist
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m src/stores/__tests__/projects.unit.test.ts:[2m85:35[22m[39m
+    [90m 83| [39m    await new Promise(resolve => setTimeout(resolve, 10)) // wait for …
+    [90m 84| [39m
+    [90m 85| [39m    [34mexpect[39m(store[33m.[39mprojects[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m   | [39m                                  [31m^[39m
+    [90m 86| [39m    [34mexpect[39m(store[33m.[39mprojects[[34m0[39m][33m.[39mid)[33m.[39m[34mtoBe[39m([32m'default'[39m)
+    [90m 87| [39m    [34mexpect[39m(store[33m.[39mprojects[[34m0[39m][33m.[39mname)[33m.[39m[34mtoBe[39m([32m'Project One'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/stores/__tests__/projects.unit.test.ts[2m > [22mProjects Store[2m > [22mshould not allow removing the default project
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m src/stores/__tests__/projects.unit.test.ts:[2m155:58[22m[39m
+    [90m153| [39m
+    [90m154| [39m    store[33m.[39m[34mremoveProject[39m([32m'default'[39m)
+    [90m155| [39m    [34mexpect[39m(store[33m.[39mprojects[33m.[39m[34msome[39m(p [33m=>[39m p[33m.[39mid [33m===[39m [32m'default'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   | [39m                                                         [31m^[39m
+    [90m156| [39m  })
+    [90m157| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mrenders the connection manager empty state when no connections exist
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mrenders a list of connections
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mswitches to add form when "Add Connection" is clicked
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mswitches to environment tabs view when "BY ENVIRONMENT" is clicked
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mcalls delete bulk action when bulk delete is used
+[41m[1m FAIL [22m[49m src/components/connection/__tests__/ConnectionManager.unit.test.ts[2m > [22mConnectionManager.vue[2m > [22mcalls duplicate connection action
+[31m[1mError[22m: [vitest] No "LayoutTemplate" export is defined on the "lucide-vue-next" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("lucide-vue-next"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m❯[22m Proxy.get LayoutTemplate src/components/connection/ConnectionManager.vue:[2m213:36[22m[39m
+    [90m212| [39m                        :title="$t('connections.testConnection')"
+    [90m213| [39m                      >
+    [90m214| [39m                        <RefreshCw v-if="connection.status === 'testin…
+    [90m   | [39m           [31m^[39m
+    [90m215| [39m                        <CheckCircle2 v-else-if="connection.status ===…
+    [90m216| [39m                        <AlertCircle v-else-if="connection.status === …
+[90m [2m❯[22m Object.get ../node_modules/.pnpm/@vue+reactivity@3.5.30/node_modules/@vue/reactivity/dist/reactivity.cjs.js:[2m1549:78[22m[39m
+[90m [2m❯[22m Proxy._sfc_render src/components/connection/ConnectionManager.vue:[2m77:47[22m[39m
+[90m [2m❯[22m renderComponentRoot ../node_modules/.pnpm/@vue+runtime-core@3.5.30/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m4528:16[22m[39m
+[90m [2m❯[22m ReactiveEffect.componentUpdateFn [as fn] ../node_modules/.pnpm/@vue+runtime-core@3.5.30/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m6039:46[22m[39m
+[90m [2m❯[22m ReactiveEffect.run ../node_modules/.pnpm/@vue+reactivity@3.5.30/node_modules/@vue/reactivity/dist/reactivity.cjs.js:[2m243:19[22m[39m
+[90m [2m❯[22m setupRenderEffect ../node_modules/.pnpm/@vue+runtime-core@3.5.30/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m6174:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22mSchemaDiagram.vue[2m > [22mrenders tables correctly and parses columns from DDL
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: users. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"h-full w-full bg-gray-50 dark:bg-gray-950 overflow-hidden relative select-none"[39m
+      [33mdata-v-ca842b07[39m=[32m""[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute transition-transform duration-75 cursor-grab active:cursor-grabbing"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+        [33mstyle[39m=[32m"transform: translate(50px, 50px) scale(0.8); transform-origin: 0 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"absolute inset-0 opacity-[0.2] dark:opacity-[0.15]"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+          [33mstyle[39m=[32m"background-image: radial-gradient(circle, #9ca3af 1px, transparent 1px); background-size: 16px 16px; width: 10000px; height: 10000px; transform: translate(-2500px, -2500px);"[39m
+        [36m/>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"absolute inset-0 pointer-events-none"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+          [33mheight[39m=[32m"5000"[39m
+          [33mwidth[39m=[32m"5000"[39m
+        [36m>[39m
+          [0m[0m
+          [0m[0m
+        [36m</svg>[39m
+        [0m[0m
+        [0m[0m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl ring-1 ring-black/5 transition-all"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center px-2 py-1 border-r border-gray-100 dark:border-gray-800"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Zoom Out"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-minus"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"text-[10px] font-black w-10 text-center text-gray-600 dark:text-gray-300 tabular-nums"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [0m80%[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Zoom In"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-plus"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-1 px-2 border-r border-gray-100 dark:border-gray-800"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Auto Arrange Layout (Organize tables in grid)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-layout"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 rounded-xl transition-all active:scale-90 bg-primary-50 dark:bg-primary-900/30 text-primary-500"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Toggle Relationships (Show/Hide connection lines)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-branch"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 rounded-xl transition-all active:scale-90 bg-primary-50 dark:bg-primary-900/30 text-primary-500"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Toggle Background Grid"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-grid"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2 px-2"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative group"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary-500 transition-colors"[39m
+              [33mdata-testid[39m=[32m"icon-search"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+            [36m<input[39m
+              [33mclass[39m=[32m"pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-[11px] font-bold w-32 focus:w-48 transition-all focus:ring-2 focus:ring-primary-500/20 text-gray-900 dark:text-white"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mplaceholder[39m=[32m"Search tables..."[39m
+              [33mtitle[39m=[32m"Search tables by name"[39m
+              [33mtype[39m=[32m"text"[39m
+            [36m/>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl px-2 py-1 gap-1"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m>[39m
+              [0mShow:[0m
+            [36m</span>[39m
+            [0m[0m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show Table Names only"[39m
+            [36m>[39m
+              [0mnames[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show Primary Keys only"[39m
+            [36m>[39m
+              [0mkeys[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all bg-white dark:bg-gray-700 text-primary-500 shadow-sm"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show All Fields"[39m
+            [36m>[39m
+              [0mall[0m
+            [36m</button>[39m
+            [0m[0m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Center View & Reset Zoom"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-maximize"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"w-px h-6 bg-gray-100 dark:bg-gray-800 mx-1"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m/>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-primary-500 transition-all active:scale-90 disabled:opacity-50"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Export as PNG (with watermark)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-download"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute top-6 right-6 px-4 py-2 bg-gray-900/90 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"w-3.5 h-3.5"[39m
+          [33mdata-testid[39m=[32m"icon-pointer"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m/>[39m
+        [0m Drag to pan • Scroll to zoom [0m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts:[2m62:19[22m[39m
+    [90m 60| [39m
+    [90m 61| [39m    [90m// Ensure headers exist[39m
+    [90m 62| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([32m'users'[39m))[33m.[39m[34mtoBeTruthy[39m()
+    [90m   | [39m                  [31m^[39m
+    [90m 63| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([32m'posts'[39m))[33m.[39m[34mtoBeTruthy[39m()
+    [90m 64| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22mSchemaDiagram.vue[2m > [22mtoggles detail levels (names, keys, all)
+[31m[1mAssertionError[22m: expected null to be truthy[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts:[2m75:41[22m[39m
+    [90m 73| [39m
+    [90m 74| [39m    [90m// Default is "all", so 'email' (non-pk) is visible[39m
+    [90m 75| [39m    [34mexpect[39m(screen[33m.[39m[34mqueryByText[39m([32m'email'[39m))[33m.[39m[34mtoBeTruthy[39m()
+    [90m   | [39m                                        [31m^[39m
+    [90m 76| [39m
+    [90m 77| [39m    [90m// Switch to 'names'[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22mSchemaDiagram.vue[2m > [22mcalculates edges between tables based on naming conventions
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts:[2m99:26[22m[39m
+    [90m 97| [39m    [90m// Look for SVG path elements that signify edges[39m
+    [90m 98| [39m    [35mconst[39m paths [33m=[39m document[33m.[39mbody[33m.[39m[34mquerySelectorAll[39m([32m'svg path'[39m)
+    [90m 99| [39m    expect(paths.length).toBeGreaterThan(0) // Should have an edge bet…
+    [90m   | [39m                         [31m^[39m
+    [90m100| [39m  })
+    [90m101| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts[2m > [22mSchemaDiagram.vue[2m > [22mfilters tables based on search query by applying grayscale to non-matching
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: posts. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"h-full w-full bg-gray-50 dark:bg-gray-950 overflow-hidden relative select-none"[39m
+      [33mdata-v-ca842b07[39m=[32m""[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute transition-transform duration-75 cursor-grab active:cursor-grabbing"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+        [33mstyle[39m=[32m"transform: translate(50px, 50px) scale(0.8); transform-origin: 0 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"absolute inset-0 opacity-[0.2] dark:opacity-[0.15]"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+          [33mstyle[39m=[32m"background-image: radial-gradient(circle, #9ca3af 1px, transparent 1px); background-size: 16px 16px; width: 10000px; height: 10000px; transform: translate(-2500px, -2500px);"[39m
+        [36m/>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"absolute inset-0 pointer-events-none"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+          [33mheight[39m=[32m"5000"[39m
+          [33mwidth[39m=[32m"5000"[39m
+        [36m>[39m
+          [0m[0m
+          [0m[0m
+        [36m</svg>[39m
+        [0m[0m
+        [0m[0m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl ring-1 ring-black/5 transition-all"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center px-2 py-1 border-r border-gray-100 dark:border-gray-800"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Zoom Out"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-minus"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"text-[10px] font-black w-10 text-center text-gray-600 dark:text-gray-300 tabular-nums"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [0m80%[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Zoom In"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-plus"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-1 px-2 border-r border-gray-100 dark:border-gray-800"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Auto Arrange Layout (Organize tables in grid)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-layout"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 rounded-xl transition-all active:scale-90 bg-primary-50 dark:bg-primary-900/30 text-primary-500"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Toggle Relationships (Show/Hide connection lines)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-branch"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 rounded-xl transition-all active:scale-90 bg-primary-50 dark:bg-primary-900/30 text-primary-500"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Toggle Background Grid"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-grid"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center gap-2 px-2"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative group"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary-500 transition-colors"[39m
+              [33mdata-testid[39m=[32m"icon-search"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+            [36m<input[39m
+              [33mclass[39m=[32m"pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-[11px] font-bold w-32 focus:w-48 transition-all focus:ring-2 focus:ring-primary-500/20 text-gray-900 dark:text-white"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mplaceholder[39m=[32m"Search tables..."[39m
+              [33mtitle[39m=[32m"Search tables by name"[39m
+              [33mtype[39m=[32m"text"[39m
+            [36m/>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl px-2 py-1 gap-1"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m>[39m
+              [0mShow:[0m
+            [36m</span>[39m
+            [0m[0m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show Table Names only"[39m
+            [36m>[39m
+              [0mnames[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show Primary Keys only"[39m
+            [36m>[39m
+              [0mkeys[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2 py-1 rounded-lg text-[9px] font-bold uppercase transition-all bg-white dark:bg-gray-700 text-primary-500 shadow-sm"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+              [33mtitle[39m=[32m"Show All Fields"[39m
+            [36m>[39m
+              [0mall[0m
+            [36m</button>[39m
+            [0m[0m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Center View & Reset Zoom"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-maximize"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"w-px h-6 bg-gray-100 dark:bg-gray-800 mx-1"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+          [36m/>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-primary-500 transition-all active:scale-90 disabled:opacity-50"[39m
+            [33mdata-v-ca842b07[39m=[32m""[39m
+            [33mtitle[39m=[32m"Export as PNG (with watermark)"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"w-4 h-4"[39m
+              [33mdata-testid[39m=[32m"icon-download"[39m
+              [33mdata-v-ca842b07[39m=[32m""[39m
+            [36m/>[39m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"absolute top-6 right-6 px-4 py-2 bg-gray-900/90 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500"[39m
+        [33mdata-v-ca842b07[39m=[32m""[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"w-3.5 h-3.5"[39m
+          [33mdata-testid[39m=[32m"icon-pointer"[39m
+          [33mdata-v-ca842b07[39m=[32m""[39m
+        [36m/>[39m
+        [0m Drag to pan • Scroll to zoom [0m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/ddl/__tests__/SchemaDiagram.unit.test.ts:[2m110:33[22m[39m
+    [90m108| [39m    [90m// Find the users and posts document.bodys[39m
+    [90m109| [39m    // We expect the 'posts' table document.body to have grayscale / o…
+    [90m110| [39m    [35mconst[39m postsElement [33m=[39m screen[33m.[39m[34mgetByText[39m([32m'posts'[39m)[33m.[39m[34mclosest[39m([32m'.bg-white'[39m)
+    [90m   | [39m                                [31m^[39m
+    [90m111| [39m    [34mexpect[39m(postsElement[33m?.[39mclassName)[33m.[39m[34mtoContain[39m([32m'grayscale'[39m)
+    [90m112| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[31m12 failed[39m[22m[2m | [22m[1m[32m34 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (47)[39m
+[2m   Start at [22m 11:33:20
+[2m   Duration [22m 2.29s[2m (transform 3.69s, setup 4.26s, import 5.02s, tests 515ms, environment 4.35s)[22m
+
+ ELIFECYCLE  Test failed. See above for more details.
