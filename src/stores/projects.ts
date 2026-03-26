@@ -425,7 +425,8 @@ export const useProjectsStore = defineStore('projects', () => {
 
     appStore.connections.forEach(conn => {
       const host = conn.type === 'dump' ? normalizeDumpPath(conn.host) : (conn.host || '').toLowerCase().trim()
-      const key = `${conn.environment}|${conn.name.toLowerCase().trim()}|${host}|${conn.port}|${(conn.database || '').toLowerCase().trim()}|${(conn.username || '').toLowerCase().trim()}`
+      // Note: We include ID to allow multiple identical connections if they have distinct IDs
+      const key = `${conn.id}|${conn.environment}|${conn.name.toLowerCase().trim()}|${host}|${conn.port}|${(conn.database || '').toLowerCase().trim()}|${(conn.username || '').toLowerCase().trim()}`
 
       if (!connGroups[key]) {
         connGroups[key] = conn

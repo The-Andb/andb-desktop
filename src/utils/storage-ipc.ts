@@ -93,9 +93,10 @@ export const storage = {
     const seen = new Set<string>()
     return connections.filter(conn => {
       // Create a unique hash for the connection content
-      // Note: We ignore 'id' for the hash to find semantic duplicates
-      // We normalize strings to lowercase/trimmed to be safe
+      // Note: We include ID to allow multiple identical connections if they have distinct IDs
+      // but we still want to prune TOTAL duplicates (same everything + same ID)
       const key = [
+        conn.id,
         conn.name,
         conn.host,
         conn.port,

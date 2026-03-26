@@ -72,6 +72,23 @@ export async function handleStorageSet(_event: any, key: string, value: any) {
       const repo = getRepository(GlobalConnectionEntity)
       const security = SecurityService.getInstance()
       
+      const providedIds = value.map((c: any) => c.id).filter(Boolean)
+      
+      // 1. Prune missing IDs (Atomic Delete missing)
+      if (providedIds.length > 0) {
+        // Find existing IDs
+        const existing = await repo.find({ select: ['id'] })
+        const toDelete = existing.filter((e: any) => !providedIds.includes(e.id)).map((e: any) => e.id)
+        
+        if (toDelete.length > 0) {
+           await repo.delete(toDelete)
+        }
+      } else {
+        // If empty list provided, clear the table
+        await repo.clear()
+      }
+
+      // 2. Upsert provided ones
       for (const conn of value) {
         let encryptedPassword = conn.password;
         if (encryptedPassword) {
