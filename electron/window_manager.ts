@@ -71,7 +71,18 @@ export function setupAppMenu() {
         {
           label: 'Check for Updates...',
           click: () => {
-            ApplicationUpdater.getInstance().init().checkForUpdates()
+            const updater = ApplicationUpdater.getInstance()
+            if (isDev) {
+              const win = getMainWindow()
+              if (win) {
+                updater.testUpdateFlow(win.webContents, 'available')
+              }
+            } else {
+              const init = updater.init()
+              if (init) {
+                init.checkForUpdates()
+              }
+            }
           }
         },
         { type: 'separator' },
@@ -95,7 +106,18 @@ export function setupAppMenu() {
           {
             label: 'Check for Updates...',
             click: () => {
-              ApplicationUpdater.getInstance().init().checkForUpdates()
+              const updater = ApplicationUpdater.getInstance()
+              if (isDev) {
+                const win = getMainWindow()
+                if (win) {
+                  updater.testUpdateFlow(win.webContents, 'available')
+                }
+              } else {
+                const init = updater.init()
+                if (init) {
+                  init.checkForUpdates()
+                }
+              }
             }
           },
           { type: 'separator' }
