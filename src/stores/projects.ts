@@ -61,14 +61,72 @@ export const useProjectsStore = defineStore('projects', () => {
         const cleanConnectionIds = [...new Set(p.connectionIds || [])]
         const cleanPairIds = [...new Set(p.pairIds || [])]
 
-        let newId = p.id
-
         return {
           ...p,
-          id: newId,
           connectionIds: cleanConnectionIds,
           pairIds: cleanPairIds
         }
+      })
+
+      // 5.2. Connection Isolation Pass (Fix cross-project leakage)
+      const appStore = useAppStore()
+      const connectionPairsStore = useConnectionPairsStore()
+      const connUsageMap = new Map<string, string[]>() // connId -> [projectId]
+      const pairUsageMap = new Map<string, string[]>() // pairId -> [projectId]
+
+      projects.value.forEach(p => {
+        ;(p.connectionIds || []).forEach(id => {
+          const usage = connUsageMap.get(id) || []
+          usage.push(p.id)
+          connUsageMap.set(id, usage)
+        })
+        ;(p.pairIds || []).forEach(id => {
+          const usage = pairUsageMap.get(id) || []
+          usage.push(p.id)
+          pairUsageMap.set(id, usage)
+        })
+      })
+
+      // Fix shared IDs by cloning
+      projects.value.forEach(p => {
+        // 1. Isolate Connections
+        p.connectionIds = (p.connectionIds || []).map(id => {
+          const usage = connUsageMap.get(id)
+          if (usage && usage.length > 1 && usage[0] !== p.id) {
+            const original = appStore.connections.find(c => c.id === id)
+            if (original) {
+              const newId = appStore.generateId()
+              const clone = { ...JSON.parse(JSON.stringify(original)), id: newId }
+              appStore.connections.push(clone)
+              
+              // Find and clone any pair in this project that uses the old connection ID
+              p.pairIds.forEach(pairId => {
+                const pair = connectionPairsStore.connectionPairs.find(cp => cp.id === pairId)
+                if (pair) {
+                  if (pair.sourceConnectionId === id) pair.sourceConnectionId = newId
+                  if (pair.targetConnectionId === id) pair.targetConnectionId = newId
+                }
+              })
+              return newId
+            }
+          }
+          return id
+        })
+
+        // 2. Isolate Pairs
+        p.pairIds = (p.pairIds || []).map(id => {
+          const usage = pairUsageMap.get(id)
+          if (usage && usage.length > 1 && usage[0] !== p.id) {
+            const original = connectionPairsStore.connectionPairs.find(cp => cp.id === id)
+            if (original) {
+              const newId = appStore.generateId() // reuse generateId
+              const clone = { ...JSON.parse(JSON.stringify(original)), id: newId }
+              connectionPairsStore.connectionPairs.push(clone)
+              return newId
+            }
+          }
+          return id
+        })
       })
 
       // Robust Selection Logic
@@ -203,6 +261,7 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   const selectProject = (id: string) => {
+    console.log('[Projects] Switching to project:', id)
     if (projects.value.some(p => p.id === id)) {
       selectedProjectId.value = id
 
@@ -217,14 +276,52 @@ export const useProjectsStore = defineStore('projects', () => {
     const source = projects.value.find(p => p.id === id)
     if (!source) return
 
+    const appStore = useAppStore()
+    const connectionPairsStore = useConnectionPairsStore()
+
+    // 1. Create the new project structure (shallow copy first)
     const newProject: Project = {
       ...JSON.parse(JSON.stringify(source)),
-      id: generateId(), // OVERWRITE the ID from source
+      id: generateId(),
       name: `${source.name} (Copy)`,
       isActive: false,
+      connectionIds: [],
+      pairIds: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
+
+    // 2. Clone Connections
+    const connIdMap: Record<string, string> = {}
+    source.connectionIds.forEach(oldId => {
+      const oldConn = appStore.connections.find(c => c.id === oldId)
+      if (oldConn) {
+        const newConnId = appStore.generateId() // Use appStore's generator
+        const newConn = { 
+          ...JSON.parse(JSON.stringify(oldConn)), 
+          id: newConnId 
+        }
+        appStore.connections.push(newConn)
+        connIdMap[oldId] = newConnId
+        newProject.connectionIds.push(newConnId)
+      }
+    })
+
+    // 3. Clone Pairs
+      source.pairIds.forEach(oldId => {
+        const oldPair = connectionPairsStore.connectionPairs.find(p => p.id === oldId)
+        if (oldPair) {
+          const newPairId = appStore.generateId()
+        const newPair = {
+          ...JSON.parse(JSON.stringify(oldPair)),
+          id: newPairId,
+          sourceConnectionId: oldPair.sourceConnectionId ? (connIdMap[oldPair.sourceConnectionId] || oldPair.sourceConnectionId) : undefined,
+          targetConnectionId: oldPair.targetConnectionId ? (connIdMap[oldPair.targetConnectionId] || oldPair.targetConnectionId) : undefined
+        }
+        connectionPairsStore.connectionPairs.push(newPair)
+        newProject.pairIds.push(newPairId)
+      }
+    })
 
     projects.value.push(newProject)
     return newProject
@@ -406,71 +503,43 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
-   * Deep cleanup of duplicates and orphaned data
+   * Deep cleanup of orphaned data.
+   * Only removes connections/pairs that are NOT referenced by ANY project.
    */
   async function cleanGarbageConnections() {
     const appStore = useAppStore()
     const connectionPairsStore = useConnectionPairsStore()
 
-    const normalizeDumpPath = (path: string) => {
-      if (!path) return ''
-      // Normalize dump paths: get filename or handle common demo paths
-      const filename = path.split(/[/\\]/).pop() || path
-      return filename.toLowerCase().trim()
+    // 1. Collect all referenced IDs from all projects
+    const referencedConnectionIds = new Set<string>()
+    const referencedPairIds = new Set<string>()
+
+    projects.value.forEach(p => {
+      ;(p.connectionIds || []).forEach(id => referencedConnectionIds.add(id))
+      ;(p.pairIds || []).forEach(id => referencedPairIds.add(id))
+    })
+
+    // 2. Also collect IDs referenced by Connection Pairs (to avoid deleting used connections)
+    connectionPairsStore.connectionPairs.forEach(pair => {
+      // Only if the pair itself is referenced by a project
+      if (referencedPairIds.has(pair.id)) {
+        if (pair.sourceConnectionId) referencedConnectionIds.add(pair.sourceConnectionId)
+        if (pair.targetConnectionId) referencedConnectionIds.add(pair.targetConnectionId)
+      }
+    })
+
+    // 3. Filter out Orphans (KEEP ONLY REFERENCED)
+    const originalConnCount = appStore.connections.length
+    const originalPairCount = connectionPairsStore.connectionPairs.length
+
+    appStore.connections = appStore.connections.filter(c => referencedConnectionIds.has(c.id))
+    connectionPairsStore.connectionPairs = connectionPairsStore.connectionPairs.filter(p => referencedPairIds.has(p.id))
+
+    if (appStore.connections.length !== originalConnCount || connectionPairsStore.connectionPairs.length !== originalPairCount) {
+      console.log(`[Projects] Cleaned orphans: Connections ${originalConnCount} -> ${appStore.connections.length}, Pairs ${originalPairCount} -> ${connectionPairsStore.connectionPairs.length}`)
     }
 
-    // 1. De-duplicate Connections
-    const connGroups: Record<string, any> = {}
-    const connMap: Record<string, string> = {}
-
-    appStore.connections.forEach(conn => {
-      const host = conn.type === 'dump' ? normalizeDumpPath(conn.host) : (conn.host || '').toLowerCase().trim()
-      // Note: We include ID to allow multiple identical connections if they have distinct IDs
-      const key = `${conn.id}|${conn.environment}|${conn.name.toLowerCase().trim()}|${host}|${conn.port}|${(conn.database || '').toLowerCase().trim()}|${(conn.username || '').toLowerCase().trim()}`
-
-      if (!connGroups[key]) {
-        connGroups[key] = conn
-        connMap[conn.id] = conn.id
-      } else {
-        connMap[conn.id] = connGroups[key].id
-      }
-    })
-
-    appStore.connections = Object.values(connGroups)
-
-    // 2. Update Pairs and De-duplicate
-    connectionPairsStore.connectionPairs.forEach(pair => {
-      if (pair.sourceConnectionId && connMap[pair.sourceConnectionId]) {
-        pair.sourceConnectionId = connMap[pair.sourceConnectionId]
-      }
-      if (pair.targetConnectionId && connMap[pair.targetConnectionId]) {
-        pair.targetConnectionId = connMap[pair.targetConnectionId]
-      }
-    })
-
-    const pairGroups: Record<string, any> = {}
-    const pairMap: Record<string, string> = {}
-
-    connectionPairsStore.connectionPairs.forEach(pair => {
-      const key = `${pair.name.toLowerCase().trim()}|${pair.sourceConnectionId}|${pair.targetConnectionId}|${pair.sourceEnv}|${pair.targetEnv}`
-      if (!pairGroups[key]) {
-        pairGroups[key] = pair
-        pairMap[pair.id] = pair.id
-      } else {
-        pairMap[pair.id] = pairGroups[key].id
-      }
-    })
-
-    connectionPairsStore.connectionPairs = Object.values(pairGroups)
-
-    // 3. Update Projects
-    projects.value.forEach(p => {
-      p.connectionIds = [...new Set((p.connectionIds || []).map(id => connMap[id] || id))]
-      p.pairIds = [...new Set((p.pairIds || []).map(id => pairMap[id] || id))]
-    })
-
     // 4. PERSIST CHANGES EXPLICITLY TO DISK
-    // This prevents race conditions where reloadData() might pull stale data
     await Promise.all([
       storage.saveConnections(appStore.connections),
       storage.saveConnectionPairs(connectionPairsStore.connectionPairs),

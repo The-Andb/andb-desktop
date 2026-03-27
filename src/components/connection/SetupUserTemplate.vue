@@ -80,9 +80,24 @@
 
              <div v-if="!reconfigureMode" class="col-span-2 space-y-2">
                 <label class="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest ml-1">{{ $t('restrictedUserSetup.restrictedUsername.label') }}</label>
-                <input v-model="store.restrictedUser.username" @focus="selectAll" type="text" class="form-input" placeholder="the_andb" />
-                <p class="text-[10px] text-gray-500 dark:text-gray-400 ml-1 italic leading-relaxed">
-                  {{ $t('restrictedUserSetup.description') }}
+                <div class="grid grid-cols-2 gap-4">
+                  <input v-model="store.restrictedUser.username" @focus="selectAll" type="text" class="form-input" placeholder="the_andb" />
+                  <div class="relative">
+                    <input 
+                      v-model="store.restrictedUser.password" 
+                      @focus="selectAll" 
+                      :type="showRestrictedPass ? 'text' : 'password'" 
+                      class="form-input pr-10" 
+                      placeholder="Restricted Password" 
+                    />
+                    <button @click="showRestrictedPass = !showRestrictedPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500">
+                        <Eye v-if="!showRestrictedPass" class="w-4 h-4" />
+                        <EyeOff v-else class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <p class="text-[10px] text-gray-400 ml-1 italic leading-relaxed">
+                  {{ $t('restrictedUserSetup.description') }} (Generated automatically, you can change it)
                 </p>
              </div>
 
@@ -336,16 +351,23 @@
                   <Terminal class="w-5 h-5 text-gray-500" />
                   Generated SQL Script
                 </h4>
-                <button @click="copyScript" class="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                  <Copy class="w-3 h-3" /> Copy
-                </button>
+                <div class="flex items-center gap-4">
+                  <button @click="showPasswordsInScript = !showPasswordsInScript" class="text-xs font-bold flex items-center gap-1 transition-colors" :class="showPasswordsInScript ? 'text-amber-600' : 'text-gray-400'">
+                    <Eye v-if="!showPasswordsInScript" class="w-3 h-3" />
+                    <EyeOff v-else class="w-3 h-3" />
+                    {{ showPasswordsInScript ? 'Hide Passwords' : 'Reveal Passwords' }}
+                  </button>
+                  <button @click="copyScript" class="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
+                    <Copy class="w-3 h-3" /> Copy
+                  </button>
+                </div>
             </div>
             
             <div class="relative group">
                 <div class="absolute right-3 top-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border border-white/5" @click="copyScript" title="Copy to clipboard">
                     <Copy class="w-3.5 h-3.5 text-gray-400 group-hover:text-white" />
                 </div>
-                <pre class="bg-gray-900 text-gray-300 p-5 rounded-2xl text-xs leading-relaxed font-mono overflow-x-auto border border-gray-800 shadow-inner custom-scrollbar max-h-48">{{ generatedScript }}</pre>
+                <pre class="bg-gray-900 text-gray-300 p-5 rounded-2xl text-xs leading-relaxed font-mono overflow-x-auto border border-gray-800 shadow-inner custom-scrollbar max-h-48">{{ maskedScript }}</pre>
             </div>
 
             <div v-if="store.setupMode === 'auto' && !executionDone" class="mt-6">
@@ -541,6 +563,20 @@ const verificationDone = ref(false)
 const isAdminTesting = ref(false)
 const adminTestResult = ref<'idle' | 'pass' | 'fail'>('idle')
 const sshKeyWarning = ref('')
+const showRestrictedPass = ref(false)
+const showPasswordsInScript = ref(false)
+const maskedScript = computed(() => {
+  if (showPasswordsInScript.value) return generatedScript.value
+  
+  // Basic masking of typical password patterns in SQL
+  let script = generatedScript.value
+  
+  // Mask MySQL/Postgres password patterns
+  script = script.replace(/IDENTIFIED BY\s+'([^']+)'/gi, "IDENTIFIED BY '********'")
+  script = script.replace(/PASSWORD\s+'([^']+)'/gi, "PASSWORD '********'")
+  
+  return script
+})
 
 // Local form state
 const connectionName = ref('')

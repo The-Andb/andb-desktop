@@ -284,7 +284,7 @@ export const useAppStore = defineStore('app', () => {
       // 3. Resolve Connection (Template is Single Source of Truth for infrastructure)
       return {
         ...conn,
-        // Infrastructure: Template ALWAYS wins if it exists
+        // Infrastructure: Template ALWAYS wins if it exists (SSoT)
         host: template.host || conn.host,
         port: template.port || conn.port,
         username: template.username || conn.username,
@@ -427,27 +427,6 @@ export const useAppStore = defineStore('app', () => {
   }
 
   const addConnection = (connection: Omit<DatabaseConnection, 'id'>, projectId?: string) => {
-    // 1. De-duplication Check
-    const existing = connections.value.find(c =>
-      c.name === connection.name &&
-      c.environment === connection.environment &&
-      c.host === connection.host &&
-      c.port === connection.port &&
-      c.database === connection.database &&
-      c.username === connection.username
-    )
-
-    if (existing) {
-      console.log(`Connection already exists: ${existing.id}`)
-      // Still need to ensure it's linked to the project
-      const projectsStore = useProjectsStore()
-      const targetProjectId = projectId || projectsStore.selectedProjectId
-      if (targetProjectId) {
-        projectsStore.addItemToProject('connection', existing.id, targetProjectId)
-      }
-      return existing
-    }
-
     const newConnection: DatabaseConnection = {
       ...connection,
       id: generateId()
@@ -658,6 +637,7 @@ export const useAppStore = defineStore('app', () => {
     testConnection,
     resetConnections,
     applyFontSizeProfile,
+    generateId,
     clearAllStatuses: () => {
       connections.value.forEach(conn => {
         conn.status = 'idle'

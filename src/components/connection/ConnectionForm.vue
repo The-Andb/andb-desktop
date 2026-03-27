@@ -363,8 +363,7 @@ const saveConnection = async () => {
     
     const connectionData: Omit<DatabaseConnection, 'id'> = {
       name: form.value.name,
-      // Design: If using a template, don't clone the infra fields.
-      // SSoT (Single Source of Truth) means these are resolved dynamically.
+      // Design: SSoT - infrastructure fields are resolved from the template
       host: isReference ? '' : form.value.host,
       port: isReference ? 0 : form.value.port,
       username: isReference ? '' : form.value.username,
