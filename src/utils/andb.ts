@@ -450,6 +450,58 @@ export class Andb {
       return null
     }
   }
+
+  // --- Table Inspector (AI DBA Super Mode) ---
+
+  /**
+   * Fetch table stats (row count, data size, index size) for all tables in a database
+   */
+  static async getTableStats(connection: DatabaseConnection): Promise<any[]> {
+    if (!isElectron) return []
+    try {
+      const result = await window.electronAPI.andbGetTableStats({
+        connection: this.sanitize(connection)
+      })
+      if (result.success) return result.data || []
+      console.warn('[Andb] getTableStats failed:', result.error)
+      return []
+    } catch (error) {
+      console.warn('[Andb] getTableStats error:', error)
+      return []
+    }
+  }
+
+  /**
+   * Fetch MySQL server info (version, DDL capabilities)
+   */
+  static async getServerInfo(connection: DatabaseConnection): Promise<any> {
+    if (!isElectron) return null
+    try {
+      const result = await window.electronAPI.andbGetServerInfo({
+        connection: this.sanitize(connection)
+      })
+      if (result.success) return result.data
+      return null
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
+   * Fetch foreign key dependency graph for a database
+   */
+  static async getFKGraph(connection: DatabaseConnection): Promise<any[]> {
+    if (!isElectron) return []
+    try {
+      const result = await window.electronAPI.andbGetFKGraph({
+        connection: this.sanitize(connection)
+      })
+      if (result.success) return result.data || []
+      return []
+    } catch (error) {
+      return []
+    }
+  }
 }
 
 export default Andb

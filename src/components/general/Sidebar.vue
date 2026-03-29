@@ -252,8 +252,12 @@
              </div>
              <div class="min-w-0 flex-1">
                <div class="text-[12px] font-black truncate tracking-tighter" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'">{{ pair.name }}</div>
-               <div class="text-[9px] font-bold truncate opacity-50 uppercase tracking-widest mt-0.5">
-                  {{ pair.sourceEnv }} <span class="mx-1 opacity-50">→</span> {{ pair.targetEnv }}
+                <div class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                   <span class="text-primary-600 dark:text-primary-400 font-black">{{ pair.sourceEnv }}</span>
+                   <span v-if="pair.sourceDb" class="opacity-60">({{ pair.sourceDb }})</span>
+                   <span class="mx-1 opacity-40">→</span> 
+                   <span class="text-emerald-600 dark:text-emerald-400 font-black">{{ pair.targetEnv }}</span>
+                   <span v-if="pair.targetDb" class="opacity-60">({{ pair.targetDb }})</span>
                </div>
              </div>
              

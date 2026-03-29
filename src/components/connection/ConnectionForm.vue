@@ -3,22 +3,17 @@
     <!-- Environment Selection - NOW AT THE TOP -->
     <div class="space-y-2">
       <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.environment') }} *</label>
-      <div class="relative group">
-        <select
-          v-model="form.environment"
-          class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none font-bold leading-tight"
-          :class="{ 'border-red-500 ring-4 ring-red-500/10': errors.environment }"
+      <div class="flex flex-wrap gap-2 pt-1 border border-gray-100 dark:border-gray-800/50 p-3 rounded-2xl bg-gray-50/30 dark:bg-gray-900/10">
+        <button
+          v-for="env in enabledEnvironments"
+          :key="env.name"
+          type="button"
+          @click="form.environment === env.name ? form.environment = '' : form.environment = env.name"
+          class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shadow-sm select-none h-11 min-w-[70px] flex items-center justify-center"
+          :class="form.environment === env.name ? 'bg-primary-500 text-white border-primary-600 shadow-primary-500/20' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
         >
-          <option value="">{{ $t('common.select') }}</option>
-          <option 
-            v-for="env in enabledEnvironments" 
-            :key="env.name" 
-            :value="env.name"
-          >
-            {{ $t(`environments.${env.name.toLowerCase()}`) }}
-          </option>
-        </select>
-        <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
+          {{ env.name }}
+        </button>
       </div>
       <p v-if="errors.environment" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ errors.environment }}</p>
     </div>

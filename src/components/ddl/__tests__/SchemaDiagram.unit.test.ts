@@ -23,6 +23,33 @@ vi.mock('lucide-vue-next', () => ({
   RefreshCw: { template: '<svg data-testid="icon-refresh"></svg>' }
 }))
 
+vi.mock('@/utils/andb', () => ({
+  default: {
+    parseTable: vi.fn().mockImplementation(async (ddl: string) => {
+      if (ddl.includes('CREATE TABLE users')) {
+        return {
+          columns: [
+            { name: 'id', type: 'INT', pk: true },
+            { name: 'email', type: 'VARCHAR(255)', pk: false }
+          ],
+          primaryKey: ['id']
+        }
+      }
+      if (ddl.includes('CREATE TABLE posts')) {
+        return {
+          columns: [
+            { name: 'id', type: 'INT', pk: true },
+            { name: 'user_id', type: 'INT', pk: false },
+            { name: 'title', type: 'VARCHAR(100)', pk: false }
+          ],
+          primaryKey: ['id']
+        }
+      }
+      return { columns: [], primaryKey: [] }
+    })
+  }
+}))
+
 describe('SchemaDiagram.vue', () => {
   const baseTables = [
     {
@@ -55,12 +82,12 @@ describe('SchemaDiagram.vue', () => {
     })
   }
 
-  it('renders tables correctly and parses columns from DDL', () => {
+  it('renders tables correctly and parses columns from DDL', async () => {
     const { } = renderComponent()
 
     // Ensure headers exist
-    expect(screen.getByText('users')).toBeTruthy()
-    expect(screen.getByText('posts')).toBeTruthy()
+    expect(await screen.findByText('users')).toBeTruthy()
+    expect(await screen.findByText('posts')).toBeTruthy()
 
     // Ensure columns are parsed and rendered
     expect(screen.getAllByText('id').length).toBe(2)
@@ -72,7 +99,7 @@ describe('SchemaDiagram.vue', () => {
     renderComponent()
 
     // Default is "all", so 'email' (non-pk) is visible
-    expect(screen.queryByText('email')).toBeTruthy()
+    expect(await screen.findByText('email')).toBeTruthy()
 
     // Switch to 'names'
     const namesBtn = screen.getByText('names')
@@ -91,12 +118,16 @@ describe('SchemaDiagram.vue', () => {
     expect(screen.getAllByText('id').length).toBe(2)
   })
 
-  it('calculates edges between tables based on naming conventions', () => {
+  it('calculates edges between tables based on naming conventions', async () => {
     const { } = renderComponent()
 
+    // Wait for tables to render first
+    await screen.findByText('users')
+    await screen.findByText('posts')
+    
     // Look for SVG path elements that signify edges
     const paths = document.body.querySelectorAll('svg path')
-    expect(paths.length).toBeGreaterThan(0) // Should have an edge between users and posts
+    expect(paths.length).toBeGreaterThan(0)
   })
 
   it('filters tables based on search query by applying grayscale to non-matching', async () => {
@@ -105,13 +136,13 @@ describe('SchemaDiagram.vue', () => {
     const searchInput = screen.getByPlaceholderText('Search tables...')
     await fireEvent.update(searchInput, 'user')
 
-    // Find the users and posts document.bodys
-    // We expect the 'posts' table document.body to have grayscale / opacity classes applied
-    const postsElement = screen.getByText('posts').closest('.bg-white')
+    // Find the users and posts elements
+    // We expect the 'posts' table element to have grayscale / opacity classes applied
+    const postsElement = (await screen.findByText('posts')).closest('.bg-white')
     expect(postsElement?.className).toContain('grayscale')
 
-    // The 'users' table document.body should have the ring-primary-500 class
-    const usersElement = screen.getByText('users').closest('.bg-white')
+    // The 'users' table element should have the ring-primary-500 class
+    const usersElement = (await screen.findByText('users')).closest('.bg-white')
     expect(usersElement?.className).toContain('ring-primary-500')
   })
 })

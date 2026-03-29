@@ -5,6 +5,7 @@ import * as crypto from 'crypto'
 import { SecurityService } from '../services/security'
 import { desktopStorageStrategy } from '../bootstrap'
 import { GlobalConnectionEntity } from '../storage/entities/gui/GlobalConnectionEntity'
+import { ProjectConnectionEntity } from '../storage/entities/gui/ProjectConnectionEntity'
 import { GuiPreferenceEntity } from '../storage/entities/gui/GuiPreferenceEntity'
 
 function getRepository(entity: any) {
@@ -19,27 +20,29 @@ function getRepository(entity: any) {
 export async function handleStorageGet(_event: any, key: string) {
   try {
     if (key === 'connections' || key === 'connectionTemplates') {
-      const repo = getRepository(GlobalConnectionEntity)
+      const entity = key === 'connections' ? ProjectConnectionEntity : GlobalConnectionEntity
+      const repo = getRepository(entity)
       const data = await repo.find({ order: { name: 'ASC' } })
-      
+
       const security = SecurityService.getInstance()
-      const decryptedData = data.map((conn: any) => {
+      const decryptedData = data.map((item: any) => {
+        const conn = { ...item }
         if (conn.password) {
           try {
             conn.password = security.decrypt(conn.password)
-          } catch(e) {}
+          } catch (e) { }
         }
         if (conn.ssh_config_json) {
-           conn.ssh = JSON.parse(conn.ssh_config_json)
+          conn.ssh = JSON.parse(conn.ssh_config_json)
         }
         if (conn.permissions_json) {
-           conn.permissions = JSON.parse(conn.permissions_json)
+          conn.permissions = JSON.parse(conn.permissions_json)
         }
         if (conn.domain_mapping_json) {
-           conn.domainMapping = JSON.parse(conn.domain_mapping_json)
+          conn.domainMapping = JSON.parse(conn.domain_mapping_json)
         }
         if (conn.product_settings_json) {
-           conn.productSettings = JSON.parse(conn.product_settings_json)
+          conn.productSettings = JSON.parse(conn.product_settings_json)
         }
         return conn
       })
@@ -49,7 +52,7 @@ export async function handleStorageGet(_event: any, key: string) {
     // Generic Preferences
     const repo = getRepository(GuiPreferenceEntity)
     const pref = await repo.findOne({ where: { key } })
-    
+
     let result = pref ? pref.value : undefined
     try {
       if (result && (result.startsWith('{') || result.startsWith('['))) {
@@ -69,23 +72,20 @@ export async function handleStorageGet(_event: any, key: string) {
 export async function handleStorageSet(_event: any, key: string, value: any) {
   try {
     if ((key === 'connections' || key === 'connectionTemplates') && Array.isArray(value)) {
-      const repo = getRepository(GlobalConnectionEntity)
+      const entity = key === 'connections' ? ProjectConnectionEntity : GlobalConnectionEntity
+      const repo = getRepository(entity)
       const security = SecurityService.getInstance()
-      
+
       const providedIds = value.map((c: any) => c.id).filter(Boolean)
-      
-      // 1. Prune missing IDs (Atomic Delete missing)
-      if (providedIds.length > 0) {
-        // Find existing IDs
-        const existing = await repo.find({ select: ['id'] })
-        const toDelete = existing.filter((e: any) => !providedIds.includes(e.id)).map((e: any) => e.id)
-        
-        if (toDelete.length > 0) {
-           await repo.delete(toDelete)
-        }
-      } else {
-        // If empty list provided, clear the table
-        await repo.clear()
+
+      // 1. Prune missing IDs (Table is now isolated by entity)
+      const existing = await repo.find({
+        select: ['id']
+      })
+      const toDelete = existing.filter((e: any) => !providedIds.includes(e.id)).map((e: any) => e.id)
+
+      if (toDelete.length > 0) {
+        await repo.delete(toDelete)
       }
 
       // 2. Upsert provided ones

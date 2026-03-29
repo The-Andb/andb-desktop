@@ -62,15 +62,21 @@ vi.mock('lucide-vue-next', () => ({
   Plus: { template: '<svg data-testid="icon-plus"></svg>' },
   Database: { template: '<svg data-testid="icon-database"></svg>' },
   ShieldQuestion: { template: '<svg data-testid="icon-shield"></svg>' },
-  Edit: { template: '<svg data-testid="icon-edit"></svg>' },
+  Edit2: { template: '<svg data-testid="icon-edit"></svg>' },
   Trash2: { template: '<svg data-testid="icon-trash"></svg>' },
   X: { template: '<svg data-testid="icon-x"></svg>' },
-  Copy: { template: '<svg data-testid="icon-copy"></svg>' },
-  LayoutGrid: { template: '<svg data-testid="icon-layout"></svg>' },
-  List: { template: '<svg data-testid="icon-list"></svg>' },
   RefreshCw: { template: '<svg data-testid="icon-refresh"></svg>' },
   CheckCircle2: { template: '<svg data-testid="icon-check"></svg>' },
-  AlertCircle: { template: '<svg data-testid="icon-alert"></svg>' }
+  AlertCircle: { template: '<svg data-testid="icon-alert"></svg>' },
+  LayoutTemplate: { template: '<svg data-testid="icon-layout"></svg>' },
+  Link2: { template: '<svg data-testid="icon-link"></svg>' },
+  Server: { template: '<svg data-testid="icon-server"></svg>' },
+  User: { template: '<svg data-testid="icon-user"></svg>' },
+  // Compatibility with older tests/others
+  Edit: { template: '<svg data-testid="icon-edit"></svg>' },
+  Copy: { template: '<svg data-testid="icon-copy"></svg>' },
+  LayoutGrid: { template: '<svg data-testid="icon-layout"></svg>' },
+  List: { template: '<svg data-testid="icon-list"></svg>' }
 }))
 
 // Mock Child Component to avoid complicated rendering of forms
@@ -97,8 +103,8 @@ describe('ConnectionManager.vue', () => {
     mockAppStore.filteredConnections = []
     renderComponent()
 
-    expect(screen.getByText('All Connections')).toBeTruthy()
-    expect(screen.getByText('connections.addFirstConnection')).toBeTruthy()
+    expect(screen.getByText('PROJECT CONNECTIONS')).toBeTruthy()
+    expect(screen.getByText('connections.noConnections')).toBeTruthy()
   })
 
   it('renders a list of connections', async () => {
@@ -110,23 +116,25 @@ describe('ConnectionManager.vue', () => {
 
     // Connections should be displayed
     expect(screen.getByText('Dev DB')).toBeTruthy()
-    expect(screen.getByText('localhost:3306')).toBeTruthy()
+    expect(screen.getByText('localhost')).toBeTruthy()
+    expect(screen.getByText(/:3306/)).toBeTruthy()
     expect(screen.getByText('test_db')).toBeTruthy()
 
     expect(screen.getByText('Prod DB')).toBeTruthy()
-    expect(screen.getByText('prod.com:5432')).toBeTruthy()
+    expect(screen.getByText('prod.com')).toBeTruthy()
+    expect(screen.getByText(/:5432/)).toBeTruthy()
     expect(screen.getByText('prod_db')).toBeTruthy()
   })
 
   it('switches to add form when "Add Connection" is clicked', async () => {
     renderComponent()
 
-    const addButton = screen.getByText('connections.addConnection')
+    const addButton = screen.getByText('Add Connection')
     await fireEvent.click(addButton)
 
     // Form should appear
     expect(screen.getByTestId('connection-form')).toBeTruthy()
-    expect(screen.getByText('Add New Connection')).toBeTruthy()
+    expect(screen.getByText('Register Endpoint')).toBeTruthy()
 
     // List should disappear
     expect(screen.queryByText('All Connections')).toBeNull()
@@ -139,15 +147,15 @@ describe('ConnectionManager.vue', () => {
     ] as any
     renderComponent()
 
-    const byEnvButton = screen.getByText('BY ENVIRONMENT')
+    const byEnvButton = screen.getAllByText('DEV').find(el => el.tagName === 'BUTTON')!
     await fireEvent.click(byEnvButton)
 
-    // The header should change to reflect the tab filtering
-    expect(screen.getByText('connections.connectionsFor')).toBeTruthy()
+    // The header remains PROJECT CONNECTIONS
+    expect(screen.getByText('PROJECT CONNECTIONS')).toBeTruthy()
 
-    // Environment tabs like DEV and PROD should be visible (from the mock pair store)
-    expect(screen.getByText('DEV')).toBeTruthy()
-    expect(screen.getByText('PROD')).toBeTruthy()
+    // Environment tabs like DEV and PROD should be visible
+    expect(screen.getAllByText('DEV').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('PROD').length).toBeGreaterThan(0)
   })
 
   it('calls delete bulk action when bulk delete is used', async () => {
@@ -166,10 +174,13 @@ describe('ConnectionManager.vue', () => {
     // The first checkbox is the "select all" in the header
     await fireEvent.click(checkboxes[0])
 
-    const deleteBulkBtn = screen.getByText('Delete')
+    const deleteBulkBtn = screen.getByText('Delete').closest('button')!
     await fireEvent.click(deleteBulkBtn)
 
-    expect(window.confirm).toHaveBeenCalled()
+    // Should see inline confirmation "Delete 2?"
+    const confirmBtn = screen.getByText('Yes')
+    await fireEvent.click(confirmBtn)
+
     expect(mockAppStore.removeConnection).toHaveBeenCalledTimes(2)
     expect(mockAppStore.removeConnection).toHaveBeenCalledWith('1')
     expect(mockAppStore.removeConnection).toHaveBeenCalledWith('2')
@@ -187,9 +198,9 @@ describe('ConnectionManager.vue', () => {
     await fireEvent.click(duplicateButton)
 
     expect(mockAppStore.addConnection).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'To Duplicate',
+      name: 'To Duplicate (Copy)',
       host: 'localhost',
       port: 1234
-    }))
+    }), 'proj-1')
   })
 })

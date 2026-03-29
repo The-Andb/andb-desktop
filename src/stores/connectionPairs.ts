@@ -23,6 +23,8 @@ export interface ConnectionPair {
   description: string
   isDefault: boolean
   status: 'idle' | 'testing' | 'success' | 'failed'
+  sourceDb?: string
+  targetDb?: string
 }
 
 export const useConnectionPairsStore = defineStore('connectionPairs', () => {
@@ -215,7 +217,24 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       })
     }
 
-    return [...customPairs, ...autoPairs]
+    const pairs = [...customPairs, ...autoPairs]
+    return pairs.map(p => {
+      // Resolve actual connection objects to get DB names
+      const sourceConn = appStore.resolvedConnections.find(c => 
+        c.id === p.sourceConnectionId || 
+        (c.environment === p.sourceEnv && project.connectionIds.includes(c.id))
+      )
+      const targetConn = appStore.resolvedConnections.find(c => 
+        c.id === p.targetConnectionId || 
+        (c.environment === p.targetEnv && project.connectionIds.includes(c.id))
+      )
+
+      return {
+        ...p,
+        sourceDb: sourceConn ? (sourceConn.database || sourceConn.name) : '?',
+        targetDb: targetConn ? (targetConn.database || targetConn.name) : '?'
+      }
+    })
   })
 
   // Auto-select first pair if current one becomes invalid (e.g. project switch)

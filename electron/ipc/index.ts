@@ -104,4 +104,9 @@ export function registerIpcHandlers() {
   ipcMain.handle('pick-workspace-dir', andb.handlePickWorkspaceDir)
   ipcMain.handle('reset-workspace-dir', andb.handleResetWorkspace)
   ipcMain.handle('get-workspace-status', andb.handleGetWorkspaceStatus)
+
+  // --- Table Inspector (AI DBA Super Mode) ---
+  ipcMain.handle('andb-get-table-stats', andb.handleAndbGetTableStats)
+  ipcMain.handle('andb-get-server-info', andb.handleAndbGetServerInfo)
+  ipcMain.handle('andb-get-fk-graph', andb.handleAndbGetFKGraph)
 }

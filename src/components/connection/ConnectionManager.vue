@@ -56,14 +56,25 @@
           <!-- Bulk Actions -->
           <div v-if="selectedConnections.length > 0" class="flex items-center gap-2 mr-2 animate-in fade-in zoom-in duration-200">
             <span class="text-xs text-gray-500 font-bold">{{ selectedConnections.length }} selected</span>
-            <button @click="bulkTestConnections" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
-              <ShieldQuestion class="w-3.5 h-3.5" />
-              Test All
-            </button>
-            <button @click="bulkDeleteConnections" class="btn btn-danger text-xs px-3 py-1.5 flex items-center gap-1">
-              <Trash2 class="w-3.5 h-3.5" />
-              Delete
-            </button>
+            
+            <Transition name="slide-left" mode="out-in">
+              <div v-if="confirmingBulkDelete" class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm animate-in fade-in duration-200">
+                <span class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Delete {{ selectedConnections.length }}?</span>
+                <button @click="confirmingBulkDelete = false" class="text-[11px] font-black uppercase text-gray-400 hover:text-gray-600 px-2">No</button>
+                <button @click="confirmingBulkDelete = false; bulkDeleteConnections(true)" class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Yes</button>
+              </div>
+              <div v-else class="flex items-center gap-2">
+                <button @click="bulkTestConnections" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
+                  <ShieldQuestion class="w-3.5 h-3.5" />
+                  Test All
+                </button>
+                <button @click="confirmingBulkDelete = true" class="btn btn-danger text-xs px-3 py-1.5 flex items-center gap-1">
+                  <Trash2 class="w-3.5 h-3.5" />
+                  Delete
+                </button>
+              </div>
+            </Transition>
+
             <button @click="clearSelection" class="text-xs text-gray-400 hover:text-gray-600 px-2 transition-colors">
               Clear
             </button>
@@ -200,34 +211,51 @@
                     </div>
                   </td>
                   <td class="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
-                    <div class="flex items-center justify-end gap-2 px-2 py-1 rounded-lg">
-                      <button @click="testConnection(connection.id)"
-                        class="relative p-1 rounded-lg transition-all"
-                        :class="{
-                          'text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20': connection.status === 'idle',
-                          'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20': connection.status === 'connected',
-                          'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20': connection.status === 'failed',
-                          'animate-pulse': connection.status === 'testing'
-                        }"
-                        :title="$t('connections.testConnection')"
-                      >
-                        <RefreshCw v-if="connection.status === 'testing'" class="w-4 h-4 animate-spin" />
-                        <CheckCircle2 v-else-if="connection.status === 'connected'" class="w-4 h-4" />
-                        <AlertCircle v-else-if="connection.status === 'failed'" class="w-4 h-4" />
-                        <ShieldQuestion v-else class="w-4 h-4" />
-                      </button>
-                      <button @click="editConnection(connection)"
-                        class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 p-1 rounded-lg transition-all"
-                        :title="$t('common.edit')"
-                      >
-                        <Edit2 class="w-4 h-4" />
-                      </button>
-                      <button @click="deleteConnection(connection.id)"
-                        class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1 rounded-lg transition-all"
-                        :title="$t('common.delete')"
-                      >
-                        <Trash2 class="w-4 h-4" />
-                      </button>
+                    <div class="flex items-center justify-end gap-2 px-2 py-1 rounded-lg min-h-[40px]">
+                      <Transition name="slide-left" mode="out-in">
+                        <div v-if="confirmingId === connection.id" class="flex items-center gap-4 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl animate-in fade-in slide-in-from-right-2 duration-300 shadow-sm">
+                            <span class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest shrink-0">Delete connection?</span>
+                            <div class="flex items-center gap-3">
+                                <button @click="confirmingId = null" class="text-xs font-black uppercase text-gray-400 hover:text-gray-600 px-2 transition-colors">Cancel</button>
+                                <button @click="deleteConnection(connection.id, true)" class="text-xs font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Confirm</button>
+                            </div>
+                        </div>
+                        <div v-else class="flex items-center justify-end gap-2">
+                          <button @click="testConnection(connection.id)"
+                            class="relative p-1 rounded-lg transition-all"
+                            :class="{
+                              'text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20': connection.status === 'idle',
+                              'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20': connection.status === 'connected',
+                              'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20': connection.status === 'failed',
+                              'animate-pulse': connection.status === 'testing'
+                            }"
+                            :title="$t('connections.testConnection')"
+                          >
+                            <RefreshCw v-if="connection.status === 'testing'" class="w-4 h-4 animate-spin" />
+                            <CheckCircle2 v-else-if="connection.status === 'connected'" class="w-4 h-4" />
+                            <AlertCircle v-else-if="connection.status === 'failed'" class="w-4 h-4" />
+                            <ShieldQuestion v-else class="w-4 h-4" />
+                          </button>
+                          <button @click="editConnection(connection)"
+                            class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 p-1 rounded-lg transition-all"
+                            :title="$t('common.edit')"
+                          >
+                            <Edit2 class="w-4 h-4" />
+                          </button>
+                          <button @click="duplicateConnection(connection)"
+                            class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 p-1 rounded-lg transition-all"
+                            :title="$t('common.duplicate')"
+                          >
+                            <Copy class="w-4 h-4" />
+                          </button>
+                          <button @click="confirmingId = connection.id"
+                            class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1 rounded-lg transition-all"
+                            :title="$t('common.delete')"
+                          >
+                            <Trash2 class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </Transition>
                     </div>
                   </td>
                 </tr>
@@ -423,7 +451,8 @@ import {
   LayoutTemplate,
   Link2,
   Server,
-  User
+  User,
+  Copy
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
@@ -469,6 +498,10 @@ const showAddForm = ref(false)
 const editingConnection = ref<DatabaseConnection | null>(null)
 const selectedConnections = ref<string[]>([])
 
+// Confirmation states
+const confirmingId = ref<string | null>(null)
+const confirmingBulkDelete = ref(false)
+
 // Global Picker State
 const showGlobalPicker = ref(false)
 const pickerSelectedIds = ref<string[]>([])
@@ -503,14 +536,12 @@ const togglePickerEnvFilter = (env: string) => {
     pickerEnvFilter.value = ['ALL']
     return
   }
-  let current = pickerEnvFilter.value.filter(e => e !== 'ALL')
-  if (current.includes(env)) {
-    current = current.filter(e => e !== env)
-    if (current.length === 0) current = ['ALL']
+  
+  if (pickerEnvFilter.value.includes(env)) {
+    pickerEnvFilter.value = ['ALL']
   } else {
-    current.push(env)
+    pickerEnvFilter.value = [env]
   }
-  pickerEnvFilter.value = current
 }
 
 const filteredGlobalTemplates = computed(() => {
@@ -611,11 +642,13 @@ const toggleSelectAll = () => {
 
 const clearSelection = () => (selectedConnections.value = [])
 const bulkTestConnections = () => selectedConnections.value.forEach(id => appStore.testConnection(id))
-const bulkDeleteConnections = () => {
-  if (confirm($t('connections.confirmBulkDelete', { count: selectedConnections.value.length }))) {
-    selectedConnections.value.forEach(id => appStore.removeConnection(id))
-    clearSelection()
+const bulkDeleteConnections = (confirmed = false) => {
+  if (!confirmed) {
+    confirmingBulkDelete.value = true
+    return
   }
+  selectedConnections.value.forEach(id => appStore.removeConnection(id))
+  clearSelection()
 }
 
 const getEnvDotClass = (env: string) => {
@@ -625,7 +658,21 @@ const getEnvDotClass = (env: string) => {
 
 const testConnection = (id: string) => appStore.testConnection(id)
 const editConnection = (connection: DatabaseConnection) => { editingConnection.value = connection; showAddForm.value = false; }
-const deleteConnection = (id: string) => { if (confirm($t('connections.confirmDelete'))) appStore.removeConnection(id) }
+const deleteConnection = (id: string, confirmed = false) => { 
+  if (!confirmed) {
+    confirmingId.value = id
+    return
+  }
+  appStore.removeConnection(id)
+  confirmingId.value = null
+}
+const duplicateConnection = (connection: DatabaseConnection) => {
+  const { id, ...data } = connection
+  appStore.addConnection({
+    ...data,
+    name: `${connection.name} (Copy)`
+  }, projectsStore.selectedProjectId!)
+}
 const handleSaveConnection = (data: any) => {
   if (editingConnection.value) appStore.updateConnection(editingConnection.value.id, data)
   else appStore.addConnection(data, projectsStore.selectedProjectId!)
@@ -662,5 +709,20 @@ if (enabledEnvironments.value.length > 0) selectedEnvironment.value = enabledEnv
 .panel-enter-from > div:last-child,
 .panel-leave-to > div:last-child {
   transform: translateX(100%);
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 </style>

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 // Mock browser globals before stores are imported
 if (typeof window === 'undefined') {
   (global as any).window = {
-    matchMedia: vi.fn().mockImplementation(query => ({
+    matchMedia: vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
       onchange: null,
@@ -38,7 +38,7 @@ vi.mock('@/utils/storage-ipc', () => ({
     getEnvironments: vi.fn().mockResolvedValue([]),
     getConnectionTemplates: vi.fn().mockResolvedValue([]),
     getSettings: vi.fn().mockResolvedValue({}),
-    get: vi.fn().mockImplementation((key) => {
+    get: vi.fn().mockImplementation((key: string) => {
       if (key === 'connectionTemplates') return Promise.resolve([])
       if (key === 'projects' || key === 'connections') return Promise.resolve([])
       return Promise.resolve(null)

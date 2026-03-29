@@ -484,6 +484,7 @@ settings:
   security:
     title: 'Khóa Bảo mật'
     subtitle: 'Quản lý mã hóa và xác thực truy cập'
+    desc: 'Kiến trúc bảo mật ưu tiên cục bộ (Local-first). Toàn bộ thông tin đăng nhập và dữ liệu dự án nhạy cảm được mã hóa bằng cặp khóa RSA-2048 duy nhất. Khóa bí mật được lưu trữ độc quyền trong hệ thống bảo mật của máy tính (macOS Keychain hoặc Windows Credential Manager), đảm bảo chỉ thiết bị được ủy quyền mới có thể giải mã dữ liệu của bạn.'
     publicKey: 'Khóa công khai'
     active: 'Đang hoạt động'
     publicKeyDesc: 'Khóa công khai này được sử dụng để mã hóa mật khẩu cấu hình Database tại máy của bạn trước khi chúng được lưu trữ vào file cấu hình (SQLite). Khóa bí mật (Private Key) được bảo vệ vô hình trong OS Keychain của hệ điều hành, đảm bảo chỉ có thiết bị của bạn mới đọc được mật khẩu này.'

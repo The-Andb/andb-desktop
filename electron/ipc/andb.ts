@@ -593,3 +593,45 @@ export async function handleGetWorkspaceStatus() {
 export async function compareArbitrary(srcDDL: string, destDDL: string, type?: string) {
   return await AndbBuilder.compareArbitrary(srcDDL, destDDL, type);
 }
+
+/**
+ * Handle Get Table Stats (AI DBA Super Mode)
+ * Fetches table metadata (row count, data size, index size, engine, etc.)
+ */
+export async function handleAndbGetTableStats(_event: any, args: any) {
+  try {
+    const { connection } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'getTableStats', {})
+    return { success: true, data: result }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Get Server Info (AI DBA Super Mode)
+ * Fetches MySQL version and DDL capability flags
+ */
+export async function handleAndbGetServerInfo(_event: any, args: any) {
+  try {
+    const { connection } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'getServerInfo', {})
+    return { success: true, data: result }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Get FK Graph (AI DBA Super Mode)
+ * Fetches foreign key dependency graph
+ */
+export async function handleAndbGetFKGraph(_event: any, args: any) {
+  try {
+    const { connection } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'getFKGraph', {})
+    return { success: true, data: result }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

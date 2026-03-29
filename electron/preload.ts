@@ -152,6 +152,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-parse-table', ddl)
   },
 
+  // Table Inspector (AI DBA Super Mode)
+  andbGetTableStats: (args: any) => {
+    return ipcRenderer.invoke('andb-get-table-stats', args)
+  },
+  andbGetServerInfo: (args: any) => {
+    return ipcRenderer.invoke('andb-get-server-info', args)
+  },
+  andbGetFKGraph: (args: any) => {
+    return ipcRenderer.invoke('andb-get-fk-graph', args)
+  },
+
   andbGetSavedComparisonResults: (args: {
     sourceConnection: any
     targetConnection: any

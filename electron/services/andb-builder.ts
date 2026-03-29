@@ -307,7 +307,7 @@ export class AndbBuilder {
   static async execute(
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
-    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot',
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot' | 'getTableStats' | 'getServerInfo' | 'getFKGraph',
     options: any = {},
     sender?: WebContents
   ): Promise<any> {

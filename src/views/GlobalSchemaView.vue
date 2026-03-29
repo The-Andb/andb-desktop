@@ -44,6 +44,142 @@
               </button>
            </div>
            
+           <!-- Layout Customize -->
+           <div class="relative">
+             <button 
+               @click="showLayoutMenu = !showLayoutMenu" 
+               class="p-2 rounded-xl transition-all border border-transparent"
+               :class="showLayoutMenu ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20'"
+               title="Customize Layout"
+             >
+               <LayoutDashboard class="w-4 h-4" />
+             </button>
+
+             <!-- Dropdown -->
+             <div v-if="showLayoutMenu" class="absolute right-0 top-full mt-1 w-64 bg-gray-800 dark:bg-gray-950 text-white rounded-lg shadow-2xl border border-gray-700 dark:border-gray-800 z-50 overflow-hidden">
+               <div class="px-4 py-2.5 border-b border-gray-700 flex items-center justify-between">
+                 <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Customize Layout</span>
+                 <button @click="showLayoutMenu = false" class="text-gray-400 hover:text-white transition-colors">
+                   <X class="w-3.5 h-3.5" />
+                 </button>
+               </div>
+               
+               <div class="py-1">
+                 <!-- Sidebar Toggle -->
+                 <button @click="layout.sidebar = !layout.sidebar" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                   <div class="flex items-center gap-3">
+                     <PanelLeft class="w-4 h-4 text-gray-400" />
+                     <span class="text-xs font-medium">Sidebar</span>
+                   </div>
+                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.sidebar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                     <Check v-if="layout.sidebar" class="w-3 h-3" />
+                   </div>
+                 </button>
+
+                 <!-- Breadcrumbs Toggle -->
+                 <button @click="layout.breadcrumbs = !layout.breadcrumbs" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                   <div class="flex items-center gap-3">
+                     <Navigation class="w-4 h-4 text-gray-400" />
+                     <span class="text-xs font-medium">Breadcrumbs</span>
+                   </div>
+                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.breadcrumbs ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                     <Check v-if="layout.breadcrumbs" class="w-3 h-3" />
+                   </div>
+                 </button>
+
+                 <!-- Toolbar Toggle -->
+                 <button @click="layout.toolbar = !layout.toolbar" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                   <div class="flex items-center gap-3">
+                     <PanelTop class="w-4 h-4 text-gray-400" />
+                     <span class="text-xs font-medium">Content Toolbar</span>
+                   </div>
+                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.toolbar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                     <Check v-if="layout.toolbar" class="w-3 h-3" />
+                   </div>
+                 </button>
+
+                 <!-- Panel Toggle (Console) -->
+                 <button @click="consoleStore.toggleVisibility()" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                   <div class="flex items-center gap-3">
+                     <PanelBottom class="w-4 h-4 text-gray-400" />
+                     <span class="text-xs font-medium">Panel</span>
+                   </div>
+                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="consoleStore.isVisible ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                     <Check v-if="consoleStore.isVisible" class="w-3 h-3" />
+                   </div>
+                 </button>
+               </div>
+               
+               <!-- Button Styling / Density -->
+               <div class="border-t border-gray-700 py-1">
+                 <div class="px-4 py-1.5 flex items-center justify-between">
+                   <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Visual Density</span>
+                 </div>
+                 <div class="px-2 space-y-0.5">
+                   <button 
+                     @click="appStore.buttonStyle = 'full'"
+                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
+                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'full', 'text-gray-400': appStore.buttonStyle !== 'full' }"
+                   >
+                     <Zap class="w-3.5 h-3.5" />
+                     <div class="flex flex-col items-start leading-tight">
+                       <span class="text-[11px] font-bold">Premium</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Rich Gradients</span>
+                     </div>
+                     <Check v-if="appStore.buttonStyle === 'full'" class="ml-auto w-3 h-3 text-primary-500" />
+                   </button>
+                   <button 
+                     @click="appStore.buttonStyle = 'minimal'"
+                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
+                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'minimal', 'text-gray-400': appStore.buttonStyle !== 'minimal' }"
+                   >
+                     <MousePointer2 class="w-3.5 h-3.5" />
+                     <div class="flex flex-col items-start leading-tight">
+                       <span class="text-[11px] font-bold">Minimal</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Sleek Lines</span>
+                     </div>
+                     <Check v-if="appStore.buttonStyle === 'minimal'" class="ml-auto w-3 h-3 text-primary-500" />
+                   </button>
+                   <button 
+                     @click="appStore.buttonStyle = 'icons'"
+                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
+                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'icons', 'text-gray-400': appStore.buttonStyle !== 'icons' }"
+                   >
+                     <Layers class="w-3.5 h-3.5" />
+                     <div class="flex flex-col items-start leading-tight">
+                       <span class="text-[11px] font-bold">Icon Only</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Extreme Density</span>
+                     </div>
+                     <Check v-if="appStore.buttonStyle === 'icons'" class="ml-auto w-3 h-3 text-primary-500" />
+                   </button>
+                 </div>
+               </div>
+
+               <!-- Sidebar Position -->
+               <div class="border-t border-gray-700 py-1">
+                 <div class="px-4 py-1.5 flex items-center justify-between">
+                   <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Sidebar Position</span>
+                 </div>
+                 <div class="px-4 pb-2 flex gap-1">
+                   <button 
+                     @click="layout.sidebarPosition = 'left'"
+                     class="flex-1 px-3 py-1.5 rounded text-xs font-bold transition-all"
+                     :class="layout.sidebarPosition === 'left' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'"
+                   >
+                     Left
+                   </button>
+                   <button 
+                     @click="layout.sidebarPosition = 'right'"
+                     class="flex-1 px-3 py-1.5 rounded text-xs font-bold transition-all"
+                     :class="layout.sidebarPosition === 'right' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'"
+                   >
+                     Right
+                   </button>
+                 </div>
+               </div>
+             </div>
+           </div>
+
            <!-- System Logs Toggle -->
            
            <button 
@@ -56,7 +192,7 @@
         </div>
     </div>
     <!-- Breadcrumbs -->
-    <div class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
+    <div v-if="layout.breadcrumbs" class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
       <button 
         @click="resetNavigation"
         class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary-500 transition-colors shrink-0"
@@ -78,9 +214,9 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden relative">
-        <main class="flex-1 flex overflow-hidden relative" v-if="!loading || hasResults">
+        <main class="flex-1 flex overflow-hidden relative" :class="{ 'flex-row-reverse': layout.sidebarPosition === 'right' }" v-if="!loading || hasResults">
           <!-- Left: Object Categories & List -->
-          <div :style="{ width: resultsWidth + 'px' }" class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative">
+          <div v-if="layout.sidebar" :style="{ width: resultsWidth + 'px' }" class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative" :class="layout.sidebarPosition === 'right' ? 'border-l' : 'border-r'">
 
               <!-- Search Bar (Professional Redesign) -->
               <div v-if="hasResults" class="p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
@@ -231,7 +367,7 @@
                 @close="handleCloseTab"
               />
               <div v-if="selectedItem" class="flex-1 flex flex-col overflow-hidden">
-                <div class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14">
+                <div v-if="layout.toolbar" class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14">
                   <div class="flex items-center overflow-hidden gap-3">
                     <div class="p-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
                       <component :is="getIconForType(selectedItem.type)" class="w-4 h-4" />
@@ -254,23 +390,23 @@
                   
                   <div class="flex items-center gap-2" v-if="selectedItem.type !== 'diagrams'">
                      <!-- Tab Switcher for Tables -->
-                     <div v-if="selectedItem.type === 'tables' || selectedItem.type === 'table'" class="bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 flex mr-2">
+                     <div v-if="selectedItem.type === 'tables' || selectedItem.type === 'table'" class="bg-gray-800 dark:bg-gray-950 rounded p-0.5 flex gap-0.5 mr-2">
                         <button 
                             @click="viewMode = 'visual'"
-                            class="px-2 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
-                            :class="viewMode === 'visual' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="p-1.5 rounded transition-all"
+                            :class="viewMode === 'visual' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                            title="Table View"
                         >
-                            <LayoutTemplate class="w-3 h-3" />
-                            {{ $t('schema.visual') }}
+                            <LayoutTemplate class="w-3.5 h-3.5" />
                         </button>
 
                         <button 
                             @click="viewMode = 'code'"
-                            class="px-2 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 uppercase tracking-wider"
-                            :class="viewMode === 'code' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="p-1.5 rounded transition-all"
+                            :class="viewMode === 'code' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-gray-200'"
+                            title="SQL View"
                         >
-                            <Code2 class="w-3 h-3" />
-                            {{ $t('schema.code') }}
+                            <Code2 class="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -292,32 +428,35 @@
 
                     <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
                     <!-- Inline segmented control for Instant Compare -->
-                    <div class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm transition-all hover:shadow">
+                    <div class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm transition-all hover:shadow ml-2">
+                      <!-- Orange Slot: Always visible -->
                       <button 
                         @click="handlePickStack('source')"
-                        :disabled="isCurrentTarget"
                         class="p-1 rounded-full transition-all group/src"
                         :class="[
                           isCurrentSource ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
-                          isCurrentTarget ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
+                          !appStore.compareStack.source ? 'animate-pulse text-orange-400/60' : ''
                         ]"
-                        title="Set as Source"
+                        title="Set as Source (Orange Flame)"
                       >
                         <Flame class="w-3.5 h-3.5 transition-colors" :class="isCurrentSource ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
                       </button>
-                      <span class="text-[9px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
-                      <button 
-                        @click="handlePickStack('target')"
-                        :disabled="isCurrentSource"
-                        class="p-1 rounded-full transition-all group/tgt"
-                        :class="[
-                          isCurrentTarget ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-                          isCurrentSource ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
-                        ]"
-                        title="Set as Target"
-                      >
-                        <Flame class="w-3.5 h-3.5 transition-colors" :class="isCurrentTarget ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
-                      </button>
+
+                      <!-- Separator and Blue Slot: Only visible if source is set -->
+                      <template v-if="appStore.compareStack.source">
+                        <span class="text-[9px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
+                        <button 
+                          @click="handlePickStack('target')"
+                          class="p-1 rounded-full transition-all group/tgt"
+                          :class="[
+                            isCurrentTarget ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+                            !appStore.compareStack.target ? 'animate-pulse text-blue-400/60' : ''
+                          ]"
+                          title="Set as Target (Blue Flame)"
+                        >
+                          <Flame class="w-3.5 h-3.5 transition-colors" :class="isCurrentTarget ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
+                        </button>
+                      </template>
                     </div>
                     <button 
                       @click="downloadDDL"
@@ -359,6 +498,7 @@
                         :options="detailedTableData.options"
                         :partitions="detailedTableData.partitions"
                         :triggers="schemaData.triggers"
+                        :stats="currentTableStats"
                     ></TableDetailedView>
                     
                     <div v-else class="flex items-center justify-center h-full w-full">
@@ -382,7 +522,7 @@
   </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick, shallowRef } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, shallowRef, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -422,7 +562,13 @@ import {
   CalendarClock,
   Zap,
   Filter,
-  Flame
+  Flame,
+  LayoutDashboard,
+  PanelLeft,
+  PanelTop,
+  Navigation,
+  Check,
+  Layers
 } from 'lucide-vue-next'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useNotificationStore } from '@/stores/notification'
@@ -564,6 +710,38 @@ const {
   selectedItem,
   selectedFilterType
 )
+
+// --- Table Inspector (AI DBA Super Mode) ---
+const tableStatsMap = ref<Record<string, any>>({})
+
+const fetchTableStats = async () => {
+  const conn = appStore.getConnectionById(appStore.selectedConnectionId)
+  if (!conn) return
+  try {
+    const stats = await Andb.getTableStats(conn as any)
+    if (Array.isArray(stats)) {
+      const map: Record<string, any> = {}
+      for (const s of stats) {
+        map[s.tableName] = s
+      }
+      tableStatsMap.value = map
+    }
+  } catch (e) {
+    console.warn('[GlobalSchemaView] Failed to fetch table stats:', e)
+  }
+}
+
+// Auto-fetch stats when schema data changes (non-blocking background fetch)
+watch(() => schemaData.value.tables?.length, (newLen) => {
+  if (newLen && newLen > 0) {
+    fetchTableStats()
+  }
+})
+
+const currentTableStats = computed(() => {
+  if (!selectedItem.value) return undefined
+  return tableStatsMap.value[selectedItem.value.name] || undefined
+})
 
 const navigatableNames = computed(() => {
   return allResults.value
@@ -829,6 +1007,15 @@ const fetchButtonText = computed(() => {
 
 const viewMode = ref<'code' | 'visual'>('code')
 
+// Layout customization state
+const showLayoutMenu = ref(false)
+const layout = reactive({
+  sidebar: true,
+  breadcrumbs: true,
+  toolbar: true,
+  sidebarPosition: 'left' as 'left' | 'right'
+})
+
 watch(viewMode, (newVal) => {
   if (activeTabId.value) {
     const tab = tabs.value.find(t => t.id === activeTabId.value)
@@ -867,11 +1054,7 @@ const isCurrentTarget = computed(() => {
 const handlePickStack = (slot: 'source' | 'target') => {
   if (!selectedItem.value) return
   
-  // Prevent picking source if it's already target, and vice versa
-  if (slot === 'source' && isCurrentTarget.value) return
-  if (slot === 'target' && isCurrentSource.value) return
-  
-  // Toggle off if clicking the already selected slot
+  // 1. Deselection: If clicking the slot that is ALREADY active for the current selected object, clear it.
   if (slot === 'source' && isCurrentSource.value) {
     appStore.compareStack.source = null
     return
@@ -881,10 +1064,23 @@ const handlePickStack = (slot: 'source' | 'target') => {
     return
   }
 
-  // Type Validation
-  const oppositeSlot = slot === 'source' ? 'target' : 'source'
-  const oppositeItem = appStore.compareStack[oppositeSlot]
+  // 2. Enforced Source-First: If 1st selection is blank, any click is Source.
+  let targetSlot = slot
+  if (!appStore.compareStack.source) {
+    targetSlot = 'source'
+  }
   
+  // 3. Prevent swap conflict: If selecting an object already in the OTHER slot, move it here (implicit swap/move)
+  const oppositeSlot = targetSlot === 'source' ? 'target' : 'source'
+  if (targetSlot === 'source' && isCurrentTarget.value) {
+     appStore.compareStack.target = null
+  }
+  if (targetSlot === 'target' && isCurrentSource.value) {
+     appStore.compareStack.source = null
+  }
+
+  // Type Validation
+  const oppositeItem = appStore.compareStack[oppositeSlot]
   if (oppositeItem && oppositeItem.type && selectedItem.value.type && oppositeItem.type !== selectedItem.value.type) {
     notificationStore.add({
       type: 'error',
@@ -894,7 +1090,7 @@ const handlePickStack = (slot: 'source' | 'target') => {
     return
   }
 
-  appStore.compareStack[slot] = {
+  appStore.compareStack[targetSlot] = {
     name: selectedItem.value.name,
     ddl: formattedDDL.value,
     type: selectedItem.value.type
@@ -905,6 +1101,17 @@ const handlePickStack = (slot: 'source' | 'target') => {
 
 const handleSendToInstantFromTree = (item: any, slot: 'source' | 'target' = 'source') => {
   if (!item) return
+  
+  // 1. Deselection: If clicking the slot that is ALREADY active for this item, clear it.
+  if (slot === 'source' && appStore.compareStack.source?.name === item.name) {
+    appStore.compareStack.source = null
+    return
+  }
+  if (slot === 'target' && appStore.compareStack.target?.name === item.name) {
+    appStore.compareStack.target = null
+    return
+  }
+
   const ddl = item.ddl || item.content || ''
   if (!ddl) {
     notificationStore.add({
@@ -915,8 +1122,22 @@ const handleSendToInstantFromTree = (item: any, slot: 'source' | 'target' = 'sou
     return
   }
   
+  // 2. Enforced Source-First
+  let targetSlot = slot
+  if (!appStore.compareStack.source) {
+    targetSlot = 'source'
+  }
+
+  // 3. Prevent swap conflict
+  if (targetSlot === 'source' && appStore.compareStack.target?.name === item.name) {
+     appStore.compareStack.target = null
+  }
+  if (targetSlot === 'target' && appStore.compareStack.source?.name === item.name) {
+     appStore.compareStack.source = null
+  }
+
   // Type Validation
-  const oppositeSlot = slot === 'source' ? 'target' : 'source'
+  const oppositeSlot = targetSlot === 'source' ? 'target' : 'source'
   const oppositeItem = appStore.compareStack[oppositeSlot]
   
   if (oppositeItem && oppositeItem.type && item.type && oppositeItem.type !== item.type) {
@@ -928,7 +1149,7 @@ const handleSendToInstantFromTree = (item: any, slot: 'source' | 'target' = 'sou
     return
   }
 
-  appStore.compareStack[slot] = {
+  appStore.compareStack[targetSlot] = {
     name: item.name,
     ddl,
     type: item.type

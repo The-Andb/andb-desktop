@@ -8,12 +8,6 @@
         <p v-if="options?.comment" class="text-xs text-gray-400 italic">{{ options.comment }}</p>
       </div>
       <div v-else></div>
-      <div class="flex items-center gap-3">
-        <div class="text-right">
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ columns?.length || 0 }} Columns</p>
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ indexes?.length || 0 }} Indexes</p>
-        </div>
-      </div>
     </div>
 
     <!-- Tabs Content -->
@@ -85,8 +79,8 @@
                 <td class="px-3 py-3 text-center">
                   <div class="w-3 h-3 rounded-sm mx-auto" :class="col.autoIncrement ? 'bg-primary-500' : 'border border-gray-300 dark:border-gray-600'"></div>
                 </td>
-                <td class="px-6 py-3 text-gray-500 italic truncate">{{ col.default || 'NULL' }}</td>
-                <td class="px-6 py-3 text-gray-400 truncate">{{ col.comment }}</td>
+                <td class="px-6 py-3 text-gray-500 italic truncate">{{ displayValue(col.default) || 'NULL' }}</td>
+                <td class="px-6 py-3 text-gray-400 truncate">{{ displayValue(col.comment) }}</td>
               </tr>
             </tbody>
           </table>
@@ -317,6 +311,62 @@
             <p>This table is not partitioned.</p>
           </div>
         </TabPanel>
+
+        <!-- Inspector Tab (AI DBA Super Mode) -->
+        <TabPanel class="h-full outline-none overflow-auto">
+          <div v-if="stats" class="p-6 space-y-6">
+            <!-- Size Risk Badge -->
+            <div class="flex items-center gap-3">
+              <div class="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                :class="sizeRiskClass"
+              >
+                <component :is="sizeRiskIcon" class="w-3.5 h-3.5" />
+                {{ sizeRiskLabel }}
+              </div>
+              <span class="text-xs text-gray-400">{{ formatNumber(stats.rowCount) }} rows · {{ stats.dataLengthMB }} MB data · {{ stats.indexLengthMB }} MB indexes</span>
+            </div>
+
+            <!-- Stat Cards Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Row Count</p>
+                <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatNumber(stats.rowCount) }}</p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Data Size</p>
+                <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.dataLengthMB }} <span class="text-sm text-gray-400">MB</span></p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Index Size</p>
+                <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.indexLengthMB }} <span class="text-sm text-gray-400">MB</span></p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Engine</p>
+                <p class="text-lg font-black text-gray-900 dark:text-white uppercase">{{ stats.engine }}</p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Collation</p>
+                <p class="text-sm font-bold text-gray-900 dark:text-white font-mono">{{ stats.collation }}</p>
+              </div>
+              <div v-if="stats.autoIncrement" class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Auto Increment</p>
+                <p class="text-lg font-black text-gray-900 dark:text-white">{{ formatNumber(stats.autoIncrement) }}</p>
+              </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="flex items-center gap-6 text-xs text-gray-400">
+              <span v-if="stats.createTime">Created: <span class="font-mono text-gray-500 dark:text-gray-300">{{ stats.createTime }}</span></span>
+              <span v-if="stats.updateTime">Last Modified: <span class="font-mono text-gray-500 dark:text-gray-300">{{ stats.updateTime }}</span></span>
+            </div>
+          </div>
+
+          <div v-else class="flex flex-col items-center justify-center p-12 text-center text-gray-400 italic h-full">
+            <Activity class="w-12 h-12 mb-3 opacity-20" />
+            <p>No live stats available</p>
+            <p class="text-[10px] mt-2 opacity-60">Connect to a live database to fetch table metadata.</p>
+          </div>
+        </TabPanel>
       </TabPanels>
     </TabGroup>
 
@@ -335,13 +385,43 @@
 import { ref, computed, watch } from 'vue'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 import { 
-  Key, Circle, Search, Zap, ZapOff, Layers, ListTree, Plus
+  Key, Circle, Search, Zap, ZapOff, Layers, ListTree, Plus, Activity, ShieldCheck, ShieldAlert, ShieldX
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useTableResizer } from '@/composables/useTableResizer'
 import DDLViewer from './DDLViewer.vue'
 
 const appStore = useAppStore()
+
+// Safely unwrap AST node objects (or JSON-stringified AST nodes) to display strings
+const displayValue = (val: any): string => {
+  if (val === null || val === undefined) return ''
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val)
+  if (typeof val === 'string') {
+    // Detect JSON-stringified AST nodes: {"type":"null","value":...}
+    if (val.startsWith('{') && val.includes('"type"')) {
+      try {
+        const parsed = JSON.parse(val)
+        if (parsed && parsed.type) return unwrapNode(parsed)
+      } catch { /* not JSON, use as-is */ }
+    }
+    return val
+  }
+  if (typeof val === 'object') return unwrapNode(val)
+  return ''
+}
+
+const unwrapNode = (node: any): string => {
+  if (!node || typeof node !== 'object') return node != null ? String(node) : ''
+  if (node.type === 'null') return 'NULL'
+  if (node.type === 'bool') return node.value ? 'TRUE' : 'FALSE'
+  if (['single_quote_string', 'double_quote_string', 'string'].includes(node.type)) {
+    return node.value != null ? String(node.value) : ''
+  }
+  if (node.type === 'number') return String(node.value)
+  if (node.value !== undefined) return unwrapNode(node.value)
+  return ''
+}
 
 // Initialize resizers for each table
 // Columns tab: #, Column, Data Type, PK, NN, UQ, AI, Default, Comment
@@ -361,7 +441,40 @@ const props = defineProps<{
   options: any
   partitions: string | null
   triggers: any[] // All triggers from schema for cross-referencing
+  stats?: any    // Table stats from Inspector (AI DBA Super Mode)
 }>()
+
+// Inspector helpers
+const formatNumber = (n: number) => {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
+  return String(n)
+}
+
+const sizeRiskClass = computed(() => {
+  if (!props.stats) return ''
+  const rows = props.stats.rowCount || 0
+  if (rows > 5_000_000) return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+  if (rows > 100_000) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+  return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+})
+
+const sizeRiskLabel = computed(() => {
+  if (!props.stats) return ''
+  const rows = props.stats.rowCount || 0
+  if (rows > 5_000_000) return 'Large Table'
+  if (rows > 100_000) return 'Medium Table'
+  return 'Small Table'
+})
+
+const sizeRiskIcon = computed(() => {
+  if (!props.stats) return Activity
+  const rows = props.stats.rowCount || 0
+  if (rows > 5_000_000) return ShieldX
+  if (rows > 100_000) return ShieldAlert
+  return ShieldCheck
+})
 
 const activeTab = ref(0)
 const selectedTriggerEvent = ref('BEFORE INSERT') // Default selection for Triggers tab
@@ -506,7 +619,8 @@ const tabs = computed(() => [
   { name: 'Indexes', icon: Search, count: props.indexes?.length || 0 },
   { name: 'Foreign Keys', icon: Key, count: props.foreignKeys?.length || 0 },
   { name: 'Triggers', icon: Zap, count: tableTriggers.value.length },
-  { name: 'Partitions', icon: Layers, count: props.partitions ? 1 : 0 }
+  { name: 'Partitions', icon: Layers, count: props.partitions ? 1 : 0 },
+  { name: 'Inspector', icon: Activity, count: props.stats ? 1 : 0 }
 ])
 </script>
 

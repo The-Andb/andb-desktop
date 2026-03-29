@@ -66,34 +66,52 @@
                       </span>
                     </div>
                     
-                    <!-- Send to Instant Buttons -->
-                    <div class="absolute right-2 flex items-center px-1 bg-white/80 dark:bg-gray-800/80 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow p-0.5"
-                         :class="appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
+                    <!-- Send to Instant Buttons (Extreme Compact Mode) -->
+                    <div class="absolute right-2 flex items-center px-0.5 bg-white/90 dark:bg-gray-800/90 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow p-0.5"
+                         :class="(appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
+                      
+                      <!-- Case 1: This item is the SOURCE -->
                       <button 
+                        v-if="appStore.compareStack?.source?.name === item.name"
                         @click.stop="emit('send-to-instant', item, 'source')"
-                        :disabled="appStore.compareStack?.target?.name === item.name"
-                        class="p-1 rounded-full transition-all group/src"
-                        :class="[
-                          appStore.compareStack?.source?.name === item.name ? 'bg-orange-500 text-white dark:bg-orange-600' : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20',
-                          appStore.compareStack?.target?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
-                        ]"
-                        title="Set as Source"
+                        class="p-1 rounded-full bg-orange-500 text-white dark:bg-orange-600 transition-all shadow-sm"
+                        title="Unset Source"
                       >
-                        <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.source?.name === item.name ? 'text-white' : 'text-orange-400 group-hover/src:text-orange-500'" />
+                        <Flame class="w-3 h-3 text-white" />
                       </button>
-                      <span class="text-[8px] font-black text-gray-400 mx-0.5 select-none opacity-50">vs</span>
+
+                      <!-- Case 2: This item is the TARGET -->
                       <button 
+                        v-else-if="appStore.compareStack?.target?.name === item.name"
                         @click.stop="emit('send-to-instant', item, 'target')"
-                        :disabled="appStore.compareStack?.source?.name === item.name"
-                        class="p-1 rounded-full transition-all group/tgt"
-                        :class="[
-                          appStore.compareStack?.target?.name === item.name ? 'bg-blue-500 text-white dark:bg-blue-600' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-                          appStore.compareStack?.source?.name === item.name ? 'opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400' : ''
-                        ]"
-                        title="Set as Target"
+                        class="p-1 rounded-full bg-blue-500 text-white dark:bg-blue-600 transition-all shadow-sm"
+                        title="Unset Target"
                       >
-                        <Flame class="w-3 h-3 transition-colors" :class="appStore.compareStack?.target?.name === item.name ? 'text-white' : 'text-blue-400 group-hover/tgt:text-blue-500'" />
+                        <Flame class="w-3 h-3 text-white" />
                       </button>
+
+                      <!-- Case 3: Neutral Item - Show only the next available slot placeholder -->
+                      <template v-else>
+                        <!-- If no source set, show Orange Placeholder -->
+                        <button 
+                          v-if="!appStore.compareStack?.source"
+                          @click.stop="emit('send-to-instant', item, 'source')"
+                          class="p-1 rounded-full text-orange-400/60 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all animate-pulse"
+                          title="Set as Source (Orange Flame)"
+                        >
+                          <Flame class="w-3 h-3" />
+                        </button>
+                        
+                        <!-- If source is set but target is empty, show Blue Placeholder -->
+                        <button 
+                          v-else-if="!appStore.compareStack?.target"
+                          @click.stop="emit('send-to-instant', item, 'target')"
+                          class="p-1 rounded-full text-blue-400/60 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all animate-pulse"
+                          title="Set as Target (Blue Flame)"
+                        >
+                          <Flame class="w-3 h-3" />
+                        </button>
+                      </template>
                     </div>
                   </div>
                 </div>

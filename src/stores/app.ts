@@ -427,6 +427,23 @@ export const useAppStore = defineStore('app', () => {
   }
 
   const addConnection = (connection: Omit<DatabaseConnection, 'id'>, projectId?: string) => {
+    // Check for duplicates (same host, port, database, and name)
+    const existing = connections.value.find(c => 
+      c.host === connection.host && 
+      c.port === connection.port && 
+      c.database === connection.database &&
+      c.name === connection.name &&
+      c.environment === connection.environment
+    )
+
+    if (existing) {
+      if (projectId) {
+        const projectsStore = useProjectsStore()
+        projectsStore.addItemToProject('connection', existing.id, projectId)
+      }
+      return existing
+    }
+
     const newConnection: DatabaseConnection = {
       ...connection,
       id: generateId()

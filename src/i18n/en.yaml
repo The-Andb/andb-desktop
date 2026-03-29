@@ -524,6 +524,7 @@ settings:
   security:
     title: 'Security Keys'
     subtitle: 'Manage encryption and access validation'
+    desc: 'Local-first security architecture. All database credentials and sensitive project metadata are encrypted using unique RSA-2048 key pairs. Your private keys are stored exclusively in your system keychain (macOS Keychain or Windows Credential Manager), ensuring that only this authorized device can decrypt your data.'
     publicKey: 'Public Key'
     active: 'Active'
     publicKeyDesc: 'This public key is used to encrypt your database connection passwords locally before they are safely stored in the SQLite configs. The Private Key is securely stored in your OS keychain, ensuring that only this specific device can decrypt the passwords.'

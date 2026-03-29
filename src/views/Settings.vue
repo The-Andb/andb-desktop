@@ -630,7 +630,12 @@
                               </button>
                            </div>
                            <p v-if="currentWorkspaceDir" class="text-[10px] text-gray-400 font-medium">
-                             {{ $t('settings.vault.activeWorkspace') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentWorkspaceDir }}</code><br/>{{ $t('settings.vault.activeDatabase') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentDbPath }}</code><br /><span class="text-amber-500">{{ $t('settings.vault.restartRequired') }}</span>
+                             {{ $t('settings.vault.activeWorkspace') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentWorkspaceDir }}</code><br/>{{ $t('settings.vault.activeDatabase') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentDbPath }}</code><br />
+                             <span class="flex items-center gap-1.5 mt-2 text-green-600 dark:text-green-500/80 font-black uppercase tracking-widest">
+                               <Shield class="w-3 h-3" />
+                               AES-256 Encrypted Vault
+                             </span>
+                             <span class="text-amber-500 block mt-1">{{ $t('settings.vault.restartRequired') }}</span>
                            </p>
                         </div>
                      </div>
@@ -640,10 +645,22 @@
             </div>
 
             <!-- SECURITY SECTION -->
-            <div v-if="activeCategory === 'security'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div v-if="activeCategory === 'security'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+               <div>
+                  <div class="mb-8 p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                       <Shield class="w-32 h-32" />
+                    </div>
+                    <div class="relative z-10">
+                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                          {{ $t('settings.security.title') }}
+                          <span class="bg-rose-500 text-white px-2 py-0.5 rounded-md text-[9px] tracking-widest uppercase">{{ $t('status.active') || 'Active' }}</span>
+                       </h3>
+                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.security.desc')"></p>
+                    </div>
+                  </div>
 
-              
-              <div class="space-y-6">
+                  <div class="space-y-6">
                  <!-- Public Key Display -->
                   <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -680,7 +697,8 @@
                         {{ isRegeneratingKeys ? $t('common.processing') : $t('settings.security.regenerateKeys') }}
                      </button>
                  </div>
-              </div>
+                  </div>
+               </div>
             </div>
 
             <!-- BACKUP SECTION -->

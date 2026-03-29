@@ -63,6 +63,11 @@ declare global {
 
       andbGetSchemas: (args?: any) => Promise<{ success: boolean; data?: any; error?: string }>
       andbParseTable: (ddl: string) => Promise<{ success: boolean; data?: any; error?: string }>
+
+      // Table Inspector (AI DBA Super Mode)
+      andbGetTableStats: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbGetServerInfo: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbGetFKGraph: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbGetSavedComparisonResults: (args: {
         sourceConnection: any
         targetConnection: any

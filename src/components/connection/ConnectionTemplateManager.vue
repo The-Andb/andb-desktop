@@ -54,27 +54,46 @@
                   <!-- Bulk Actions -->
                   <div v-if="selectedTemplates.length > 0" class="flex items-center gap-2 mr-2 animate-in fade-in zoom-in duration-200">
                       <span class="text-xs text-gray-500 font-bold">{{ selectedTemplates.length }} selected</span>
-                      <button @click="bulkTestTemplates"
-                              class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
-                          <ShieldQuestion class="w-3.5 h-3.5" />
-                          Test All
-                      </button>
-                      <button @click="bulkDeleteTemplates"
-                              class="btn btn-danger text-xs px-3 py-1.5 flex items-center gap-1">
-                          <Trash2 class="w-3.5 h-3.5" />
-                          Delete
-                      </button>
+                      <Transition name="slide-left" mode="out-in">
+                        <div v-if="confirmingBulkDelete" class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm animate-in fade-in slide-in-from-right-4 duration-200">
+                          <span class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Delete {{ selectedTemplates.length }}?</span>
+                          <button @click="confirmingBulkDelete = false" class="text-[11px] font-black uppercase text-gray-400 hover:text-gray-600 px-2">No</button>
+                          <button @click="confirmingBulkDelete = false; bulkDeleteTemplates(true)" class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Yes</button>
+                        </div>
+                        <div v-else class="flex items-center gap-2">
+                          <button @click="bulkTestTemplates"
+                                  class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
+                              <ShieldQuestion class="w-3.5 h-3.5" />
+                              Test All
+                          </button>
+                          <button @click="confirmingBulkDelete = true"
+                                  class="btn btn-danger text-xs px-3 py-1.5 flex items-center gap-1">
+                              <Trash2 class="w-3.5 h-3.5" />
+                              Delete
+                          </button>
+                        </div>
+                      </Transition>
                       <button @click="clearSelection"
                               class="text-xs text-gray-400 hover:text-gray-600 px-2 transition-colors">
                           Clear
                       </button>
                   </div>
-                  <button @click="cleanEmptyConnections" class="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 mx-1" title="Clean Empty Connections without Hosts">
-                    <Eraser class="w-4 h-4" /> Clean
-                  </button>
-                  <button @click="openForm(undefined, false)" class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95">
-                    <Plus class="w-4 h-4" /> Add Connection
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <Transition name="slide-left" mode="out-in">
+                      <div v-if="confirmingClean" class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl animate-in fade-in slide-in-from-right-4 duration-200 shadow-sm">
+                        <span class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Clean Empty?</span>
+                        <button @click="confirmingClean = false" class="text-[11px] font-black uppercase text-gray-400 hover:text-gray-600 px-2">No</button>
+                        <button @click="confirmingClean = false; cleanEmptyConnections(true)" class="text-[11px] font-black uppercase bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-amber-500/20">Yes</button>
+                      </div>
+                      <button v-else @click="confirmingClean = true" class="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 mx-1" title="Clean Empty Connections without Hosts">
+                        <Eraser class="w-4 h-4" /> Clean
+                      </button>
+                    </Transition>
+
+                    <button @click="openForm(undefined, false)" class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95">
+                      <Plus class="w-4 h-4" /> Add Connection
+                    </button>
+                  </div>
               </div>
           </div>
 
@@ -199,39 +218,50 @@
                         <span v-else class="text-[10px] text-gray-400 italic">No DB</span>
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
-                        <div class="flex items-center justify-end gap-2 px-2 py-1 rounded-lg">
-                            <button @click="testTemplate(template)" 
-                                    class="relative p-1 rounded-lg transition-all"
-                                    :class="{
-                                        'text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20': !testingTemplates.has(template.id) && !testResults[template.id],
-                                        'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20': testResults[template.id]?.success,
-                                        'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20': testResults[template.id] && !testResults[template.id].success,
-                                        'animate-pulse': testingTemplates.has(template.id)
-                                    }"
-                                    :title="$t('connections.testConnection')">
-                              <RefreshCw v-if="testingTemplates.has(template.id)" class="w-4 h-4 animate-spin" />
-                              <CheckCircle2 v-else-if="testResults[template.id]?.success" class="w-4 h-4" />
-                              <AlertCircle v-else-if="testResults[template.id] && !testResults[template.id].success" class="w-4 h-4" />
-                              <ShieldQuestion v-else class="w-4 h-4" />
-                            </button>
-                            <button v-if="!!(template as any).permissions" @click="openReconfigure(template)" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 p-1 rounded-lg transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="Reconfigure Privileges">
-                               <ShieldCheck class="w-4 h-4" />
-                            </button>
-                            <button @click="openForm(template)" 
-                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
-                                    :title="$t('common.edit')">
-                            <Edit2 class="w-4 h-4" />
-                            </button>
-                            <button @click="duplicateTemplate(template)"
-                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                                    :title="$t('common.duplicate')">
-                            <Copy class="w-4 h-4" />
-                            </button>
-                            <button @click="deleteTemplate(template.id)" 
-                                    class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                                    :title="$t('common.delete')">
-                            <Trash2 class="w-4 h-4" />
-                            </button>
+                        <div class="flex items-center justify-end gap-2 px-2 py-1 rounded-lg min-h-[40px]">
+                          <Transition name="slide-left" mode="out-in">
+                            <div v-if="confirmingId === template.id" class="flex items-center gap-4 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl animate-in fade-in slide-in-from-right-2 duration-300 shadow-sm">
+                                <span class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest shrink-0">Delete template?</span>
+                                <div class="flex items-center gap-3">
+                                    <button @click="confirmingId = null" class="text-xs font-black uppercase text-gray-400 hover:text-gray-600 transition-colors">Cancel</button>
+                                    <button @click="deleteTemplate(template.id, true)" class="text-xs font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Confirm</button>
+                                </div>
+                            </div>
+                            <div v-else class="flex items-center justify-end gap-2">
+                                <button @click="testTemplate(template)" 
+                                        class="relative p-1 rounded-lg transition-all"
+                                        :class="{
+                                            'text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20': !testingTemplates.has(template.id) && !testResults[template.id],
+                                            'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20': testResults[template.id]?.success,
+                                            'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20': testResults[template.id] && !testResults[template.id].success,
+                                            'animate-pulse': testingTemplates.has(template.id)
+                                        }"
+                                        :title="$t('connections.testConnection')">
+                                  <RefreshCw v-if="testingTemplates.has(template.id)" class="w-4 h-4 animate-spin" />
+                                  <CheckCircle2 v-else-if="testResults[template.id]?.success" class="w-4 h-4" />
+                                  <AlertCircle v-else-if="testResults[template.id] && !testResults[template.id].success" class="w-4 h-4" />
+                                  <ShieldQuestion v-else class="w-4 h-4" />
+                                </button>
+                                <button v-if="!!(template as any).permissions" @click="openReconfigure(template)" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 p-1 rounded-lg transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="Reconfigure Privileges">
+                                   <ShieldCheck class="w-4 h-4" />
+                                </button>
+                                <button @click="openForm(template)" 
+                                        class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
+                                        :title="$t('common.edit')">
+                                <Edit2 class="w-4 h-4" />
+                                </button>
+                                <button @click="duplicateTemplate(template)"
+                                        class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                        :title="$t('common.duplicate')">
+                                <Copy class="w-4 h-4" />
+                                </button>
+                                <button @click="confirmingId = template.id" 
+                                        class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                        :title="$t('common.delete')">
+                                <Trash2 class="w-4 h-4" />
+                                </button>
+                            </div>
+                          </Transition>
                         </div>
                         </td>
                     </tr>
@@ -398,33 +428,18 @@ const filterEnvs = ref<string[]>(['ALL'])
 const filterType = ref<string>('ALL')
 
 const toggleFilterEnv = (env: string, overwrite = false) => {
-    if (overwrite) {
-        filterEnvs.value = [env]
+    if (overwrite || env === 'ALL') {
+        filterEnvs.value = ['ALL']
+        if (env !== 'ALL') filterEnvs.value = [env]
         return
     }
 
-    if (env === 'ALL') {
+    // Toggle logic for single select
+    if (filterEnvs.value.includes(env)) {
         filterEnvs.value = ['ALL']
-        return
-    }
-    
-    // Explicitly unwrap and clone
-    let current = Array.from(filterEnvs.value)
-    
-    // Remove ALL if another is selected
-    current = current.filter(e => e !== 'ALL')
-    
-    // Toggle the selected environment
-    if (current.includes(env)) {
-        current = current.filter(e => e !== env)
-        if (current.length === 0) {
-            current = ['ALL']
-        }
     } else {
-        current.push(env)
+        filterEnvs.value = [env]
     }
-    
-    filterEnvs.value = current
 }
 
 // Computed groups by database type (Filtered)
@@ -485,25 +500,23 @@ const bulkTestTemplates = async () => {
     }
 }
 
-const bulkDeleteTemplates = () => {
-    const count = selectedTemplates.value.length
-    if (confirm(t('connections.confirmBulkDelete', { count }))) {
-        selectedTemplates.value.forEach(id => store.removeTemplate(id))
-        clearSelection()
-    }
-}
-
-const cleanEmptyConnections = () => {
-    const emptyConnections = templates.value.filter(t => !t.host || t.host.trim() === '')
-    if (emptyConnections.length === 0) {
-        alert('No empty connections found. All connections have a host configured.')
+const bulkDeleteTemplates = (confirmed = false) => {
+    if (!confirmed) {
+        confirmingBulkDelete.value = true
         return
     }
-    
-    if (confirm(`Are you sure you want to delete ${emptyConnections.length} empty connection(s)?`)) {
-        emptyConnections.forEach(t => store.removeTemplate(t.id))
-        clearSelection()
+    selectedTemplates.value.forEach(id => store.removeTemplate(id))
+    clearSelection()
+}
+
+const cleanEmptyConnections = (confirmed = false) => {
+    if (!confirmed) {
+        confirmingClean.value = true
+        return
     }
+    const emptyConnections = templates.value.filter(t => !t.host || t.host.trim() === '')
+    emptyConnections.forEach(t => store.removeTemplate(t.id))
+    clearSelection()
 }
 
 // State
@@ -512,6 +525,11 @@ const showPassword = ref(false)
 const editingTemplate = ref<ConnectionTemplate | null>(null)
 const reconfigureMode = ref(false)
 const isUserConnectionMode = ref(false) // true when user clicked 'Add User'
+
+// Confirmation states
+const confirmingId = ref<string | null>(null)
+const confirmingBulkDelete = ref(false)
+const confirmingClean = ref(false)
 
 const form = ref<Partial<ConnectionTemplate> & { productSettings?: any }>({
     name: '',
@@ -599,13 +617,11 @@ const hasEnvironment = (env: string) => {
 }
 
 const toggleEnvironment = (env: string) => {
-    let envs = form.value.environment ? form.value.environment.split(',').map(s=>s.trim()).filter(Boolean) : []
-    if (envs.includes(env)) {
-        envs = envs.filter(e => e !== env)
+    if (form.value.environment === env) {
+        form.value.environment = '' // Clear if clicking same one (since it's optional)
     } else {
-        envs.push(env)
+        form.value.environment = env
     }
-    form.value.environment = envs.join(',')
 }
 
 const saveTemplate = () => {
@@ -713,10 +729,13 @@ const testTemplate = async (template: ConnectionTemplate) => {
     }
 }
 
-const deleteTemplate = (id: string) => {
-    if (confirm(t('connections.confirmDeleteTemplate'))) {
-        store.removeTemplate(id)
+const deleteTemplate = (id: string, confirmed = false) => {
+    if (!confirmed) {
+        confirmingId.value = id
+        return
     }
+    store.removeTemplate(id)
+    confirmingId.value = null
 }
 
 // Auto-test all templates when they are loaded
@@ -728,3 +747,20 @@ watch(templates, (newTemplates) => {
     }
 }, { immediate: true })
 </script>
+
+<style scoped>
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+</style>
