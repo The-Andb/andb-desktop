@@ -33,7 +33,7 @@
     </div>
 
     <!-- Tree Content -->
-    <div class="flex-1 overflow-auto custom-scrollbar p-4 relative" @mousemove="handleResize">
+    <div class="flex-1 overflow-auto custom-scrollbar p-4 relative min-h-0" @mousemove="handleResize">
       <div v-if="!hasData" class="text-center text-gray-400 py-10 italic">
         {{ $t('compare.treeViewData.noData') }}
       </div>
