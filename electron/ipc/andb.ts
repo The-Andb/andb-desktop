@@ -9,6 +9,27 @@ import { CoreBridge } from '@the-andb/core'
  */
 export async function handleAndbExecute(_event: any, args: any) {
   const { sourceConnection, targetConnection, operation, options } = args || {}
+  
+  // Setup global progress listener once per worker lifecycle
+  const { BackgroundWorker } = require('../services/background-worker')
+  const worker = BackgroundWorker.getInstance()
+  if (worker.listenerCount('progress') === 0) {
+    worker.on('progress', (data: any) => {
+      // Forward to all active renderer windows
+      const { BrowserWindow } = require('electron')
+      const windows = BrowserWindow.getAllWindows()
+      windows.forEach(win => {
+        try {
+          if (!win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+            win.webContents.send('andb-progress', data)
+          }
+        } catch (e) {
+          // Ignore errors from destroyed windows during broadcasting
+        }
+      })
+    })
+  }
+
   return await AndbBuilder.execute(sourceConnection, targetConnection, operation, options, _event.sender)
 }
 

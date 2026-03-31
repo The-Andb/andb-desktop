@@ -114,7 +114,8 @@ export const useAppStore = defineStore('app', () => {
   // Global Schema Fetching State
   const isSchemaFetching = ref(false)
   const schemaFetchMessage = ref('')
-  const schemaFetchProgress = ref<{ current: number; total: number; type: string; objectName: string } | null>(null)
+  const activeFetchConnectionId = ref<string | null>(null)
+  const schemaFetchProgresses = ref<Record<string, { current: number; total: number; type: string; objectName: string; connectionName?: string }>>({})
 
   // Telemetry Identity
   const installationId = ref<string>('')
@@ -638,7 +639,18 @@ export const useAppStore = defineStore('app', () => {
     // App-wide locks & progress
     isSchemaFetching,
     schemaFetchMessage,
-    schemaFetchProgress,
+    activeFetchConnectionId,
+    schemaFetchProgresses,
+
+    updateSchemaProgress: (id: string, progress: any) => {
+      schemaFetchProgresses.value[id] = progress
+      isSchemaFetching.value = Object.keys(schemaFetchProgresses.value).length > 0
+    },
+
+    removeSchemaProgress: (id: string) => {
+      delete schemaFetchProgresses.value[id]
+      isSchemaFetching.value = Object.keys(schemaFetchProgresses.value).length > 0
+    },
 
     // Getters
     getConnectionById,

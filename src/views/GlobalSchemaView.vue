@@ -33,145 +33,153 @@
                 <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
               </div>
 
-              <button 
-                @click="loadSchema(true)" 
-                :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-primary-50 text-primary-600 dark:bg-gray-800 dark:hover:bg-primary-900/30 dark:text-primary-400 rounded-lg shadow border border-gray-200 dark:border-gray-700 transition-all disabled:opacity-50 text-xs font-medium"
-                :title="fetchButtonText"
-              >
-                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': appStore.isSchemaFetching || loading }" />
-                <span>{{ appStore.isSchemaFetching ? $t('schema.fetching') : fetchButtonText }}</span>
-              </button>
+               <button 
+                 @click="loadSchema(true)" 
+                 :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
+                 class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-md shadow-primary-500/10 transition-all disabled:opacity-50 text-[11px] font-bold border-none"
+                 :title="fetchButtonText"
+               >
+                 <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': appStore.isSchemaFetching || loading }" />
+                 <span class="uppercase tracking-tight">{{ appStore.isSchemaFetching ? $t('schema.fetching') : fetchButtonText }}</span>
+               </button>
            </div>
            
            <!-- Layout Customize -->
            <div class="relative">
              <button 
                @click="showLayoutMenu = !showLayoutMenu" 
-               class="p-2 rounded-xl transition-all border border-transparent"
-               :class="showLayoutMenu ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20'"
+               class="p-2 rounded-xl transition-all border border-transparent flex items-center justify-center"
+               :class="showLayoutMenu ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-800'"
                title="Customize Layout"
              >
                <LayoutDashboard class="w-4 h-4" />
              </button>
 
              <!-- Dropdown -->
-             <div v-if="showLayoutMenu" class="absolute right-0 top-full mt-1 w-64 bg-gray-800 dark:bg-gray-950 text-white rounded-lg shadow-2xl border border-gray-700 dark:border-gray-800 z-50 overflow-hidden">
-               <div class="px-4 py-2.5 border-b border-gray-700 flex items-center justify-between">
-                 <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Customize Layout</span>
-                 <button @click="showLayoutMenu = false" class="text-gray-400 hover:text-white transition-colors">
+             <div v-if="showLayoutMenu" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
+               <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                 <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Customize Layout</span>
+                 <button @click="showLayoutMenu = false" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                    <X class="w-3.5 h-3.5" />
                  </button>
                </div>
                
-               <div class="py-1">
+               <div class="py-1.5 px-1.5 space-y-0.5">
                  <!-- Sidebar Toggle -->
-                 <button @click="layout.sidebar = !layout.sidebar" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                 <button @click="layout.sidebar = !layout.sidebar" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                    <div class="flex items-center gap-3">
-                     <PanelLeft class="w-4 h-4 text-gray-400" />
-                     <span class="text-xs font-medium">Sidebar</span>
+                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.sidebar }">
+                       <PanelLeft class="w-4 h-4" :class="layout.sidebar ? 'text-primary-500' : 'text-gray-400'" />
+                     </div>
+                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Sidebar</span>
                    </div>
-                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.sidebar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.sidebar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
                      <Check v-if="layout.sidebar" class="w-3 h-3" />
                    </div>
                  </button>
 
                  <!-- Breadcrumbs Toggle -->
-                 <button @click="layout.breadcrumbs = !layout.breadcrumbs" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                 <button @click="layout.breadcrumbs = !layout.breadcrumbs" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                    <div class="flex items-center gap-3">
-                     <Navigation class="w-4 h-4 text-gray-400" />
-                     <span class="text-xs font-medium">Breadcrumbs</span>
+                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.breadcrumbs }">
+                       <Navigation class="w-4 h-4" :class="layout.breadcrumbs ? 'text-primary-500' : 'text-gray-400'" />
+                     </div>
+                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Breadcrumbs</span>
                    </div>
-                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.breadcrumbs ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.breadcrumbs ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
                      <Check v-if="layout.breadcrumbs" class="w-3 h-3" />
                    </div>
                  </button>
 
                  <!-- Toolbar Toggle -->
-                 <button @click="layout.toolbar = !layout.toolbar" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                 <button @click="layout.toolbar = !layout.toolbar" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                    <div class="flex items-center gap-3">
-                     <PanelTop class="w-4 h-4 text-gray-400" />
-                     <span class="text-xs font-medium">Content Toolbar</span>
+                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.toolbar }">
+                       <PanelTop class="w-4 h-4" :class="layout.toolbar ? 'text-primary-500' : 'text-gray-400'" />
+                     </div>
+                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Content Toolbar</span>
                    </div>
-                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="layout.toolbar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.toolbar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
                      <Check v-if="layout.toolbar" class="w-3 h-3" />
                    </div>
                  </button>
 
                  <!-- Panel Toggle (Console) -->
-                 <button @click="consoleStore.toggleVisibility()" class="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-700/50 transition-colors">
+                 <button @click="consoleStore.toggleVisibility()" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                    <div class="flex items-center gap-3">
-                     <PanelBottom class="w-4 h-4 text-gray-400" />
-                     <span class="text-xs font-medium">Panel</span>
+                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': consoleStore.isVisible }">
+                       <PanelBottom class="w-4 h-4" :class="consoleStore.isVisible ? 'text-primary-500' : 'text-gray-400'" />
+                     </div>
+                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Console Panel</span>
                    </div>
-                   <div class="w-4 h-4 rounded border flex items-center justify-center text-[10px]" :class="consoleStore.isVisible ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-500'">
+                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="consoleStore.isVisible ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
                      <Check v-if="consoleStore.isVisible" class="w-3 h-3" />
                    </div>
                  </button>
                </div>
                
                <!-- Button Styling / Density -->
-               <div class="border-t border-gray-700 py-1">
+               <div class="border-t border-gray-100 dark:border-gray-800 py-1.5 bg-gray-50/30 dark:bg-gray-900/30">
                  <div class="px-4 py-1.5 flex items-center justify-between">
                    <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Visual Density</span>
                  </div>
                  <div class="px-2 space-y-0.5">
                    <button 
                      @click="appStore.buttonStyle = 'full'"
-                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
-                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'full', 'text-gray-400': appStore.buttonStyle !== 'full' }"
+                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'full', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'full' }"
                    >
-                     <Zap class="w-3.5 h-3.5" />
+                     <Zap class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'full' ? 'text-primary-500' : 'text-gray-400'" />
                      <div class="flex flex-col items-start leading-tight">
                        <span class="text-[11px] font-bold">Premium</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Rich Gradients</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Rich Gradients</span>
                      </div>
-                     <Check v-if="appStore.buttonStyle === 'full'" class="ml-auto w-3 h-3 text-primary-500" />
+                     <Check v-if="appStore.buttonStyle === 'full'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
                    </button>
                    <button 
                      @click="appStore.buttonStyle = 'minimal'"
-                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
-                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'minimal', 'text-gray-400': appStore.buttonStyle !== 'minimal' }"
+                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'minimal', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'minimal' }"
                    >
-                     <MousePointer2 class="w-3.5 h-3.5" />
+                     <MousePointer2 class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'minimal' ? 'text-primary-500' : 'text-gray-400'" />
                      <div class="flex flex-col items-start leading-tight">
                        <span class="text-[11px] font-bold">Minimal</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Sleek Lines</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Sleek Lines</span>
                      </div>
-                     <Check v-if="appStore.buttonStyle === 'minimal'" class="ml-auto w-3 h-3 text-primary-500" />
+                     <Check v-if="appStore.buttonStyle === 'minimal'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
                    </button>
                    <button 
                      @click="appStore.buttonStyle = 'icons'"
-                     class="w-full px-2 py-1.5 flex items-center gap-3 rounded hover:bg-gray-700/50 transition-colors text-left"
-                     :class="{ 'bg-gray-700/50 text-white': appStore.buttonStyle === 'icons', 'text-gray-400': appStore.buttonStyle !== 'icons' }"
+                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
+                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'icons', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'icons' }"
                    >
-                     <Layers class="w-3.5 h-3.5" />
+                     <Layers class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'icons' ? 'text-primary-500' : 'text-gray-400'" />
                      <div class="flex flex-col items-start leading-tight">
                        <span class="text-[11px] font-bold">Icon Only</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter">Extreme Density</span>
+                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Extreme Density</span>
                      </div>
-                     <Check v-if="appStore.buttonStyle === 'icons'" class="ml-auto w-3 h-3 text-primary-500" />
+                     <Check v-if="appStore.buttonStyle === 'icons'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
                    </button>
                  </div>
                </div>
 
                <!-- Sidebar Position -->
-               <div class="border-t border-gray-700 py-1">
+               <div class="border-t border-gray-100 dark:border-gray-800 py-1.5">
                  <div class="px-4 py-1.5 flex items-center justify-between">
                    <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Sidebar Position</span>
                  </div>
-                 <div class="px-4 pb-2 flex gap-1">
+                 <div class="px-3 pb-2 flex gap-1.5">
                    <button 
                      @click="layout.sidebarPosition = 'left'"
-                     class="flex-1 px-3 py-1.5 rounded text-xs font-bold transition-all"
-                     :class="layout.sidebarPosition === 'left' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'"
+                     class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                     :class="layout.sidebarPosition === 'left' ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'"
                    >
                      Left
                    </button>
                    <button 
                      @click="layout.sidebarPosition = 'right'"
-                     class="flex-1 px-3 py-1.5 rounded text-xs font-bold transition-all"
-                     :class="layout.sidebarPosition === 'right' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700/50'"
+                     class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                     :class="layout.sidebarPosition === 'right' ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'"
                    >
                      Right
                    </button>
@@ -179,16 +187,6 @@
                </div>
              </div>
            </div>
-
-           <!-- System Logs Toggle -->
-           
-           <button 
-              @click="consoleStore.toggleVisibility()" 
-              class="p-2 rounded-xl text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all border border-transparent"
-              :title="$t('console.toggle')"
-            >
-              <PanelBottom class="w-4 h-4" />
-            </button>
         </div>
     </div>
     <!-- Breadcrumbs -->
@@ -307,7 +305,33 @@
                    </div>
 
                    <!-- Expand / Collapse All -->
-                   <div class="flex items-center gap-0.5 ml-auto shrink-0">
+                   <!-- Sort Toggle (Group) -->
+                    <div class="flex items-center gap-0.5 ml-auto shrink-0 mr-1 pr-1 border-r border-gray-200 dark:border-gray-700">
+                      <!-- Field Toggle -->
+                      <button
+                        @click="toggleSortBy"
+                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-all duration-200 group/sortby"
+                        :class="sortBy === 'date' ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                        :title="sortBy === 'name' ? 'Sort by Name (Click for Date)' : 'Sort by Date (Click for Name)'"
+                      >
+                         <CaseSensitive v-if="sortBy === 'name'" class="w-3.5 h-3.5" />
+                         <CalendarClock v-else class="w-3.5 h-3.5" />
+                      </button>
+
+                      <!-- Order Toggle -->
+                      <button
+                        @click="toggleSortOrder"
+                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-all duration-200 group/sortorder"
+                        :class="sortOrder === 'desc' ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                        :title="sortOrder === 'asc' ? 'Ascending (Click for Desc)' : 'Descending (Click for Asc)'"
+                      >
+                         <ArrowDownAZ v-if="sortOrder === 'asc'" class="w-3.5 h-3.5 transition-transform group-hover/sortorder:scale-110" />
+                         <ArrowUpAZ v-else class="w-3.5 h-3.5 transition-transform group-hover/sortorder:scale-110" />
+                      </button>
+                    </div>
+
+                   <!-- Expand / Collapse All -->
+                   <div class="flex items-center gap-0.5 shrink-0">
                      <button
                        @click="treeExpandCmd = { action: 'expand', ts: Date.now() }"
                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -389,24 +413,30 @@
                   </div>
                   
                   <div class="flex items-center gap-2" v-if="selectedItem.type !== 'diagrams'">
-                     <!-- Tab Switcher for Tables -->
-                     <div v-if="selectedItem.type === 'tables' || selectedItem.type === 'table'" class="bg-gray-800 dark:bg-gray-950 rounded p-0.5 flex gap-0.5 mr-2">
+                     <!-- Premium Segmented Control for Tree/Code -->
+                     <div v-if="selectedItem.type === 'tables' || selectedItem.type === 'table'" class="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700 mx-2 shadow-inner">
                         <button 
                             @click="viewMode = 'visual'"
-                            class="p-1.5 rounded transition-all"
-                            :class="viewMode === 'visual' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-gray-200'"
-                            title="Table View"
+                            class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-[11px] font-bold uppercase tracking-tight"
+                            :class="viewMode === 'visual' 
+                              ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' 
+                              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'"
+                            title="Visual Tree View"
                         >
                             <LayoutTemplate class="w-3.5 h-3.5" />
+                            <span>{{ $t('compare.treeViewLabel') }}</span>
                         </button>
 
                         <button 
                             @click="viewMode = 'code'"
-                            class="p-1.5 rounded transition-all"
-                            :class="viewMode === 'code' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-gray-200'"
-                            title="SQL View"
+                            class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-all text-[11px] font-bold uppercase tracking-tight"
+                            :class="viewMode === 'code' 
+                              ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' 
+                              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'"
+                            title="SQL Code View"
                         >
                             <Code2 class="w-3.5 h-3.5" />
+                            <span>{{ $t('schema.code') }}</span>
                         </button>
                     </div>
 
@@ -499,6 +529,7 @@
                         :partitions="detailedTableData.partitions"
                         :triggers="schemaData.triggers"
                         :stats="currentTableStats"
+                        @refresh-stats="fetchTableStats"
                     ></TableDetailedView>
                     
                     <div v-else class="flex items-center justify-center h-full w-full">
@@ -534,6 +565,8 @@ import DDLViewer from '@/components/ddl/DDLViewer.vue'
 import SchemaDiagram from '@/components/ddl/SchemaDiagram.vue'
 import { 
   RefreshCw, 
+  ArrowDownAZ,
+  ArrowUpAZ,
   Folder,
   ScanSearch, 
   MousePointer2,
@@ -586,6 +619,20 @@ const sidebarStore = useSidebarStore()
 const router = useRouter()
 const route = useRoute()
 const searchInput = ref<HTMLInputElement | null>(null)
+
+const sortOrder = ref<'asc' | 'desc'>('asc')
+const sortBy = ref<'name' | 'date'>('name')
+
+const toggleSortOrder = () => {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+}
+
+const toggleSortBy = () => {
+    sortBy.value = sortBy.value === 'name' ? 'date' : 'name'
+    // Default to newest first when switching to date
+    if (sortBy.value === 'date') sortOrder.value = 'desc'
+    else sortOrder.value = 'asc'
+}
 
 // Watch for project changes to reset schema selection
 watch(() => projectsStore.selectedProjectId, () => {
@@ -713,30 +760,56 @@ const {
 
 // --- Table Inspector (AI DBA Super Mode) ---
 const tableStatsMap = ref<Record<string, any>>({})
+const isFetchingStats = ref(false)
+const lastFetchedConnId = ref<string | null>(null)
+let fetchStatsTimeout: any = null
 
-const fetchTableStats = async () => {
-  const conn = appStore.getConnectionById(appStore.selectedConnectionId)
-  if (!conn) return
-  try {
-    const stats = await Andb.getTableStats(conn as any)
-    if (Array.isArray(stats)) {
-      const map: Record<string, any> = {}
-      for (const s of stats) {
-        map[s.tableName] = s
+const fetchTableStats = async (force = false) => {
+  const currentConnId = appStore.selectedConnectionId
+  if (!currentConnId || (lastFetchedConnId.value === currentConnId && !force)) return
+  if (isFetchingStats.value) return
+
+  // Debounce to prevent multiple watchers triggering at once
+  if (fetchStatsTimeout) clearTimeout(fetchStatsTimeout)
+  fetchStatsTimeout = setTimeout(async () => {
+    // Re-check state after timeout
+    if (isFetchingStats.value) return
+    const conn = appStore.getConnectionById(currentConnId)
+    if (!conn) return
+    
+    isFetchingStats.value = true
+    try {
+      const stats = await Andb.getTableStats(conn as any)
+      if (Array.isArray(stats)) {
+        const map: Record<string, any> = {}
+        for (const s of stats) {
+          map[s.tableName] = s
+        }
+        tableStatsMap.value = map
       }
-      tableStatsMap.value = map
+    } catch (e) {
+      console.warn('[GlobalSchemaView] Failed to fetch table stats:', e)
+    } finally {
+      isFetchingStats.value = false
+      // Mark as fetched even on failure to prevent infinite retry loops from other watchers
+      lastFetchedConnId.value = currentConnId
     }
-  } catch (e) {
-    console.warn('[GlobalSchemaView] Failed to fetch table stats:', e)
-  }
+  }, 200)
 }
 
-// Auto-fetch stats when schema data changes (non-blocking background fetch)
-watch(() => schemaData.value.tables?.length, (newLen) => {
-  if (newLen && newLen > 0) {
-    fetchTableStats()
-  }
-})
+// Unified robust watcher for statistics discovery
+watch([() => appStore.selectedConnectionId, () => schemaData.value.tables?.length], 
+  ([newId, newLen], [oldId, oldLen]) => {
+    // 1. If connection changed, it's a primary trigger
+    const connectionChanged = newId !== oldId
+    // 2. If tables length changed (and wasn't zero), it means schema finished loading
+    const schemaJustLoaded = newLen && newLen > 0 && newLen !== oldLen
+
+    if (newId && (connectionChanged || schemaJustLoaded)) {
+      fetchTableStats()
+    }
+  }, { immediate: true }
+)
 
 const currentTableStats = computed(() => {
   if (!selectedItem.value) return undefined
@@ -785,7 +858,19 @@ const filteredResults = computed(() => {
     }
   }
 
-  return filtered
+  // Sorting logic based on user preference
+  // Use a shallow copy to avoid mutating the source array
+  return [...filtered].sort((a, b) => {
+    let cmp = 0
+    if (sortBy.value === 'name') {
+      cmp = a.name.localeCompare(b.name)
+    } else if (sortBy.value === 'date') {
+      const dateA = a.updated_at ? new Date(a.updated_at).getTime() : 0
+      const dateB = b.updated_at ? new Date(b.updated_at).getTime() : 0
+      cmp = dateA - dateB
+    }
+    return sortOrder.value === 'asc' ? cmp : -cmp
+  })
 })
 
 const performContentSearch = async () => {
@@ -897,70 +982,92 @@ const formattedDDL = computed(() => {
 
 const detailedTableData = shallowRef<any>(null)
 
-watch(selectedItem, async (newVal) => {
+// Robust centralized watcher for table detailed data
+watch(selectedItem, async (newVal, oldVal) => {
+  if (!newVal || (newVal.type !== 'tables' && newVal.type !== 'table')) {
     detailedTableData.value = null
-    if (newVal && (newVal.type === 'tables' || newVal.type === 'table')) {
-        const targetName = newVal.name
-        if (formattedDDL.value) {
-          try {
-            const result = await (window as any).electronAPI.andbParseTable(formattedDDL.value)
-            // Race condition guard: check if table is still selected
-            if (selectedItem.value?.name === targetName) {
-              await nextTick()
-              if (result.success && result.data) {
-                detailedTableData.value = result.data
-              } else {
-                // Handle parsing failure: set minimal data to stop loading
-                 console.warn('Parser failed for', targetName, result.error)
-                 detailedTableData.value = {
-                    columns: [],
-                    indexes: [],
-                    foreignKeys: [],
-                    options: {},
-                    partitions: null
-                 }
-              }
-            }
-          } catch (e) {
-            console.error('Failed to parse table detailed:', e)
-            if (selectedItem.value?.name === targetName) {
-               detailedTableData.value = { columns: [], indexes: [], foreignKeys: [], options: {}, partitions: null }
-            }
+    return
+  }
+
+  const targetName = newVal.name
+  // Only reset if it's a DIFFERENT table
+  if (oldVal?.name !== targetName) {
+    detailedTableData.value = null
+  }
+
+  // Force tick to ensure computed formattedDDL is fresh
+  await nextTick()
+  const ddl = formattedDDL.value
+
+  const parseAndSet = async (content: string) => {
+    try {
+      const result = await (window as any).electronAPI.andbParseTable(content)
+      // Case-insensitive guard for MySQL stability
+      if (selectedItem.value?.name?.toLowerCase() === targetName.toLowerCase()) {
+        if (result.success && result.data) {
+          detailedTableData.value = result.data
+        } else {
+          console.warn('[GlobalSchemaView] Parser failed for', targetName, result.error)
+          detailedTableData.value = {
+            tableName: targetName,
+            columns: [],
+            indexes: [],
+            foreignKeys: [],
+            options: {},
+            partitions: null
           }
         }
-    }
-})
-
-watch(formattedDDL, async (newVal) => {
-    if (newVal && selectedItem.value && (selectedItem.value.type === 'tables' || selectedItem.value.type === 'table')) {
-        const targetName = selectedItem.value.name
-        if (!detailedTableData.value) {
-            try {
-                const result = await (window as any).electronAPI.andbParseTable(newVal)
-                // Race condition guard: check if table is still selected
-                if (selectedItem.value?.name === targetName) {
-                  await nextTick()
-                  if (result.success && result.data) {
-                    detailedTableData.value = result.data
-                  } else {
-                    console.warn('Parser failed for (DDL watch)', targetName, result.error)
-                    detailedTableData.value = {
-                        columns: [],
-                        indexes: [],
-                        foreignKeys: [],
-                        options: {},
-                        partitions: null
-                    }
-                  }
-                }
-            } catch (e) {
-                console.error('Failed to parse table detailed (from DDL watch):', e)
-                if (selectedItem.value?.name === targetName) {
-                   detailedTableData.value = { columns: [], indexes: [], foreignKeys: [], options: {}, partitions: null }
-                }
-            }
+      }
+    } catch (e) {
+      console.error('[GlobalSchemaView] IPC error parsing table:', targetName, e)
+      if (selectedItem.value?.name?.toLowerCase() === targetName.toLowerCase()) {
+        detailedTableData.value = { 
+          tableName: targetName,
+          columns: [], 
+          indexes: [], 
+          foreignKeys: [], 
+          options: {}, 
+          partitions: null 
         }
+      }
     }
+  }
+
+  if (ddl) {
+    await parseAndSet(ddl)
+  } else {
+    // If no DDL yet, set a placeholder so the loader stops
+    if (!detailedTableData.value) {
+      detailedTableData.value = {
+        tableName: targetName,
+        columns: [],
+        indexes: [],
+        foreignKeys: [],
+        options: {},
+        partitions: null
+      }
+    }
+  }
+}, { immediate: true })
+
+// Secondary watch on formattedDDL for late-arriving DDL
+watch(formattedDDL, async (newDdl) => {
+  if (!newDdl || !selectedItem.value) return
+  if (selectedItem.value.type !== 'tables' && selectedItem.value.type !== 'table') return
+  
+  const targetName = selectedItem.value.name
+  // Only re-parse if we currently have no data or just the empty fallback
+  const needsParsing = !detailedTableData.value || 
+                       (detailedTableData.value.columns?.length === 0 && detailedTableData.value.indexes?.length === 0)
+
+  if (needsParsing) {
+    try {
+      const result = await (window as any).electronAPI.andbParseTable(newDdl)
+      if (selectedItem.value?.name?.toLowerCase() === targetName.toLowerCase() && result.success && result.data) {
+        detailedTableData.value = result.data
+      }
+    } catch { /* silent fallback */ }
+  }
 })
 
 
@@ -1393,6 +1500,34 @@ const handleNavigateToDefinition = (name: string) => {
   }
 }
 
+const handleDatabaseRefreshRequested = (e: any) => {
+  const { env, db } = e.detail
+  const conn = appStore.resolvedConnections.find(c => 
+    c.environment === env && 
+    (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
+  )
+  if (conn) {
+    selectedConnectionId.value = conn.id
+    selectedFilterType.value = 'all'
+    selectedItem.value = null // Clear selection to ensure FULL refresh of this DB
+    loadSchema(true) // Force REFRESH
+  }
+}
+
+const handleCategoryRefreshRequested = (e: any) => {
+  const { env, db, type } = e.detail
+  const conn = appStore.resolvedConnections.find(c => 
+    c.environment === env && 
+    (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
+  )
+  if (conn) {
+    selectedConnectionId.value = conn.id
+    selectedFilterType.value = type
+    selectedItem.value = null // Clear selection to ensure FULL refresh of this category
+    loadSchema(true) // Force REFRESH for specific category
+  }
+}
+
 const handleDatabaseSelected = (e: any) => {
   const { env, db } = e.detail
   const conn = appStore.resolvedConnections.find(c => 
@@ -1415,6 +1550,8 @@ onMounted(() => {
   window.addEventListener('category-selected', handleCategorySelected)
   window.addEventListener('object-selected', handleObjectSelected)
   window.addEventListener('database-selected', handleDatabaseSelected)
+  window.addEventListener('category-refresh-requested', handleCategoryRefreshRequested)
+  window.addEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
 
   // Handle deep link selection from other views (like Compare)
   const processDeepLink = () => {
@@ -1422,6 +1559,10 @@ onMounted(() => {
       handleNavigateToDefinition(route.query.select as string)
     }
   }
+
+  watch(() => selectedItem.value, (newVal) => {
+    (window as any)._andbSelectedObject = newVal
+  }, { immediate: true })
 
   watch(() => route.query.select, processDeepLink)
   watch(() => allResults.value.length, processDeepLink)
@@ -1444,6 +1585,8 @@ onUnmounted(() => {
   window.removeEventListener('category-selected', handleCategorySelected)
   window.removeEventListener('object-selected', handleObjectSelected)
   window.removeEventListener('database-selected', handleDatabaseSelected)
+  window.removeEventListener('category-refresh-requested', handleCategoryRefreshRequested)
+  window.removeEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
   
   window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
   window.removeEventListener('andb-prev-tab', handlePrevTab)

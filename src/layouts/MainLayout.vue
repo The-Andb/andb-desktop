@@ -20,7 +20,7 @@
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative">
         <!-- Toolbar Row (Operational context) -->
-        <div v-if="$slots.toolbar || isGlobalLayer" class="min-h-[4rem] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 py-2">
+        <div v-if="$slots.toolbar || isGlobalLayer" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 transition-all duration-300">
           <div class="flex-1 flex items-center min-w-0">
             <slot name="toolbar"></slot>
           </div>
@@ -67,17 +67,79 @@
             class="h-1 cursor-row-resize bg-gray-200 dark:bg-gray-700 hover:bg-primary-500 transition-colors z-30 w-full shrink-0"
           ></div>
 
-          <!-- Fetch Progress Bar (above console) -->
-          <div v-if="appStore.isSchemaFetching && appStore.schemaFetchProgress" class="shrink-0 flex items-center gap-3 px-4 h-6 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                class="h-full bg-primary-500 transition-all duration-300 ease-out rounded-full" 
-                :style="{ width: `${Math.min(100, Math.max(0, (appStore.schemaFetchProgress.current / appStore.schemaFetchProgress.total) * 100))}%` }"
-              ></div>
+          <!-- Multi-Task Progress Bar (above console) -->
+          <div v-if="appStore.isSchemaFetching && progressList.length > 0" class="shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 transition-all duration-500 overflow-hidden">
+            <div class="flex flex-col">
+              <!-- Progress Items List -->
+              <div v-for="(p, id) in visibleProgresses" :key="id" 
+                   class="flex items-center gap-3 px-4 h-6 hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-colors group border-b border-gray-200/50 dark:border-gray-700/30 last:border-0">
+                
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></div>
+                  <!-- Aligned Label -->
+                  <div class="flex items-center gap-1 px-1 text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter shrink-0 group-hover:text-primary-500 transition-colors w-[112px]">
+                    <span class="w-[48px] text-right truncate">{{ p.connectionName || 'GLOBAL' }}</span>
+                    <span class="text-gray-300 dark:text-gray-600 font-thin opacity-50">></span>
+                    <span class="w-[50px] truncate">{{ p.type?.toUpperCase()?.replace(/S$/, '') }}</span>
+                  </div>
+                  <div class="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                    <div 
+                      class="h-full bg-primary-500 transition-all duration-300 ease-out rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] relative overflow-hidden" 
+                      :style="{ width: `${Math.min(100, Math.max(0, (p.current / p.total) * 100))}%` }"
+                    >
+                    </div>
+                  </div>
+                </div>
+
+                <span class="text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 shrink-0 tabular-nums min-w-[80px] text-right truncate">
+                   {{ p.current }}/{{ p.total }}
+                </span>
+              </div>
+
+              <!-- Adaptive Controls Toolbar -->
+              <div class="h-6 flex items-center justify-between px-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-4">
+                  <!-- Collapse/Normal/Expand Modes -->
+                  <div class="flex items-center gap-1 border-r border-gray-200 dark:border-gray-700 pr-3">
+                    <button 
+                      @click="progressDisplayMode = 'collapsed'"
+                      :class="['p-0.5 rounded transition-colors', progressDisplayMode === 'collapsed' ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/40' : 'text-gray-400 hover:text-gray-600']"
+                      title="Collapsed View (1 bar)"
+                    >
+                      <ChevronDown class="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      @click="progressDisplayMode = 'normal'"
+                      :class="['p-0.5 rounded transition-colors', progressDisplayMode === 'normal' ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/40' : 'text-gray-400 hover:text-gray-600']"
+                      title="Normal View (3 bars)"
+                    >
+                      <LayoutList class="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      @click="progressDisplayMode = 'expanded'"
+                      :class="['p-0.5 rounded transition-colors', progressDisplayMode === 'expanded' ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/40' : 'text-gray-400 hover:text-gray-600']"
+                      title="Expanded View (Show All)"
+                    >
+                      <Maximize2 class="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                    {{ progressList.length }} Active Task{{ progressList.length > 1 ? 's' : '' }}
+                  </span>
+                </div>
+
+                <!-- Expand All / Show Less Action -->
+                <button 
+                  v-if="progressList.length > (progressDisplayMode === 'collapsed' ? 1 : 3)"
+                  @click="toggleExpansion"
+                  class="flex items-center gap-2 text-[10px] font-black text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors uppercase tracking-[0.2em]"
+                >
+                  <component :is="progressDisplayMode === 'expanded' ? ChevronUp : Layers" class="w-3 h-3" />
+                  {{ progressDisplayMode === 'expanded' ? 'Show Less' : `+ ${progressList.length - (progressDisplayMode === 'collapsed' ? 1 : 3)} More` }}
+                </button>
+              </div>
             </div>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 shrink-0 whitespace-nowrap text-right w-60 tabular-nums overflow-hidden text-ellipsis">
-              FETCHING {{ appStore.schemaFetchProgress.current }}/{{ appStore.schemaFetchProgress.total }} {{ appStore.schemaFetchProgress.type?.toUpperCase() }}
-            </span>
           </div>
           <!-- Console Panel -->
           <div 
@@ -106,7 +168,7 @@ import Sidebar from '@/components/general/Sidebar.vue'
 import ConsoleOutput from '@/components/general/ConsoleOutput.vue'
 import Notification from '@/components/general/Notification.vue'
 import CompareStackBar from '@/components/compare/CompareStackBar.vue'
-import { PanelBottom, X } from 'lucide-vue-next'
+import { PanelBottom, X, Layers, ChevronDown, ChevronUp, LayoutList, Maximize2 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'
 
@@ -183,4 +245,43 @@ const stopConsoleResize = () => {
   document.removeEventListener('mouseup', stopConsoleResize)
   document.body.style.cursor = ''
 }
+
+// Adaptive Progress State
+const progressDisplayMode = ref<'collapsed' | 'normal' | 'expanded'>('normal')
+const progressList = computed(() => 
+  Object.entries(appStore.schemaFetchProgresses)
+    .map(([id, p]) => ({ id, ...p }))
+    .filter(p => p.current < p.total)
+)
+
+const visibleProgresses = computed(() => {
+  if (progressDisplayMode.value === 'collapsed') return progressList.value.slice(0, 1)
+  if (progressDisplayMode.value === 'expanded') return progressList.value
+  return progressList.value.slice(0, 3)
+})
+
+const toggleExpansion = () => {
+  if (progressDisplayMode.value === 'expanded') {
+    progressDisplayMode.value = 'normal'
+  } else {
+    progressDisplayMode.value = 'expanded'
+  }
+}
+
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 4px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+</style>

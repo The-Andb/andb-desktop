@@ -26,9 +26,9 @@
             v-if="step === 'input'"
             @click="runCompare" 
             :disabled="loading || (!srcDDL && !destDDL)"
-            class="flex items-center gap-2 px-6 py-2.5 bg-[#159688]/20 hover:bg-[#159688]/30 dark:bg-[#159688]/10 text-[#159688] dark:text-[#33bba6] rounded-xl text-xs font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+            class="flex items-center gap-2 px-6 py-2.5 bg-orange-500/20 hover:bg-orange-500/30 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl text-xs font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group/zbtn"
           >
-            <GitCompare class="w-4 h-4" v-if="!loading" />
+            <GitCompare class="w-4 h-4 transition-transform duration-300 group-hover/zbtn:scale-125" v-if="!loading" />
             <RefreshCw class="w-4 h-4 animate-spin" v-else />
             {{ loading ? 'Comparing...' : 'Analyze & Compare' }}
           </button>

@@ -77,28 +77,37 @@ const handleDatabaseRefreshRequested = async (e: any) => {
   if (!conn) return
 
   try {
+    appStore.isSchemaFetching = true
     consoleStore.addLog(`Database Refresh: ${db}`, 'info')
     consoleStore.setVisibility(true)
     
     // Clear data first for full refresh
     await Andb.clearConnectionData(conn)
     
-    // Fetch all types efficiently
-    const cmd = `andb export --source ${conn.environment}`
-    consoleStore.addLog(cmd, 'cmd')
+    const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
+    consoleStore.addLog(`Fetching all DDL types for ${conn.name} (parallel)...`, 'info')
     
-    await Andb.export(conn, null as any, { type: 'all' as any, environment: conn.environment })
-      .then((summary) => {
-         if (summary) {
-           consoleStore.addLog(`Exported schema for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
-         } else {
-           consoleStore.addLog(`export success.`, 'success')
-         }
-      })
+    await Promise.all(ddlTypes.map(async type => {
+      const taskId = `${conn.id}-${type}`
+      appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
+      
+      try {
+        await Andb.export(conn, null as any, { 
+          type,
+          environment: conn.environment 
+        })
+      } finally {
+        appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
+        setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+      }
+    }))
     
+    consoleStore.addLog(`Database ${db} refresh complete.`, 'success')
     sidebarStore.triggerRefresh()
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
+  } finally {
+    appStore.isSchemaFetching = false
   }
 }
 
@@ -111,21 +120,26 @@ const handleCategoryRefreshRequested = async (e: any) => {
   if (!conn) return
 
   try {
+    appStore.isSchemaFetching = true
     consoleStore.addLog(`Category Refresh: ${type} in ${db}`, 'info')
     consoleStore.setVisibility(true)
     
-    await Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
-      .then((summary) => {
-         if (summary) {
-           consoleStore.addLog(`Exported ${type} for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
-         } else {
-           consoleStore.addLog(`export success.`, 'success')
-         }
-      })
+    const taskId = `${conn.id}-${type}`
+    appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
+
+    try {
+      await Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
+    } finally {
+      appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
+      setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+    }
     
+    consoleStore.addLog(`${type} refresh complete.`, 'success')
     sidebarStore.triggerRefresh()
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
+  } finally {
+    appStore.isSchemaFetching = false
   }
 }
 
@@ -231,16 +245,48 @@ onMounted(async () => {
   if (window.electronAPI?.onAndbProgress) {
     window.electronAPI.onAndbProgress((_event: any, data: any) => {
       if (data.operation === 'export') {
-        appStore.schemaFetchProgress = {
-          current: data.current || 0,
-          total: data.total || 0,
-          type: data.type || '',
-          objectName: data.objectName || ''
+        let connId = data.connectionId || data.connId
+        
+        // Priority Resolution: Use active context if ID is missing from event
+        if (!connId && appStore.activeFetchConnectionId) {
+          connId = appStore.activeFetchConnectionId
         }
+        
+        // Fallback: Multi-factor lookup (Env + DB)
+        if (!connId && data.env) {
+          const conn = appStore.resolvedConnections.find(c => 
+            c.environment === data.env && 
+            (c.database === data.db || c.name === data.db || !data.db)
+          )
+          if (conn) {
+            connId = conn.id
+          }
+        }
+        
+        // Final fallback
+        connId = connId || appStore.selectedConnectionId || 'default'
+        
+        const opId = data.type ? `${connId}-${data.type}` : `export-${connId}`
+        const connObj = appStore.getConnectionById(connId)
+        const connectionName = connObj?.name || data.env || data.connectionName || 'GLOBAL'
 
-        if (data.state === 'starting_type' && data.type) {
-          // Suppress redundant log spam per user request. 
-          // Final summary will be logged upon successful export resolution.
+        if (data.state === 'finished') {
+          appStore.updateSchemaProgress(opId, {
+            current: data.total || 1,
+            total: data.total || 1,
+            type: data.type || 'schema',
+            connectionName
+          })
+          setTimeout(() => {
+            appStore.removeSchemaProgress(opId)
+          }, 100)
+        } else {
+          appStore.updateSchemaProgress(opId, {
+            current: data.current || 0,
+            total: data.total || 0,
+            type: data.type || '',
+            connectionName: data.env || data.connectionName || 'GLOBAL'
+          })
         }
       }
     })

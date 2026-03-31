@@ -329,13 +329,7 @@ export class AndbBuilder {
       if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true })
       process.chdir(userDataDir)
 
-      if (sender) {
-        BackgroundWorker.getInstance().on('progress', (data: any) => {
-          if (data.operation === operation) {
-             sender.send('andb-progress', { operation, ...data });
-          }
-        });
-      }
+      // Progress listener is now handled globally in ipc/andb.ts to avoid leaks
 
       // Use conn name/id as fallback to avoid downstream 'UNKNOWN' registration failures
       const sEnv = sourceConn?.environment?.toUpperCase() || 

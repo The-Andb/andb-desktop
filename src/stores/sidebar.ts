@@ -20,6 +20,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   function triggerRefresh() {
     refreshKey.value++
+    lastFetchTime.value = 0 // Invalidate cache so next load gets latest from core
   }
 
   function requestRefresh() {

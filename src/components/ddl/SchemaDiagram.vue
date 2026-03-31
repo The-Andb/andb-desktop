@@ -58,7 +58,7 @@
           <!-- Table Content -->
           <div v-if="settings.detailLevel !== 'names'" class="p-3 space-y-1.5 min-h-[40px] transition-all">
             <div 
-              v-for="col in (table.columns || [{name: 'id', type: 'integer', pk: true}])" 
+              v-for="col in (table.columns?.slice(0, 20) || [{name: 'id', type: 'integer', pk: true}])" 
               :key="col.name"
             >
               <div 
@@ -72,6 +72,13 @@
                 </div>
                 <span v-if="settings.detailLevel === 'all'" class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">{{ col.type }}</span>
               </div>
+            </div>
+
+            <!-- "Show More" Indicator if capped -->
+            <div v-if="table.columns?.length > 20" class="pt-1.5 mt-1.5 border-t border-gray-100 dark:border-gray-800 text-center">
+               <span class="text-[9px] font-black uppercase tracking-widest text-primary-500/70">
+                 + {{ table.columns.length - 20 }} more fields
+               </span>
             </div>
 
             <!-- If no columns parsed, show a hint -->
@@ -230,21 +237,17 @@ const gridStyle = computed(() => ({
 }))
 
 // Auto-layout logic (Balanced Grid)
+// Auto-layout logic (Deterministic Masonry Waterfall)
 const autoLayout = async () => {
+  if (props.tables.length === 0) return
+  
   const horizontalSpacing = 320
-  let verticalSpacing = 320 
+  const verticalMargin = 32
+  // Fixed a standard 6-column grid for better horizontal density on wide monitors
+  const cols = Math.min(props.tables.length, 6)
   
-  // Dynamic spacing based on detail level
-  if (settings.detailLevel === 'names') verticalSpacing = 80
-  else if (settings.detailLevel === 'keys') verticalSpacing = 160
-  
-  const cols = Math.ceil(Math.sqrt(props.tables.length))
-  
-  const positioned = await Promise.all(props.tables.map(async (table, i) => {
-    const col = i % cols
-    const row = Math.floor(i / cols)
-    
-    // Parse columns from DDL if available
+  // 1. First Pass: Parallel Parsing + Sorting for predictability
+  let tablesWithColumns = await Promise.all(props.tables.map(async (table) => {
     let columns: Column[] | null = null
     const ddl = table.ddl || table.content || ''
     
@@ -255,39 +258,70 @@ const autoLayout = async () => {
         const parsed = await Andb.parseTable(ddl)
         if (parsed && parsed.columns) {
           if (Array.isArray(parsed.columns)) {
-            // Detailed format from new parser
-            columns = parsed.columns.slice(0, 50)
+            columns = parsed.columns.slice(0, 20)
           } else {
-            // Flatten legacy AST/Record to UI Columns format
             columns = Object.keys(parsed.columns).map(colName => ({
               name: colName,
               type: parsed.columns[colName].split(' ')[0] || 'unknown',
               pk: parsed.primaryKey?.includes(colName) || false
-            })).slice(0, 50)
+            })).slice(0, 20)
           }
         }
       } catch (e) {
         console.warn('[SchemaDiagram] IPC Parse failed', e)
       }
     }
+    return { ...table, columns }
+  }))
 
-    if (i === 0) {
-        console.log('[SchemaDiagram] First Table:', table.name, 'DDL bytes:', ddl.length, 'Parsed columns:', columns?.length || 0);
+  // SORT BY NAME: Alphabetical flow from left-to-right, top-to-bottom
+  tablesWithColumns.sort((a, b) => a.name.localeCompare(b.name))
+
+  // 2. Second Pass: Sequential Masonry Placement
+  const colHeights = new Array(cols).fill(0)
+  const positioned = tablesWithColumns.map((table) => {
+    // Find column with minimum height
+    let minCol = 0
+    for (let c = 1; c < cols; c++) {
+      if (colHeights[c] < colHeights[minCol]) minCol = c
     }
 
-    // Adjust vertical spacing based on column count
-    const dynamicY = row * verticalSpacing + 100
+    // Estimate Card Height: Header(40) + rows(N*22) + footer(30) + inner(24) + safety(8)
+    // If parsing hasn't yielded columns yet but DDL exists, assume a typical 8-column table
+    const colCount = table.columns ? table.columns.length : (table.ddl ? 8 : 1)
+    const visibleColsCap = Math.min(colCount, 20)
+    const showMoreHeight = colCount > 20 ? 30 : 0
     
+    let cardHeight = 40 + (visibleColsCap * 22) + showMoreHeight + 24 + 8 
+    if (settings.detailLevel === 'names') cardHeight = 50
+    else if (settings.detailLevel === 'keys') {
+        const pkCount = table.columns ? table.columns.filter((c: Column) => c.pk).length : 1
+        cardHeight = 40 + (pkCount * 22) + 24 + 8
+    }
+
+    const posX = minCol * horizontalSpacing
+    const posY = colHeights[minCol]
+
+    // Update column height for next item
+    colHeights[minCol] += cardHeight + verticalMargin
+
     return {
       ...table,
-      columns: columns && columns.length > 0 ? columns : null,
-      x: col * horizontalSpacing + 100,
-      y: dynamicY
+      x: posX,
+      y: posY
     }
-  }))
+  })
   
-  tablesWithPos.value = positioned
-  // Try to find relations based on naming conventions (id -> table_id)
+  // Center the whole cluster horizontally (Shift X by half width)
+  const totalWidth = cols * horizontalSpacing
+  const xOffset = -totalWidth / 2 + 160 // Center relative to workspace
+
+  const finalPositioned = positioned.map(t => ({
+    ...t,
+    x: t.x + xOffset
+  }))
+
+  tablesWithPos.value = finalPositioned
   calculateEdges()
 }
 

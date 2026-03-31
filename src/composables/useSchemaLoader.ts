@@ -66,10 +66,12 @@ export function useSchemaLoader(
     const conn = appStore.getConnectionById(selectedConnectionId.value)
     if (!conn) return
 
+    // Set active fetch context for global IPC listener matching
+    appStore.activeFetchConnectionId = conn.id
+
     loading.value = true
     if (forceRefresh) {
       appStore.isSchemaFetching = true // Lock global fetch state
-      appStore.schemaFetchProgress = null
       consoleStore.setVisibility(true) // Open console only on manual refresh
       statusMessage.value = t('schema.fetchingFromDb')
       consoleStore.clearLogs()
@@ -111,31 +113,45 @@ export function useSchemaLoader(
             consoleStore.addLog(`Refreshing single object: ${selectedItem.value.name} (${selectedItem.value.type})`, 'info')
           }
           
-          await Andb.export(conn, null as any, { 
-            type: objTypes[0], 
-            env: conn.environment, 
-            name: exportName 
-          }).then(res => {
+          const taskId = `${conn.id}-${selectedItem.value.type}-${selectedItem.value.name || 'all'}`
+          appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type: selectedItem.value.type, connectionName: conn.name })
+          
+          try {
+            const res = await Andb.export(conn, null as any, { 
+              type: objTypes[0], 
+              env: conn.environment, 
+              name: exportName 
+            })
             const summary = res?.data || {}
             Object.entries(summary).forEach(([type, count]) => {
               consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
             })
-          })
+          } finally {
+            appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type: selectedItem.value.type, connectionName: conn.name })
+            setTimeout(() => appStore.removeSchemaProgress(taskId), 500)
+          }
 
         } else if (selectedFilterType.value && selectedFilterType.value !== 'all') {
           // 2. Refresh specific category
           const type = selectedFilterType.value as any
           consoleStore.addLog(`andb export --source ${conn.environment} --type ${type}`, 'cmd')
           
-          await Andb.export(conn, null as any, { 
-            type,
-            env: conn.environment
-          }).then(res => {
+          const taskId = `${conn.id}-${type}`
+          appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
+
+          try {
+            const res = await Andb.export(conn, null as any, { 
+              type,
+              env: conn.environment
+            })
             const summary = res?.data || {}
             Object.entries(summary).forEach(([t, count]) => {
                 consoleStore.addLog(`Fetched ${count} ${t}`, 'success')
             })
-          })
+          } finally {
+            appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
+            setTimeout(() => appStore.removeSchemaProgress(taskId), 500)
+          }
 
         } else {
           // 3. FULL REFRESH
@@ -148,17 +164,26 @@ export function useSchemaLoader(
           }
           
           consoleStore.addLog(t('schema.refreshed'), 'info')
-          consoleStore.addLog(`andb export --source ${conn.environment}`, 'cmd')
-     
-          await Andb.export(conn, null as any, { 
-            type: 'all' as any,
-            environment: conn.environment 
-          }).then(res => {
-            const summary = res?.data || {}
-            Object.entries(summary).forEach(([t, count]) => {
-                consoleStore.addLog(`Fetched ${count} ${t}`, 'success')
-            })
-          })
+          
+          const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
+          consoleStore.addLog(`andb export --source ${conn.environment} (parallel execution)`, 'cmd')
+          
+          await Promise.all(ddlTypes.map(async type => {
+            const taskId = `${conn.id}-${type}`
+            appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
+            
+            try {
+              await Andb.export(conn, null as any, { 
+                type,
+                environment: conn.environment,
+                env: conn.environment // double check both formats
+              })
+            } finally {
+              appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
+              // Small delay to show completion before removing
+              setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+            }
+          }))
         }
 
         notificationStore.add({
@@ -214,7 +239,7 @@ export function useSchemaLoader(
     } finally {
       loading.value = false
       appStore.isSchemaFetching = false
-      appStore.schemaFetchProgress = null
+      appStore.activeFetchConnectionId = null
       
       if (preservedName && preservedType) {
         const newItem = allResults.value.find(i => i.name === preservedName && i.type === preservedType)

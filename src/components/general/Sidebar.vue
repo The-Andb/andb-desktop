@@ -87,7 +87,7 @@
       <!-- Explorer Header -->
         <div 
           v-if="!isCollapsed"
-          class="flex items-center justify-between px-4 py-4 shrink-0 transition-all duration-300 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800"
+          class="flex items-center justify-between px-4 h-16 shrink-0 transition-all duration-300 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800"
         >
           <div class="flex items-center gap-2">
             <div v-if="route.path === '/compare'" class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></div>
@@ -113,7 +113,7 @@
 
       <!-- Tree Content -->
       <div v-show="!isCollapsed" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800">
-        <!-- Loading State (Only if no data or requested refresh) -->
+        <!-- Loading State -->
         <div v-if="sidebarStore.loading && sidebarStore.environments.length === 0" class="p-4 space-y-2 opacity-50">
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-1/2"></div>
@@ -123,106 +123,97 @@
         <!-- Tree Content (Standard View) -->
         <div v-else-if="!isCompareView" class="pb-4">
           <div v-for="env in displayEnvironments" :key="env.name">
-
             <!-- Environment Node -->
             <div 
-              class="group/env flex items-center h-7 px-2 cursor-pointer text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent transition-colors"
-              :class="{ 
-                'text-gray-900 dark:text-white': expandedEnvironments.has(env.name),
-                'border-blue-500 bg-blue-50 dark:bg-gray-800': isSourceEnvironment(env.name)
-              }"
+              class="group/env flex items-center h-7 px-2 cursor-pointer text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent transition-colors"
+              :class="{ 'text-gray-900 dark:text-white': expandedEnvironments.has(env.name), 'border-primary-500 bg-primary-50/50 dark:bg-primary-900/10': isSourceEnvironment(env.name) }"
               @click="toggleEnvironment(env.name)"
             >
-              <span class="w-1 flex items-center justify-center mr-1">
-              </span>
-              <component :is="getEnvIcon(env.name)" class="w-4 h-4 mr-2 text-blue-500 dark:text-blue-400" />
-              <span class="font-semibold truncate flex-1">{{ env.name }}</span>
-              <span v-if="isSourceEnvironment(env.name)" class="ml-auto text-blue-600 dark:text-blue-400 font-mono bg-blue-100 dark:bg-blue-400/10 px-1 rounded uppercase font-bold text-[10px]">SRC</span>
+               <ChevronRight 
+                 class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/env:text-gray-900 dark:group-hover/env:text-white" 
+                 :class="{ 'rotate-90 text-gray-900 dark:text-white': expandedEnvironments.has(env.name) }"
+               />
+              <component :is="getEnvIcon(env.name)" class="w-3.5 h-3.5 mr-2 text-primary-500" />
+              <span class="text-[10px] font-black uppercase tracking-wider truncate flex-1">{{ env.name }}</span>
+              <span v-if="isSourceEnvironment(env.name)" class="ml-auto text-primary-600 dark:text-primary-400 font-mono bg-primary-100 dark:bg-primary-400/10 px-1 rounded uppercase font-bold text-[10px]">SRC</span>
             </div>
 
             <!-- Databases -->
             <div v-if="expandedEnvironments.has(env.name)">
               <div v-for="db in env.databases" :key="db.name" class="relative">
-                <!-- Indentation Guide -->
-                <div class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800 group-hover:bg-gray-300 dark:group-hover:bg-gray-700"></div>
+                <div class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
                 
                 <div 
-                  class="group/db flex items-center h-7 px-2 pl-[22px] cursor-pointer transition-colors border-l-2"
+                  class="group/db flex items-center h-8 px-2 pl-[22px] cursor-pointer transition-colors border-l-2"
                   :class="[
                     isActiveDatabase(db) 
                       ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-primary-500 font-bold' 
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent',
-                    expandedDatabases.has(`${env.name}-${db.name}`) && !isActiveDatabase(db) ? 'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800' : ''
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'
                   ]"
                   @click="selectDatabase(env.name, db.name)"
                 >
-                  <span 
-                    class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
-                    @click.stop="toggleDatabase(env.name, db.name)"
-                  >
-                  </span>
-                  <Database class="w-3.5 h-3.5 mr-2 text-amber-600 dark:text-amber-500" />
-                  <span class="truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
+                   <ChevronRight 
+                     class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white" 
+                     :class="{ 'rotate-90 text-gray-900 dark:text-white': expandedDatabases.has(`${env.name}-${db.name}`) }"
+                     @click.stop="toggleDatabase(env.name, db.name)"
+                   />
+                  <Database class="w-3.5 h-3.5 mr-2 text-amber-500" />
+                  <span class="text-[12px] font-bold truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
 
-                  <!-- Fast Refresh Action -->
-                  <button 
-                    @click.stop="refreshDatabase(env.name, db.name)"
-                    class="p-1 opacity-0 group-hover/db:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm hover:scale-110 transition-all text-primary-500 shrink-0 mx-1"
-                    :title="$t('common.tooltips.refreshSchema')"
-                  >
+                  <button @click.stop="refreshDatabase(env.name, db.name)" class="p-1 opacity-0 group-hover/db:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm text-primary-500 mx-1">
                     <RefreshCw class="w-3 h-3" />
                   </button>
                 </div>
 
-                <!-- Object Categories -->
+                <!-- Categories -->
                 <div v-if="expandedDatabases.has(`${env.name}-${db.name}`)" class="relative">
-                   <!-- Indentation Guide Level 2 -->
                    <div class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
                    <div class="absolute left-[41px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
 
-                  <div v-for="type in ddlTypes" :key="type.key">
-                    <!-- Only show if has items -->
-                    <div v-if="db[type.key]?.length > 0">
-                      <div 
-                        class="group/cat flex items-center h-7 px-2 pl-[44px] cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent transition-colors"
-                        :class="{ 'text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800/50': expandedTypes.has(`${env.name}-${db.name}-${type.key}`) }"
+                   <div v-for="type in ddlTypes" :key="type.key">
+                     <div 
+                        class="group/cat flex items-center h-7 px-2 pl-[44px] cursor-pointer transition-colors border-l-2 border-transparent"
+                        :class="[
+                          expandedTypes.has(`${env.name}-${db.name}-${type.key}`) ? 'bg-gray-100/50 dark:bg-gray-800/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                          (db[type.key]?.length || 0) === 0 ? 'text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'
+                        ]"
                         @click="selectCategory(env.name, db.name, type.key)"
                       >
-                        <span 
-                          class="w-1 flex items-center justify-center mr-1 hover:text-gray-700 dark:hover:text-white"
+                        <ChevronRight 
+                          v-if="(db[type.key]?.length || 0) > 0"
+                          class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white" 
+                          :class="{ 'rotate-90 text-gray-900 dark:text-white': expandedTypes.has(`${env.name}-${db.name}-${type.key}`) }"
                           @click.stop="toggleType(env.name, db.name, type.key)"
-                        >
-                        </span>
-                        <div 
-                          class="w-6 h-6 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 transition-all group-hover/cat:scale-110"
-                          :class="type.bgClass || 'bg-indigo-50 dark:bg-indigo-900/30'"
-                        >
-                          <component 
-                            :is="type.icon" 
-                            class="w-3.5 h-3.5"
-                            :class="type.colorClass || 'text-indigo-400'"
-                          />
+                        />
+                        <div v-else class="w-3 h-3 mr-1.5 shrink-0"></div>
+                        <div class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800">
+                          <component :is="type.icon" class="w-3 h-3" :class="(db[type.key]?.length || 0) === 0 ? 'text-gray-400 grayscale' : type.colorClass" />
                         </div>
-                         <span class="truncate flex-1">{{ type.label }}</span>
-                         <span class="ml-2 text-[10px] opacity-40 font-mono">{{ db[type.key].length }}</span>
+                        <span class="text-[10px] font-black truncate flex-1 uppercase tracking-tighter text-gray-500 dark:text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white transition-colors duration-200">{{ type.label }}</span>
+                        <div class="flex items-center gap-1.5 ml-auto">
+                          <span v-if="(db[type.key]?.length || 0) > 0" class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums">
+                            {{ db[type.key]?.length }}
+                          </span>
+                          <div v-if="getCategoryChangeCount(db, type.key) > 0" class="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-sm shadow-primary-500/50"></div>
+                        </div>
 
-                         <!-- Fast Refresh Category -->
-                         <button 
-                           @click.stop="refreshCategory(env.name, db.name, type.key)"
-                           class="p-0.5 opacity-0 group-hover/cat:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm hover:scale-110 transition-all text-primary-500 shrink-0 ml-1.5"
-                           :title="$t('common.tooltips.refreshCategory')"
-                         >
-                           <RefreshCw class="w-3 h-3" />
-                         </button>
-                         
-                         <!-- Changes Badge (Compare Mode Only) -->
-                         <span v-if="isCompareView && getCategoryChangeCount(db, type.key) > 0" class="ml-1.5 mr-1 h-3.5 min-w-[14px] px-1 flex items-center justify-center rounded-sm bg-amber-100 dark:bg-amber-500 text-[10px] text-amber-700 dark:text-gray-900 font-bold leading-none">
-                           {{ getCategoryChangeCount(db, type.key) }}
-                         </span>
-                      </div>
+                        <button @click.stop="refreshCategory(env.name, db.name, type.key)" class="p-0.5 opacity-0 group-hover/cat:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm text-primary-500 ml-1.5">
+                          <RefreshCw class="w-3 h-3" />
+                        </button>
+                     </div>
 
-                    </div>
-                  </div>
+                     <!-- Objects -->
+                     <div v-if="expandedTypes.has(`${env.name}-${db.name}-${type.key}`)" class="relative ml-[44px] border-l border-gray-100 dark:border-gray-800 pb-1">
+                        <div v-for="item in db[type.key]" :key="item.name"
+                          @click.stop="selectObject(env.name, db.name, type.key, item)"
+                          class="group/obj flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors border-l-2 border-transparent"
+                          :class="selectedItem?.name === item.name && appStore.selectedConnectionId === db.connectionId ? 'text-primary-600 border-primary-500 bg-primary-50 font-bold' : 'text-gray-500 hover:text-primary-600 hover:bg-primary-50/50'"
+                        >
+                          <span class="truncate flex-1 font-mono text-[10px]">{{ item.name }}</span>
+                          <span v-if="item.updated_at" class="ml-2 text-[8px] opacity-0 group-hover/obj:opacity-40 font-mono">{{ formatTimeAgo(item.updated_at).replace(' ago', '') }}</span>
+                        </div>
+                     </div>
+                   </div>
                 </div>
               </div>
             </div>
@@ -234,45 +225,25 @@
            <div v-for="pair in availablePairs" :key="pair.id"
              @click="connectionPairsStore.selectPair(pair.id)"
              class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
-             :class="[
-               connectionPairsStore.selectedPairId === pair.id
-                 ? 'bg-primary-50 dark:bg-primary-900/10 border-primary-500/50'
-                 : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50'
-             ]"
+             :class="connectionPairsStore.selectedPairId === pair.id ? 'bg-primary-50 dark:bg-primary-900/10 border-primary-500/50' : 'bg-transparent border-transparent hover:bg-gray-50'"
            >
-             <!-- Active Side Indicator -->
              <div v-if="connectionPairsStore.selectedPairId === pair.id" class="absolute left-0 top-3 bottom-3 w-1 bg-primary-500 rounded-r-full"></div>
-
-             <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover:scale-110"
-               :class="[
-                  connectionPairsStore.selectedPairId === pair.id ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500'
-               ]"
-             >
+             <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500" :class="{ 'bg-primary-500 text-white shadow-lg': connectionPairsStore.selectedPairId === pair.id }">
                <component :is="getPairIcon(pair)" class="w-5 h-5" />
              </div>
              <div class="min-w-0 flex-1">
-               <div class="text-[12px] font-black truncate tracking-tighter" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'">{{ pair.name }}</div>
-                <div class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                   <span class="text-primary-600 dark:text-primary-400 font-black">{{ pair.sourceEnv }}</span>
-                   <span v-if="pair.sourceDb" class="opacity-60">({{ pair.sourceDb }})</span>
-                   <span class="mx-1 opacity-40">→</span> 
-                   <span class="text-emerald-600 dark:text-emerald-400 font-black">{{ pair.targetEnv }}</span>
-                   <span v-if="pair.targetDb" class="opacity-60">({{ pair.targetDb }})</span>
+               <div class="text-[12px] font-black truncate tracking-tighter" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600' : 'text-gray-700'">{{ pair.name }}</div>
+               <div class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                  <span class="text-primary-600 font-black">{{ pair.sourceEnv }}</span>
+                  <span class="mx-1 opacity-40">→</span> 
+                  <span class="text-emerald-600 font-black">{{ pair.targetEnv }}</span>
                </div>
              </div>
-             
-             <!-- Status Dot or Pulse -->
-             <div v-if="connectionPairsStore.selectedPairId === pair.id" class="relative flex h-2 w-2">
-               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75"></span>
-               <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-             </div>
            </div>
-
-           <div v-if="availablePairs.length === 0" class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">
-             No sync pairs configured.
-           </div>
+           <div v-if="availablePairs.length === 0" class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">No sync pairs configured.</div>
         </div>
       </div>
+>
       
       <!-- Git Sync Status Chip -->
       <div v-if="!isCollapsed && sidebarStore.gitStatus" class="px-3 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/50">
@@ -362,6 +333,8 @@ const featuresStore = useFeaturesStore()
 
 
 const isCollapsed = computed(() => appStore.sidebarCollapsed)
+const selectedItem = computed(() => (route.path === '/schema' || route.path === '/history') ? (window as any)._andbSelectedObject : null)
+
 const activePair = computed(() => connectionPairsStore.activePair)
 
 const availablePairs = computed(() => connectionPairsStore.availablePairs || [])
@@ -577,6 +550,29 @@ const toggleType = (envName: string, dbName: string, type: string) => {
   }
 }
 
+const selectObject = async (env: string, db: string, type: string, item: any) => {
+  // Update global selected connection first to ensure context is correct
+  const envData = displayEnvironments.value.find((e: any) => e.name === env)
+  if (envData) {
+     const dbData = envData.databases.find((d: any) => d.name === db)
+     if (dbData && dbData.connectionId) {
+        appStore.selectedConnectionId = dbData.connectionId
+     }
+  }
+
+  const isNavigationNeeded = !['/schema', '/history'].includes(route.path)
+  if (isNavigationNeeded) {
+    await router.push('/schema')
+  }
+  
+  // Small delay to ensure component is mounted
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('object-selected', { 
+      detail: { env, db, type, name: item.name } 
+    }))
+  }, isNavigationNeeded ? 200 : 0)
+}
+
 const selectDatabase = async (env: string, db: string) => {
   toggleDatabase(env, db)
   
@@ -638,6 +634,29 @@ const getPairIcon = (pair: any) => {
   if (pair.name.toLowerCase().includes('uat')) return ShieldCheck
   if (pair.name.toLowerCase().includes('stage')) return Activity
   return GitCompare
+}
+
+const formatTimeAgo = (dateString: string) => {
+  if (!dateString) return t('schema.never')
+  try {
+    let utcString = dateString
+    if (!dateString.endsWith('Z')) {
+      utcString = dateString.replace(' ', 'T') + 'Z'
+    }
+    
+    const date = new Date(utcString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffSec = Math.floor(diffMs / 1000)
+    
+    if (diffSec < 0) return t('common.timeAgo.justNow')
+    if (diffSec < 60) return t('common.timeAgo.justNow')
+    if (diffSec < 3600) return t('common.timeAgo.minAgo', { n: Math.floor(diffSec / 60) })
+    if (diffSec < 86400) return t('common.timeAgo.hourAgo', { n: Math.floor(diffSec / 3600), s: Math.floor(diffSec / 3600) > 1 ? 's' : '' })
+    return date.toLocaleDateString()
+  } catch (e) {
+    return dateString
+  }
 }
 
 const refreshSchemas = async (force = false) => {
@@ -787,8 +806,12 @@ watch(() => appStore.resolvedConnections, () => {
 }, { deep: true })
 
 
+watch(() => sidebarStore.refreshKey, () => {
+  refreshSchemas(false) // Triggered when individual category/object fetched, update from cache
+})
+
 watch(() => sidebarStore.refreshRequestKey, () => {
-  refreshSchemas(true) // Force fetch from DB
+  refreshSchemas(true) // Force full fetch from DB
 })
 
 watch(() => projectsStore.selectedProjectId, () => {

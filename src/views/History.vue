@@ -4,28 +4,28 @@
       <div class="flex items-center justify-between w-full h-full gap-4">
         <!-- Title & Page Status -->
         <div class="flex items-center gap-4">
-          <div class="flex flex-col gap-0.5">
-            <h1 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
-              <History class="w-5 h-5 mr-2 text-primary-500" />
-              {{ $t('history.title') }}
-            </h1>
-            <div class="flex items-center gap-2">
-               <!-- Pill Type Selectors -->
-               <div class="flex bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg">
-                  <button 
-                    v-for="type in historyTypes" 
-                    :key="type"
-                    @click="filters.type = type"
-                    class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-md transition-all"
-                    :class="filters.type === type 
-                      ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
-                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
-                  >
-                    {{ type ? $t(`navigation.ddl.${type.toLowerCase()}`) : $t('common.all') }}
-                  </button>
-               </div>
-            </div>
+        <div class="flex items-center gap-6">
+          <h1 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center shrink-0">
+            <History class="w-5 h-5 mr-2 text-primary-500" />
+            {{ $t('history.title') }}
+          </h1>
+          <div class="flex items-center gap-2">
+             <!-- Pill Type Selectors -->
+             <div class="flex bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg">
+                <button 
+                  v-for="type in historyTypes" 
+                  :key="type"
+                  @click="filters.type = type"
+                  class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-md transition-all"
+                  :class="filters.type === type 
+                    ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                >
+                  {{ type ? $t(`navigation.ddl.${type.toLowerCase()}`) : $t('common.all') }}
+                </button>
+             </div>
           </div>
+        </div>
         </div>
 
         <!-- Action Group -->

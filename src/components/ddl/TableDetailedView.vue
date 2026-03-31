@@ -2,12 +2,38 @@
   <div class="h-full w-full bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
     <!-- Header -->
     <div class="px-6 py-3 bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-2" v-if="options">
-        <span v-if="options?.engine" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase">{{ options.engine }}</span>
-        <span v-if="options?.charset" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase">{{ options.charset }}</span>
-        <p v-if="options?.comment" class="text-xs text-gray-400 italic">{{ options.comment }}</p>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2" v-if="options">
+          <span v-if="options?.engine" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase">{{ options.engine }}</span>
+          <span v-if="options?.charset" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase">{{ options.charset }}</span>
+          <p v-if="options?.comment" class="text-xs text-gray-400 italic hidden lg:block max-w-[200px] truncate" :title="options.comment">{{ options.comment }}</p>
+        </div>
+
+        <!-- High-visibility Stats in Header -->
+        <div v-if="stats" class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-3">
+          <div class="flex flex-col">
+            <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5">Rows</span>
+            <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">{{ formatNumber(stats.rowCount) }}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5">Size</span>
+            <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">{{ Math.round((stats.dataLengthMB + stats.indexLengthMB) * 10) / 10 }} <span class="text-[9px] opacity-60">MB</span></span>
+          </div>
+        </div>
       </div>
-      <div v-else></div>
+      
+      <!-- Right Side: Secondary Actions -->
+      <div class="flex items-center gap-2">
+        <button 
+          v-if="stats" 
+          @click="$emit('refreshStats')"
+          class="p-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-center gap-1.5 transition-colors group"
+          title="Refresh Statistics"
+        >
+          <RotateCcw class="w-3.5 h-3.5 text-gray-400 group-hover:text-primary-500" />
+          <span class="text-[10px] font-bold text-gray-400 uppercase group-hover:text-primary-500 leading-none">Refresh</span>
+        </button>
+      </div>
     </div>
 
     <!-- Tabs Content -->
@@ -364,7 +390,15 @@
           <div v-else class="flex flex-col items-center justify-center p-12 text-center text-gray-400 italic h-full">
             <Activity class="w-12 h-12 mb-3 opacity-20" />
             <p>No live stats available</p>
-            <p class="text-[10px] mt-2 opacity-60">Connect to a live database to fetch table metadata.</p>
+            <p class="text-[10px] mt-2 opacity-60 mb-6">Connect to a live database to fetch table metadata.</p>
+            
+            <button 
+              @click="$emit('refreshStats')"
+              class="flex items-center gap-2 px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg shadow-lg shadow-primary-500/20 text-xs font-bold transition-all transform active:scale-95"
+            >
+              <RefreshCw class="w-4 h-4" />
+              Try Live Fetch
+            </button>
           </div>
         </TabPanel>
       </TabPanels>
@@ -385,7 +419,7 @@
 import { ref, computed, watch } from 'vue'
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 import { 
-  Key, Circle, Search, Zap, ZapOff, Layers, ListTree, Plus, Activity, ShieldCheck, ShieldAlert, ShieldX
+  Key, Circle, Search, Zap, ZapOff, Layers, ListTree, Plus, Activity, ShieldCheck, ShieldAlert, ShieldX, RotateCcw, RefreshCw
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useTableResizer } from '@/composables/useTableResizer'
@@ -443,6 +477,8 @@ const props = defineProps<{
   triggers: any[] // All triggers from schema for cross-referencing
   stats?: any    // Table stats from Inspector (AI DBA Super Mode)
 }>()
+
+const emit = defineEmits(['refreshStats'])
 
 // Inspector helpers
 const formatNumber = (n: number) => {
