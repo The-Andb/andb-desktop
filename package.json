@@ -142,7 +142,8 @@
       "target": "nsis"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "executableName": "theandb"
     },
     "publish": [
       {

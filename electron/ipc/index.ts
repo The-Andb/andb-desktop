@@ -110,3 +110,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-get-server-info', andb.handleAndbGetServerInfo)
   ipcMain.handle('andb-get-fk-graph', andb.handleAndbGetFKGraph)
 }
+
+export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {
+  updater.setupUpdaterEventListeners(mainWindow)
+}

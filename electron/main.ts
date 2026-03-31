@@ -9,7 +9,7 @@ import {
   isDev 
 } from './bootstrap'
 import { createWindow, setupAppMenu } from './window_manager'
-import { registerIpcHandlers } from './ipc'
+import { registerIpcHandlers, setupUpdaterEventListeners } from './ipc'
 
 // 0. Global Error Handling (EPIPE mitigation)
 const handleEPIPE = (err: any) => {
@@ -70,6 +70,7 @@ app.whenReady().then(async () => {
   if (!isDev) {
     const autoUpdater = initAutoUpdater()
     if (autoUpdater) {
+      setupUpdaterEventListeners(mainWindow)
       autoUpdater.checkForUpdatesAndNotify()
     }
   }
