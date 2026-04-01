@@ -58,6 +58,53 @@ export class Andb {
   }
 
   /**
+   * Helper to compile simple wildcard tags to regex
+   * * -> .*
+   */
+  private static compileExcludeRegex(tags?: string[], existingRegex?: string): string {
+    const rules: string[] = []
+    if (existingRegex) rules.push(existingRegex)
+    if (tags && tags.length > 0) {
+      tags.forEach(tag => {
+        // Escape regex special chars except *
+        const escaped = tag.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+        const withWildcards = escaped.replace(/\*/g, '.*')
+        rules.push(`^${withWildcards}$`)
+      })
+    }
+    return rules.join('|')
+  }
+
+  /**
+   * Helper to compile environment replacements into an array of rules for comparison.
+   */
+  private static compileNormalization(reps?: any[], existing?: any): any[] {
+    const rules: any[] = []
+    
+    // Add legacy rule if it exists (for compatibility)
+    if (existing) rules.push(existing)
+
+    if (reps) {
+      reps.forEach(r => {
+        if (!r.key) return
+        const values = Object.values(r.values)
+          .filter(v => !!v)
+          .map((v: any) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          .sort((a: any, b: any) => b.length - a.length)
+
+        if (values.length > 0) {
+          rules.push({
+            pattern: `(${values.join('|')})`,
+            replacement: `<<${r.key}>>`
+          })
+        }
+      })
+    }
+
+    return rules
+  }
+
+  /**
    * Helper to get core settings from store
    */
   private static getCoreSettings() {
@@ -68,14 +115,24 @@ export class Andb {
       const projectSettings = projectsStore.currentProject?.settings || {}
       const globalSettings = settingsStore.settings
 
+      // Compile new structures into legacy regex
+      const isNotMigrateCondition = this.compileExcludeRegex(
+        projectSettings.excludeTags || globalSettings.excludeTags,
+        projectSettings.isNotMigrateCondition || globalSettings.isNotMigrateCondition
+      )
+
+      const domainNormalization = this.compileNormalization(
+        projectSettings.envReplacements || globalSettings.envReplacements,
+        projectSettings.domainNormalization || globalSettings.domainNormalization
+      )
+
       return {
-        domainNormalization: projectSettings.domainNormalization || globalSettings.domainNormalization,
-        isNotMigrateCondition: projectSettings.isNotMigrateCondition || globalSettings.isNotMigrateCondition,
+        domainNormalization,
+        isNotMigrateCondition,
         gitConfig: (projectSettings as any).gitConfig || null,
         projectBaseDir: projectSettings.projectBaseDir || null
       }
     } catch (e) {
-      // Pinia might not be ready in some edge cases
       return {}
     }
   }
@@ -193,6 +250,7 @@ export class Andb {
 
   /**
    * Generate Migration Script (SQL)
+   * Intercepts and injects environment values
    */
   static async generate(
     sourceConnection: DatabaseConnection,
@@ -201,12 +259,36 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
+      const coreSettings = this.getCoreSettings() as any
       const result = await window.electronAPI.andbExecute(this.sanitize({
         sourceConnection,
         targetConnection,
         operation: 'generate',
-        options: { ...options, ...this.getCoreSettings() }
+        options: { ...options, ...coreSettings }
       }))
+
+      if (result.success && result.data?.sql) {
+        let sql = result.data.sql
+
+        // INJECTION LOGIC: Replace placeholders with target environment values
+        const projectsStore = useProjectsStore()
+        const settingsStore = useSettingsStore()
+        const reps = projectsStore.currentProject?.settings?.envReplacements || settingsStore.settings.envReplacements || []
+
+        if (reps.length > 0) {
+          reps.forEach(r => {
+            if (!r.key) return
+            const targetValue = r.values[targetConnection.environment]
+            if (targetValue) {
+              // Replace variable-specific marker
+              sql = sql.split(`<<${r.key}>>`).join(targetValue)
+            }
+          })
+        }
+
+        result.data.sql = sql
+        return result.data
+      }
 
       if (result.success) return result.data
       throw new Error(result.error || 'Generation failed')
@@ -214,6 +296,7 @@ export class Andb {
       throw new Error(`Generation failed: ${error.message}`)
     }
   }
+
 
   /**
    * Test a single database connection

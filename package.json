@@ -1,7 +1,7 @@
 {
   "name": "@the-andb/desktop",
   "productName": "TheAndb",
-  "version": "3.3.4",
+  "version": "3.3.5",
   "private": true,
   "description": "TheAndb - Keep Going. Keep Syncing.",
   "main": "dist-electron/main.cjs",
@@ -39,7 +39,7 @@
     "vue",
     "andb-core"
   ],
-  "author": "The Andb Team",
+  "author": "TheAndb Team",
   "license": "Proprietary",
   "type": "commonjs",
   "bugs": {
@@ -142,8 +142,17 @@
       "target": "nsis"
     },
     "linux": {
-      "target": "AppImage",
-      "executableName": "theandb"
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "executableName": "theandb",
+      "category": "Development",
+      "maintainer": "TheAndb Team"
+    },
+    "deb": {
+      "priority": "optional",
+      "section": "devel"
     },
     "publish": [
       {

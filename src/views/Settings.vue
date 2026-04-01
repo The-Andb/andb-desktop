@@ -551,26 +551,31 @@
                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.domainNormalization.desc')"></p>
                        
-                       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div class="space-y-2">
-                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Regex Pattern</label>
-                             <input 
-                                v-model="settingsStore.settings.domainNormalization.pattern" 
-                                type="text"
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                placeholder="e.g. @[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                             />
-                          </div>
-                          <div class="space-y-2">
-                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Replacement</label>
-                             <input 
-                                v-model="settingsStore.settings.domainNormalization.replacement" 
-                                type="text"
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                placeholder="e.g. @<EMAIL_DOMAIN>"
-                             />
-                          </div>
-                       </div>
+                       <div class="space-y-4">
+                           <div v-for="(rep, index) in settingsStore.settings.envReplacements || []" :key="index"
+                                class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 relative group/rep transition-colors hover:border-orange-500/50">
+                             <button @click="removeEnvReplacementGlobal(index)" class="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover/rep:opacity-100"><Trash2 class="w-4 h-4" /></button>
+                             
+                             <div class="space-y-1.5 max-w-sm">
+                               <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Variable Name</label>
+                               <input v-model="rep.key" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-bold focus:ring-2 focus:ring-orange-500/20 outline-none" placeholder="e.g. APP_DOMAIN" />
+                             </div>
+                             
+                             <div class="pt-2 border-t border-gray-200 dark:border-gray-800/50">
+                               <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">Environment Values</label>
+                               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                 <div v-for="env in connectionPairsStore.environments" :key="env.id" class="space-y-1">
+                                   <span class="text-[10px] text-gray-500 font-bold ml-1 uppercase">{{ env.name }}</span>
+                                   <input v-model="rep.values[env.name]" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono focus:ring-2 focus:ring-orange-500/20 outline-none" placeholder="Value..." />
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                           
+                           <button @click="addEnvReplacementGlobal" class="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors border border-orange-100 dark:border-orange-800/30">
+                             <Plus class="w-4 h-4" /> Add Variable
+                           </button>
+                        </div>
                     </div>
                  </div>
 
@@ -583,16 +588,24 @@
                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
 
-                       <div class="space-y-2">
-                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Exclusion Pattern (Regex)</label>
-                             <input 
-                                v-model="settingsStore.settings.isNotMigrateCondition" 
-                                type="text"
-                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                placeholder="e.g. test|OTE_"
-                             />
-                             <p class="text-[10px] text-gray-400 font-medium pt-1">Objects matching this regex will be ignored during migration.</p>
-                       </div>
+                        <div class="space-y-3">
+                           <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tags (Wildcards supported: `*`)</label>
+                           <div class="flex flex-wrap gap-2 mb-2">
+                             <div v-for="(tag, index) in settingsStore.settings.excludeTags || []" :key="index"
+                                  class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono font-medium border border-red-100 dark:border-red-800/50">
+                               <span>{{ tag }}</span>
+                               <button @click="removeExcludeTagGlobal(index)" class="p-0.5 hover:bg-red-200 dark:hover:bg-red-800 rounded-md transition-colors"><X class="w-3 h-3" /></button>
+                             </div>
+                           </div>
+                           <div class="relative max-w-sm">
+                             <ShieldAlert class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                             <input v-model="newExcludeTagGlobal"
+                               @keydown.enter.prevent="addExcludeTagGlobal"
+                               type="text"
+                               class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
+                               placeholder="e.g. test_* (Press Enter to add)" />
+                           </div>
+                        </div>
                     </div>
                  </div>
                </div>
@@ -901,7 +914,9 @@ import {
   Terminal,
   Home,
   Workflow,
-  Network
+  Network,
+  Plus,
+  ShieldAlert
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
@@ -972,6 +987,32 @@ const toggleHorizontalTab = (path: string) => {
 
 const connectionPairsStore = useConnectionPairsStore()
 const settingsStore = useSettingsStore()
+
+const newExcludeTagGlobal = ref('')
+
+const addExcludeTagGlobal = () => {
+  if (!newExcludeTagGlobal.value.trim()) return
+  if (!settingsStore.settings.excludeTags) settingsStore.settings.excludeTags = []
+  if (!settingsStore.settings.excludeTags.includes(newExcludeTagGlobal.value.trim())) {
+    settingsStore.settings.excludeTags.push(newExcludeTagGlobal.value.trim())
+  }
+  newExcludeTagGlobal.value = ''
+}
+
+const removeExcludeTagGlobal = (index: number) => {
+  if (!settingsStore.settings.excludeTags) return
+  settingsStore.settings.excludeTags.splice(index, 1)
+}
+
+const addEnvReplacementGlobal = () => {
+  if (!settingsStore.settings.envReplacements) settingsStore.settings.envReplacements = []
+  settingsStore.settings.envReplacements.push({ key: '', values: {} })
+}
+
+const removeEnvReplacementGlobal = (index: number) => {
+  if (!settingsStore.settings.envReplacements) return
+  settingsStore.settings.envReplacements.splice(index, 1)
+}
 const operationsStore = useOperationsStore()
 const updaterStore = useUpdaterStore()
 const route = useRoute()

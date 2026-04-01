@@ -1772,12 +1772,6 @@ watch(() => connectionPairsStore.selectedPairId, (newId) => {
   }
 })
 
-onMounted(() => {
-  appStore.sidebarCollapsed = true
-})
 
-onUnmounted(() => {
-  appStore.sidebarCollapsed = false
-})
 
 </script>

@@ -243,7 +243,6 @@
            <div v-if="availablePairs.length === 0" class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">No sync pairs configured.</div>
         </div>
       </div>
->
       
       <!-- Git Sync Status Chip -->
       <div v-if="!isCollapsed && sidebarStore.gitStatus" class="px-3 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/50">

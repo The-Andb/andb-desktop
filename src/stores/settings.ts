@@ -30,7 +30,12 @@ interface Settings {
     pattern: string
     replacement: string
   }
+  envReplacements?: Array<{
+    key: string
+    values: Record<string, string>
+  }>
   isNotMigrateCondition: string
+  excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
 }
@@ -45,7 +50,9 @@ const defaultSettings: Settings = {
     pattern: '@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
     replacement: '@<EMAIL_DOMAIN>'
   },
+  envReplacements: [],
   isNotMigrateCondition: 'test|OTE_',
+  excludeTags: [],
   sqlitePath: '',
   setupCompleted: false
 }

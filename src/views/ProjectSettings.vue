@@ -124,35 +124,30 @@
                         engine runs a Find & Replace on the SQL strings.
                       </p>
 
-                      <div class="flex flex-col sm:flex-row items-center gap-3">
-                        <div class="flex-1 w-full space-y-1.5 relative">
-                          <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Find
-                            (Regex / Text)</label>
-                          <div class="relative">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input :value="projectsStore.currentProject?.settings?.domainNormalization?.pattern"
-                              @input="updateProjectSetting('domainNormalization', 'pattern', ($event.target as HTMLInputElement).value)"
-                              type="text"
-                              class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                              placeholder="e.g. _dev_|_test_" />
+                      <div class="space-y-4">
+                        <div v-for="(rep, index) in projectsStore.currentProject?.settings?.envReplacements || []" :key="index"
+                             class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 relative group/rep transition-colors hover:border-indigo-500/50">
+                          <button @click="removeEnvReplacement(index)" class="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover/rep:opacity-100"><Trash2 class="w-4 h-4" /></button>
+                          
+                          <div class="space-y-1.5 max-w-sm">
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Variable Name</label>
+                            <input :value="rep.key" @input="updateEnvReplacement(index, 'key', ($event.target as HTMLInputElement).value)" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none" placeholder="e.g. APP_DOMAIN" />
+                          </div>
+                          
+                          <div class="pt-2 border-t border-gray-200 dark:border-gray-800/50">
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">Environment Values</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              <div v-for="env in connectionPairsStore.environments" :key="env.id" class="space-y-1">
+                                <span class="text-[10px] text-gray-500 font-bold ml-1 uppercase">{{ env.name }}</span>
+                                <input :value="rep.values[env.name] || ''" @input="updateEnvReplacementValue(index, env.name, ($event.target as HTMLInputElement).value)" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none" placeholder="Value..." />
+                              </div>
+                            </div>
                           </div>
                         </div>
-
-                        <ArrowRight class="w-4 h-4 text-gray-300 dark:text-gray-600 shrink-0 mt-6 hidden sm:block" />
-
-                        <div class="flex-1 w-full space-y-1.5 relative">
-                          <label
-                            class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Replace
-                            With</label>
-                          <div class="relative">
-                            <Wand2 class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input :value="projectsStore.currentProject?.settings?.domainNormalization?.replacement"
-                              @input="updateProjectSetting('domainNormalization', 'replacement', ($event.target as HTMLInputElement).value)"
-                              type="text"
-                              class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                              placeholder="e.g. _prod_" />
-                          </div>
-                        </div>
+                        
+                        <button @click="addEnvReplacement" class="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800/30">
+                          <Plus class="w-4 h-4" /> Add Variable
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -173,16 +168,22 @@
                         this regex, TheAndb strictly ignores it during migrations.
                       </p>
 
-                      <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Exclude
-                          Pattern (Regex)</label>
-                        <div class="relative">
+                      <div class="space-y-3">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tags (Wildcards supported: `*`)</label>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                          <div v-for="(tag, index) in projectsStore.currentProject?.settings?.excludeTags || []" :key="index"
+                               class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono font-medium border border-red-100 dark:border-red-800/50">
+                            <span>{{ tag }}</span>
+                            <button @click="removeExcludeTag(index)" class="p-0.5 hover:bg-red-200 dark:hover:bg-red-800 rounded-md transition-colors"><X class="w-3 h-3" /></button>
+                          </div>
+                        </div>
+                        <div class="relative max-w-sm">
                           <ShieldAlert class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <input :value="projectsStore.currentProject?.settings?.isNotMigrateCondition"
-                            @input="updateProjectSetting('isNotMigrateCondition', null, ($event.target as HTMLInputElement).value)"
+                          <input v-model="newExcludeTag"
+                            @keydown.enter.prevent="addExcludeTag"
                             type="text"
                             class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                            placeholder="e.g. ^temp_|backup$|test_" />
+                            placeholder="e.g. test_* (Press Enter to add)" />
                         </div>
                       </div>
                     </div>
@@ -319,11 +320,9 @@ import {
   RotateCcw,
   Cpu,
   Type,
-  ArrowRight,
-  Wand2,
   Ban,
   ShieldAlert,
-  Search
+  Plus
 } from 'lucide-vue-next'
 import Header from '@/components/general/Header.vue'
 import Sidebar from '@/components/general/Sidebar.vue'
@@ -417,24 +416,64 @@ const confirmResetData = async () => {
   }
 }
 
-const updateProjectSetting = (category: string, key: string | null, value: string) => {
-  if (!projectsStore.currentProject) return
 
+
+const newExcludeTag = ref('')
+
+const addExcludeTag = () => {
+  if (!newExcludeTag.value.trim() || !projectsStore.currentProject) return
   const settings = { ...(projectsStore.currentProject.settings || {}) }
-
-  if (category === 'domainNormalization') {
-    const currentNorm = settings.domainNormalization || { pattern: '', replacement: '' }
-    settings.domainNormalization = {
-      pattern: currentNorm.pattern,
-      replacement: currentNorm.replacement,
-      [key!]: value
-    }
-  } else if (category === 'isNotMigrateCondition') {
-    settings.isNotMigrateCondition = value
-  } else if (category === 'projectBaseDir') {
-    settings.projectBaseDir = value
+  const tags = [...(settings.excludeTags || [])]
+  if (!tags.includes(newExcludeTag.value.trim())) {
+    tags.push(newExcludeTag.value.trim())
+    settings.excludeTags = tags
+    projectsStore.updateProject(projectsStore.currentProject.id, { settings })
   }
+  newExcludeTag.value = ''
+}
 
+const removeExcludeTag = (index: number) => {
+  if (!projectsStore.currentProject) return
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const tags = [...(settings.excludeTags || [])]
+  tags.splice(index, 1)
+  settings.excludeTags = tags
+  projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+}
+
+const addEnvReplacement = () => {
+  if (!projectsStore.currentProject) return
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const reps = [...(settings.envReplacements || [])]
+  reps.push({ key: '', values: {} })
+  settings.envReplacements = reps
+  projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+}
+
+const removeEnvReplacement = (index: number) => {
+  if (!projectsStore.currentProject) return
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const reps = [...(settings.envReplacements || [])]
+  reps.splice(index, 1)
+  settings.envReplacements = reps
+  projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+}
+
+const updateEnvReplacement = (index: number, field: 'key', value: string) => {
+  if (!projectsStore.currentProject) return
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const reps = JSON.parse(JSON.stringify(settings.envReplacements || []))
+  reps[index][field] = value
+  settings.envReplacements = reps
+  projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+}
+
+const updateEnvReplacementValue = (index: number, envName: string, value: string) => {
+  if (!projectsStore.currentProject) return
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const reps = JSON.parse(JSON.stringify(settings.envReplacements || []))
+  reps[index].values[envName] = value
+  settings.envReplacements = reps
   projectsStore.updateProject(projectsStore.currentProject.id, { settings })
 }
 

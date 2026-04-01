@@ -15,7 +15,12 @@ export interface Project {
       pattern: string
       replacement: string
     }
+    envReplacements?: Array<{
+      key: string
+      values: Record<string, string>
+    }>
     isNotMigrateCondition?: string
+    excludeTags?: string[]
     projectBaseDir?: string
   }
   createdAt: string
