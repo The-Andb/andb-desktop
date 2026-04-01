@@ -152,7 +152,7 @@
     },
     "deb": {
       "priority": "optional",
-      "section": "devel"
+      "packageCategory": "devel"
     },
     "publish": [
       {
