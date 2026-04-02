@@ -104,86 +104,89 @@
           <div class="absolute inset-y-0 -left-1.5 -right-1.5 cursor-col-resize"></div>
         </div>
 
-        <!-- Scrollable Content -->
-        <div class="flex-1 flex flex-col overflow-auto custom-scrollbar-diff relative bg-gray-50 dark:bg-gray-950">
-          <div v-if="isEmptySource && isEmptyTarget" class="placeholder-empty flex items-center justify-center h-full text-gray-600 italic">
+        <!-- Scrollable Content Container -->
+        <div class="flex-1 flex overflow-hidden relative bg-gray-50 dark:bg-gray-950">
+          <div v-if="isEmptySource && isEmptyTarget" class="placeholder-empty flex items-center justify-center w-full h-full text-gray-600 italic">
             {{ $t('compare.diffView.sourceEmpty') }}
           </div>
-          <div v-else class="ddl-container pb-4 flex flex-col" :class="wrapLines ? 'w-full' : 'w-full min-w-0'">
-            <template v-for="(chunk, cIdx) in alignedChunks" :key="'sp-chk-' + chunk.id">
-              
-              <!-- VISIBLE ROWS: Render Both Panes Side-by-Side per row -->
-              <template v-if="chunk.type === 'visible'">
-                <div 
-                  v-for="(row, idx) in chunk.rows" 
-                  :key="'sp-row-' + chunk.id + '-' + idx"
-                  class="flex w-full"
-                >
-                  <!-- Source Side -->
+          
+          <div v-else 
+            class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar-diff relative ddl-container"
+            ref="sharedScrollContainer"
+          >
+            <div class="pb-4 flex flex-col w-full min-h-full">
+              <template v-for="(chunk, cIdx) in alignedChunks" :key="'sp-chk-' + chunk.id">
+                
+                <!-- VISIBLE ROWS: Render Both Panes Side-by-Side per row -->
+                <template v-if="chunk.type === 'visible'">
                   <div 
-                    :style="{ width: leftPaneWidth + '%' }"
-                    class="shrink-0 flex line-row group min-w-0"
-                    :class="getLineClass(row.source.type)"
+                    v-for="(row, idx) in chunk.rows" 
+                    :key="'sp-row-' + chunk.id + '-' + idx"
+                    class="flex w-full min-w-0"
                   >
-                    <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
-                      {{ row.source.line || '' }}
-                    </div>
-                    <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
-                      {{ row.source.type === 'added' ? '+' : '' }}
-                    </div>
+                    <!-- Source Side -->
                     <div 
-                      class="line-content px-2 py-0.5 grow ddl-code min-w-0"
-                      :class="[
-                        wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar',
-                        { 'is-navigating': isNavigating }
-                      ]"
-                      v-html="highlightNavLinks(row.source.highlighted || row.source.content)"
-                      @click="handleCodeClick"
-                    ></div>
-                  </div>
+                      :style="{ width: leftPaneWidth + '%' }"
+                      class="shrink-0 flex line-row group border-r border-gray-100 dark:border-[#30363d]/50"
+                      :class="getLineClass(row.source.type)"
+                    >
+                      <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-100/30 dark:bg-gray-800/20">
+                        {{ row.source.line || '' }}
+                      </div>
+                      <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
+                        {{ row.source.type === 'added' ? '+' : '' }}
+                      </div>
+                      <div 
+                        class="line-content source-content px-2 py-0.5 grow ddl-code overflow-x-auto no-scrollbar"
+                        :class="[wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre']"
+                        @scroll="handleHorizontalScroll($event, 'source')"
+                        v-html="highlightNavLinks(row.source.highlighted || row.source.content)"
+                        @click="handleCodeClick"
+                      ></div>
+                    </div>
 
-                  <!-- Target Side -->
-                  <div 
-                    class="flex-1 flex line-row group min-w-0"
-                    :class="getLineClass(row.target.type)"
-                  >
-                    <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30">
-                      {{ row.target.line || '' }}
-                    </div>
-                    <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
-                      {{ row.target.type === 'removed' ? '-' : '' }}
-                    </div>
+                    <!-- Target Side -->
                     <div 
-                      class="line-content px-2 py-0.5 grow ddl-code min-w-0"
-                      :class="wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar'"
-                      v-html="row.target.highlighted || row.target.content"
-                    ></div>
+                      class="flex-1 flex line-row group"
+                      :class="getLineClass(row.target.type)"
+                    >
+                      <div class="line-number w-12 shrink-0 text-right px-2 py-0.5 text-gray-400 dark:text-gray-600 select-none border-r border-gray-100 dark:border-[#30363d] group-hover:text-gray-600 dark:group-hover:text-gray-400 bg-gray-100/30 dark:bg-gray-800/20">
+                        {{ row.target.line || '' }}
+                      </div>
+                      <div class="line-marker w-5 shrink-0 flex items-center justify-center opacity-70 select-none font-bold">
+                        {{ row.target.type === 'removed' ? '-' : '' }}
+                      </div>
+                      <div 
+                        class="line-content target-content px-2 py-0.5 grow ddl-code overflow-x-auto no-scrollbar"
+                        :class="[wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre']"
+                        @scroll="handleHorizontalScroll($event, 'target')"
+                        v-html="row.target.highlighted || row.target.content"
+                      ></div>
+                    </div>
                   </div>
+                </template>
+
+                <!-- COLLAPSED BLOCK -->
+                <div v-else class="w-full flex items-center justify-center bg-gray-50/30 dark:bg-gray-900/30 border-y py-2 border-gray-100 dark:border-[#30363d]/50 relative group/expandbtn shadow-inner isolate" style="height: 48px">
+                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-gray-800/50 pointer-events-none z-0" :style="{ left: `calc(${leftPaneWidth}% - 1px)` }"></div>
+                   </div>
+
+                   <div class="flex items-center isolate z-10 bg-white dark:bg-gray-800 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10 p-0.5 pointer-events-auto transition-transform hover:scale-105">
+                     <button class="w-8 h-6 flex items-center justify-center rounded-l-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromTop(cIdx)" :disabled="cIdx === 0" :class="{ 'opacity-30 cursor-not-allowed': cIdx === 0 }">
+                       <ChevronDown class="w-4 h-4" />
+                     </button>
+                     <button class="px-3 h-6 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" @click.stop="expandAll(cIdx)">
+                       {{ chunk.rows.length }} Lines
+                     </button>
+                     <button class="w-8 h-6 flex items-center justify-center rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromBottom(cIdx)" :disabled="cIdx >= alignedChunks.length - 1" :class="{ 'opacity-30 cursor-not-allowed': cIdx >= alignedChunks.length - 1 }">
+                       <ChevronUp class="w-4 h-4" />
+                     </button>
+                   </div>
                 </div>
+
               </template>
-
-              <!-- COLLAPSED BLOCK: Full width across both panes -->
-              <div v-else class="w-full flex items-center justify-center bg-gray-50/30 dark:bg-gray-900/30 border-y py-2 border-gray-100 dark:border-[#30363d]/50 relative group/expandbtn shadow-inner" style="height: 48px">
-                 <!-- Vertical Split Line continuation behind the badge -->
-                 <div class="absolute top-0 bottom-0 w-[1px] bg-gray-200 dark:bg-gray-800 pointer-events-none z-0" :style="{ left: `calc(${leftPaneWidth}% - 1px)` }"></div>
-
-                 <div class="flex items-center isolate z-10 bg-white dark:bg-gray-800 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10 p-0.5 pointer-events-auto transition-transform hover:scale-105">
-                   <button class="w-8 h-6 flex items-center justify-center rounded-l-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromTop(cIdx)" :disabled="cIdx === 0" :class="{ 'opacity-30 cursor-not-allowed': cIdx === 0 }" title="Expand Down">
-                     <ChevronDown class="w-4 h-4" />
-                   </button>
-
-                   <button class="px-3 h-6 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" @click.stop="expandAll(cIdx)" title="Expand All">
-                     <ChevronsUpDown class="w-3 h-3 mr-1 opacity-50" />
-                     {{ chunk.rows.length }} Lines
-                   </button>
-
-                   <button class="w-8 h-6 flex items-center justify-center rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-primary-500 transition-colors" @click.stop="expandFromBottom(cIdx)" :disabled="cIdx >= alignedChunks.length - 1" :class="{ 'opacity-30 cursor-not-allowed': cIdx >= alignedChunks.length - 1 }" title="Expand Up">
-                     <ChevronUp class="w-4 h-4" />
-                   </button>
-                 </div>
-              </div>
-
-            </template>
+            </div>
           </div>
         </div>
       </div>
@@ -295,7 +298,7 @@
                 <div 
                   class="line-content px-2 py-0.5 grow ddl-code min-w-0"
                   :class="[
-                    wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre overflow-x-auto no-scrollbar',
+                    wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre',
                     { 'is-navigating': isNavigating }
                   ]"
                   v-html="highlightNavLinks(row.highlighted || row.content)"
@@ -341,12 +344,13 @@ const props = defineProps<{
   sourceLabel: string
   targetLabel: string
   status: string
-  diffOptions?: { showChangesOnly?: boolean, ignoreCase?: boolean }
+  diffOptions?: { showChangesOnly?: boolean, ignoreCase?: boolean, wrapLines?: boolean }
   navigatableNames?: string[]
 }>()
 
 const emit = defineEmits(['navigate-to-definition'])
 
+const sharedScrollContainer = ref<HTMLElement | null>(null)
 const sourcePane = ref<HTMLElement | null>(null)
 const targetPane = ref<HTMLElement | null>(null)
 
@@ -359,7 +363,7 @@ const settingsRefUnified = ref<HTMLElement | null>(null)
 const viewType = ref<'split' | 'unified'>('split')
 const hideWhitespace = ref(false)
 const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
-const wrapLines = ref(false)
+const wrapLines = ref(props.diffOptions?.wrapLines ?? false)
 
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
 const isEmptyTarget = computed(() => !props.targetDdl || props.status === 'missing_in_target' || props.status === 'missing')
@@ -616,7 +620,29 @@ function getLineClass(type: string) {
   }
 }
 
-// Scroll Sync (Removed unused handleScroll)
+// Pane Scrolling Logic
+const handleSharedVerticalScroll = (event: Event) => {
+  // Common vertical scroll, nothing to sync manually as it's one container
+}
+
+const handleHorizontalScroll = (event: Event, type: 'source' | 'target') => {
+  if (wrapLines.value) return;
+  
+  const target = event.target as HTMLElement;
+  const scrollLeft = target.scrollLeft;
+  const container = sharedScrollContainer.value;
+  if (!container) return;
+
+  const className = type === 'source' ? '.source-content' : '.target-content';
+  const elements = container.querySelectorAll(className);
+  
+  elements.forEach((el: any) => {
+    if (el !== target && el.scrollLeft !== scrollLeft) {
+      el.scrollLeft = scrollLeft;
+    }
+  });
+}
+
 // Resizing logic
 const startResize = () => {
   isResizing.value = true
@@ -708,6 +734,15 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.ddl-container {
+  overflow-y: auto;
+}
+
+.no-scrollbar-y::-webkit-scrollbar {
+  width: 0 !important;
+  display: none !important;
+}
+
 .ddl-code {
   color: var(--code-text);
 }

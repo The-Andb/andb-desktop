@@ -95,7 +95,7 @@ export class Andb {
         if (values.length > 0) {
           rules.push({
             pattern: `(${values.join('|')})`,
-            replacement: `<<${r.key}>>`
+            replacement: `__VAR_${r.key}__`
           })
         }
       })

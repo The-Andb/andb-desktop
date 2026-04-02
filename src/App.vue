@@ -47,6 +47,13 @@ watch(() => appStore.fontSizes, (sizes) => {
   root.style.setProperty('--font-code', `${sizes.code || 12}px`)
 }, { deep: true, immediate: true })
 
+watch(() => appStore.fontFamilies, (families) => {
+  if (!families) return
+  const root = document.documentElement
+  root.style.setProperty('--font-family-general', families.general)
+  root.style.setProperty('--font-family-code', families.code)
+}, { deep: true, immediate: true })
+
 // Migration Changelog state
 const showMigrationChangelog = ref(false)
 const migrationReport = ref<any>(null)

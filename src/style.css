@@ -4,7 +4,11 @@
 
 @layer base {
   html {
-    font-family: 'Inter', 'Outfit', system-ui, sans-serif;
+    font-family: var(--font-family-general, 'Inter', 'Outfit', system-ui, sans-serif);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-family-code, 'JetBrains Mono', monospace);
   }
 
   body {
@@ -34,6 +38,10 @@
   --primary-800: #122b50;
   --primary-900: #0a1f3d;
   --primary-950: #061529;
+
+  --font-family-general: 'Inter', 'Outfit', system-ui, sans-serif;
+  --font-family-code: 'JetBrains Mono', monospace;
+
   /* Code Colors - Modern Light Theme */
   --code-text: #1e293b;       /* slate-800 */
   --code-keyword: #2563eb;    /* blue-600 */

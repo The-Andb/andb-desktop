@@ -79,6 +79,7 @@ export const useAppStore = defineStore('app', () => {
   // State
   const sidebarCollapsed = ref(false)
   const safeMode = ref(true) // Default to true for safety
+  const isInitialized = ref(false)
   const compareMode = ref<'auto' | 'instant'>('auto')
   const compareStack = ref<{
     source: { name: string; ddl: string; type?: string } | null
@@ -221,6 +222,7 @@ export const useAppStore = defineStore('app', () => {
           await projectsStore.reloadData()
         }
       }
+      isInitialized.value = true
     })()
 
     try {
@@ -366,6 +368,8 @@ export const useAppStore = defineStore('app', () => {
       // implicitly means we are diverging.
 
       // Ideally the UI inputs should trigger a "switchToCustom" first, OR we detect deviation here.
+      if (!isInitialized.value) return
+
       const currentProfileTarget = FONT_SIZE_PROFILES[fontSizeProfile.value]
       if (currentProfileTarget) {
         // Use loose equality or String comparison to avoid type issues (number vs string from inputs/storage)
@@ -614,6 +618,7 @@ export const useAppStore = defineStore('app', () => {
 
   return {
     // State
+    isInitialized,
     sidebarCollapsed,
     safeMode,
     isDark,

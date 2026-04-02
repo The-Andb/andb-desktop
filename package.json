@@ -146,11 +146,13 @@
         "AppImage",
         "deb"
       ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
       "executableName": "theandb",
       "category": "Development",
       "maintainer": "TheAndb Team"
     },
     "deb": {
+      "packageName": "theandb",
       "priority": "optional",
       "packageCategory": "devel"
     },
