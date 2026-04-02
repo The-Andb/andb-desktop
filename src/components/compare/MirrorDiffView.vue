@@ -620,10 +620,6 @@ function getLineClass(type: string) {
   }
 }
 
-// Pane Scrolling Logic
-const handleSharedVerticalScroll = (event: Event) => {
-  // Common vertical scroll, nothing to sync manually as it's one container
-}
 
 const handleHorizontalScroll = (event: Event, type: 'source' | 'target') => {
   if (wrapLines.value) return;
