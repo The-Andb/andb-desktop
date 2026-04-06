@@ -141,6 +141,11 @@ dashboard:
     records: 'Bản ghi'
     ms: 'ms'
     relative: 'Tương đối'
+  aiAssistantPreAlpha: 'Trợ lý AI (Pre-alpha)'
+  aiAutomateTitle: 'Tự động hóa quy trình DBA với AI'
+  aiAutomateDesc: 'Kết nối Gemini API key để mở khóa tính năng đánh giá schema, gợi ý tối ưu index và phân tích tác động tự động trước mỗi lần di trú.'
+  enableAIInsights: 'Bật phân tích AI'
+  databaseIntelligence: 'Trình thu thập thông tin CSDL'
 
 splash:
   tagline: 'Công cụ Di trú Cơ sở dữ liệu Đơn giản nhất'
