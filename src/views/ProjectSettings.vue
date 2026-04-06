@@ -35,6 +35,23 @@
                 </div>
               </button>
             </div>
+
+            <!-- Global Configuration -->
+            <div class="space-y-1 mt-6">
+              <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 opacity-50">{{
+                $t('settings.sections.global', 'Global Configuration') }}</h3>
+              <button v-for="cat in globalSettings" :key="cat.id" @click="activeCategory = cat.id"
+                class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden"
+                :class="activeCategory === cat.id
+                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20 active:scale-95'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'">
+                <component :is="cat.icon" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                <span class="text-[11px] font-bold uppercase tracking-widest">{{ cat.label }}</span>
+                <div v-if="activeCategory === cat.id"
+                  class="absolute inset-0 bg-white/10 translate-x-[-100%] animate-[shimmer_3s_infinite] pointer-events-none">
+                </div>
+              </button>
+            </div>
           </div>
 
           <!-- Bottom Actions -->
@@ -72,13 +89,35 @@
                 <!-- Left Column: Environments -->
                 <div
                   class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
-                  <EnvironmentManager @show-connection-manager="activeCategory = 'connections'" />
+                  <EnvironmentManager mode="project" @switchToGlobal="activeCategory = 'global_envs'" @show-connection-manager="activeCategory = 'connections'" />
                 </div>
 
                 <!-- Right Column: Sync Pairs -->
                 <div
                   class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative">
                   <ConnectionPairManager />
+                </div>
+              </div>
+            </div>
+
+            <!-- GLOBAL ENVIRONMENTS SECTION -->
+            <div v-if="activeCategory === 'global_envs'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="flex items-center gap-4 mb-8">
+                <div
+                  class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shadow-inner">
+                  <Database class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                    Master Environments 
+                  </h2>
+                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Define the global topology of your infrastructure</p>
+                </div>
+              </div>
+              
+              <div class="max-w-3xl">
+                <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
+                  <EnvironmentManager mode="global" @show-connection-manager="activeCategory = 'connections'" />
                 </div>
               </div>
             </div>
@@ -192,6 +231,95 @@
               </div>
             </div>
 
+            <!-- AI ASSISTANT SECTION -->
+            <div v-if="activeCategory === 'ai'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="flex items-center gap-4 mb-12">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shadow-inner">
+                  <Zap class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">AI Assistant</h2>
+                  <p class="text-xs text-gray-400 font-bold uppercase tracking-widest opacity-70">Intelligent DBA & Query Optimization</p>
+                </div>
+              </div>
+ 
+              <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-primary-500/5">
+                <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
+                  <Sparkles class="w-64 h-64 text-primary-500" />
+                </div>
+                <div class="relative z-10">
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium">
+                    Empower your workflow with Google Gemini AI. Analyze schema changes, detect performance bottlenecks, and get actionable DBA insights directly within Andb.
+                  </p>
+                  
+                  <div class="space-y-6 max-w-2xl">
+                    <div class="p-6 bg-white/40 dark:bg-gray-950/40 rounded-[2rem] border border-gray-100 dark:border-gray-800/60 space-y-4">
+                      <div class="flex items-center justify-between">
+                        <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ml-1">Gemini API Key</label>
+                        <a 
+                          href="#" 
+                          @click.prevent="openExternal('https://aistudio.google.com/app/apikey')" 
+                          class="text-[10px] font-bold text-primary-500 hover:underline flex items-center gap-1"
+                        >
+                          Get API Key <ExternalLink class="w-3 h-3" />
+                        </a>
+                      </div>
+                      <div class="relative group/input">
+                        <div class="absolute inset-0 bg-primary-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-10 transition-opacity duration-500"></div>
+                        <input 
+                          v-model="settingsStore.settings.geminiApiKey" 
+                          type="password" 
+                          class="relative w-full px-5 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 shadow-sm" 
+                          placeholder="Enter your Gemini API Key..."
+                        />
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                           <button 
+                             @click="testAIConnection"
+                             :disabled="!settingsStore.settings.geminiApiKey || isTestingAI"
+                             class="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
+                           >
+                             <RefreshCw v-if="isTestingAI" class="w-3 h-3 animate-spin" />
+                             <Zap v-else class="w-3 h-3" />
+                             {{ isTestingAI ? 'Testing...' : 'Test Connection' }}
+                           </button>
+                         </div>
+                      </div>
+
+                      <div v-if="aiStatus" :class="[
+                         'p-4 rounded-xl text-[10px] font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300',
+                         aiStatus.success ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'
+                       ]">
+                         <Check v-if="aiStatus.success" class="w-4 h-4" />
+                         <ShieldAlert v-else class="w-4 h-4" />
+                         {{ aiStatus.message }}
+                      </div>
+                      <p class="text-[10px] text-gray-400 leading-relaxed px-1">
+                        Your API key is stored securely in your global Workspace Vault and is used by all projects to communicate with Google's Gemini API via the air-gapped IPC layer.
+                      </p>
+                    </div>
+ 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="p-5 bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30">
+                        <h4 class="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Check class="w-3 h-3" /> Schema Review
+                        </h4>
+                        <p class="text-[10px] text-primary-600/80 dark:text-primary-400/80 leading-relaxed font-medium">
+                          Detect missing indexes, unsafe DDL operations, and structural inconsistencies automatically.
+                        </p>
+                      </div>
+                      <div class="p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+                        <h4 class="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Check class="w-3 h-3" /> DBA Chat
+                        </h4>
+                        <p class="text-[10px] text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed font-medium">
+                          Ask technical questions about your database schema directly within the comparison view.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -318,11 +446,16 @@ import {
   FileCode,
   Activity,
   RotateCcw,
+  RefreshCw,
   Cpu,
   Type,
   Ban,
   ShieldAlert,
-  Plus
+  Plus,
+  Zap,
+  Sparkles,
+  ExternalLink,
+  Check
 } from 'lucide-vue-next'
 import Header from '@/components/general/Header.vue'
 import Sidebar from '@/components/general/Sidebar.vue'
@@ -333,6 +466,8 @@ import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useOperationsStore } from '@/stores/operations'
+import { useSettingsStore } from '@/stores/settings'
+import Andb from '@/utils/andb'
 
 import { useI18n } from 'vue-i18n'
 
@@ -342,28 +477,73 @@ const appStore = useAppStore()
 const connectionPairsStore = useConnectionPairsStore()
 const projectsStore = useProjectsStore()
 const operationsStore = useOperationsStore()
+const settingsStore = useSettingsStore()
 const route = useRoute()
+
+const openExternal = (url: string) => {
+  if (window.electronAPI?.openExternal) {
+    window.electronAPI.openExternal(url)
+  } else {
+    window.open(url, '_blank')
+  }
+}
 
 const categories = computed(() => {
   const projectCats = [
     { id: 'env_pairs', label: t('settings.categories.env_pairs', 'Env & Sync Pairs'), icon: GitCompare },
     { id: 'connections', label: t('settings.categories.connections'), icon: Link2 },
-    { id: 'engine', label: t('settings.categories.engine'), icon: Cpu }
+    { id: 'engine', label: t('settings.categories.engine'), icon: Cpu },
+    { id: 'ai', label: 'AI Assistant', icon: Sparkles }
   ]
 
   return projectCats.map(c => ({ ...c, type: 'project' }))
 })
 
+const globalSettings = computed(() => {
+  return [
+    { id: 'global_envs', label: t('settings.categories.global_envs', 'Master Environments'), icon: Database }
+  ].map(c => ({ ...c, type: 'global' }))
+})
+
 const projectSettings = computed(() => categories.value)
 const activeCategory = ref('connections') // Default to connections
 
+const isTestingAI = ref(false)
+const aiStatus = ref<{ success: boolean; message: string } | null>(null)
+
+const testAIConnection = async () => {
+  if (!settingsStore.settings.geminiApiKey) return
+  
+  isTestingAI.value = true
+  aiStatus.value = null
+  
+  try {
+    const success = await Andb.aiConfigure(settingsStore.settings.geminiApiKey)
+    if (success) {
+      const res = await Andb.aiAsk('Hello, are you operational? Answer with "OK" if yes.')
+      if (res && res.content) {
+        aiStatus.value = { success: true, message: 'Connection successful! Gemini is ready.' }
+      } else {
+        aiStatus.value = { success: false, message: 'Configuration accepted, but provider failed to respond.' }
+      }
+    } else {
+      aiStatus.value = { success: false, message: 'Failed to configure AI provider. Check your API key.' }
+    }
+  } catch (e: any) {
+    aiStatus.value = { success: false, message: e.message || 'Connection failed' }
+  } finally {
+    isTestingAI.value = false
+  }
+}
+
 // Handle deep linking from query params
 const handleDeepLink = (query: any) => {
-  if (query.cat && categories.value.find(c => c.id === query.cat)) {
+  const allCats = [...categories.value, ...globalSettings.value]
+  if (query.cat && allCats.find(c => c.id === query.cat)) {
     activeCategory.value = query.cat as string
   }
   // Support 'tab' alias as used in dashboard (e.g. settings?tab=connections)
-  if (query.tab && categories.value.find(c => c.id === query.tab)) {
+  if (query.tab && allCats.find(c => c.id === query.tab)) {
     activeCategory.value = query.tab as string
   }
 }

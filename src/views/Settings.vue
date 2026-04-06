@@ -58,7 +58,7 @@
         
         <!-- Category Detail Pane -->
         <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div :class="activeCategory === 'templates' ? 'w-full' : 'max-w-4xl mx-auto'">
+          <div :class="activeCategory === 'templates' || activeCategory === 'environments' ? 'w-full' : 'max-w-4xl mx-auto'">
             
             <!-- INTERFACE & TYPOGRAPHY SECTION -->
             <div v-if="activeCategory === 'interface'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -537,79 +537,233 @@
               <ConnectionTemplateManager class="flex-1 min-h-0" />
             </div>
 
+            <!-- GLOBAL ENVIRONMENTS SECTION -->
+            <div v-if="activeCategory === 'environments'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+               <div class="flex items-center gap-4 mb-8">
+                  <div class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shadow-inner">
+                    <Database class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                      Master Environments 
+                    </h2>
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Define the global topology of your infrastructure</p>
+                  </div>
+                </div>
+                
+                <div class="max-w-3xl">
+                  <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-8 border border-gray-200 dark:border-gray-800 shadow-sm">
+                    <EnvironmentManager mode="global" />
+                  </div>
+                </div>
+            </div>
+
             <!-- ENGINE SECTION -->
             <div v-if="activeCategory === 'engine'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
 
 
-               <div class="space-y-8">
-                 <!-- Domain Normalization -->
-                 <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                       <GitCompare class="w-32 h-32" />
-                    </div>
-                    <div class="relative z-10">
-                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
-                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.domainNormalization.desc')"></p>
-                       
-                       <div class="space-y-4">
-                           <div v-for="(rep, index) in settingsStore.settings.envReplacements || []" :key="index"
-                                class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 relative group/rep transition-colors hover:border-orange-500/50">
-                             <button @click="removeEnvReplacementGlobal(index)" class="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover/rep:opacity-100"><Trash2 class="w-4 h-4" /></button>
-                             
-                             <div class="space-y-1.5 max-w-sm">
-                               <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Variable Name</label>
-                               <input v-model="rep.key" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-bold focus:ring-2 focus:ring-orange-500/20 outline-none" placeholder="e.g. APP_DOMAIN" />
-                             </div>
-                             
-                             <div class="pt-2 border-t border-gray-200 dark:border-gray-800/50">
-                               <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">Environment Values</label>
-                               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                 <div v-for="env in connectionPairsStore.environments" :key="env.id" class="space-y-1">
-                                   <span class="text-[10px] text-gray-500 font-bold ml-1 uppercase">{{ env.name }}</span>
-                                   <input v-model="rep.values[env.name]" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono focus:ring-2 focus:ring-orange-500/20 outline-none" placeholder="Value..." />
-                                 </div>
-                               </div>
-                             </div>
+                <div class="space-y-12">
+                  <!-- Domain Normalization -->
+                  <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-orange-500/5">
+                     <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
+                        <GitCompare class="w-64 h-64" />
+                     </div>
+                     <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-3">
+                           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 flex items-center justify-center shadow-inner">
+                              <GitCompare class="w-5 h-5 text-orange-500" />
                            </div>
-                           
-                           <button @click="addEnvReplacementGlobal" class="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors border border-orange-100 dark:border-orange-800/30">
-                             <Plus class="w-4 h-4" /> Add Variable
-                           </button>
+                           <div class="flex flex-col">
+                              <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
+                              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.engine.domainNormalization.subtitle') || 'Environment Variable Mapping' }}</span>
+                           </div>
                         </div>
-                    </div>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.domainNormalization.desc')"></p>
+                        
+                        <div class="space-y-8">
+                            <TransitionGroup name="list">
+                            <div v-for="(rep, index) in settingsStore.settings.envReplacements || []" :key="index"
+                                 class="p-8 bg-white/40 dark:bg-gray-950/40 rounded-[2rem] border border-gray-100 dark:border-gray-800/60 space-y-8 relative group/rep transition-all duration-500 hover:border-orange-500/40 hover:bg-white/60 dark:hover:bg-gray-950/60 hover:shadow-2xl hover:shadow-orange-500/5">
+                              
+                               <!-- Static Decoration -->
+                               <div class="absolute left-0 top-10 bottom-10 w-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-full group-hover/rep:bg-orange-500 transition-all duration-500"></div>
+
+                              <button @click="removeEnvReplacementGlobal(index)" class="absolute top-6 right-6 p-2.5 text-gray-400 hover:text-white hover:bg-red-500 dark:hover:bg-red-600 rounded-2xl transition-all opacity-0 group-hover/rep:opacity-100 transform translate-x-4 group-hover/rep:translate-x-0 shadow-lg shadow-red-500/20">
+                                <Trash2 class="w-4 h-4" />
+                              </button>
+                              
+                              <div class="space-y-3 max-w-md">
+                                <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ml-1">Variable Identifier</label>
+                                <div class="relative group/input">
+                                   <div class="absolute inset-0 bg-orange-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-20 transition-opacity duration-500"></div>
+                                   <input v-model="rep.key" type="text" 
+                                     class="relative w-full px-5 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl text-xs font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 shadow-sm" 
+                                     placeholder="e.g. APP_DOMAIN" />
+                                </div>
+                              </div>
+                              
+                              <div class="pt-8 border-t border-gray-100 dark:border-gray-800/40">
+                                <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ml-1 mb-6">Environment Resolution</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                  <div v-for="env in connectionPairsStore.environments" :key="env.id" class="space-y-3 group/field">
+                                    <div class="flex items-center gap-2.5 ml-1">
+                                       <span class="w-1.5 h-1.5 rounded-full bg-gray-200 dark:bg-gray-800 group-focus-within/field:bg-orange-500 transition-colors"></span>
+                                       <span class="text-[10px] text-gray-400 dark:text-gray-500 font-black uppercase tracking-[0.15em] group-focus-within/field:text-orange-500 transition-colors">{{ env.name }}</span>
+                                    </div>
+                                    <input v-model="rep.values[env.name]" type="text" 
+                                      class="w-full px-4 py-3 bg-white/30 dark:bg-gray-900/30 border border-gray-100 dark:border-gray-800 rounded-xl text-xs font-mono font-bold text-gray-600 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 outline-none transition-all shadow-sm" 
+                                      placeholder="Value..." />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            </TransitionGroup>
+                            
+                            <button @click="addEnvReplacementGlobal" 
+                               class="group relative w-full sm:w-auto flex items-center justify-center gap-4 px-10 py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.3em] hover:scale-[1.03] active:scale-[0.97] transition-all duration-500 shadow-2xl hover:shadow-orange-500/30 overflow-hidden">
+                              <Plus class="w-4 h-4 transition-transform duration-500 group-hover:rotate-180" /> 
+                              <span class="relative z-10">Add Normalization Variable</span>
+                              <div class="absolute inset-0 bg-gradient-to-tr from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                              <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none"></div>
+                            </button>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Migration Exclusions -->
+                  <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-rose-500/5">
+                      <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
+                        <Shield class="w-64 h-64" />
+                     </div>
+                     <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-3">
+                           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 flex items-center justify-center shadow-inner">
+                              <Shield class="w-5 h-5 text-rose-500" />
+                           </div>
+                           <div class="flex flex-col">
+                              <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
+                              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.engine.migrationExclusions.subtitle') || 'Object Filter Rules' }}</span>
+                           </div>
+                        </div>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
+
+                         <div class="space-y-8">
+                            <div class="flex flex-col gap-4">
+                                <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] ml-1">Exclusion Registry</label>
+                                
+                                <div class="flex flex-wrap gap-3 p-6 bg-white/30 dark:bg-gray-950/30 rounded-[1.5rem] border border-gray-100 dark:border-gray-800/40 min-h-[80px] empty:after:content-['No_exclusions_defined'] empty:after:text-[10px] empty:after:uppercase empty:after:tracking-widest empty:after:text-gray-400 empty:after:m-auto">
+                                  <TransitionGroup name="list">
+                                  <div v-for="(tag, index) in settingsStore.settings.excludeTags || []" :key="tag"
+                                       class="group/tag flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-2xl text-[11px] font-mono font-black border border-gray-100 dark:border-gray-800 shadow-sm hover:border-rose-500/40 hover:shadow-xl hover:shadow-rose-500/5 transition-all duration-300 transform hover:scale-[1.05]">
+                                    <span class="opacity-70">#</span>
+                                    <span class="group-hover/tag:text-rose-600 dark:group-hover/tag:text-rose-400 transition-colors uppercase">{{ tag }}</span>
+                                    <button @click="removeExcludeTagGlobal(index)" class="ml-1 p-1 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 rounded-lg transition-all opacity-0 group-hover/tag:opacity-100 scale-75 group-hover/tag:scale-100">
+                                       <X class="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                  </TransitionGroup>
+                                </div>
+                            </div>
+
+                            <div class="relative max-w-md group/input">
+                              <div class="absolute inset-0 bg-rose-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-10 transition-opacity duration-500"></div>
+                              <ShieldAlert class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within/input:text-rose-500 transition-colors duration-300" />
+                              <input v-model="newExcludeTagGlobal"
+                                @keydown.enter.prevent="addExcludeTagGlobal"
+                                type="text"
+                                class="relative w-full pl-12 pr-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-[1.25rem] text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-600 shadow-sm"
+                                placeholder="test_* (Press Enter to add)" />
+                            </div>
+                         </div>
+                     </div>
+                  </div>
+                </div>
+             </div>
+
+             <!-- AI ASSISTANT SECTION -->
+             <div v-if="activeCategory === 'ai'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+               <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-primary-500/5">
+                 <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
+                   <Sparkles class="w-64 h-64 text-primary-500" />
                  </div>
-
-                 <!-- Migration Exclusions -->
-                 <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                       <Shield class="w-32 h-32" />
-                    </div>
-                    <div class="relative z-10">
-                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
-                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
-
-                        <div class="space-y-3">
-                           <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tags (Wildcards supported: `*`)</label>
-                           <div class="flex flex-wrap gap-2 mb-2">
-                             <div v-for="(tag, index) in settingsStore.settings.excludeTags || []" :key="index"
-                                  class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono font-medium border border-red-100 dark:border-red-800/50">
-                               <span>{{ tag }}</span>
-                               <button @click="removeExcludeTagGlobal(index)" class="p-0.5 hover:bg-red-200 dark:hover:bg-red-800 rounded-md transition-colors"><X class="w-3 h-3" /></button>
-                             </div>
-                           </div>
-                           <div class="relative max-w-sm">
-                             <ShieldAlert class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                             <input v-model="newExcludeTagGlobal"
-                               @keydown.enter.prevent="addExcludeTagGlobal"
-                               type="text"
-                               class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                               placeholder="e.g. test_* (Press Enter to add)" />
-                           </div>
-                        </div>
-                    </div>
+                 <div class="relative z-10">
+                   <div class="flex items-center gap-4 mb-3">
+                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500/20 to-primary-600/5 flex items-center justify-center shadow-inner">
+                       <Zap class="w-5 h-5 text-primary-500" />
+                     </div>
+                     <div class="flex flex-col">
+                       <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">AI DBA Assistant</h3>
+                       <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Intelligent Schema Analysis & Optimization</span>
+                     </div>
+                   </div>
+                   <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium">
+                     Empower your workflow with Google Gemini AI. Analyze schema changes, detect performance bottlenecks, and get actionable DBA insights directly within Andb.
+                   </p>
+                   
+                   <div class="space-y-6 max-w-2xl">
+                     <div class="p-6 bg-white/40 dark:bg-gray-950/40 rounded-[2rem] border border-gray-100 dark:border-gray-800/60 space-y-4">
+                       <div class="flex items-center justify-between">
+                         <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ml-1">Gemini API Key</label>
+                         <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] font-bold text-primary-500 hover:underline flex items-center gap-1">
+                           Get API Key <ExternalLink class="w-3 h-3" />
+                         </a>
+                       </div>
+                       <div class="relative group/input">
+                         <div class="absolute inset-0 bg-primary-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-10 transition-opacity duration-500"></div>
+                         <input 
+                           v-model="settings.geminiApiKey" 
+                           type="password" 
+                           class="relative w-full px-5 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 shadow-sm" 
+                           placeholder="Enter your Gemini API Key..."
+                         />
+                         <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                           <button 
+                             @click="testAIConnection"
+                             :disabled="!settings.geminiApiKey || isTestingAI"
+                             class="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
+                           >
+                             <RefreshCw v-if="isTestingAI" class="w-3 h-3 animate-spin" />
+                             <Zap v-else class="w-3 h-3" />
+                             {{ isTestingAI ? 'Testing...' : 'Test Connection' }}
+                           </button>
+                         </div>
+                       </div>
+                       
+                       <div v-if="aiStatus" :class="[
+                         'p-4 rounded-xl text-[10px] font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300',
+                         aiStatus.success ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'
+                       ]">
+                         <Check v-if="aiStatus.success" class="w-4 h-4" />
+                         <ShieldAlert v-else class="w-4 h-4" />
+                         {{ aiStatus.message }}
+                       </div>
+                       <p class="text-[10px] text-gray-400 leading-relaxed px-1">
+                         Your API key is stored securely in your local Workspace Vault and is only used to communicate with Google's Gemini API via the air-gapped IPC layer.
+                       </p>
+                     </div>
+ 
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div class="p-5 bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30">
+                         <h4 class="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                           <Check class="w-3 h-3" /> Schema Review
+                         </h4>
+                         <p class="text-[10px] text-primary-600/80 dark:text-primary-400/80 leading-relaxed font-medium">
+                           Detect missing indexes, unsafe DDL operations, and structural inconsistencies automatically.
+                         </p>
+                       </div>
+                       <div class="p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+                         <h4 class="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                           <Check class="w-3 h-3" /> DBA Chat
+                         </h4>
+                         <p class="text-[10px] text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed font-medium">
+                           Ask technical questions about your database schema directly within the comparison view.
+                         </p>
+                       </div>
+                     </div>
+                   </div>
                  </div>
                </div>
-            </div>
+             </div>
 
             <!-- WORKSPACE VAULT SECTION -->
             <div v-if="activeCategory === 'vault'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -654,7 +808,6 @@
                      </div>
                   </div>
                 </div>
-                  <!-- This block was extracted to Vault tab -->
             </div>
 
             <!-- SECURITY SECTION -->
@@ -891,6 +1044,7 @@ import {
   Check, 
   MousePointer2, 
   Layers,
+  ExternalLink,
   Settings as SettingsIcon, 
   MonitorSmartphone, 
   History as HistoryIcon,
@@ -916,12 +1070,14 @@ import {
   Workflow,
   Network,
   Plus,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
 import CopyableSnippet from '@/components/general/CopyableSnippet.vue'
 import ConnectionTemplateManager from '@/components/connection/ConnectionTemplateManager.vue'
+import EnvironmentManager from '@/components/connection/EnvironmentManager.vue'
 import { setLanguage } from '@/i18n'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
@@ -1075,6 +1231,15 @@ const regenerateKeys = async () => {
 
 const resetWorkspaceDir = async () => {
     if (confirm('Are you sure you want to clear your custom Workspace? The app will revert to using the internal system cache storage.')) {
+        // Hard reboot the application to clear all internal memory-cache stores 
+        // and re-sync the interface from the newly empty/reset sqlite database.
+        const result = await (window as any).electronAPI.invoke('relaunch-app')
+        
+        // --- E2E TEST FIX ---
+        // In test mode, relaunch is bypassed. We manually reload.
+        if (result && result.skipped) {
+          window.location.reload()
+        }
         if ((window as any).electronAPI && (window as any).electronAPI.resetWorkspaceDir) {
             await (window as any).electronAPI.resetWorkspaceDir()
             currentWorkspaceDir.value = ''
@@ -1165,6 +1330,35 @@ const saveDefaultCliProject = async () => {
    }
 }
 
+const isTestingAI = ref(false)
+const aiStatus = ref<{ success: boolean; message: string } | null>(null)
+
+const testAIConnection = async () => {
+  if (!settings.value.geminiApiKey) return
+  
+  isTestingAI.value = true
+  aiStatus.value = null
+  
+  try {
+    const success = await Andb.aiConfigure(settings.value.geminiApiKey)
+    if (success) {
+      // Try a simple ask to verify the key
+      const res = await Andb.aiAsk('Hello, are you operational? Answer with "OK" if yes.')
+      if (res && res.content) {
+        aiStatus.value = { success: true, message: 'Connection successful! Gemini is ready.' }
+      } else {
+        aiStatus.value = { success: false, message: 'Configuration accepted, but provider failed to respond. Check your API key limits.' }
+      }
+    } else {
+      aiStatus.value = { success: false, message: 'Failed to configure AI provider. Check your API key.' }
+    }
+  } catch (e: any) {
+    aiStatus.value = { success: false, message: e.message || 'Connection failed' }
+  } finally {
+    isTestingAI.value = false
+  }
+}
+
 onMounted(() => {
     checkCliStatus()
     loadPaths()
@@ -1173,9 +1367,11 @@ onMounted(() => {
 const categories = computed(() => {
   const appCats = [
     { id: 'interface', label: t('settings.categories.interface'), icon: markRaw(MonitorSmartphone), subtitle: t('settings.interface.subtitle') },
+    { id: 'environments', label: t('settings.categories.global_envs', 'Master Environments'), icon: markRaw(Database), subtitle: 'Core environment topology' },
     { id: 'vault', label: 'Workspace Vault', icon: markRaw(Cloud), subtitle: 'Local storage & future cloud sync' },
     { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },
+    { id: 'ai', label: 'AI Assistant', icon: markRaw(Sparkles), subtitle: 'Intelligent DBA & Review' },
     { id: 'terminal', label: 'CLI & MCP', icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
     { id: 'security', label: t('settings.categories.security'), icon: markRaw(Shield), subtitle: t('settings.security.subtitle') },
     { id: 'backup', label: t('settings.categories.backup'), icon: markRaw(Database), subtitle: t('settings.backup.subtitle') },
@@ -1283,12 +1479,12 @@ const confirmResetData = async () => {
     if (window.electronAPI) {
       window.electronAPI.log.send('error', 'Failed to reset data in settings', error.message)
     }
-    alert('Failed to reset data.')
-  } finally {
-    isResetting.value = false
-  }
-}
-</script>
+     alert('Failed to reset data.')
+   } finally {
+     isResetting.value = false
+   }
+ }
+ </script>
 
 
 <style scoped>

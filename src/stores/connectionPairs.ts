@@ -13,6 +13,16 @@ export interface Environment {
   order: number
 }
 
+export const SUGGESTED_ENVIRONMENTS = [
+  { name: 'LOCAL', description: 'Local development database', color: 'blue' },
+  { name: 'DEV', description: 'Development environment', color: 'blue' },
+  { name: 'TEST', description: 'Testing/QA environment', color: 'purple' },
+  { name: 'STAGE', description: 'Staging/Pre-production', color: 'yellow' },
+  { name: 'UAT', description: 'User Acceptance Testing', color: 'purple' },
+  { name: 'PROD', description: 'Production/Live environment', color: 'red' },
+  { name: 'DEMO', description: 'Demo/Sales environment', color: 'emerald' }
+]
+
 export interface ConnectionPair {
   id: string
   name: string
@@ -45,10 +55,9 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       }))
     } else {
       environments.value = [
-        { id: 'DEV', name: 'DEV', description: 'Development environment', enabled: true, order: 1 },
-        { id: 'STAGE', name: 'STAGE', description: 'Staging environment', enabled: true, order: 2 },
-        { id: 'UAT', name: 'UAT', description: 'User Acceptance Testing', enabled: true, order: 3 },
-        { id: 'PROD', name: 'PROD', description: 'Production environment', enabled: true, order: 4 }
+        { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1 },
+        { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 2 },
+        { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 3 }
       ]
     }
 
@@ -337,7 +346,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   const removeEnvironment = (id: string) => {
     const env = environments.value.find(e => e.id === id)
-    if (env && !['DEV', 'STAGE', 'UAT', 'PROD'].includes(env.name.toUpperCase())) {
+    if (env) {
       environments.value = environments.value.filter(e => e.id !== id)
     }
   }
@@ -491,10 +500,10 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   const resetEnvironments = async () => {
     environments.value = [
-      { id: 'DEV', name: 'DEV', description: 'Development environment', enabled: true, order: 1 },
-      { id: 'STAGE', name: 'STAGE', description: 'Staging environment', enabled: true, order: 2 },
-      { id: 'UAT', name: 'UAT', description: 'UAT environment', enabled: true, order: 3 },
-      { id: 'PROD', name: 'PROD', description: 'Production environment', enabled: true, order: 4 }
+      { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1 },
+      { id: 'TEST', name: 'TEST', description: 'Testing', enabled: true, order: 2 },
+      { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 3 },
+      { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 4 }
     ]
     await storage.saveEnvironments(environments.value)
   }

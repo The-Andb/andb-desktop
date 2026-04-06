@@ -2,16 +2,44 @@
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-        {{ $t('environments.configuration') }}
+        {{ mode === 'global' ? $t('environments.global_configuration', 'Global Master List') : $t('environments.project_selection', 'Project Environments') }}
       </h3>
-      <div class="flex items-center gap-2">
+      <div v-if="mode === 'global'" class="flex items-center gap-2 relative">
+        <div v-if="showSuggestions" class="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-[100] p-2 animate-in fade-in zoom-in-95 duration-200">
+           <div class="px-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 mb-1">Suggestions</div>
+           <div class="max-h-64 overflow-y-auto custom-scrollbar">
+              <button 
+                v-for="s in SUGGESTED_ENVIRONMENTS" 
+                :key="s.name"
+                @click="addFromSuggestion(s)"
+                class="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group flex items-center justify-between"
+              >
+                <div>
+                   <div class="text-xs font-bold text-gray-900 dark:text-white">{{ s.name }}</div>
+                   <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate opacity-0 group-hover:opacity-100 transition-opacity">{{ s.description }}</div>
+                </div>
+                <Zap class="w-3 h-3 text-primary-500" />
+              </button>
+           </div>
+           <div class="mt-1 pt-1 border-t border-gray-100 dark:border-gray-800">
+              <button @click="addEnvironment" class="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-[10px] font-bold text-primary-600 uppercase tracking-widest flex items-center gap-2">
+                 <Plus class="w-3 h-3" /> Custom Environment
+              </button>
+           </div>
+        </div>
         <button
-          @click="addEnvironment"
-          class="btn btn-primary flex items-center"
+          @click="showSuggestions = !showSuggestions"
+          class="px-4 py-2 bg-primary-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary-500/20 active:scale-95 flex items-center gap-2 transition-all"
         >
-          <Plus class="w-4 h-4 mr-2" />
+          <Plus class="w-4 h-4" />
           {{ $t('environments.addEnvironment') }}
+          <ChevronDown :class="['w-3 h-3 transition-transform', { 'rotate-180': showSuggestions }]" />
         </button>
+      </div>
+      <div v-else class="flex items-center gap-2">
+         <button @click="emit('switchToGlobal')" class="text-[10px] font-bold text-primary-500 hover:underline uppercase tracking-widest flex items-center gap-1.5">
+            <Settings class="w-3.5 h-3.5" /> {{ $t('environments.manage_global', 'Manage Global List') }}
+         </button>
       </div>
     </div>
 
@@ -21,16 +49,18 @@
         v-model="environments"
         item-key="id"
         class="space-y-4"
+        :disabled="mode !== 'global'"
         handle=".drag-handle"
       >
         <template #item="{ element: env }">
           <div class="group relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-300">
             <div class="flex items-center gap-3">
               <!-- Drag Handle & Toggle -->
-              <div class="drag-handle cursor-move p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg shrink-0">
+              <div v-if="mode === 'global'" class="drag-handle cursor-move p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg shrink-0">
                 <GripVertical class="w-4 h-4" />
               </div>
               <input
+                v-if="mode === 'project'"
                 type="checkbox"
                 :id="`env-${env.id}`"
                 :checked="isEnvEnabled(env.id)"
@@ -40,26 +70,32 @@
 
               <!-- Content Row -->
               <div class="flex-1 flex flex-col min-w-0 px-3 border-l border-gray-100 dark:border-gray-800 ml-1">
-                  <input
-                    v-model="env.name"
-                    type="text"
-                    class="w-full bg-transparent border-none text-sm font-bold text-gray-900 dark:text-white focus:ring-0 p-0 outline-none placeholder:text-gray-400"
-                    :placeholder="$t('environments.manager.namePlaceholder')"
-                    @blur="updateEnvironment(env)"
-                  />
-                  <input
-                    v-model="env.description"
-                    type="text"
-                    class="w-full bg-transparent border-none text-[11px] text-gray-500 dark:text-gray-400 focus:ring-0 p-0 mt-0.5 outline-none placeholder:text-gray-300/50"
-                    :placeholder="$t('environments.manager.descPlaceholder')"
-                    @blur="updateEnvironment(env)"
-                  />
+                  <template v-if="mode === 'global'">
+                    <input
+                      v-model="env.name"
+                      type="text"
+                      class="w-full bg-transparent border-none text-sm font-bold text-gray-900 dark:text-white focus:ring-0 p-0 outline-none placeholder:text-gray-400"
+                      :placeholder="$t('environments.manager.namePlaceholder')"
+                      @blur="updateEnvironment(env)"
+                    />
+                    <input
+                      v-model="env.description"
+                      type="text"
+                      class="w-full bg-transparent border-none text-[11px] text-gray-500 dark:text-gray-400 focus:ring-0 p-0 mt-0.5 outline-none placeholder:text-gray-300/50"
+                      :placeholder="$t('environments.manager.descPlaceholder')"
+                      @blur="updateEnvironment(env)"
+                    />
+                  </template>
+                  <template v-else>
+                     <div class="text-sm font-bold text-gray-900 dark:text-white">{{ env.name }}</div>
+                     <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">{{ env.description }}</div>
+                  </template>
               </div>
 
               <!-- Metadata Badges -->
               <div class="flex items-center gap-2 shrink-0">
-                 <span :class="['px-2 py-1 text-[9px] font-black rounded border tracking-widest uppercase', getEnvironmentBadgeClass(env.name)]">
-                    {{ getEnvironmentType(env.name) }}
+                 <span :class="['px-2 py-1 text-[9px] font-black rounded border tracking-widest uppercase transition-colors', getEnvironmentBadgeClass(env.name)]">
+                    {{ env.name }}
                  </span>
                  <button 
                     @click="showConnectionManager(env.name)"
@@ -72,9 +108,9 @@
               </div>
 
               <!-- Actions -->
-              <div class="flex items-center gap-1 shrink-0 border-l border-gray-100 dark:border-gray-800 pl-3 ml-1">
+              <div v-if="mode === 'global'" class="flex items-center gap-1 shrink-0 border-l border-gray-100 dark:border-gray-800 pl-3 ml-1">
                 <button @click="duplicateEnvironment(env)" class="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"><Copy class="w-3.5 h-3.5" /></button>
-                <button @click="removeEnvironment(env)" :disabled="isDefaultEnvironment(env.name)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-20 rounded-lg transition-colors"><Trash2 class="w-3.5 h-3.5" /></button>
+                <button @click="removeEnvironment(env)" class="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"><Trash2 class="w-3.5 h-3.5" /></button>
               </div>
             </div>
           </div>
@@ -93,11 +129,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Plus, GripVertical, Copy, Trash2, Database } from 'lucide-vue-next'
+import { Plus, GripVertical, Copy, Trash2, Database, ChevronDown, Zap, Settings } from 'lucide-vue-next'
 import draggable from 'vuedraggable/src/vuedraggable'
-import { useConnectionPairsStore, type Environment } from '@/stores/connectionPairs'
+import { useConnectionPairsStore, SUGGESTED_ENVIRONMENTS, type Environment } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 
@@ -105,12 +141,23 @@ const { t: $t } = useI18n()
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 
+const props = defineProps<{
+  mode: 'global' | 'project'
+}>()
+
+const emit = defineEmits<{
+  showConnectionManager: [envName?: string],
+  switchToGlobal: []
+}>()
+
 const environments = computed({
   get: () => connectionPairsStore.environments,
   set: (val) => connectionPairsStore.reorderEnvironments(val)
 })
 
-const projectsStore = useProjectsStore() // Needs import
+const showSuggestions = ref(false)
+
+const projectsStore = useProjectsStore()
 
 const isEnvEnabled = (envId: string) => {
   const project = projectsStore.currentProject
@@ -126,9 +173,6 @@ const toggleEnv = (envId: string, isChecked: boolean) => {
   connectionPairsStore.toggleProjectEnvironment(envId, isChecked)
 }
 
-const emit = defineEmits<{
-  showConnectionManager: [envName?: string]
-}>()
 
 const showConnectionManager = (envName?: string) => {
   emit('showConnectionManager', envName)
@@ -142,34 +186,14 @@ const getConnectionCount = (environmentName: string) => {
   ).length
 }
 
-const defaultEnvironments = ['DEV', 'STAGE', 'UAT', 'PROD']
-
-const getEnvironmentType = (name: string) => {
-  const upperName = name.toUpperCase()
-  if (defaultEnvironments.includes(upperName)) {
-    return upperName
-  }
-  return 'CUSTOM'
-}
-
 const getEnvironmentBadgeClass = (name: string) => {
-  const type = getEnvironmentType(name)
-  switch (type) {
-    case 'DEV':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-    case 'STAGE':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-    case 'UAT':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
-    case 'PROD':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-  }
-}
-
-const isDefaultEnvironment = (name: string) => {
-  return defaultEnvironments.includes(name.toUpperCase())
+  const n = name.toUpperCase()
+  if (n.includes('PROD') || n.includes('LIVE')) return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50'
+  if (n.includes('STAGE') || n.includes('PRE')) return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50'
+  if (n.includes('DEV') || n.includes('LOCAL')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50'
+  if (n.includes('TEST') || n.includes('QA') || n.includes('UAT')) return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50'
+  if (n.includes('DEMO')) return 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400 border-primary-200 dark:border-primary-800/50'
+  return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700'
 }
 
 const addEnvironment = () => {
@@ -179,6 +203,23 @@ const addEnvironment = () => {
     enabled: true,
     order: environments.value.length + 1
   })
+  showSuggestions.value = false
+}
+
+const addFromSuggestion = (suggestion: any) => {
+  // Check if already exists
+  if (environments.value.some(e => e.name.toUpperCase() === suggestion.name)) {
+     showSuggestions.value = false
+     return
+  }
+  
+  connectionPairsStore.addEnvironment({
+    name: suggestion.name,
+    description: suggestion.description,
+    enabled: true,
+    order: environments.value.length + 1
+  })
+  showSuggestions.value = false
 }
 
 const duplicateEnvironment = (env: Environment) => {
@@ -191,9 +232,7 @@ const duplicateEnvironment = (env: Environment) => {
 }
 
 const removeEnvironment = (env: Environment) => {
-  if (!isDefaultEnvironment(env.name)) {
-    connectionPairsStore.removeEnvironment(env.id)
-  }
+  connectionPairsStore.removeEnvironment(env.id)
 }
 
 const updateEnvironment = (env: Environment) => {
