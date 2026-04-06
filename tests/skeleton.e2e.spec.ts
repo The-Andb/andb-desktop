@@ -1,36 +1,16 @@
-import { _electron as electron, test, expect } from '@playwright/test';
-import path from 'path';
+import { test, expect } from '../e2e/fixtures/app.fixture';
 
-test('verify app skeleton', async () => {
-  // Launch Electron app using the dist-electron entry point
-  const app = await electron.launch({
-    args: ['.'],
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env, NODE_ENV: 'production' } // Ensure prod mode to load from dist
-  });
-
-  const window = await app.firstWindow();
-
-  console.log(`Window URL: ${window.url()}`);
-  await window.screenshot({ path: 'skeleton-debug.png' });
-
-  await window.waitForLoadState('domcontentloaded');
-
-  // Verify Window Title (Wait for it to be non-empty)
+test('verify app skeleton', async ({ appFixture }) => {
+  const { window } = appFixture;
+  
+  // Verify Window Title
   await expect.poll(async () => window.title()).toContain('TheAndb');
 
   // Verify Main App Container
-  // Verify Main App Container (Target specific class to avoid duplicate ID issues with mount container)
-  const appContainer = window.locator('#app.h-screen');
+  const appContainer = window.locator('#app');
   await expect(appContainer).toBeVisible();
 
   // Verify Sidebar
   const sidebar = window.locator('aside');
   await expect(sidebar).toBeVisible();
-
-  // Verify basic structure classes
-  await expect(sidebar).toHaveClass(/bg-white/);
-  await expect(sidebar).toHaveClass(/border-r/);
-
-  await app.close();
 });

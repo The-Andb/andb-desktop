@@ -1,27 +1,13 @@
-import { _electron as electron, test, expect } from '@playwright/test';
-import path from 'path';
+import { test, expect } from '../e2e/fixtures/app.fixture';
 
-test('launch app', async () => {
-  // Point to the main script in dist-electron or src (depending on build)
-  // Since we are in dev, we might point to dist-electron/main.js if built
-  // But for reliability in this sample, let's assume standard build output
+test('launch app', async ({ appFixture }) => {
+  const { window } = appFixture;
 
-  const electronPath = path.join(__dirname, '../dist-electron/main.js');
-  console.log(`Launching electron from: ${electronPath}`);
-
-  const app = await electron.launch({
-    args: [electronPath]
-  });
-
-  const window = await app.firstWindow();
-  await window.waitForLoadState('domcontentloaded');
+  // Verify Dashboard content present (sidebar navigation)
+  await expect(window.locator('nav >> text=Dashboard')).toBeVisible();
+  await expect(window.locator('nav >> text=Schema')).toBeVisible();
 
   const title = await window.title();
   console.log(`App title: ${title}`);
-
-  // Basic assertion
-  // Basic assertion - title may be empty during load
   expect(title).toBeDefined();
-
-  await app.close();
 });

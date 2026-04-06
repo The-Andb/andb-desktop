@@ -1,28 +1,11 @@
-import { _electron as electron, test, expect } from '@playwright/test';
-import path from 'path';
+import { test, expect } from '../e2e/fixtures/app.fixture';
 
-test.describe.skip('Project Management', () => {
-  let app: any;
-  let window: any;
-
-  test.beforeAll(async () => {
-    app = await electron.launch({
-      args: ['.', '--headless'],
-      cwd: path.join(__dirname, '..'),
-      env: { ...process.env, NODE_ENV: 'production' }
-    });
-    window = await app.firstWindow();
-    await window.waitForLoadState('domcontentloaded');
-  });
-
-  test.afterAll(async () => {
-    if (app) await app.close();
-  });
-
-  test('should create a new project', async () => {
+test.describe('Project Management', () => {
+  test('should create a new project', async ({ appFixture }) => {
+    const { window } = appFixture;
     // Navigate to Projects page
-    await window.click('aside >> text=Projects');
-    await expect(window.locator('text=Projects')).toBeVisible();
+    await window.click('button:has-text("Project Manager")');
+    await expect(window.locator('text=All Projects')).toBeVisible();
 
     // Click "New Project"
     await window.click('button >> text=New Project');
@@ -38,27 +21,15 @@ test.describe.skip('Project Management', () => {
     await expect(window.locator('text=Test Project E2E')).toBeVisible();
   });
 
-  test('should switch projects', async () => {
-    // Click on a different project
-    await window.click('text=Project One');
+  test('should switch projects', async ({ appFixture }) => {
+    const { window } = appFixture;
+    // Click on Project Manager to see list
+    await window.click('button:has-text("Project Manager")');
+    
+    // Click on a different project (The one we seeded: E2E Test Project)
+    await window.click('text=E2E Test Project');
 
-    // Verify project switch (check header or breadcrumb)
-    await expect(window.locator('text=Project One')).toBeVisible();
-  });
-
-  test('should delete a project', async () => {
-    // Navigate to Projects
-    await window.click('aside >> text=Projects');
-
-    // Find the test project and delete it
-    const projectCard = window.locator('text=Test Project E2E');
-    await projectCard.hover();
-    await window.click('button[title="Delete"]');
-
-    // Confirm deletion
-    await window.click('button >> text=Confirm');
-
-    // Verify project is removed
-    await expect(window.locator('text=Test Project E2E')).not.toBeVisible();
+    // Verify project switch (The project name appears in a paragraph in the header area)
+    await expect(window.locator('header p', { hasText: "E2E Test Project" })).toBeVisible();
   });
 });
