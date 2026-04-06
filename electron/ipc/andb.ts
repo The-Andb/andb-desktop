@@ -620,13 +620,8 @@ export async function compareArbitrary(srcDDL: string, destDDL: string, type?: s
  * Fetches table metadata (row count, data size, index size, engine, etc.)
  */
 export async function handleAndbGetTableStats(_event: any, args: any) {
-  try {
-    const { connection } = args || {}
-    const result = await AndbBuilder.execute(connection, null, 'getTableStats', {})
-    return { success: true, data: result }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
+  const { connection } = args || {}
+  return await AndbBuilder.execute(connection, null, 'getTableStats', {})
 }
 
 /**
@@ -634,13 +629,8 @@ export async function handleAndbGetTableStats(_event: any, args: any) {
  * Fetches MySQL version and DDL capability flags
  */
 export async function handleAndbGetServerInfo(_event: any, args: any) {
-  try {
-    const { connection } = args || {}
-    const result = await AndbBuilder.execute(connection, null, 'getServerInfo', {})
-    return { success: true, data: result }
-  } catch (error: any) {
-    return { success: false, error: error.message }
-  }
+  const { connection } = args || {}
+  return await AndbBuilder.execute(connection, null, 'getServerInfo', {})
 }
 
 /**
@@ -648,9 +638,42 @@ export async function handleAndbGetServerInfo(_event: any, args: any) {
  * Fetches foreign key dependency graph
  */
 export async function handleAndbGetFKGraph(_event: any, args: any) {
+  const { connection } = args || {}
+  return await AndbBuilder.execute(connection, null, 'getFKGraph', {})
+}
+/**
+ * Handle AI Configuration
+ */
+export async function handleAndbAIConfigure(_event: any, args: any) {
   try {
-    const { connection } = args || {}
-    const result = await AndbBuilder.execute(connection, null, 'getFKGraph', {})
+    const { apiKey, provider } = args || {}
+    await AndbBuilder.configureAI(apiKey, provider)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle AI Schema Review
+ */
+export async function handleAndbAIReview(_event: any, args: any) {
+  try {
+    const { context } = args || {}
+    const result = await AndbBuilder.reviewSchema(context)
+    return { success: true, data: result }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle AI Ask DBA
+ */
+export async function handleAndbAIAsk(_event: any, args: any) {
+  try {
+    const { question, context } = args || {}
+    const result = await AndbBuilder.askDBA(question, context)
     return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }

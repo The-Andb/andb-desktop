@@ -11,9 +11,17 @@ Sentry.init({
 })
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(i18n)
+
+// Expose Andb and stores for E2E testing
+if (process.env.NODE_ENV === 'test' || (window as any).PLAYWRIGHT_TEST) {
+  import('@/utils/andb').then(({ Andb }) => {
+    (window as any).Andb = Andb
+  })
+}
 
 app.mount('#app')

@@ -91,7 +91,12 @@ app.on('window-all-closed', () => {
 
 // Security: Deep Link and Window Creation Protection
 app.on('web-contents-created', (_event, contents) => {
-  contents.setWindowOpenHandler(() => {
+  contents.setWindowOpenHandler((details) => {
+    if (details.url.startsWith('http://') || details.url.startsWith('https://')) {
+      const { shell } = require('electron')
+      shell.openExternal(details.url)
+      return { action: 'deny' }
+    }
     return { action: 'deny' }
   })
 })

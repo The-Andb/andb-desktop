@@ -223,7 +223,7 @@ const selectedProjectModel = computed({
           description: '',
           connectionIds: [],
           pairIds: [],
-          enabledEnvironmentIds: ['DEV', 'STAGE', 'UAT', 'PROD']
+          enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD']
        })
        projectsStore.selectProject(newProject.id)
     } else {

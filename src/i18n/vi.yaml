@@ -464,6 +464,7 @@ settings:
   reset: 'Đặt lại toàn bộ dữ liệu'
   categories:
     interface: 'Giao diện'
+    environments: 'Quản lý Môi trường'
     environment: 'Môi trường'
     connections: 'Kết nối'
     pairs: 'Cặp đồng bộ'

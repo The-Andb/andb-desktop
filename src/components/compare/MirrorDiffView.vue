@@ -16,6 +16,17 @@
             <span class="font-bold text-emerald-600 dark:text-emerald-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.target', { label: targetLabel }) }}</span>
             <div class="flex items-center gap-3">
               <span v-if="isEmptyTarget" class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">{{ $t('compare.diffView.new') }}</span>
+              
+              <!-- AI Assistant Button -->
+              <button 
+                @click="openAIDrawer"
+                class="flex items-center gap-2 px-3 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg border border-primary-500/20 transition-all group/aibtn"
+                :title="$t('ai.reviewTooltip') || 'Review with AI'"
+              >
+                <Zap class="w-3.5 h-3.5 fill-primary-500 group-hover/aibtn:scale-125 transition-transform" />
+                <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">AI Review</span>
+              </button>
+
               <!-- Settings Component -->
               <div class="relative" ref="settingsRef">
                 <button 
@@ -200,74 +211,86 @@
       <div class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-900 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0 h-10">
         <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.unified', { source: sourceLabel, target: targetLabel }) }}</span>
         
-        <!-- Settings inside header -->
-        <div class="relative" ref="settingsRefUnified">
+        <div class="flex items-center gap-3">
+          <!-- AI Assistant Button -->
           <button 
-            @click="showSettings = !showSettings"
-            class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-            :class="{ 'text-primary-500 bg-gray-200 dark:bg-gray-700': showSettings }"
+            @click="openAIDrawer"
+            class="flex items-center gap-2 px-3 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg border border-primary-500/20 transition-all group/aibtn"
+            :title="$t('ai.reviewTooltip') || 'Review with AI'"
           >
-            <Settings class="w-3.5 h-3.5" />
+            <Zap class="w-3.5 h-3.5 fill-primary-500 group-hover/aibtn:scale-125 transition-transform" />
+            <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">AI Review</span>
           </button>
 
-          <!-- Dropdown (same logic as above) -->
-          <div v-if="showSettings" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-600 dark:text-gray-300 pointer-events-auto">
-            <h3 class="font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.settings') }}</h3>
-            <div class="space-y-4 text-left">
-              <div>
-                <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.whitespace') }}</h4>
-                <label class="flex items-start cursor-pointer group">
-                  <div class="relative flex items-center mt-0.5">
-                    <input type="checkbox" v-model="hideWhitespace" class="sr-only" />
-                    <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': hideWhitespace }">
-                      <Check v-show="hideWhitespace" class="w-3 h-3 text-white" />
+          <!-- Settings inside header -->
+          <div class="relative" ref="settingsRefUnified">
+            <button 
+              @click="showSettings = !showSettings"
+              class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+              :class="{ 'text-primary-500 bg-gray-200 dark:bg-gray-700': showSettings }"
+            >
+              <Settings class="w-3.5 h-3.5" />
+            </button>
+  
+            <!-- Dropdown (same logic as above) -->
+            <div v-if="showSettings" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs text-gray-600 dark:text-gray-300 pointer-events-auto">
+              <h3 class="font-bold text-gray-900 dark:text-white mb-3 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.settings') }}</h3>
+              <div class="space-y-4 text-left">
+                <div>
+                  <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.whitespace') }}</h4>
+                  <label class="flex items-start cursor-pointer group">
+                    <div class="relative flex items-center mt-0.5">
+                      <input type="checkbox" v-model="hideWhitespace" class="sr-only" />
+                      <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': hideWhitespace }">
+                        <Check v-show="hideWhitespace" class="w-3 h-3 text-white" />
+                      </div>
                     </div>
-                  </div>
-                  <div class="ml-2">
-                    <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.hideWhitespace') }}</div>
-                    <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
-                  </div>
-                </label>
-                <label class="flex items-start cursor-pointer group mt-3">
-                  <div class="relative flex items-center mt-0.5">
-                    <input type="checkbox" v-model="internalIgnoreCase" class="sr-only" />
-                    <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': internalIgnoreCase }">
-                      <Check v-show="internalIgnoreCase" class="w-3 h-3 text-white" />
+                    <div class="ml-2">
+                      <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.hideWhitespace') }}</div>
+                      <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.hideWhitespaceDesc') }}</div>
                     </div>
-                  </div>
-                  <div class="ml-2">
-                    <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.ignoreCase') }}</div>
-                    <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.ignoreCaseDesc') }}</div>
-                  </div>
-                </label>
-              </div>
-
-              <!-- Line Wrapping -->
-              <div>
-                <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.display') }}</h4>
-                <label class="flex items-start cursor-pointer group">
-                  <div class="relative flex items-center mt-0.5">
-                    <input type="checkbox" v-model="wrapLines" class="sr-only" />
-                    <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': wrapLines }">
-                      <Check v-show="wrapLines" class="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <div class="ml-2">
-                    <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.wrapLines') }}</div>
-                  </div>
-                </label>
-              </div>
-
-              <div>
-                <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.diffDisplay') }}</h4>
-                <div class="space-y-2">
-                  <label v-for="mode in ['Unified', 'Split']" :key="mode" class="flex items-center cursor-pointer group">
-                    <input type="radio" :value="mode.toLowerCase()" v-model="viewType" class="sr-only" />
-                    <div class="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center p-1" :class="{ 'border-primary-500': viewType === mode.toLowerCase() }">
-                      <div v-show="viewType === mode.toLowerCase()" class="w-2 h-2 rounded-full bg-primary-500"></div>
-                    </div>
-                    <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.' + mode.toLowerCase() + 'Mode') }}</span>
                   </label>
+                  <label class="flex items-start cursor-pointer group mt-3">
+                    <div class="relative flex items-center mt-0.5">
+                      <input type="checkbox" v-model="internalIgnoreCase" class="sr-only" />
+                      <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': internalIgnoreCase }">
+                        <Check v-show="internalIgnoreCase" class="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <div class="ml-2">
+                      <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.ignoreCase') }}</div>
+                      <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">{{ $t('compare.diffView.ignoreCaseDesc') }}</div>
+                    </div>
+                  </label>
+                </div>
+  
+                <!-- Line Wrapping -->
+                <div>
+                  <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.display') }}</h4>
+                  <label class="flex items-start cursor-pointer group">
+                    <div class="relative flex items-center mt-0.5">
+                      <input type="checkbox" v-model="wrapLines" class="sr-only" />
+                      <div class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold" :class="{ 'bg-primary-500 border-primary-500': wrapLines }">
+                        <Check v-show="wrapLines" class="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <div class="ml-2">
+                      <div class="text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.wrapLines') }}</div>
+                    </div>
+                  </label>
+                </div>
+  
+                <div>
+                  <h4 class="font-bold text-gray-500 uppercase text-[9px] mb-2">{{ $t('compare.diffView.diffDisplay') }}</h4>
+                  <div class="space-y-2">
+                    <label v-for="mode in ['Unified', 'Split']" :key="mode" class="flex items-center cursor-pointer group">
+                      <input type="radio" :value="mode.toLowerCase()" v-model="viewType" class="sr-only" />
+                      <div class="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center p-1" :class="{ 'border-primary-500': viewType === mode.toLowerCase() }">
+                        <div v-show="viewType === mode.toLowerCase()" class="w-2 h-2 rounded-full bg-primary-500"></div>
+                      </div>
+                      <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $t('compare.diffView.' + mode.toLowerCase() + 'Mode') }}</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -325,6 +348,16 @@
           </template>
       </div>
     </div>
+
+    <!-- AI REVIEW DRAWER -->
+    <AIReviewDrawer 
+      :is-open="isAIDrawerOpen"
+      :loading="isAIReviewing"
+      :result="aiReviewResult"
+      @close="isAIDrawerOpen = false"
+      @trigger="runAIReview"
+      @ask="handleAskAI"
+    />
   </div>
 </template>
 
@@ -332,9 +365,13 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
-import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-vue-next'
+import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown, Zap } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
+import { useSettingsStore } from '@/stores/settings'
+import { useNotificationStore } from '@/stores/notification'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
+import Andb from '@/utils/andb'
+import AIReviewDrawer from '@/components/ai/AIReviewDrawer.vue'
 
 const appStore = useAppStore()
 
@@ -364,6 +401,13 @@ const viewType = ref<'split' | 'unified'>('split')
 const hideWhitespace = ref(false)
 const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
 const wrapLines = ref(props.diffOptions?.wrapLines ?? false)
+
+// AI Assistant State
+const isAIDrawerOpen = ref(false)
+const isAIReviewing = ref(false)
+const aiReviewResult = ref<string | null>(null)
+const settingsStore = useSettingsStore()
+const notification = useNotificationStore()
 
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
 const isEmptyTarget = computed(() => !props.targetDdl || props.status === 'missing_in_target' || props.status === 'missing')
@@ -701,12 +745,12 @@ watch(() => props.sourceDdl, () => {
 })
 
 const handleClickOutside = (event: MouseEvent) => {
-  const isOutsideSplit = settingsRef.value && !settingsRef.value.contains(event.target as Node)
-  const isOutsideUnified = settingsRefUnified.value && !settingsRefUnified.value.contains(event.target as Node)
-  
-  if (showSettings.value && isOutsideSplit && isOutsideUnified) {
-    showSettings.value = false
-  }
+   const isOutsideSplit = settingsRef.value && !settingsRef.value.contains(event.target as Node)
+   const isOutsideUnified = settingsRefUnified.value && !settingsRefUnified.value.contains(event.target as Node)
+
+   if (showSettings.value && isOutsideSplit && isOutsideUnified) {
+     showSettings.value = false
+   }
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
@@ -727,6 +771,92 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   stopResize()
 })
+
+// --- AI REVIEW LOGIC ---
+
+const openAIDrawer = () => {
+  isAIDrawerOpen.value = true
+  if (!aiReviewResult.value) {
+    runAIReview()
+  }
+}
+
+const runAIReview = async () => {
+  if (isAIReviewing.value) return
+  
+  // Check if API key is set
+  const apiKey = settingsStore.settings.geminiApiKey
+  if (!apiKey) {
+    notification.add({ 
+      type: 'warning', 
+      title: 'AI Key Missing', 
+      message: 'Please add your Gemini API Key in Project Settings to use AI DBA features.' 
+    })
+    return
+  }
+
+  isAIReviewing.value = true
+  aiReviewResult.value = null
+  
+  try {
+    // Configure AI first
+    await Andb.aiConfigure(apiKey)
+ 
+   // Gather context
+   const sourceConn = appStore.currentPair.source
+   const targetConn = appStore.currentPair.target
+ 
+   // If we don't have connections (e.g. Instant Compare), we just send the DDL
+   let stats: any[] = []
+   let serverInfo: any = null
+ 
+   if (targetConn) {
+     // Fetch live stats for the target table if possible
+     try {
+        stats = await Andb.getTableStats(targetConn as any)
+        serverInfo = await Andb.getServerInfo(targetConn as any)
+     } catch (e) {
+        console.warn('[AI] Failed to fetch live context stats', e)
+     }
+   }
+
+    const context = {
+      diff: props.targetDdl || '', 
+      sourceDdl: props.sourceDdl || '',
+      stats: stats.slice(0, 30), 
+      serverInfo,
+      sourceLabel: props.sourceLabel,
+      targetLabel: props.targetLabel,
+      sourceInfo: sourceConn ? { name: sourceConn.name, type: sourceConn.type } : null,
+      targetInfo: targetConn ? { name: (targetConn as any).name || (targetConn as any).database, type: (targetConn as any).type } : null
+    }
+
+    const result = await Andb.aiReview(context)
+    aiReviewResult.value = result.content
+  } catch (e: any) {
+    notification.add({ type: 'error', title: 'AI Review Failed', message: e.message })
+  } finally {
+    isAIReviewing.value = false
+  }
+}
+
+const handleAskAI = async (question: string) => {
+  if (isAIReviewing.value) return
+  
+  isAIReviewing.value = true
+  try {
+    const result = await Andb.aiAsk(question, { 
+      diff: props.targetDdl,
+      report: aiReviewResult.value 
+    })
+    // Append to the report or handle as a thread (simplified as append for now)
+    aiReviewResult.value += `\n\n---\n**Q: ${question}**\n\n${result.content}`
+  } catch (e: any) {
+    notification.add({ type: 'error', title: 'AI Question Failed', message: e.message })
+  } finally {
+    isAIReviewing.value = false
+  }
+}
 </script>
 
 <style scoped>

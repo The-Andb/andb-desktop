@@ -38,6 +38,7 @@ interface Settings {
   excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
+  geminiApiKey?: string
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -54,7 +55,8 @@ const defaultSettings: Settings = {
   isNotMigrateCondition: 'test|OTE_',
   excludeTags: [],
   sqlitePath: '',
-  setupCompleted: false
+  setupCompleted: false,
+  geminiApiKey: ''
 }
 
 const loadSettingsAsync = async (currentSettings: any) => {

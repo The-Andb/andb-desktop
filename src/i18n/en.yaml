@@ -493,6 +493,7 @@ settings:
   reset: 'Reset All Data'
   categories:
     interface: 'Interface'
+    environments: 'Master Environments'
     environment: 'Environments'
     connections: 'Connections'
     pairs: 'Sync Pairs'

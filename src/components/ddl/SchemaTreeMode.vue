@@ -52,7 +52,8 @@
                         :class="[
                           selectedItemName === item.name ? 'font-bold' : '',
                           appStore.compareStack?.source?.name === item.name ? 'text-orange-900 dark:text-orange-100 font-bold' : '',
-                          appStore.compareStack?.target?.name === item.name ? 'text-blue-900 dark:text-blue-100 font-bold' : ''
+                          appStore.compareStack?.target?.name === item.name ? 'text-blue-900 dark:text-blue-100 font-bold' : '',
+                          getTableColorClass(item)
                         ]" 
                         >{{ item.name }}</span>
                   <div class="flex items-center">
@@ -172,6 +173,7 @@ const props = defineProps<{
   expandCmd?: { action: 'expand' | 'collapse', ts: number } | null
   activeSearchLine?: number | null
   navigatableNames?: string[]
+  stats?: Record<string, any>
 }>()
 
 const emit = defineEmits<{
@@ -300,6 +302,20 @@ const getCategoryColor = (type: string) => {
     case 'triggers': return 'text-amber-500'
     default: return 'text-gray-500'
   }
+}
+
+const getTableColorClass = (item: any) => {
+  if (item.type !== 'tables' && item.type !== 'table') return ''
+  // Don't color if it's selected as source or target to maintain readability of selection states
+  if (appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name) return ''
+  
+  const tableStats = props.stats?.[item.name]
+  if (!tableStats) return ''
+  
+  const rows = tableStats.rowCount || 0
+  if (rows <= 100000) return 'text-emerald-500'
+  if (rows <= 5000000) return 'text-orange-500'
+  return 'text-red-500'
 }
 
 // Utility for time ago formatting

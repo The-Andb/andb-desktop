@@ -18,9 +18,27 @@ export async function handleOpenBackupFolder() {
 }
 
 /**
+ * Open external URL in system browser
+ */
+export async function handleOpenExternal(_event: any, url: string) {
+  if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+    shell.openExternal(url)
+    return { success: true }
+  }
+  return { success: false, error: 'Invalid URL' }
+}
+
+/**
  * Relaunch the application
  */
 export async function handleRelaunchApp() {
+  // --- E2E TEST FIX: DO NOT RELAUNCH IN TESTS ---
+  // Relaunching/Exiting will kill the Playwright Electron connection and crash the test.
+  if (process.env.NODE_ENV === 'test') {
+    SafeLogger.log('--- RELAUNCH SKIPPED IN TEST MODE ---');
+    return { success: true, skipped: true };
+  }
+
   const options: any = {
     args: process.argv.slice(1).concat(['--relaunch'])
   }

@@ -102,8 +102,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dismissAppChangelog: () => ipcRenderer.invoke('dismiss-app-changelog'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
-  quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
-  debugTestUpdate: (status: any) => ipcRenderer.invoke('debug-test-update', status),
+  createSnapshot: (args: any) => ipcRenderer.invoke('andb-create-snapshot', args),
+  
+  // AI DBA Super Mode
+  aiConfigure: (apiKey: string, provider: string) => ipcRenderer.invoke('andb-ai-configure', { apiKey, provider }),
+  aiReview: (context: any) => ipcRenderer.invoke('andb-ai-review', { context }),
+  aiAsk: (question: string, context?: any) => ipcRenderer.invoke('andb-ai-ask', { question, context }),
+  getTableStats: (args: any) => ipcRenderer.invoke('andb-get-table-stats', args),
   
   onUpdateStatus: (callback: (data: any) => void) => {
     const subscription = (_event: any, data: any) => callback(data)
@@ -251,6 +256,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Generic invoke for dynamic calls
   invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
 
   // Phase 3 Security
   security: {

@@ -348,6 +348,46 @@
                      </button>
                    </div>
                 </div>
+
+                <!-- Table Size Filter Pills -->
+                <div v-if="hasResults && !searchQuery" class="flex items-center gap-1.5 mt-2.5 px-1 py-1 overflow-x-auto no-scrollbar border-t border-gray-100 dark:border-gray-800/50 pt-2.5">
+                  <span class="text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1">Size:</span>
+                  <button 
+                    @click="selectedSizeFilter = selectedSizeFilter === 'small' ? 'all' : 'small'"
+                    class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border shrink-0"
+                    :class="selectedSizeFilter === 'small' 
+                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/20' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent hover:border-gray-300 dark:hover:border-gray-600'"
+                  >
+                    Small
+                  </button>
+                  <button 
+                    @click="selectedSizeFilter = selectedSizeFilter === 'medium' ? 'all' : 'medium'"
+                    class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border shrink-0"
+                    :class="selectedSizeFilter === 'medium' 
+                      ? 'bg-orange-500 border-orange-500 text-white shadow-sm shadow-orange-500/20' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent hover:border-gray-300 dark:hover:border-gray-600'"
+                  >
+                    Medium
+                  </button>
+                  <button 
+                    @click="selectedSizeFilter = selectedSizeFilter === 'large' ? 'all' : 'large'"
+                    class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border shrink-0"
+                    :class="selectedSizeFilter === 'large' 
+                      ? 'bg-red-500 border-red-500 text-white shadow-sm shadow-red-500/20' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border-transparent hover:border-gray-300 dark:hover:border-gray-600'"
+                  >
+                    Large
+                  </button>
+                  <button 
+                    v-if="selectedSizeFilter !== 'all'"
+                    @click="selectedSizeFilter = 'all'"
+                    class="ml-auto p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    title="Clear Size Filter"
+                  >
+                    <X class="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
               
               <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
@@ -365,6 +405,7 @@
                   :focus-type="focusType"
                   :expand-cmd="treeExpandCmd"
                   :navigatable-names="navigatableNames"
+                  :stats="tableStatsMap"
                   @select="selectItem"
                   @navigateTo="handleNavigateTo"
                   @navigate-to-definition="handleNavigateToDefinition"
@@ -681,6 +722,19 @@ const resetNavigation = () => {
 }
 
 const selectedFilterType = ref('all')
+const selectedSizeFilter = ref<'all' | 'small' | 'medium' | 'large'>('all')
+
+// Auto-switch to table filter and expand when size filter is selected
+watch(selectedSizeFilter, (newVal) => {
+  if (newVal !== 'all') {
+    selectedFilterType.value = 'tables'
+    treeExpandCmd.value = { action: 'expand', ts: Date.now() }
+  } else {
+    // Restore all object types when size filter is cleared
+    selectedFilterType.value = 'all'
+  }
+})
+
 const treeMode = ref<'tree' | 'flat'>('tree')
 const searchQuery = ref('')
 const searchFlags = ref({
@@ -856,6 +910,23 @@ const filteredResults = computed(() => {
       // Invalid regex fallback to simple include
       filtered = filtered.filter(i => i.name.toLowerCase().includes(query.toLowerCase()))
     }
+  }
+
+  // Size filtering for tables (Align with TableDetailedView thresholds)
+  if (selectedSizeFilter.value !== 'all') {
+    // When size filter is active, we only care about tables
+    filtered = filtered.filter(i => {
+      if (i.type !== 'tables' && i.type !== 'table') return false
+      
+      const stats = tableStatsMap.value[i.name]
+      if (!stats) return false 
+      
+      const rows = stats.rowCount || 0
+      if (selectedSizeFilter.value === 'small') return rows <= 100000
+      if (selectedSizeFilter.value === 'medium') return rows > 100000 && rows <= 5000000
+      if (selectedSizeFilter.value === 'large') return rows > 5000000
+      return true
+    })
   }
 
   // Sorting logic based on user preference

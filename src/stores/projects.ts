@@ -55,7 +55,7 @@ export const useProjectsStore = defineStore('projects', () => {
           description: 'Default project',
           connectionIds: ['1', '2', '3', '4'],
           pairIds: ['1', '2', '3'],
-          enabledEnvironmentIds: ['DEV', 'STAGE', 'UAT', 'PROD'],
+          enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD'],
           isActive: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()

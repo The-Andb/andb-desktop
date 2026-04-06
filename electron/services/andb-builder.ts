@@ -307,7 +307,7 @@ export class AndbBuilder {
   static async execute(
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
-    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot' | 'getTableStats' | 'getServerInfo' | 'getFKGraph',
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot' | 'getTableStats' | 'getServerInfo' | 'getFKGraph' | 'ai-configure' | 'ai-review' | 'ai-ask',
     options: any = {},
     sender?: WebContents
   ): Promise<any> {
@@ -613,6 +613,18 @@ export class AndbBuilder {
     } catch (error) {
       return false
     }
+  }
+
+  static async configureAI(apiKey: string, provider: string = 'gemini') {
+    return await BackgroundWorker.getInstance().execute('ai-configure', { apiKey, provider });
+  }
+
+  static async reviewSchema(context: any) {
+    return await BackgroundWorker.getInstance().execute('ai-review', { context });
+  }
+
+  static async askDBA(question: string, context?: any) {
+    return await BackgroundWorker.getInstance().execute('ai-ask', { question, context });
   }
 }
 

@@ -585,6 +585,49 @@ export class Andb {
       return []
     }
   }
+
+  // AI Assistant (The "Brain")
+
+  /**
+   * Configure AI Provider (set API key)
+   */
+  static async aiConfigure(apiKey: string, provider: string = 'gemini'): Promise<boolean> {
+    if (!isElectron) return false
+    try {
+      const result = await window.electronAPI.aiConfigure(apiKey, provider)
+      return !!result.success
+    } catch (error) {
+      return false
+    }
+  }
+
+  /**
+   * Request an AI review for a schema diff
+   */
+  static async aiReview(context: any): Promise<any> {
+    if (!isElectron) return null
+    try {
+      const result = await window.electronAPI.aiReview(this.sanitize(context))
+      if (result.success) return result.data
+      throw new Error(result.error || 'AI Review failed')
+    } catch (error: any) {
+      throw new Error(`AI Review failed: ${error.message}`)
+    }
+  }
+
+  /**
+   * Ask the AI DBA expert a question
+   */
+  static async aiAsk(question: string, context?: any): Promise<any> {
+    if (!isElectron) return null
+    try {
+      const result = await window.electronAPI.aiAsk({ question, context: this.sanitize(context) })
+      if (result.success) return result.data
+      throw new Error(result.error || 'AI Assistance failed')
+    } catch (error: any) {
+      throw new Error(`AI Assistance failed: ${error.message}`)
+    }
+  }
 }
 
 export default Andb

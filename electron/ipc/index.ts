@@ -13,6 +13,7 @@ export function registerIpcHandlers() {
   SafeLogger.log('--- REGISTERING IPC HANDLERS ---')
   // --- System & CLI ---
   ipcMain.handle('open-backup-folder', system.handleOpenBackupFolder)
+  ipcMain.handle('open-external', system.handleOpenExternal)
   ipcMain.handle('pick-file', system.handlePickFile)
   ipcMain.handle('pick-directory', system.handlePickDirectory)
   ipcMain.handle('check-file-permissions', system.handleCheckFilePermissions)
@@ -109,6 +110,11 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-get-table-stats', andb.handleAndbGetTableStats)
   ipcMain.handle('andb-get-server-info', andb.handleAndbGetServerInfo)
   ipcMain.handle('andb-get-fk-graph', andb.handleAndbGetFKGraph)
+
+  // AI Assistant (The "Brain")
+  ipcMain.handle('andb-ai-configure', andb.handleAndbAIConfigure)
+  ipcMain.handle('andb-ai-review', andb.handleAndbAIReview)
+  ipcMain.handle('andb-ai-ask', andb.handleAndbAIAsk)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

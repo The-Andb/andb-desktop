@@ -22,6 +22,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "sample:load": "node scripts/load-sample-data.js",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "pnpm run rebuild"
@@ -186,6 +187,7 @@
     "better-sqlite3": "^12.6.2",
     "bindings": "^1.5.0",
     "file-uri-to-path": "^2.0.0",
+    "marked": "17.0.6",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.28"
   }

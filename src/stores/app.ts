@@ -26,7 +26,7 @@ export interface DatabaseConnection {
   username: string
   password?: string
   status: 'idle' | 'connected' | 'testing' | 'failed'
-  environment: 'DEV' | 'STAGE' | 'UAT' | 'PROD'
+  environment: string
   lastTested?: string
   domainMapping?: {
     from: string  // e.g., '@dev.example.com'

@@ -253,10 +253,52 @@ export async function handleBackupDecrypt(_event: any, encryptedData: string, pa
 export async function handleAndbClearStorage() {
   try {
     const userDataPath = app.getPath('userData')
+    
+    // 1. Clear Electron Store (Connection Templates)
+    try {
+      const Store = require('electron-store')
+      const store = new Store()
+      store.clear()
+    } catch (e) {
+      console.warn('Failed to clear electron-store', e)
+    }
+
+    // 2. Clear SQL Storage Folder (DDLs/Comparisons/Snapshots)
     const storageDir = path.join(userDataPath, 'storage')
     if (fs.existsSync(storageDir)) {
-      fs.rmSync(storageDir, { recursive: true, force: true })
+      try { fs.rmSync(storageDir, { recursive: true, force: true }) } catch (e) {}
     }
+
+    // 3. Raw SQL Purge via Current Data Source (Deeper cleanup)
+    try {
+        const repo = getRepository(GuiPreferenceEntity)
+        const db = repo.metadata.connection
+        if (db.isInitialized) {
+            await db.query('PRAGMA foreign_keys = OFF');
+            // Core and Desktop entity tables
+            const tables = [
+                'projects', 
+                'project_environments', 
+                'project_settings', 
+                'comparisons', 
+                'ddl_exports',
+                'ddl_snapshots',
+                'migration_history',
+                'cli_settings',
+                'global_connections', 
+                'project_connections',
+                'gui_preferences',
+                'workspace_tabs'
+            ]
+            for (const table of tables) {
+                try { await db.query(`DELETE FROM ${table}`) } catch (ex) { /* skip missing tables */ }
+            }
+            await db.query('PRAGMA foreign_keys = ON');
+        }
+    } catch (e) {
+        console.warn('Failed raw SQL purge', e)
+    }
+
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }

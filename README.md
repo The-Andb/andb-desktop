@@ -54,13 +54,33 @@ npm run dev:desktop
 
 ## 📄 License & Commercial
 
-**Proprietary Software**
+**Proprietary Source-Available License**
 
-- ✅ **Source-Available**: View, Clone, Run locally for engineering evaluation.
-- ❌ **No Commercial Use**: Production deployment, SaaS distribution, or redistribution are strictly prohibited without a commercial license.
-- 🛡️ **DMCA Protected**: Unauthorized reproduction or distribution is prohibited under DMCA guidelines.
+Copyright (c) 2026 <your name>. All rights reserved.
 
+### ✅ Permitted Use
+
+- View, clone, and run the software locally for personal and evaluation purposes.
+
+### ❌ Restrictions
+
+You may NOT:
+
+- Use the software in production environments
+- Offer the software as a service (SaaS)
+- Redistribute, sublicense, or sell the software
+- Modify and distribute modified versions
+
+### 💼 Commercial License
+
+For production use, SaaS deployment, or commercial licensing, please contact:
+https://theandb.xyz
 © 2024 - 2026 TheAndb. All rights reserved.
+
+### Note:
+
+> This project is source-available to promote transparency and learning.
+> If you need production usage, please consider a commercial license.
 
 ---
 

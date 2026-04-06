@@ -1367,7 +1367,7 @@ onMounted(() => {
 const categories = computed(() => {
   const appCats = [
     { id: 'interface', label: t('settings.categories.interface'), icon: markRaw(MonitorSmartphone), subtitle: t('settings.interface.subtitle') },
-    { id: 'environments', label: t('settings.categories.global_envs', 'Master Environments'), icon: markRaw(Database), subtitle: 'Core environment topology' },
+    { id: 'environments', label: t('settings.categories.environments', 'Master Environments'), icon: markRaw(Database), subtitle: 'Core environment topology' },
     { id: 'vault', label: 'Workspace Vault', icon: markRaw(Cloud), subtitle: 'Local storage & future cloud sync' },
     { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },

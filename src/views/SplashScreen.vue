@@ -192,7 +192,16 @@ const completeSetup = async () => {
   
   if ((window as any).electronAPI) {
     // Hard reboot Electron to allow the Core Engine side to re-index the newly configured SQLite / Projects paths
-    await (window as any).electronAPI.invoke('relaunch-app')
+    const result = await (window as any).electronAPI.invoke('relaunch-app')
+    
+    // --- E2E TEST FIX ---
+    // In test mode, relaunch is bypassed to keep the Playwright connection active.
+    // We must manually navigate to the dashboard to allow the test to continue.
+    if (result && result.skipped) {
+      setTimeout(() => {
+        router.push('/')
+      }, 100)
+    }
   } else {
     // Dev fallback
     setTimeout(() => {

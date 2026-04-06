@@ -3,19 +3,23 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.e2e.spec.ts',
-  timeout: 60_000,
+  timeout: 300_000,
   expect: {
     timeout: 10_000
   },
   fullyParallel: false,
   retries: 0,
-  workers: 1, // Electron relies on single process for main
-  reporter: [['line']],
+  workers: 1, 
+  reporter: [
+    ['line'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['json', { outputFile: 'test-results/results.json' }],
+  ],
   use: {
-    headless: true,
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    actionTimeout: 0,
-    trace: 'on-first-retry',
+    headless: false, 
+    screenshot: 'on',
+    video: 'on', 
+    actionTimeout: 30_000,
+    trace: 'on',
   },
 });

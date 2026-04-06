@@ -78,6 +78,12 @@ declare global {
       getAllSnapshots: (limit?: number) => Promise<{ success: boolean; data?: any; error?: string }>
       andbCreateSnapshot: (args: { connection: any; type: string; name: string }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbRestoreSnapshot: (args: { connection: any; snapshot: any }) => Promise<{ success: boolean; data?: any; error?: string }>
+      
+      // AI Assistant
+      aiConfigure: (apiKey: string, provider: string) => Promise<{ success: boolean; error?: string }>
+      aiReview: (args: { context: any }) => Promise<{ success: boolean; data: any; error?: string }>
+      aiAsk: (args: { question: string, context?: any }) => Promise<{ success: boolean; data: any; error?: string }>
+
       openBackupFolder: () => Promise<{ success: boolean; error?: string }>
       getReportList: () => Promise<{ success: boolean; data?: any[]; error?: string }>
       getReportContent: (filename: string) => Promise<{ success: boolean; data?: string; error?: string }>
