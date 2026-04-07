@@ -17,15 +17,6 @@
             <div class="flex items-center gap-3">
               <span v-if="isEmptyTarget" class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">{{ $t('compare.diffView.new') }}</span>
               
-              <!-- AI Assistant Button -->
-              <button 
-                @click="openAIDrawer"
-                class="flex items-center gap-2 px-3 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg border border-primary-500/20 transition-all group/aibtn"
-                :title="$t('ai.reviewTooltip') || 'Review with AI'"
-              >
-                <Zap class="w-3.5 h-3.5 fill-primary-500 group-hover/aibtn:scale-125 transition-transform" />
-                <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">AI Review</span>
-              </button>
 
               <!-- Settings Component -->
               <div class="relative" ref="settingsRef">
@@ -212,15 +203,6 @@
         <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.unified', { source: sourceLabel, target: targetLabel }) }}</span>
         
         <div class="flex items-center gap-3">
-          <!-- AI Assistant Button -->
-          <button 
-            @click="openAIDrawer"
-            class="flex items-center gap-2 px-3 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg border border-primary-500/20 transition-all group/aibtn"
-            :title="$t('ai.reviewTooltip') || 'Review with AI'"
-          >
-            <Zap class="w-3.5 h-3.5 fill-primary-500 group-hover/aibtn:scale-125 transition-transform" />
-            <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">AI Review</span>
-          </button>
 
           <!-- Settings inside header -->
           <div class="relative" ref="settingsRefUnified">
@@ -349,15 +331,6 @@
       </div>
     </div>
 
-    <!-- AI REVIEW DRAWER -->
-    <AIReviewDrawer 
-      :is-open="isAIDrawerOpen"
-      :loading="isAIReviewing"
-      :result="aiReviewResult"
-      @close="isAIDrawerOpen = false"
-      @trigger="runAIReview"
-      @ask="handleAskAI"
-    />
   </div>
 </template>
 
@@ -365,13 +338,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
-import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown, Zap } from 'lucide-vue-next'
+import { Settings, ChevronDown, ChevronUp, ChevronsUpDown, Check } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
-import { useSettingsStore } from '@/stores/settings'
-import { useNotificationStore } from '@/stores/notification'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
-import Andb from '@/utils/andb'
-import AIReviewDrawer from '@/components/ai/AIReviewDrawer.vue'
 
 const appStore = useAppStore()
 
@@ -401,13 +370,6 @@ const viewType = ref<'split' | 'unified'>('split')
 const hideWhitespace = ref(false)
 const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
 const wrapLines = ref(props.diffOptions?.wrapLines ?? false)
-
-// AI Assistant State
-const isAIDrawerOpen = ref(false)
-const isAIReviewing = ref(false)
-const aiReviewResult = ref<string | null>(null)
-const settingsStore = useSettingsStore()
-const notification = useNotificationStore()
 
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
 const isEmptyTarget = computed(() => !props.targetDdl || props.status === 'missing_in_target' || props.status === 'missing')
@@ -767,96 +729,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousedown', handleClickOutside)
+  document.addEventListener('mousedown', handleClickOutside)
   window.removeEventListener('keydown', handleKeydown)
   stopResize()
-})
 
-// --- AI REVIEW LOGIC ---
-
-const openAIDrawer = () => {
-  isAIDrawerOpen.value = true
-  if (!aiReviewResult.value) {
-    runAIReview()
-  }
-}
-
-const runAIReview = async () => {
-  if (isAIReviewing.value) return
-  
-  // Check if API key is set
-  const apiKey = settingsStore.settings.geminiApiKey
-  if (!apiKey) {
-    notification.add({ 
-      type: 'warning', 
-      title: 'AI Key Missing', 
-      message: 'Please add your Gemini API Key in Project Settings to use AI DBA features.' 
-    })
-    return
-  }
-
-  isAIReviewing.value = true
-  aiReviewResult.value = null
-  
-  try {
-    // Configure AI first
-    await Andb.aiConfigure(apiKey)
- 
-   // Gather context
-   const sourceConn = appStore.currentPair.source
-   const targetConn = appStore.currentPair.target
- 
-   // If we don't have connections (e.g. Instant Compare), we just send the DDL
-   let stats: any[] = []
-   let serverInfo: any = null
- 
-   if (targetConn) {
-     // Fetch live stats for the target table if possible
-     try {
-        stats = await Andb.getTableStats(targetConn as any)
-        serverInfo = await Andb.getServerInfo(targetConn as any)
-     } catch (e) {
-        console.warn('[AI] Failed to fetch live context stats', e)
-     }
-   }
-
-    const context = {
-      diff: props.targetDdl || '', 
-      sourceDdl: props.sourceDdl || '',
-      stats: stats.slice(0, 30), 
-      serverInfo,
-      sourceLabel: props.sourceLabel,
-      targetLabel: props.targetLabel,
-      sourceInfo: sourceConn ? { name: sourceConn.name, type: sourceConn.type } : null,
-      targetInfo: targetConn ? { name: (targetConn as any).name || (targetConn as any).database, type: (targetConn as any).type } : null
-    }
-
-    const result = await Andb.aiReview(context)
-    aiReviewResult.value = result.content
-  } catch (e: any) {
-    notification.add({ type: 'error', title: 'AI Review Failed', message: e.message })
-  } finally {
-    isAIReviewing.value = false
-  }
-}
-
-const handleAskAI = async (question: string) => {
-  if (isAIReviewing.value) return
-  
-  isAIReviewing.value = true
-  try {
-    const result = await Andb.aiAsk(question, { 
-      diff: props.targetDdl,
-      report: aiReviewResult.value 
-    })
-    // Append to the report or handle as a thread (simplified as append for now)
-    aiReviewResult.value += `\n\n---\n**Q: ${question}**\n\n${result.content}`
-  } catch (e: any) {
-    notification.add({ type: 'error', title: 'AI Question Failed', message: e.message })
-  } finally {
-    isAIReviewing.value = false
-  }
-}
 </script>
 
 <style scoped>

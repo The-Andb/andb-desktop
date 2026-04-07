@@ -680,91 +680,6 @@
                 </div>
              </div>
 
-             <!-- AI ASSISTANT SECTION -->
-             <div v-if="activeCategory === 'ai'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-primary-500/5">
-                 <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
-                   <Sparkles class="w-64 h-64 text-primary-500" />
-                 </div>
-                 <div class="relative z-10">
-                   <div class="flex items-center gap-4 mb-3">
-                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500/20 to-primary-600/5 flex items-center justify-center shadow-inner">
-                       <Zap class="w-5 h-5 text-primary-500" />
-                     </div>
-                     <div class="flex flex-col">
-                       <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">AI DBA Assistant</h3>
-                       <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Intelligent Schema Analysis & Optimization</span>
-                     </div>
-                   </div>
-                   <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium">
-                     Empower your workflow with Google Gemini AI. Analyze schema changes, detect performance bottlenecks, and get actionable DBA insights directly within Andb.
-                   </p>
-                   
-                   <div class="space-y-6 max-w-2xl">
-                     <div class="p-6 bg-white/40 dark:bg-gray-950/40 rounded-[2rem] border border-gray-100 dark:border-gray-800/60 space-y-4">
-                       <div class="flex items-center justify-between">
-                         <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] ml-1">Gemini API Key</label>
-                         <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] font-bold text-primary-500 hover:underline flex items-center gap-1">
-                           Get API Key <ExternalLink class="w-3 h-3" />
-                         </a>
-                       </div>
-                       <div class="relative group/input">
-                         <div class="absolute inset-0 bg-primary-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-10 transition-opacity duration-500"></div>
-                         <input 
-                           v-model="settings.geminiApiKey" 
-                           type="password" 
-                           class="relative w-full px-5 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 shadow-sm" 
-                           placeholder="Enter your Gemini API Key..."
-                         />
-                         <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                           <button 
-                             @click="testAIConnection"
-                             :disabled="!settings.geminiApiKey || isTestingAI"
-                             class="px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
-                           >
-                             <RefreshCw v-if="isTestingAI" class="w-3 h-3 animate-spin" />
-                             <Zap v-else class="w-3 h-3" />
-                             {{ isTestingAI ? 'Testing...' : 'Test Connection' }}
-                           </button>
-                         </div>
-                       </div>
-                       
-                       <div v-if="aiStatus" :class="[
-                         'p-4 rounded-xl text-[10px] font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300',
-                         aiStatus.success ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'
-                       ]">
-                         <Check v-if="aiStatus.success" class="w-4 h-4" />
-                         <ShieldAlert v-else class="w-4 h-4" />
-                         {{ aiStatus.message }}
-                       </div>
-                       <p class="text-[10px] text-gray-400 leading-relaxed px-1">
-                         Your API key is stored securely in your local Workspace Vault and is only used to communicate with Google's Gemini API via the air-gapped IPC layer.
-                       </p>
-                     </div>
- 
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div class="p-5 bg-primary-50/50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30">
-                         <h4 class="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                           <Check class="w-3 h-3" /> Schema Review
-                         </h4>
-                         <p class="text-[10px] text-primary-600/80 dark:text-primary-400/80 leading-relaxed font-medium">
-                           Detect missing indexes, unsafe DDL operations, and structural inconsistencies automatically.
-                         </p>
-                       </div>
-                       <div class="p-5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
-                         <h4 class="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                           <Check class="w-3 h-3" /> DBA Chat
-                         </h4>
-                         <p class="text-[10px] text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed font-medium">
-                           Ask technical questions about your database schema directly within the comparison view.
-                         </p>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             </div>
-
             <!-- WORKSPACE VAULT SECTION -->
             <div v-if="activeCategory === 'vault'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div class="grid grid-cols-1 gap-8">
@@ -1044,7 +959,6 @@ import {
   Check, 
   MousePointer2, 
   Layers,
-  ExternalLink,
   Settings as SettingsIcon, 
   MonitorSmartphone, 
   History as HistoryIcon,
@@ -1054,7 +968,6 @@ import {
   X,
   FileCode,
   Activity,
-  Type,
   DownloadCloud,
   LayoutTemplate,
   Shield,
@@ -1069,9 +982,7 @@ import {
   Home,
   Workflow,
   Network,
-  Plus,
-  ShieldAlert,
-  Sparkles
+  Plus
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
@@ -1330,34 +1241,6 @@ const saveDefaultCliProject = async () => {
    }
 }
 
-const isTestingAI = ref(false)
-const aiStatus = ref<{ success: boolean; message: string } | null>(null)
-
-const testAIConnection = async () => {
-  if (!settings.value.geminiApiKey) return
-  
-  isTestingAI.value = true
-  aiStatus.value = null
-  
-  try {
-    const success = await Andb.aiConfigure(settings.value.geminiApiKey)
-    if (success) {
-      // Try a simple ask to verify the key
-      const res = await Andb.aiAsk('Hello, are you operational? Answer with "OK" if yes.')
-      if (res && res.content) {
-        aiStatus.value = { success: true, message: 'Connection successful! Gemini is ready.' }
-      } else {
-        aiStatus.value = { success: false, message: 'Configuration accepted, but provider failed to respond. Check your API key limits.' }
-      }
-    } else {
-      aiStatus.value = { success: false, message: 'Failed to configure AI provider. Check your API key.' }
-    }
-  } catch (e: any) {
-    aiStatus.value = { success: false, message: e.message || 'Connection failed' }
-  } finally {
-    isTestingAI.value = false
-  }
-}
 
 onMounted(() => {
     checkCliStatus()
@@ -1371,7 +1254,6 @@ const categories = computed(() => {
     { id: 'vault', label: 'Workspace Vault', icon: markRaw(Cloud), subtitle: 'Local storage & future cloud sync' },
     { id: 'templates', label: t('settings.categories.connections'), icon: markRaw(LayoutTemplate), subtitle: t('settings.global_connections.subtitle') },
     { id: 'engine', label: 'Engine', icon: markRaw(Cpu), subtitle: 'Core behavior settings' },
-    { id: 'ai', label: 'AI Assistant', icon: markRaw(Sparkles), subtitle: 'Intelligent DBA & Review' },
     { id: 'terminal', label: 'CLI & MCP', icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
     { id: 'security', label: t('settings.categories.security'), icon: markRaw(Shield), subtitle: t('settings.security.subtitle') },
     { id: 'backup', label: t('settings.categories.backup'), icon: markRaw(Database), subtitle: t('settings.backup.subtitle') },
