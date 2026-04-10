@@ -58,6 +58,98 @@
         
         <!-- Category Detail Pane -->
         <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <!-- AI Section -->
+          <div v-if="activeCategory === 'ai'" class="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="bg-primary-500/5 dark:bg-primary-500/10 p-6 rounded-3xl border border-primary-500/10 flex items-start gap-6">
+              <div class="p-3 bg-primary-500 rounded-2xl shadow-xl shadow-primary-500/20">
+                <Sparkles class="w-8 h-8 text-white" />
+              </div>
+              <div class="space-y-1">
+                <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">AI DBA Assistant (Beta)</h2>
+                <p class="text-sm text-gray-500 leading-relaxed max-w-xl">
+                  Unlock deep schema analysis, automated risk assessment, and natural language DBA troubleshooting powered by Google Gemini 1.5 Flash.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <!-- Gemini Config -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between px-1">
+                   <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Gemini API Key</label>
+                   <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] font-bold text-primary-500 hover:underline">Get Free Key →</a>
+                </div>
+                <div class="relative group">
+                  <input 
+                    v-model="settings.aiApiKey"
+                    type="password"
+                    placeholder="Enter your Google AI API Key..."
+                    class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+                  />
+                </div>
+                
+                <button 
+                  @click="testAIConnection"
+                  :disabled="aiStatus === 'testing'"
+                  class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-2xl transition-all group font-bold uppercase text-[10px] tracking-widest text-gray-700 dark:text-gray-300 shadow-sm"
+                >
+                  <RefreshCw v-if="aiStatus !== 'testing'" class="w-3.5 h-3.5 text-primary-500 group-hover:rotate-180 transition-transform duration-500" />
+                  <Loader2 v-else class="w-3.5 h-3.5 animate-spin text-primary-500" />
+                  {{ aiStatus === 'testing' ? 'Connecting...' : 'Test Connection' }}
+                </button>
+
+                <div v-if="aiStatus === 'success'" class="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl flex items-center gap-3 animate-in zoom-in-95">
+                   <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+                     <Check class="w-4 h-4" />
+                   </div>
+                   <div class="flex-1">
+                     <div class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-1">Authenticated Successfully</div>
+                     <div class="text-[11px] text-emerald-800/60 dark:text-emerald-400/60 font-medium">Your AI DBA Assistant is ready to help.</div>
+                   </div>
+                </div>
+
+                <div v-if="aiStatus === 'error'" class="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl flex items-center gap-3 animate-in zoom-in-95">
+                   <div class="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/20 shrink-0">
+                     <ShieldAlert class="w-4 h-4" />
+                   </div>
+                   <div class="flex-1">
+                     <div class="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest leading-none mb-1">Configuration Error</div>
+                     <div class="text-[11px] text-red-800/60 dark:text-red-400/60 font-medium line-clamp-2">{{ aiError }}</div>
+                   </div>
+                </div>
+              </div>
+
+              <!-- AI Capabilities -->
+              <div class="bg-gray-50/50 dark:bg-gray-800/50 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 space-y-6">
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Active Capabilities</h3>
+                
+                <div class="space-y-4">
+                  <div class="flex items-start gap-4">
+                    <div class="w-2 h-2 rounded-full bg-primary-500 mt-2"></div>
+                    <div>
+                      <div class="text-xs font-bold text-gray-900 dark:text-white uppercase leading-none mb-1">Schema Change Review</div>
+                      <p class="text-[10px] text-gray-500 font-medium leading-relaxed">Automated analysis of DDL changes with risk level assessment.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-4">
+                    <div class="w-2 h-2 rounded-full bg-primary-500 mt-2"></div>
+                    <div>
+                      <div class="text-xs font-bold text-gray-900 dark:text-white uppercase leading-none mb-1">DBA Troubleshooting</div>
+                      <p class="text-[10px] text-gray-500 font-medium leading-relaxed">Natural language interface to ask about complex table patterns and FK graphs.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-4">
+                    <div class="w-2 h-2 rounded-full bg-primary-500 mt-2"></div>
+                    <div>
+                      <div class="text-xs font-bold text-gray-900 dark:text-white uppercase leading-none mb-1">Semantic Diff (Preview)</div>
+                      <p class="text-[10px] text-gray-500 font-medium leading-relaxed">Understand the intent of schema changes beyond text comparison.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div :class="activeCategory === 'templates' ? 'w-full' : 'max-w-4xl mx-auto'">
             
             <!-- INTERFACE & TYPOGRAPHY SECTION -->
@@ -916,7 +1008,8 @@ import {
   Workflow,
   Network,
   Plus,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'
@@ -1179,6 +1272,7 @@ const categories = computed(() => {
     { id: 'terminal', label: 'CLI & MCP', icon: markRaw(Terminal), subtitle: t('settings.terminal.subtitle') },
     { id: 'security', label: t('settings.categories.security'), icon: markRaw(Shield), subtitle: t('settings.security.subtitle') },
     { id: 'backup', label: t('settings.categories.backup'), icon: markRaw(Database), subtitle: t('settings.backup.subtitle') },
+    { id: 'ai', label: 'AI Assistant', icon: markRaw(Sparkles), subtitle: 'DBA Intelligence powered by Gemini' },
     { id: 'update', label: t('settings.categories.update'), icon: markRaw(DownloadCloud), subtitle: t('settings.update.subtitle') }
   ]
 
@@ -1286,6 +1380,42 @@ const confirmResetData = async () => {
     alert('Failed to reset data.')
   } finally {
     isResetting.value = false
+  }
+}
+
+// AI Settings Logic
+const aiStatus = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
+const aiError = ref('')
+
+const testAIConnection = async () => {
+  if (!settings.value.aiApiKey) {
+    alert('Please enter an API Key first')
+    return
+  }
+  
+  aiStatus.value = 'testing'
+  aiError.value = ''
+  
+  try {
+    // 1. Configure the core engine
+    await (window as any).electron.ipcRenderer.invoke('execute-core', 'ai-configure', {
+      apiKey: settings.value.aiApiKey,
+      provider: 'gemini'
+    })
+    
+    // 2. Test with a simple prompt
+    const res = await (window as any).electron.ipcRenderer.invoke('execute-core', 'ai-ask', {
+      question: 'Ping'
+    })
+    
+    if (res && res.content) {
+      aiStatus.value = 'success'
+    } else {
+      throw new Error('No response from AI')
+    }
+  } catch (e: any) {
+    aiStatus.value = 'error'
+    aiError.value = e.message
   }
 }
 </script>

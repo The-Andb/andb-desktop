@@ -563,6 +563,20 @@ settings:
         schema: 'Cây thư mục'
         ddlName: 'Tên đối tượng'
         code: 'Code'
+    ai:
+      title: 'Trợ lý AI DBA'
+      subtitle: 'Trí tuệ DBA được cung cấp bởi Gemini'
+      apiKey: 'Gemini API Key'
+      testButton: 'Kiểm tra kết nối'
+      success: 'Xác thực thành công'
+      error: 'Lỗi cấu hình'
+      capabilities:
+        review: 'Đánh giá thay đổi Schema'
+        reviewDesc: 'Phân tích tự động các thay đổi DDL với đánh giá mức độ rủi ro.'
+        troubleshoot: 'Xử lý sự cố DBA'
+        troubleshootDesc: 'Giao diện ngôn ngữ tự nhiên để hỏi về các cấu trúc bảng phức tạp.'
+        semantic: 'Semantic Diff'
+        semanticDesc: 'Hiểu ý định của các thay đổi schema thay vì chỉ so sánh văn bản.'
     buttons:
       title: 'Mật độ hình ảnh & Kiểu nút'
       subtitle: 'Chọn mức độ thẩm mỹ cho các phần tử'

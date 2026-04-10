@@ -1,0 +1,332 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8] [cursor=pointer]:
+          - img "TheAndb" [ref=e9]
+          - generic [ref=e10]: TheAndb
+        - generic [ref=e11]: /
+        - button "Project Manager" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - generic [ref=e18] [cursor=pointer]:
+          - combobox "Switch Project" [ref=e19]:
+            - option "Project One" [selected]
+            - option "+ New Project"
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - img [ref=e22]
+              - generic [ref=e24]: Project One
+            - img [ref=e25]
+          - generic [ref=e27]: Project Dashboard
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - 'button "Theme: system" [ref=e31] [cursor=pointer]':
+            - img [ref=e33]
+          - button "EN" [ref=e36] [cursor=pointer]:
+            - img [ref=e37]
+            - generic [ref=e40]: EN
+        - button "Settings" [ref=e42] [cursor=pointer]:
+          - img [ref=e43]
+        - button "About" [ref=e46] [cursor=pointer]:
+          - img [ref=e47]
+  - generic [ref=e49]:
+    - complementary [ref=e50]:
+      - generic [ref=e51]:
+        - navigation [ref=e52]:
+          - generic [ref=e54]:
+            - link "Dashboard" [ref=e55] [cursor=pointer]:
+              - /url: "#/"
+              - img [ref=e57]
+              - generic [ref=e60]: Dashboard
+            - link "Schema" [ref=e61] [cursor=pointer]:
+              - /url: "#/schema"
+              - img [ref=e63]
+              - generic [ref=e67]: Schema
+            - link "Diff & Sync" [ref=e68] [cursor=pointer]:
+              - /url: "#/compare"
+              - img [ref=e70]
+              - generic [ref=e75]: Diff & Sync
+            - link "History & Rollback" [ref=e76] [cursor=pointer]:
+              - /url: "#/history"
+              - img [ref=e78]
+              - generic [ref=e82]: History & Rollback
+            - link "Instant Compare" [ref=e83] [cursor=pointer]:
+              - /url: "#/instant-compare"
+              - img [ref=e85]
+              - generic [ref=e89]: Instant Compare
+            - link "Git Sync" [ref=e90] [cursor=pointer]:
+              - /url: "#/integrations"
+              - img [ref=e92]
+              - generic [ref=e96]: Git Sync
+            - link "Project Settings" [ref=e97] [cursor=pointer]:
+              - /url: "#/project-settings"
+              - img [ref=e99]
+              - generic [ref=e102]: Project Settings
+              - img [ref=e103]
+        - generic [ref=e105]:
+          - generic [ref=e107]: Schema Explorer
+          - generic [ref=e108]:
+            - button "Refresh" [ref=e109] [cursor=pointer]:
+              - img [ref=e110]
+            - button "Collapse" [ref=e115] [cursor=pointer]:
+              - img [ref=e116]
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - generic [ref=e122] [cursor=pointer]:
+              - img [ref=e123]
+              - img [ref=e125]
+              - generic [ref=e128]: DEV
+              - generic [ref=e129]: SRC
+            - generic [ref=e133] [cursor=pointer]:
+              - img [ref=e134]
+              - img [ref=e136]
+              - generic [ref=e140]: dev_database
+              - button [ref=e141]:
+                - img [ref=e142]
+          - generic [ref=e147]:
+            - generic [ref=e148] [cursor=pointer]:
+              - img [ref=e149]
+              - img [ref=e151]
+              - generic [ref=e153]: STAGE
+            - generic [ref=e157] [cursor=pointer]:
+              - img [ref=e158]
+              - img [ref=e160]
+              - generic [ref=e164]: stage_database
+              - button [ref=e165]:
+                - img [ref=e166]
+          - generic [ref=e171]:
+            - generic [ref=e172] [cursor=pointer]:
+              - img [ref=e173]
+              - img [ref=e175]
+              - generic [ref=e178]: UAT
+            - generic [ref=e182] [cursor=pointer]:
+              - img [ref=e183]
+              - img [ref=e185]
+              - generic [ref=e189]: uat_database
+              - button [ref=e190]:
+                - img [ref=e191]
+          - generic [ref=e196]:
+            - generic [ref=e197] [cursor=pointer]:
+              - img [ref=e198]
+              - img [ref=e200]
+              - generic [ref=e202]: PROD
+            - generic [ref=e206] [cursor=pointer]:
+              - img [ref=e207]
+              - img [ref=e209]
+              - generic [ref=e213]: prod_database
+              - button [ref=e214]:
+                - img [ref=e215]
+    - main [ref=e220]:
+      - generic [ref=e221]:
+        - generic [ref=e222]:
+          - heading "Project Settings" [level=1] [ref=e223]:
+            - img [ref=e224]
+            - text: Project Settings
+          - paragraph [ref=e228]: Project One
+        - generic [ref=e230]:
+          - heading "Project Settings" [level=3] [ref=e231]
+          - button "Env & Sync Pairs" [ref=e232] [cursor=pointer]:
+            - img [ref=e233]
+            - generic [ref=e238]: Env & Sync Pairs
+          - button "Connections" [active] [ref=e239] [cursor=pointer]:
+            - img [ref=e240]
+            - generic [ref=e243]: Connections
+          - button "Engine" [ref=e244] [cursor=pointer]:
+            - img [ref=e245]
+            - generic [ref=e248]: Engine
+        - button "Reset All Data" [ref=e250] [cursor=pointer]:
+          - img [ref=e251]
+          - text: Reset All Data
+      - generic [ref=e258]:
+        - generic [ref=e259]:
+          - generic [ref=e260]:
+            - heading "PROJECT CONNECTIONS" [level=3] [ref=e261]
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - button "All" [ref=e264] [cursor=pointer]
+                - button "DEV" [ref=e265] [cursor=pointer]
+                - button "STAGE" [ref=e266] [cursor=pointer]
+                - button "UAT" [ref=e267] [cursor=pointer]
+                - button "PROD" [ref=e268] [cursor=pointer]
+              - combobox [ref=e269] [cursor=pointer]:
+                - option "All Drivers" [selected]
+                - option "MySQL"
+                - option "PostgreSQL"
+                - option "SQLite"
+                - option "Dump"
+          - generic [ref=e270]:
+            - button "Clean" [ref=e271] [cursor=pointer]:
+              - img [ref=e272]
+              - text: Clean
+            - button "Import" [ref=e277] [cursor=pointer]:
+              - img [ref=e278]
+              - text: Import
+            - button "Add Connection" [ref=e282] [cursor=pointer]:
+              - img [ref=e283]
+              - text: Add Connection
+        - table [ref=e286]:
+          - rowgroup [ref=e287]:
+            - row "Connection Name Host Database Actions" [ref=e288]:
+              - columnheader [ref=e289]:
+                - checkbox [ref=e290]
+              - columnheader "Connection Name" [ref=e291]
+              - columnheader "Host" [ref=e292]
+              - columnheader "Database" [ref=e293]
+              - columnheader "Actions" [ref=e294]
+          - rowgroup [ref=e295]:
+            - row "DEV 1" [ref=e296]:
+              - cell "DEV 1" [ref=e297]:
+                - generic [ref=e298]:
+                  - text: DEV
+                  - generic [ref=e300]: "1"
+            - row "MY DEV mysql 127.0.0.1 :3306 root dev_database" [ref=e301]:
+              - cell [ref=e302]:
+                - checkbox [ref=e303]
+              - cell "MY DEV mysql" [ref=e304]:
+                - generic [ref=e305]:
+                  - generic [ref=e308]: MY
+                  - generic [ref=e309]:
+                    - generic [ref=e311]: DEV
+                    - generic [ref=e312]: mysql
+              - cell "127.0.0.1 :3306 root" [ref=e313]:
+                - generic [ref=e314]:
+                  - generic [ref=e315]:
+                    - img [ref=e316]
+                    - generic "127.0.0.1" [ref=e319]
+                    - generic [ref=e320]: :3306
+                  - generic [ref=e321]:
+                    - img [ref=e322]
+                    - text: root
+              - cell "dev_database" [ref=e325]:
+                - generic [ref=e326] [cursor=pointer]:
+                  - img [ref=e327]
+                  - text: dev_database
+                  - img [ref=e331]
+              - cell [ref=e333]:
+                - generic [ref=e335]:
+                  - button "Test Connection" [ref=e336] [cursor=pointer]:
+                    - img [ref=e337]
+                  - button "Edit" [ref=e339] [cursor=pointer]:
+                    - img [ref=e340]
+                  - button "Duplicate" [ref=e342] [cursor=pointer]:
+                    - img [ref=e343]
+                  - button "Delete" [ref=e346] [cursor=pointer]:
+                    - img [ref=e347]
+            - row "STAGE 1" [ref=e350]:
+              - cell "STAGE 1" [ref=e351]:
+                - generic [ref=e352]:
+                  - text: STAGE
+                  - generic [ref=e354]: "1"
+            - row "MY STAGE mysql 127.0.0.1 :3307 root stage_database" [ref=e355]:
+              - cell [ref=e356]:
+                - checkbox [ref=e357]
+              - cell "MY STAGE mysql" [ref=e358]:
+                - generic [ref=e359]:
+                  - generic [ref=e362]: MY
+                  - generic [ref=e363]:
+                    - generic [ref=e365]: STAGE
+                    - generic [ref=e366]: mysql
+              - cell "127.0.0.1 :3307 root" [ref=e367]:
+                - generic [ref=e368]:
+                  - generic [ref=e369]:
+                    - img [ref=e370]
+                    - generic "127.0.0.1" [ref=e373]
+                    - generic [ref=e374]: :3307
+                  - generic [ref=e375]:
+                    - img [ref=e376]
+                    - text: root
+              - cell "stage_database" [ref=e379]:
+                - generic [ref=e380] [cursor=pointer]:
+                  - img [ref=e381]
+                  - text: stage_database
+                  - img [ref=e385]
+              - cell [ref=e387]:
+                - generic [ref=e389]:
+                  - button "Test Connection" [ref=e390] [cursor=pointer]:
+                    - img [ref=e391]
+                  - button "Edit" [ref=e393] [cursor=pointer]:
+                    - img [ref=e394]
+                  - button "Duplicate" [ref=e396] [cursor=pointer]:
+                    - img [ref=e397]
+                  - button "Delete" [ref=e400] [cursor=pointer]:
+                    - img [ref=e401]
+            - row "UAT 1" [ref=e404]:
+              - cell "UAT 1" [ref=e405]:
+                - generic [ref=e406]:
+                  - text: UAT
+                  - generic [ref=e408]: "1"
+            - row "MY UAT mysql 127.0.0.1 :3308 root uat_database" [ref=e409]:
+              - cell [ref=e410]:
+                - checkbox [ref=e411]
+              - cell "MY UAT mysql" [ref=e412]:
+                - generic [ref=e413]:
+                  - generic [ref=e416]: MY
+                  - generic [ref=e417]:
+                    - generic [ref=e419]: UAT
+                    - generic [ref=e420]: mysql
+              - cell "127.0.0.1 :3308 root" [ref=e421]:
+                - generic [ref=e422]:
+                  - generic [ref=e423]:
+                    - img [ref=e424]
+                    - generic "127.0.0.1" [ref=e427]
+                    - generic [ref=e428]: :3308
+                  - generic [ref=e429]:
+                    - img [ref=e430]
+                    - text: root
+              - cell "uat_database" [ref=e433]:
+                - generic [ref=e434] [cursor=pointer]:
+                  - img [ref=e435]
+                  - text: uat_database
+                  - img [ref=e439]
+              - cell [ref=e441]:
+                - generic [ref=e443]:
+                  - button "Test Connection" [ref=e444] [cursor=pointer]:
+                    - img [ref=e445]
+                  - button "Edit" [ref=e447] [cursor=pointer]:
+                    - img [ref=e448]
+                  - button "Duplicate" [ref=e450] [cursor=pointer]:
+                    - img [ref=e451]
+                  - button "Delete" [ref=e454] [cursor=pointer]:
+                    - img [ref=e455]
+            - row "PROD 1" [ref=e458]:
+              - cell "PROD 1" [ref=e459]:
+                - generic [ref=e460]:
+                  - text: PROD
+                  - generic [ref=e462]: "1"
+            - row "MY PROD mysql 127.0.0.1 :3309 root prod_database" [ref=e463]:
+              - cell [ref=e464]:
+                - checkbox [ref=e465]
+              - cell "MY PROD mysql" [ref=e466]:
+                - generic [ref=e467]:
+                  - generic [ref=e470]: MY
+                  - generic [ref=e471]:
+                    - generic [ref=e473]: PROD
+                    - generic [ref=e474]: mysql
+              - cell "127.0.0.1 :3309 root" [ref=e475]:
+                - generic [ref=e476]:
+                  - generic [ref=e477]:
+                    - img [ref=e478]
+                    - generic "127.0.0.1" [ref=e481]
+                    - generic [ref=e482]: :3309
+                  - generic [ref=e483]:
+                    - img [ref=e484]
+                    - text: root
+              - cell "prod_database" [ref=e487]:
+                - generic [ref=e488] [cursor=pointer]:
+                  - img [ref=e489]
+                  - text: prod_database
+                  - img [ref=e493]
+              - cell [ref=e495]:
+                - generic [ref=e497]:
+                  - button "Test Connection" [ref=e498] [cursor=pointer]:
+                    - img [ref=e499]
+                  - button "Edit" [ref=e501] [cursor=pointer]:
+                    - img [ref=e502]
+                  - button "Duplicate" [ref=e504] [cursor=pointer]:
+                    - img [ref=e505]
+                  - button "Delete" [ref=e508] [cursor=pointer]:
+                    - img [ref=e509]
+```

@@ -22,6 +22,8 @@ export interface Project {
     isNotMigrateCondition?: string
     excludeTags?: string[]
     projectBaseDir?: string
+    aiEnabled?: boolean
+    aiPromptOverride?: string
   }
   createdAt: string
   updatedAt: string

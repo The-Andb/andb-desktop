@@ -1,0 +1,180 @@
+{
+  "config": {
+    "configFile": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/playwright.config.ts",
+    "rootDir": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.spec.ts"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "lifecycle.e2e.spec.ts",
+      "file": "lifecycle.e2e.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Real-World Lifecycle",
+          "file": "lifecycle.e2e.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Complete User Journey: Global Setup -> Projects -> Connections -> Ops -> Sync -> Report",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 42163,
+                      "error": {
+                        "message": "Error: page.waitForTimeout: Target page, context or browser has been closed",
+                        "stack": "Error: page.waitForTimeout: Target page, context or browser has been closed\n    at /Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/lifecycle.e2e.spec.ts:149:18",
+                        "location": {
+                          "file": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/lifecycle.e2e.spec.ts",
+                          "column": 18,
+                          "line": 149
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 147 |\u001b[39m     \n \u001b[90m 148 |\u001b[39m     \u001b[90m// Ensure we are in setup mode if we reset data\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 149 |\u001b[39m     \u001b[36mawait\u001b[39m window\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m5000\u001b[39m)\u001b[33m;\u001b[39m \n \u001b[90m     |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 150 |\u001b[39m     \u001b[36mconst\u001b[39m readyInitBtn \u001b[33m=\u001b[39m window\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"INITIALIZE WORKSPACE\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n \u001b[90m 151 |\u001b[39m     \n \u001b[90m 152 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[36mawait\u001b[39m readyInitBtn\u001b[33m.\u001b[39misVisible()) {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/lifecycle.e2e.spec.ts",
+                            "column": 18,
+                            "line": 149
+                          },
+                          "message": "Error: page.waitForTimeout: Target page, context or browser has been closed\n\n\u001b[0m \u001b[90m 147 |\u001b[39m     \n \u001b[90m 148 |\u001b[39m     \u001b[90m// Ensure we are in setup mode if we reset data\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 149 |\u001b[39m     \u001b[36mawait\u001b[39m window\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m5000\u001b[39m)\u001b[33m;\u001b[39m \n \u001b[90m     |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 150 |\u001b[39m     \u001b[36mconst\u001b[39m readyInitBtn \u001b[33m=\u001b[39m window\u001b[33m.\u001b[39mlocator(\u001b[32m'button:has-text(\"INITIALIZE WORKSPACE\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n \u001b[90m 151 |\u001b[39m     \n \u001b[90m 152 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[36mawait\u001b[39m readyInitBtn\u001b[33m.\u001b[39misVisible()) {\u001b[0m\n\u001b[2m    at /Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/lifecycle.e2e.spec.ts:149:18\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "[E2E] Phase 0: Initial Cleanup (Detection)\n"
+                        },
+                        {
+                          "text": "[E2E] Dashboard detected, performing data reset...\n"
+                        },
+                        {
+                          "text": "[E2E] Phase 1: Global Setup\n"
+                        },
+                        {
+                          "text": "[BugReporter] 📝 Logged BUG-001: Complete User Journey: Global Setup -> Projects -> Connections -> Ops -> Sync -> Report\n"
+                        }
+                      ],
+                      "stderr": [
+                        {
+                          "buffer": ""
+                        },
+                        {
+                          "text": "[BugReporter] Failed to take screenshot: page.screenshot: Target page, context or browser has been closed\n    at BugReporter.reportIfFailed \u001b[90m(/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/\u001b[39me2e/fixtures/bug-reporter.ts:95:27\u001b[90m)\u001b[39m\n    at Object.appFixture \u001b[90m(/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/\u001b[39me2e/fixtures/app.fixture.ts:139:20\u001b[90m)\u001b[39m {\n  [\u001b[32mSymbol(step)\u001b[39m]: {\n    location: {\n      file: \u001b[32m'/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/e2e/fixtures/bug-reporter.ts'\u001b[39m,\n      line: \u001b[33m95\u001b[39m,\n      column: \u001b[33m27\u001b[39m,\n      function: \u001b[32m'BugReporter.reportIfFailed'\u001b[39m\n    },\n    category: \u001b[32m'pw:api'\u001b[39m,\n    title: \u001b[32m'Screenshot'\u001b[39m,\n    apiName: \u001b[32m'page.screenshot'\u001b[39m,\n    params: {\n      path: \u001b[32m'/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/test-results/screenshots/complete-user-journey--global-setup----projects----connections----ops----sync----report-1775465675873.png'\u001b[39m,\n      fullPage: \u001b[33mtrue\u001b[39m,\n      mask: \u001b[90mundefined\u001b[39m,\n      timeout: \u001b[33m30000\u001b[39m,\n      type: \u001b[32m'png'\u001b[39m\n    },\n    group: \u001b[90mundefined\u001b[39m,\n    stepId: \u001b[32m'pw:api@54'\u001b[39m,\n    boxedStack: \u001b[90mundefined\u001b[39m,\n    steps: [],\n    attachmentIndices: [],\n    info: TestStepInfoImpl {\n      annotations: [],\n      _testInfo: \u001b[36m[TestInfoImpl]\u001b[39m,\n      _stepId: \u001b[32m'pw:api@54'\u001b[39m,\n      _title: \u001b[32m'Screenshot'\u001b[39m,\n      _parentStep: \u001b[36m[TestStepInfoImpl]\u001b[39m,\n      skip: \u001b[36m[Function (anonymous)]\u001b[39m\n    },\n    complete: \u001b[36m[Function: complete]\u001b[39m,\n    endWallTime: \u001b[33m1775465675877\u001b[39m,\n    error: {\n      message: \u001b[32m'Error: page.screenshot: Target page, context or browser has been closed'\u001b[39m,\n      stack: \u001b[32m'Error: page.screenshot: Target page, context or browser has been closed\\n'\u001b[39m +\n        \u001b[32m'    at BugReporter.reportIfFailed (/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/e2e/fixtures/bug-reporter.ts:95:27)\\n'\u001b[39m +\n        \u001b[32m'    at Object.appFixture (/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/e2e/fixtures/app.fixture.ts:139:20)'\u001b[39m,\n      cause: \u001b[90mundefined\u001b[39m\n    }\n  }\n}\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-04-06T08:53:54.026Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/test-results/lifecycle.e2e-Real-World-L-c0c4f-tions---Ops---Sync---Report/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Volumes/FlexibleWorkplace/The-Andb/andb-desktop/tests/lifecycle.e2e.spec.ts",
+                        "column": 18,
+                        "line": 149
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "14d1b8fdee4668b74cec-224ec64e378c83ceb16f",
+              "file": "lifecycle.e2e.spec.ts",
+              "line": 4,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-04-06T08:53:52.781Z",
+    "duration": 43450.507,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
