@@ -57,8 +57,8 @@
         </div>
         
         <!-- Category Detail Pane -->
-        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div :class="activeCategory === 'templates' || activeCategory === 'environments' ? 'w-full' : 'max-w-4xl mx-auto'">
+        <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+          <div :class="activeCategory === 'templates' || activeCategory === 'environments' ? 'w-full' : 'max-w-6xl mx-auto'">
             
             <!-- INTERFACE & TYPOGRAPHY SECTION -->
             <div v-if="activeCategory === 'interface'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -94,39 +94,40 @@
                     </div>
                   </div>
 
-                  <div class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
                     <div 
                       v-for="t in themeOptions" :key="t.id"
                       @click="settingsStore.setTheme(t.id)"
-                      class="group cursor-pointer space-y-3"
+                      class="group cursor-pointer space-y-4"
                     >
                       <div 
+                        :data-theme-id="t.id"
                         class="aspect-[16/10] rounded-xl border-2 transition-all duration-300 overflow-hidden relative"
                         :class="[
                           settings.theme === t.id 
-                            ? 'border-primary-500 shadow-lg shadow-primary-500/10 scale-[1.02]' 
+                            ? 'border-primary-500 shadow-xl shadow-primary-500/10 scale-[1.05]' 
                             : 'border-transparent bg-gray-100 dark:bg-gray-800 group-hover:border-gray-200 dark:group-hover:border-gray-700'
                         ]"
                       >
                         <!-- Theme Thumbnail Mockup -->
                         <div class="absolute inset-0 flex flex-col" :style="{ backgroundColor: t.preview.main }">
-                          <div class="h-1.5 w-full flex gap-0.5 p-0.5 border-b opacity-20" :style="{ backgroundColor: t.preview.sidebar, borderColor: 'currentColor' }">
-                             <div class="w-1 h-1 rounded-full bg-red-400"></div>
-                             <div class="w-1 h-1 rounded-full bg-amber-400"></div>
-                             <div class="w-1 h-1 rounded-full bg-green-400"></div>
-                          </div>
-                          <div class="flex-1 flex overflow-hidden">
-                             <div class="w-1/4 h-full border-r opacity-20" :style="{ backgroundColor: t.preview.sidebar, borderColor: 'currentColor' }"></div>
-                             <div class="flex-1 p-2 space-y-1">
-                                <div class="h-1 w-2/3 rounded-full opacity-20" :class="t.dark ? 'bg-gray-600' : 'bg-gray-300'"></div>
-                                <div class="h-1.5 w-full rounded border border-dashed opacity-10" :class="t.dark ? 'border-gray-500' : 'border-gray-400'"></div>
-                                <div class="grid grid-cols-3 gap-1 mt-2">
-                                   <div class="h-3 rounded-sm opacity-20" :class="t.dark ? 'bg-gray-800' : 'bg-gray-100'"></div>
-                                   <div class="h-3 rounded-sm opacity-20" :class="t.dark ? 'bg-gray-800' : 'bg-gray-100'"></div>
-                                   <div class="h-3 rounded-sm opacity-20 bg-primary-500"></div>
-                                </div>
-                             </div>
-                          </div>
+                           <div class="h-1.5 w-full flex gap-0.5 p-0.5 border-b opacity-20" :style="{ backgroundColor: t.preview.sidebar, borderColor: 'currentColor' }">
+                              <div class="w-1 h-1 rounded-full bg-red-400"></div>
+                              <div class="w-1 h-1 rounded-full bg-amber-400"></div>
+                              <div class="w-1 h-1 rounded-full bg-green-400"></div>
+                           </div>
+                           <div class="flex-1 flex overflow-hidden">
+                              <div class="w-1/4 h-full border-r opacity-20" :style="{ backgroundColor: t.preview.sidebar, borderColor: 'currentColor' }"></div>
+                              <div class="flex-1 p-2 space-y-1">
+                                 <div class="h-1 w-2/3 rounded-full opacity-20" :class="t.dark ? 'bg-gray-600' : 'bg-gray-300'"></div>
+                                 <div class="h-1.5 w-full rounded border border-dashed opacity-10" :class="t.dark ? 'border-gray-500' : 'border-gray-400'"></div>
+                                 <div class="grid grid-cols-3 gap-1 mt-2">
+                                    <div class="h-3 rounded-sm opacity-20" :class="t.dark ? 'bg-gray-800' : 'bg-gray-100'"></div>
+                                    <div class="h-3 rounded-sm opacity-20" :class="t.dark ? 'bg-gray-800' : 'bg-gray-100'"></div>
+                                    <div class="h-3 rounded-sm border-l-2 border-primary-500" :style="{ backgroundColor: t.id === 'light' ? '#f0fdf4' : t.preview.sidebar + '80' }"></div>
+                                 </div>
+                              </div>
+                           </div>
                         </div>
 
                         <!-- Checkmark overlay for selected -->
@@ -137,11 +138,9 @@
                         </div>
                       </div>
                       
-                      <div class="flex items-center gap-2 px-1">
-                        <div class="w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-colors" :class="settings.theme === t.id ? 'border-primary-500' : 'border-gray-300 dark:border-gray-700'">
-                           <div v-if="settings.theme === t.id" class="w-1.5 h-1.5 bg-primary-500 rounded-full"></div>
-                        </div>
-                        <span class="text-xs font-black uppercase tracking-widest transition-colors" :class="settings.theme === t.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600'">{{ $t('settings.themes.' + t.id) }}</span>
+                      <div class="flex flex-col items-center gap-2 px-1 text-center min-h-[40px] justify-start">
+                        <span class="text-[10px] font-black uppercase tracking-[0.15em] transition-colors leading-relaxed" :class="settings.theme === t.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600'">{{ $t('settings.themes.' + t.id) }}</span>
+                        <div class="w-1.5 h-1.5 rounded-full transition-all duration-300" :class="settings.theme === t.id ? 'bg-primary-500 scale-100' : 'bg-transparent scale-0'"></div>
                       </div>
                     </div>
                   </div>
@@ -440,7 +439,7 @@
                                  <Terminal class="w-5 h-5" />
                               </div>
                               <div>
-                                 <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                                 <h3 class="text-sm font-black text-gray-900 dark:text-white tracking-widest mb-1 flex items-center gap-2">
                                     {{ $t('settings.terminal.defaultScope') }}
                                  </h3>
                                  <p class="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-xl">
@@ -551,10 +550,8 @@
                   </div>
                 </div>
                 
-                <div class="max-w-3xl">
-                  <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-8 border border-gray-200 dark:border-gray-800 shadow-sm">
-                    <EnvironmentManager mode="global" />
-                  </div>
+                <div class="w-full">
+                  <EnvironmentManager mode="global" />
                 </div>
             </div>
 
@@ -564,26 +561,23 @@
 
                 <div class="space-y-12">
                   <!-- Domain Normalization -->
-                  <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-orange-500/5">
-                     <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
-                        <GitCompare class="w-64 h-64" />
-                     </div>
+                  <div class="relative overflow-hidden transition-all duration-500">
                      <div class="relative z-10">
                         <div class="flex items-center gap-4 mb-3">
-                           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 flex items-center justify-center shadow-inner">
-                              <GitCompare class="w-5 h-5 text-orange-500" />
+                           <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                              <GitCompare class="w-4 h-4 text-orange-500" />
                            </div>
                            <div class="flex flex-col">
-                              <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
+                              <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] leading-none mb-1">{{ $t('settings.engine.domainNormalization.title') }}</h3>
                               <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.engine.domainNormalization.subtitle') || 'Environment Variable Mapping' }}</span>
                            </div>
                         </div>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.domainNormalization.desc')"></p>
+                        <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.domainNormalization.desc')"></p>
                         
-                        <div class="space-y-8">
+                        <div class="space-y-12">
                             <TransitionGroup name="list">
                             <div v-for="(rep, index) in settingsStore.settings.envReplacements || []" :key="index"
-                                 class="p-8 bg-white/40 dark:bg-gray-950/40 rounded-[2rem] border border-gray-100 dark:border-gray-800/60 space-y-8 relative group/rep transition-all duration-500 hover:border-orange-500/40 hover:bg-white/60 dark:hover:bg-gray-950/60 hover:shadow-2xl hover:shadow-orange-500/5">
+                                 class="p-0 border-none bg-transparent space-y-8 relative group/rep transition-all duration-500">
                               
                                <!-- Static Decoration -->
                                <div class="absolute left-0 top-10 bottom-10 w-1.5 bg-gray-100 dark:bg-gray-800/50 rounded-full group-hover/rep:bg-orange-500 transition-all duration-500"></div>
@@ -597,7 +591,7 @@
                                 <div class="relative group/input">
                                    <div class="absolute inset-0 bg-orange-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-20 transition-opacity duration-500"></div>
                                    <input v-model="rep.key" type="text" 
-                                     class="relative w-full px-5 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl text-xs font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 shadow-sm" 
+                                     class="relative w-full px-5 py-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700" 
                                      placeholder="e.g. APP_DOMAIN" />
                                 </div>
                               </div>
@@ -611,7 +605,7 @@
                                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-black uppercase tracking-[0.15em] group-focus-within/field:text-orange-500 transition-colors">{{ env.name }}</span>
                                     </div>
                                     <input v-model="rep.values[env.name]" type="text" 
-                                      class="w-full px-4 py-3 bg-white/30 dark:bg-gray-900/30 border border-gray-100 dark:border-gray-800 rounded-xl text-xs font-mono font-bold text-gray-600 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 outline-none transition-all shadow-sm" 
+                                      class="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg text-xs font-mono font-bold text-gray-600 dark:text-gray-400 focus:text-gray-900 dark:focus:text-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500/30 outline-none transition-all" 
                                       placeholder="Value..." />
                                   </div>
                                 </div>
@@ -619,44 +613,39 @@
                             </div>
                             </TransitionGroup>
                             
-                            <button @click="addEnvReplacementGlobal" 
-                               class="group relative w-full sm:w-auto flex items-center justify-center gap-4 px-10 py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.3em] hover:scale-[1.03] active:scale-[0.97] transition-all duration-500 shadow-2xl hover:shadow-orange-500/30 overflow-hidden">
+                             <button @click="addEnvReplacementGlobal" 
+                                class="group relative w-full sm:w-auto flex items-center justify-center gap-4 px-10 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-orange-500 dark:hover:bg-orange-400 hover:text-white transition-all duration-300">
                               <Plus class="w-4 h-4 transition-transform duration-500 group-hover:rotate-180" /> 
                               <span class="relative z-10">Add Normalization Variable</span>
-                              <div class="absolute inset-0 bg-gradient-to-tr from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                              <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none"></div>
                             </button>
                         </div>
                      </div>
                   </div>
 
-                  <!-- Migration Exclusions -->
-                  <div class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-gray-200/20 dark:shadow-black/40 transition-all duration-500 hover:shadow-rose-500/5">
-                      <div class="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.08] pointer-events-none transform translate-x-6 -translate-y-6">
-                        <Shield class="w-64 h-64" />
-                     </div>
-                     <div class="relative z-10">
-                        <div class="flex items-center gap-4 mb-3">
-                           <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 flex items-center justify-center shadow-inner">
-                              <Shield class="w-5 h-5 text-rose-500" />
-                           </div>
-                           <div class="flex flex-col">
-                              <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] leading-none mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
-                              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.engine.migrationExclusions.subtitle') || 'Object Filter Rules' }}</span>
-                           </div>
-                        </div>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
+                   <!-- Migration Exclusions -->
+                   <div class="relative overflow-hidden transition-all duration-500 mt-12 pt-12 border-t border-gray-100 dark:border-gray-800/40">
+                      <div class="relative z-10">
+                         <div class="flex items-center gap-4 mb-3">
+                            <div class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                               <Shield class="w-4 h-4 text-rose-500" />
+                            </div>
+                            <div class="flex flex-col">
+                               <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] leading-none mb-1">{{ $t('settings.engine.migrationExclusions.title') }}</h3>
+                               <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.engine.migrationExclusions.subtitle') || 'Object Filter Rules' }}</span>
+                            </div>
+                         </div>
+                         <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-10 max-w-xl leading-relaxed font-medium" v-html="$t('settings.engine.migrationExclusions.desc')"></p>
 
                          <div class="space-y-8">
                             <div class="flex flex-col gap-4">
-                                <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] ml-1">Exclusion Registry</label>
+                                <label class="block text-[10px] font-black text-gray-400 dark:text-gray-500 tracking-[0.2em] ml-1">Exclusion Registry</label>
                                 
-                                <div class="flex flex-wrap gap-3 p-6 bg-white/30 dark:bg-gray-950/30 rounded-[1.5rem] border border-gray-100 dark:border-gray-800/40 min-h-[80px] empty:after:content-['No_exclusions_defined'] empty:after:text-[10px] empty:after:uppercase empty:after:tracking-widest empty:after:text-gray-400 empty:after:m-auto">
-                                  <TransitionGroup name="list">
-                                  <div v-for="(tag, index) in settingsStore.settings.excludeTags || []" :key="tag"
-                                       class="group/tag flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-2xl text-[11px] font-mono font-black border border-gray-100 dark:border-gray-800 shadow-sm hover:border-rose-500/40 hover:shadow-xl hover:shadow-rose-500/5 transition-all duration-300 transform hover:scale-[1.05]">
+                                 <div class="flex flex-wrap gap-3 p-0 min-h-[40px] empty:after:content-['No_exclusions_defined'] empty:after:text-[10px] empty:after:uppercase empty:after:tracking-widest empty:after:text-gray-400 ml-1">
+                                   <TransitionGroup name="list">
+                                   <div v-for="(tag, index) in settingsStore.settings.excludeTags || []" :key="tag"
+                                        class="group/tag flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-[11px] font-mono font-black border border-gray-100 dark:border-gray-800 transition-all duration-300">
                                     <span class="opacity-70">#</span>
-                                    <span class="group-hover/tag:text-rose-600 dark:group-hover/tag:text-rose-400 transition-colors uppercase">{{ tag }}</span>
+                                    <span class="group-hover/tag:text-rose-600 dark:group-hover/tag:text-rose-400 transition-colors">{{ tag }}</span>
                                     <button @click="removeExcludeTagGlobal(index)" class="ml-1 p-1 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 rounded-lg transition-all opacity-0 group-hover/tag:opacity-100 scale-75 group-hover/tag:scale-100">
                                        <X class="w-3 h-3" />
                                     </button>
@@ -668,10 +657,10 @@
                             <div class="relative max-w-md group/input">
                               <div class="absolute inset-0 bg-rose-500/30 blur-2xl opacity-0 group-focus-within/input:opacity-10 transition-opacity duration-500"></div>
                               <ShieldAlert class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within/input:text-rose-500 transition-colors duration-300" />
-                              <input v-model="newExcludeTagGlobal"
-                                @keydown.enter.prevent="addExcludeTagGlobal"
-                                type="text"
-                                class="relative w-full pl-12 pr-6 py-4 bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-[1.25rem] text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-600 shadow-sm"
+                               <input v-model="newExcludeTagGlobal"
+                                 @keydown.enter.prevent="addExcludeTagGlobal"
+                                 type="text"
+                                 class="relative w-full pl-12 pr-6 py-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono font-black text-gray-900 dark:text-white focus:ring-4 focus:ring-rose-500/5 focus:border-rose-500/30 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-600"
                                 placeholder="test_* (Press Enter to add)" />
                             </div>
                          </div>
@@ -681,44 +670,75 @@
              </div>
 
             <!-- WORKSPACE VAULT SECTION -->
-            <div v-if="activeCategory === 'vault'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div class="grid grid-cols-1 gap-8">
-                  <!-- Workspace Directory -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 relative overflow-hidden">
-                     <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <Cloud class="w-32 h-32" />
-                     </div>
-                     <div class="relative z-10">
-                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">{{ $t('settings.vault.title') }} <span class="bg-primary-500 text-white px-2 py-0.5 rounded-md text-[9px] tracking-widest animate-pulse-slow">{{ $t('settings.vault.localFirst') }}</span></h3>
-                        <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.vault.desc')"></p>
-                        
-                        <div class="space-y-4">
+             <div v-if="activeCategory === 'vault'" class="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+                <div class="max-w-3xl">
+                  <!-- Premium Vault Card -->
+                   <div class="relative overflow-hidden p-8 bg-gray-50/50 dark:bg-gray-800/30 border border-gray-100 dark:border-gray-800 rounded-[2rem] shadow-sm backdrop-blur-xl">
+                      <!-- Background Glow Decoration -->
+                      <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500/5 blur-[100px] pointer-events-none"></div>
+                      <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/5 blur-[100px] pointer-events-none"></div>
+
+                      <div class="relative z-10">
+                        <div class="flex items-start justify-between gap-4 mb-6">
                            <div class="flex items-center gap-3">
-                              <div class="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-mono font-bold text-gray-500 truncate shadow-inner">
-                                 {{ currentWorkspaceDir || $t('settings.vault.notSet') }}
+                              <div class="p-3 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700">
+                                 <Database class="w-6 h-6 text-primary-500" />
                               </div>
-                              <button 
-                                 v-if="currentWorkspaceDir"
-                                 @click="resetWorkspaceDir"
-                                 class="px-5 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:border-red-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 {{ $t('settings.vault.reset') }}
-                              </button>
-                              <button 
-                                 @click="pickWorkspaceDir"
-                                 class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
-                              >
-                                 {{ $t('settings.vault.relocate') }}
-                              </button>
+                              <div>
+                                 <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">{{ $t('settings.vault.title') }}</h3>
+                                    <span class="bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-primary-500/20">
+                                       {{ $t('settings.vault.localFirst') }}
+                                    </span>
+                                 </div>
+                                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
+                                    {{ $t('settings.vault.description', 'Your workspace vault contains your encrypted connections, migration scripts, and configuration.') }}
+                                 </p>
+                              </div>
                            </div>
-                           <p v-if="currentWorkspaceDir" class="text-[10px] text-gray-400 font-medium">
-                             {{ $t('settings.vault.activeWorkspace') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentWorkspaceDir }}</code><br/>{{ $t('settings.vault.activeDatabase') }}<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">{{ currentDbPath }}</code><br />
-                             <span class="flex items-center gap-1.5 mt-2 text-green-600 dark:text-green-500/80 font-black uppercase tracking-widest">
-                               <Shield class="w-3 h-3" />
-                               AES-256 Encrypted Vault
-                             </span>
-                             <span class="text-amber-500 block mt-1">{{ $t('settings.vault.restartRequired') }}</span>
+                        </div>
+
+                        <!-- Backups Folder Highlight -->
+                        <div class="mb-8 p-4 bg-white/50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-2xl flex items-center gap-3">
+                           <div class="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                              <LayoutTemplate class="w-4 h-4" />
+                           </div>
+                           <p class="text-[11px] font-medium text-gray-600 dark:text-gray-400">
+                              <b class="text-gray-900 dark:text-white">Backups folder</b> is automatically managed here for your DDL snapshots.
                            </p>
+                        </div>
+                        
+                        <!-- Path Management -->
+                        <div class="space-y-6">
+                           <div class="space-y-2">
+                              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Vault Path Location</label>
+                              <div class="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-2 pl-4 shadow-sm group transition-all hover:border-primary-500/30">
+                                 <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
+                                 <div class="flex-1 text-xs font-bold font-mono text-gray-700 dark:text-gray-300 truncate tracking-tight">
+                                    {{ currentWorkspaceDir || $t('settings.vault.notSet') }}
+                                 </div>
+                                 <div class="h-6 w-px bg-gray-100 dark:border-gray-800"></div>
+                                 <button 
+                                    @click="pickWorkspaceDir"
+                                    class="px-4 py-2 bg-gray-950 dark:bg-white text-white dark:text-gray-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 dark:hover:bg-primary-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-black/10"
+                                 >
+                                    {{ $t('settings.vault.relocate') }}
+                                 </button>
+                              </div>
+                           </div>
+
+                           <div v-if="currentWorkspaceDir" class="flex items-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                              <button 
+                                 @click="resetWorkspaceDir"
+                                 class="flex items-center gap-2 px-4 py-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transform transition-all active:scale-95 group"
+                              >
+                                 <RotateCcw class="w-4 h-4 transition-transform group-hover:-rotate-45" />
+                                 <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('settings.vault.reset') }}</span>
+                              </button>
+                              <p class="text-[10px] text-gray-400 dark:text-gray-500 italic">
+                                 Relocating moves all local-first metadata and snapshots.
+                              </p>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -726,24 +746,21 @@
             </div>
 
             <!-- SECURITY SECTION -->
-            <div v-if="activeCategory === 'security'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div>
-                  <div class="mb-8 p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                       <Shield class="w-32 h-32" />
-                    </div>
+             <div v-if="activeCategory === 'security'" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div>
+                  <div class="relative overflow-hidden">
                     <div class="relative z-10">
-                       <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                       <h3 class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
                           {{ $t('settings.security.title') }}
-                          <span class="bg-rose-500 text-white px-2 py-0.5 rounded-md text-[9px] tracking-widest uppercase">{{ $t('status.active') || 'Active' }}</span>
+                           <span class="bg-primary-500 text-white px-2 py-0.5 rounded-md text-[9px] tracking-widest">{{ $t('status.active') || 'Active' }}</span>
                        </h3>
-                       <p class="text-xs text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.security.desc')"></p>
+                       <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-6 max-w-lg leading-relaxed" v-html="$t('settings.security.desc')"></p>
                     </div>
                   </div>
 
                   <div class="space-y-6">
                  <!-- Public Key Display -->
-                  <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                  <div class="py-4">
                     <div class="flex items-center justify-between mb-4">
                         <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{{ $t('settings.security.publicKey') }}</label>
                          <div class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
@@ -751,47 +768,47 @@
                             {{ $t('settings.security.active') }}
                          </div>
                     </div>
-                    <div class="relative group">
+                     <div class="relative group">
                         <textarea 
                            readonly 
                            :value="publicKey" 
-                           class="w-full h-32 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono text-gray-600 dark:text-gray-300 resize-none outline-none focus:ring-2 focus:ring-rose-500/20"
+                           class="w-full h-32 px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-lg text-xs font-mono text-gray-500 dark:text-gray-400 resize-none outline-none focus:ring-4 focus:ring-primary-500/5 transition-all"
                         ></textarea>
-                    </div>
+                     </div>
                     <p class="mt-2 text-xs text-gray-400">{{ $t('settings.security.publicKeyDesc') }}</p>
                  </div>
 
-                 <!-- Regenerate Actions -->
-                 <div class="bg-rose-50/50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-6">
-                     <h3 class="text-sm font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest mb-2">{{ $t('settings.security.dangerZone') }}</h3>
-                     <p class="text-sm text-rose-600/80 dark:text-rose-300/80 mb-6 leading-relaxed max-w-2xl font-medium">
-                        {{ $t('settings.security.regenerateWarning') }}
-                     </p>
-
-                     <button 
-                        @click="regenerateKeys"
-                        :disabled="isRegeneratingKeys"
-                        class="px-6 py-3 bg-white dark:bg-gray-800 text-rose-600 hover:text-rose-700 border border-rose-200 dark:border-rose-800 hover:border-rose-300 rounded-xl text-xs font-black uppercase tracking-widest shadow-sm hover:shadow active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2"
-                     >
-                        <Key v-if="!isRegeneratingKeys" class="w-4 h-4" />
-                        <span v-if="isRegeneratingKeys" class="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"></span>
-                        {{ isRegeneratingKeys ? $t('common.processing') : $t('settings.security.regenerateKeys') }}
-                     </button>
-                 </div>
+                  <!-- Regenerate Actions -->
+                  <div class="mt-12 pt-12 border-t border-gray-100 dark:border-gray-800/40">
+                      <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-2">{{ $t('settings.security.dangerZone') }}</h3>
+                      <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-6 leading-relaxed max-w-2xl font-medium">
+                         {{ $t('settings.security.regenerateWarning') }}
+                      </p>
+ 
+                      <button 
+                         @click="regenerateKeys"
+                         :disabled="isRegeneratingKeys"
+                         class="px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                      >
+                         <Key v-if="!isRegeneratingKeys" class="w-4 h-4" />
+                         <span v-if="isRegeneratingKeys" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                         {{ isRegeneratingKeys ? $t('common.processing') : $t('settings.security.regenerateKeys') }}
+                      </button>
                   </div>
-               </div>
-            </div>
+                 </div>
+                </div>
+             </div>
 
             <!-- BACKUP SECTION -->
             <div v-if="activeCategory === 'backup'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <BackupManager />
             </div>
 
-            <!-- UPDATE SECTION -->
-            <div v-if="activeCategory === 'update'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                 <div class="space-y-6">
-                 <!-- Status Card -->
-                 <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col items-center text-center">
+             <!-- UPDATE SECTION -->
+             <div v-if="activeCategory === 'update'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div class="space-y-12">
+                  <!-- Status Card -->
+                  <div class="flex flex-col items-center text-center">
                     <div class="mb-4">
                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ $t('settings.update.currentVersion') }}</span>
                        <div class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ updaterStore.currentVersion }}</div>
@@ -820,13 +837,13 @@
 
                     <!-- Action Button -->
                     <button 
-                      @click="updaterStore.checkForUpdates()"
-                      :disabled="updaterStore.status === 'checking' || updaterStore.status === 'downloading'"
-                      class="px-6 py-3 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 active:scale-95 transition-all flex items-center gap-2"
-                    >
-                       <RefreshCw v-if="updaterStore.status === 'checking'" class="w-4 h-4 animate-spin" />
-                       <span v-else>{{ $t('settings.update.check') }}</span>
-                    </button>
+                       @click="updaterStore.checkForUpdates()"
+                       :disabled="updaterStore.status === 'checking' || updaterStore.status === 'downloading'"
+                       class="px-8 py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-primary-500 dark:hover:bg-primary-400 transition-colors flex items-center gap-2"
+                     >
+                        <RefreshCw v-if="updaterStore.status === 'checking'" class="w-4 h-4 animate-spin" />
+                        <span v-else>{{ $t('settings.update.check') }}</span>
+                      </button>
                     
                     <button 
                        v-if="updaterStore.status === 'available' || updaterStore.status === 'downloaded'"
@@ -837,20 +854,20 @@
                     </button>
                  </div>
                  
-                 <!-- Settings -->
-                 <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
-                    <label class="flex items-center justify-between cursor-pointer">
-                       <div>
-                          <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $t('settings.update.autoDownload') }}</div>
-                          <div class="text-xs text-gray-500">{{ $t('settings.update.autoDownloadDesc') }}</div>
-                       </div>
+                   <!-- Settings -->
+                   <div class="mt-12 pt-12 border-t border-gray-100 dark:border-gray-800/40">
+                      <label class="flex items-center justify-between cursor-pointer group">
+                         <div>
+                            <div class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{ $t('settings.update.autoDownload') }}</div>
+                            <div class="text-[11px] text-gray-400 dark:text-gray-500 font-medium">{{ $t('settings.update.autoDownloadDesc') }}</div>
+                         </div>
                        <div class="relative">
                           <input type="checkbox" v-model="updaterStore.autoDownload" class="sr-only peer">
                           <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
                        </div>
                     </label>
-                 </div>
-               </div>
+                  </div>
+                </div>
             </div>
         </div>
     </main>
@@ -982,7 +999,8 @@ import {
   Home,
   Workflow,
   Network,
-  Plus
+  Plus,
+  ShieldAlert
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import BackupManager from '@/components/general/BackupManager.vue'

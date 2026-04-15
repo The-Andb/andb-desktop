@@ -1,26 +1,26 @@
 <template>
   <div class="flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-300">
     <!-- Breadcrumb Header -->
-    <div class="shrink-0 px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-950">
-      <div class="flex items-center gap-3 text-xs font-bold text-gray-500 dark:text-gray-400 select-none">
-         <span class="hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">Settings</span>
-         <span class="text-gray-300 dark:text-gray-700">/</span>
-         <span class="hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">Global Connections</span>
-         <span class="text-gray-300 dark:text-gray-700">/</span>
-         <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-full">
-            <ShieldCheck class="w-3.5 h-3.5" />
+    <div class="shrink-0 px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-950/50 backdrop-blur-xl sticky top-0 z-10">
+      <div class="flex items-center gap-3 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest select-none">
+         <span class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer">Settings</span>
+         <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+         <span class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer">Global Connections</span>
+         <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+         <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-400/20 shadow-sm animate-in fade-in zoom-in duration-500">
+            <ShieldCheck class="w-3.5 h-3.5 animate-pulse" />
             <span>Secure Configuration</span>
          </div>
       </div>
 
       <div class="relative group cursor-help">
-        <div class="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
-        <div class="relative flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-200 dark:border-green-500/30 rounded-full shadow-sm">
-          <div class="relative flex h-1.5 w-1.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+        <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+        <div class="relative flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-900 border border-emerald-200 dark:border-emerald-500/30 rounded-full shadow-sm">
+          <div class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </div>
-          <span class="text-xs font-black text-green-700 dark:text-green-400 uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400">
+          <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-[0.2em] bg-clip-text">
             STRICT SAFETY
           </span>
         </div>
@@ -619,17 +619,19 @@ onMounted(() => {
   }
 
   if (props.initialData) {
-    if (props.initialData.name) connectionName.value = props.initialData.name
+    if (props.initialData.name) {
+        connectionName.value = props.reconfigureMode ? props.initialData.name : `${props.initialData.name} (Secure)`
+    }
     if (props.initialData.host) store.adminCredentials.host = props.initialData.host
     if (props.initialData.port) store.adminCredentials.port = props.initialData.port
     if (props.initialData.database) store.adminCredentials.database = props.initialData.database
-    if (props.initialData.username) store.adminCredentials.username = (props.reconfigureMode ? 'root' : props.initialData.username)
-    
-    // Pre-fill restricted user username if editing/duplicating
-    if (!props.reconfigureMode && props.initialData.username) {
-        store.restrictedUser.username = props.initialData.username
+    if (props.initialData.username) {
+        // If reconfiguring, we keep the existing username for the Restricted User
+        // But for INITIAL connection to DB, we default to root (admin)
+        store.restrictedUser.username = props.initialData.username;
+        store.adminCredentials.username = 'root';
     }
-
+    
     // Pre-fill permissions if available
     if (props.initialData.permissions) {
       store.permissions = { ...props.initialData.permissions }

@@ -28,34 +28,45 @@
           <!-- System Option -->
           <button 
             @click="selectTheme('system')"
-            class="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all group"
-            :class="settings.theme === 'system' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative overflow-hidden"
+            :class="settings.theme === 'system' 
+              ? 'bg-primary-500/10 dark:bg-primary-400/10 text-primary-600 dark:text-primary-400' 
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'"
           >
-            <Monitor class="w-4 h-4" :class="settings.theme === 'system' ? 'text-white' : 'text-gray-400 group-hover:text-primary-500'" />
-            <span class="text-[11px] font-bold uppercase tracking-widest flex-1 text-left">Sync System</span>
-            <Check v-if="settings.theme === 'system'" class="w-3 h-3" />
+            <!-- Selection Accent -->
+            <div v-if="settings.theme === 'system'" class="absolute left-0 top-2 bottom-2 w-1 bg-primary-500 rounded-r-full"></div>
+            
+            <Monitor class="w-4 h-4" :class="settings.theme === 'system' ? 'text-primary-500' : 'text-gray-400 group-hover:text-primary-500'" />
+            <span class="text-[11px] font-black uppercase tracking-widest flex-1 text-left">Sync System</span>
+            <Check v-if="settings.theme === 'system'" class="w-3 h-3 animate-in zoom-in-50 duration-300" />
           </button>
 
-          <div class="h-px bg-gray-100 dark:bg-gray-800 my-1 mx-2"></div>
+          <div class="h-px bg-gray-100 dark:bg-gray-800/50 my-1 mx-3"></div>
 
           <!-- Manual Options -->
           <button 
             v-for="t in themeOptions" :key="t.id"
             @click="selectTheme(t.id)"
-            class="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all group"
-            :class="settings.theme === t.id ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative overflow-hidden"
+            :class="settings.theme === t.id 
+              ? 'text-primary-600 dark:text-primary-400' 
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'"
+            :style="settings.theme === t.id ? { backgroundColor: 'var(--bg-selection, rgba(var(--primary-500-rgb), 0.1))' } : {}"
           >
+            <!-- Selection Accent -->
+            <div v-if="settings.theme === t.id" class="absolute left-0 top-2 bottom-2 w-1 bg-primary-500 rounded-r-full"></div>
+
             <div 
-              class="w-4 h-4 rounded-full border-2 transition-colors relative overflow-hidden" 
-              :class="settings.theme === t.id ? 'border-white' : 'border-gray-200 dark:border-gray-700 group-hover:border-primary-500'"
+              class="w-4 h-4 rounded-full border-2 transition-all relative overflow-hidden shrink-0" 
+              :class="settings.theme === t.id ? 'border-primary-500 scale-110 shadow-sm' : 'border-gray-200 dark:border-gray-700 group-hover:border-primary-500'"
             >
               <div class="absolute inset-0 flex">
                 <div class="flex-1" :style="{ backgroundColor: t.preview.sidebar }"></div>
                 <div class="w-2/3" :style="{ backgroundColor: t.preview.main }"></div>
               </div>
             </div>
-            <span class="text-[11px] font-bold uppercase tracking-widest flex-1 text-left">{{ t.label }}</span>
-            <Check v-if="settings.theme === t.id" class="w-3 h-3" />
+            <span class="text-[11px] font-black uppercase tracking-widest flex-1 text-left line-clamp-1">{{ $t('settings.themes.' + t.id) }}</span>
+            <Check v-if="settings.theme === t.id" class="w-3 h-3 animate-in zoom-in-50 duration-300" />
           </button>
         </div>
       </div>

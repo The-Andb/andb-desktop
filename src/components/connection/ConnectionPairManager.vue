@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3">
     <div class="flex items-center justify-between">
       <h3 class="text-base font-semibold text-gray-900 dark:text-white">
         {{ $t('connectionPairs.title') }}
@@ -13,29 +13,31 @@
       </button>
     </div>
 
-    <!-- Connection Pairs List -->
-    <div class="space-y-3">
+    <div class="space-y-4">
       <div
         v-for="pair in connectionPairs"
         :key="pair.id"
-        class="group relative bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300"
+        class="group relative px-2 py-4 hover:bg-gray-100/30 dark:hover:bg-white/5 transition-all duration-300 border-b border-gray-100 dark:border-gray-800/40 last:border-none"
       >
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-4">
            <!-- Top Row: Name & Actions -->
-           <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50 pb-2.5">
-              <input 
-                v-model="pair.name" 
-                type="text" 
-                class="flex-1 bg-transparent border-none text-xs font-black text-gray-700 dark:text-gray-200 focus:ring-0 p-0 outline-none uppercase tracking-widest placeholder:text-gray-300" 
-                :placeholder="$t('connectionPairs.pairNamePlaceholder')"
-                @blur="updatePair(pair)"
-              />
+           <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 flex-1">
+                 <div v-if="pair.isDefault" class="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_var(--primary-500)] shrink-0"></div>
+                 <input 
+                   v-model="pair.name" 
+                   type="text" 
+                   class="flex-1 bg-transparent border-none text-[13px] font-black text-gray-900 dark:text-white focus:ring-0 p-0 outline-none uppercase tracking-tight placeholder:text-gray-300" 
+                   :placeholder="$t('connectionPairs.pairNamePlaceholder')"
+                   @blur="updatePair(pair)"
+                 />
+              </div>
               
-              <div class="flex items-center gap-1 shrink-0 ml-4">
-                <button v-if="!isDumpPair(pair)" @click="testPair(pair)" :disabled="!pair.sourceEnv || !pair.targetEnv" class="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg"><ShieldQuestion class="w-3.5 h-3.5" /></button>
-                <button @click="setAsDefault(pair)" :class="pair.isDefault ? 'text-green-500' : 'text-gray-400 hover:text-green-600'" class="p-1.5 transition-colors rounded-lg"><Star class="w-3.5 h-3.5" :fill="pair.isDefault ? 'currentColor' : 'none'" /></button>
-                <button @click="duplicatePair(pair)" class="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors rounded-lg"><Copy class="w-3.5 h-3.5" /></button>
-                <button @click="removePair(pair)" class="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg"><Trash2 class="w-3.5 h-3.5" /></button>
+              <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button v-if="!isDumpPair(pair)" @click="testPair(pair)" :disabled="!pair.sourceEnv || !pair.targetEnv" class="p-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all" title="Test Connection"><ShieldQuestion class="w-4 h-4" /></button>
+                <button @click="setAsDefault(pair)" :class="pair.isDefault ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'" class="p-2 transition-all rounded-lg" title="Set as Default"><Star class="w-4 h-4" :fill="pair.isDefault ? 'currentColor' : 'none'" /></button>
+                <button @click="duplicatePair(pair)" class="p-2 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all" title="Duplicate"><Copy class="w-4 h-4" /></button>
+                <button @click="removePair(pair)" class="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Remove"><Trash2 class="w-4 h-4" /></button>
               </div>
            </div>
 

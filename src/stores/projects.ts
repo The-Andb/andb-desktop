@@ -238,7 +238,9 @@ export const useProjectsStore = defineStore('projects', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...project,
-      isActive: false // Default to false
+      isActive: false, // Default to false
+      icon: project.icon || 'Database',
+      color: project.color || '#6366f1' // Indigo default
     }
 
     projects.value.push(newProject)
@@ -279,9 +281,12 @@ export const useProjectsStore = defineStore('projects', () => {
     if (projects.value.some(p => p.id === id)) {
       selectedProjectId.value = id
 
-      // Update isActive flag for all projects
+      // Update isActive flag and lastOpenedAt for selected project
       projects.value.forEach(p => {
         p.isActive = p.id === id
+        if (p.id === id) {
+          p.lastOpenedAt = new Date().toISOString()
+        }
       })
     }
   }

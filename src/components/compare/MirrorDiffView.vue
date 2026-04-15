@@ -729,10 +729,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  document.addEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('mousedown', handleClickOutside)
   window.removeEventListener('keydown', handleKeydown)
   stopResize()
-
+})
 </script>
 
 <style scoped>

@@ -241,25 +241,30 @@
                                   <CheckCircle2 v-else-if="testResults[template.id]?.success" class="w-4 h-4" />
                                   <AlertCircle v-else-if="testResults[template.id] && !testResults[template.id].success" class="w-4 h-4" />
                                   <ShieldQuestion v-else class="w-4 h-4" />
-                                </button>
-                                <button v-if="!!(template as any).permissions" @click="openReconfigure(template)" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 p-1 rounded-lg transition-all hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="Reconfigure Privileges">
-                                   <ShieldCheck class="w-4 h-4" />
+                                </button>                                <button v-if="['mysql', 'postgres'].includes(template.type)" @click="openReconfigure(template)" 
+                                        class="p-1.5 rounded-xl transition-all duration-300 transform hover:scale-110"
+                                        :class="!!(template as any).permissions 
+                                          ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:bg-emerald-100' 
+                                          : 'text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 active:bg-amber-100'"
+                                        :title="!!(template as any).permissions ? 'Edit Connection Policy' : 'Setup Connection Policy'">
+                                   <ShieldCheck v-if="!!(template as any).permissions" class="w-4 h-4" />
+                                   <ShieldQuestion v-else class="w-4 h-4" />
                                 </button>
                                 <button @click="openForm(template)" 
-                                        class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
+                                        class="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 p-1.5 rounded-xl transition-all duration-300 transform hover:scale-110 hover:bg-primary-50 dark:hover:bg-primary-900/10"
                                         :title="$t('common.edit')">
-                                <Edit2 class="w-4 h-4" />
+                                  <Edit2 class="w-4 h-4" />
                                 </button>
                                 <button @click="duplicateTemplate(template)"
-                                        class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                        class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 rounded-xl transition-all duration-300 transform hover:scale-110 hover:bg-blue-50 dark:hover:bg-blue-900/10"
                                         :title="$t('common.duplicate')">
-                                <Copy class="w-4 h-4" />
+                                  <Copy class="w-4 h-4" />
                                 </button>
                                 <button @click="confirmingId = template.id" 
-                                        class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                        class="text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-xl transition-all duration-300 transform hover:scale-110 hover:bg-rose-50 dark:hover:bg-rose-900/10"
                                         :title="$t('common.delete')">
-                                <Trash2 class="w-4 h-4" />
-                                </button>
+                                  <Trash2 class="w-4 h-4" />
+                                </button>>
                             </div>
                           </Transition>
                         </div>
@@ -307,40 +312,42 @@
             </button>
         </div>
 
-        <!-- Form Body Top: Database Type Selector -->
+        <!-- Form Body Top: Database Type + Auth Mode (Single Row) -->
         <div class="px-6 py-4 shrink-0 border-b border-gray-100 dark:border-gray-800">
-            <div class="space-y-2 max-w-sm">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.databaseType') }} *</label>
-                <div class="relative group">
-                    <select
-                        v-model="form.type"
-                        :disabled="!!editingTemplate"
-                        class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
-                    >
-                        <option value="mysql">{{ $t('connections.types.mysql') }}</option>
-                        <option value="postgres">{{ $t('connections.types.postgres') }}</option>
-                        <option value="sqlite">{{ $t('connections.types.sqlite') }}</option>
-                        <option value="dump">{{ $t('connections.types.dump') }}</option>
-                    </select>
-                    <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
+            <div class="flex items-end gap-4 flex-wrap">
+                <div class="space-y-2 flex-1 min-w-[180px] max-w-sm">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.databaseType') }} *</label>
+                    <div class="relative group">
+                        <select
+                            v-model="form.type"
+                            :disabled="!!editingTemplate"
+                            class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all appearance-none outline-none disabled:opacity-50 disabled:cursor-not-allowed font-bold leading-tight"
+                        >
+                            <option value="mysql">{{ $t('connections.types.mysql') }}</option>
+                            <option value="postgres">{{ $t('connections.types.postgres') }}</option>
+                            <option value="sqlite">{{ $t('connections.types.sqlite') }}</option>
+                            <option value="dump">{{ $t('connections.types.dump') }}</option>
+                        </select>
+                        <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-primary-500 transition-colors" />
+                    </div>
+                </div>
+
+                <!-- Mode Toggle (inline, only for mysql/postgres new connections) -->
+                <div v-if="!editingTemplate && ['mysql', 'postgres'].includes(form.type || '')" class="shrink-0 pb-0.5">
+                   <div class="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-x-auto">
+                      <button @click="isUserConnectionMode = false"
+                              class="px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
+                              :class="!isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                         <Database class="w-4 h-4" /> Trusted Auth
+                      </button>
+                      <button @click="isUserConnectionMode = true"
+                              class="px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
+                              :class="isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
+                         <ShieldCheck class="w-4 h-4" /> Restricted Auth
+                      </button>
+                   </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Mode Toggle (Only visible when creating a new connection AND type supports restricted auth) -->
-        <div v-if="!editingTemplate && ['mysql', 'postgres'].includes(form.type || '')" class="px-6 pt-4 shrink-0">
-           <div class="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-full sm:w-fit overflow-x-auto">
-              <button @click="isUserConnectionMode = false"
-                      class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
-                      :class="!isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
-                 <Database class="w-4 h-4" /> Trusted Auth
-              </button>
-              <button @click="isUserConnectionMode = true"
-                      class="flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all gap-2 flex items-center justify-center whitespace-nowrap"
-                      :class="isUserConnectionMode ? 'bg-white dark:bg-gray-700 text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'">
-                 <ShieldCheck class="w-4 h-4" /> Restricted Auth
-              </button>
-           </div>
         </div>
 
         <!-- Secure Assistant Mode (ONLY for Restricted User setups) -->
@@ -608,6 +615,7 @@ const openReconfigure = (template: ConnectionTemplate) => {
         ssh: template.ssh || { enabled: false, host: '', port: 22, username: '', privateKeyPath: '' },
     }
     reconfigureMode.value = true
+    isUserConnectionMode.value = true
     showAddForm.value = true
 }
 

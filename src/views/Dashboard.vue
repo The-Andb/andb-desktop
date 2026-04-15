@@ -4,32 +4,57 @@
       <div class="flex items-center justify-between w-full h-full gap-4">
         <!-- Title & Status -->
         <div class="flex items-center gap-4">
-          <div class="flex flex-col gap-0.5 items-start">
-            <div class="flex items-center group">
-              <Folder class="w-5 h-5 mr-3 text-primary-500 shrink-0" />
-              <input
-                v-if="isEditingName"
-                v-model="tempName"
-                @blur="saveProjectName"
-                @keyup.enter="saveProjectName"
-                @keyup.escape="cancelEdit"
-                v-focus
-                type="text"
-                class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight bg-transparent border-b-2 border-primary-500 outline-none px-0 py-0 w-auto min-w-[100px]"
-                :style="{ width: (tempName.length || 1) + 'ch' }"
-              />
-              <h1 
-                v-else 
-                @click="startEditing"
-                class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight cursor-text hover:text-primary-500 transition-colors flex items-center gap-2 group-hover:translate-x-1 transition-transform"
-              >
-                {{ currentProject?.name || $t('dashboard.title') }}
-                <Edit3 class="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-              </h1>
+          <!-- Icon & Branding Group -->
+          <div class="flex items-center group relative h-10">
+            <div 
+              @click.stop="isIconPickerOpen = !isIconPickerOpen"
+              class="w-10 h-10 rounded-2xl flex items-center justify-center text-white mr-3 shadow-xl cursor-pointer hover:scale-110 active:scale-95 transition-all border border-white/20 relative z-30 shrink-0"
+              :style="{ backgroundColor: currentProject?.color || '#6366f1' }"
+            >
+              <component :is="projectIconMap[currentProject?.icon || 'Database']" class="w-5 h-5" />
             </div>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] opacity-60 ml-8">
-              {{ $t('dashboard.projectDashboard') }}
-            </p>
+
+            <!-- Icon Picker Popover -->
+            <div v-if="isIconPickerOpen" class="absolute left-0 top-full mt-2 z-[100]" @click.stop>
+              <ProjectIconPicker 
+                :selected-icon="currentProject?.icon" 
+                :selected-color="currentProject?.color"
+                @select="data => { 
+                   if (currentProject) {
+                      projectsStore.updateProject(currentProject.id, data);
+                   }
+                   isIconPickerOpen = false;
+                }"
+              />
+            </div>
+
+            <div class="flex flex-col justify-center">
+              <div class="flex items-center">
+                <input
+                  v-if="isEditingName"
+                  v-model="tempName"
+                  @blur="saveProjectName"
+                  @keyup.enter="saveProjectName"
+                  @keyup.escape="cancelEdit"
+                  v-focus
+                  type="text"
+                  class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight bg-transparent border-b-2 border-primary-500 outline-none px-0 py-0 w-auto min-w-[100px]"
+                  :style="{ width: (tempName.length || 1) + 'ch' }"
+                />
+                <h1 
+                  v-else 
+                  @click="startEditing"
+                  data-testid="dashboard-title"
+                  class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight cursor-text hover:text-primary-500 transition-colors flex items-center gap-2 group-hover:translate-x-1 transition-transform leading-none"
+                >
+                  {{ currentProject?.name || $t('dashboard.title') }}
+                  <Edit3 class="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                </h1>
+              </div>
+              <p class="text-[9px] text-gray-500 font-bold tracking-widest opacity-60 mt-0.5">
+                {{ $t('dashboard.projectDashboard') }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -80,7 +105,7 @@
     </template>
     <main class="flex-1 p-6 overflow-y-auto">
       <div class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <!-- Total Connections -->
           <div 
             @click="navigateTo('/project-settings')"
@@ -91,12 +116,12 @@
                 <Database class="w-6 h-6" />
               </div>
               <div class="flex flex-col items-end">
-              <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.active') }}</div>
+              <div class="text-[10px] font-black text-gray-400 tracking-widest">{{ $t('dashboard.active') }}</div>
                 <div class="text-xs font-bold text-green-500">{{ connectedCount }} / {{ totalConnections }}</div>
               </div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('dashboard.connections') }}</p>
+              <p class="text-xs font-bold text-gray-500 tracking-widest">{{ $t('dashboard.connections') }}</p>
               <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ totalConnections }}</p>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50">
@@ -109,20 +134,20 @@
           <!-- Environments -->
           <div 
             @click="navigateTo('/project-settings')"
-            class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
+            class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 p-5 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
           >
             <div class="flex items-center justify-between mb-4">
               <div class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-300">
                 <Layers class="w-6 h-6" />
               </div>
-              <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.configured') }}</div>
+              <div class="text-[10px] font-black text-gray-400 tracking-widest">{{ $t('dashboard.configured') }}</div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('dashboard.environments') }}</p>
+              <p class="text-xs font-bold text-gray-500 tracking-widest">{{ $t('dashboard.environments') }}</p>
               <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ enabledEnvironments.length }}</p>
             </div>
             <div class="mt-4 flex flex-wrap gap-1.5">
-              <span v-for="env in enabledEnvironments" :key="env.id" class="px-2 py-0.5 bg-gray-50 dark:bg-gray-700/50 text-[9px] font-black text-gray-400 uppercase rounded border border-gray-100 dark:border-gray-600/50">
+              <span v-for="env in enabledEnvironments" :key="env.id" class="px-2 py-0.5 bg-gray-50 dark:bg-gray-700/50 text-[9px] font-black text-gray-400 rounded border border-gray-100 dark:border-gray-600/50">
                 {{ env.name }}
               </span>
             </div>
@@ -180,7 +205,7 @@
         </div>
 
         <!-- Additional Stats Cards - Operations Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
            <div 
              v-for="stat in [
                { label: $t('dashboard.totalChanges'), val: totalDDLCount, unit: $t('dashboard.units.objects'), icon: FileCode, col: 'indigo' },
@@ -382,8 +407,7 @@ import {
   LayoutGrid,
   Settings,
   FileText,
-  Edit3,
-  Folder
+  Edit3
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ReportsViewer from '@/components/reports/ReportsViewer.vue'
@@ -391,6 +415,8 @@ import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useOperationsStore } from '@/stores/operations'
+import { projectIconMap } from '@/utils/projectIcons'
+import ProjectIconPicker from '@/components/projects/ProjectIconPicker.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -401,6 +427,7 @@ const operationsStore = useOperationsStore()
 
 const isRefreshing = ref(false)
 const showReportsModal = ref(false)
+const isIconPickerOpen = ref(false)
 
 const currentProject = computed(() => projectsStore.currentProject)
 
@@ -461,8 +488,8 @@ const totalConnections = computed(() => displayedConnections.value.length)
 const connectedCount = computed(() => displayedConnections.value.filter(c => c.status === 'connected').length)
 const enabledEnvironments = computed(() => {
   // Filter environments present in displayed connections
-  const envs = new Set<string>(displayedConnections.value.map(c => c.environment))
-  return connectionPairsStore.enabledEnvironments.filter(e => envs.has(e.name))
+  const envs = new Set<string>(displayedConnections.value.map((c: any) => c.environment))
+  return connectionPairsStore.enabledEnvironments.filter((e: any) => envs.has(e.name))
 })
 
 // const connectionPairs is replaced by displayedPairs
@@ -549,8 +576,8 @@ const migratesByPair = computed(() => {
     if (!currentProject.value) return result
     
     // We only show stats for pairs that belong to this project
-    const projectPairs = connectionPairsStore.connectionPairs.filter(p => currentProject.value?.pairIds.includes(p.id))
-    const pairKeys = new Set(projectPairs.map(p => `${p.sourceEnv}->${p.targetEnv}`))
+    const projectPairs = connectionPairsStore.connectionPairs.filter((p: any) => currentProject.value?.pairIds.includes(p.id))
+    const pairKeys = new Set(projectPairs.map((p: any) => `${p.sourceEnv}->${p.targetEnv}`))
 
     operationsStore.operations
       .filter(op => op.type === 'migrate' && op.sourceEnv && op.targetEnv)

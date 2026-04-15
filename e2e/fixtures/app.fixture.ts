@@ -113,8 +113,7 @@ export const test = base.extend<{ appFixture: AppFixture }>({
       env: { 
         ...process.env, 
         NODE_ENV: 'test',
-        // We must override the app's userData Path in the electron process too
-        // In bootstrap.ts, configureAppPaths() handles this if it sees isTest
+        ANDB_USER_DATA_PATH: userDataPath,
       },
     });
 

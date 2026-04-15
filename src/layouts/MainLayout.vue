@@ -40,6 +40,7 @@
           <div v-else-if="isGlobalLayer" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700 shrink-0">
             <button 
               @click="closeGlobalLayer" 
+              data-testid="close-settings"
               class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all border border-transparent shrink-0"
               :title="$t('navigation.closeGlobal')"
             >

@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-4 animate-in fade-in duration-500 relative">
+  <div class="space-y-2.5 animate-in fade-in duration-500 relative">
     <!-- View: Connection List -->
     <div v-if="!showAddForm && !editingConnection" class="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
 
       <!-- Header + Filters + Actions -->
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div class="flex items-center gap-4">
-          <h3 class="text-base font-black text-gray-900 dark:text-white uppercase tracking-tight">
-            PROJECT CONNECTIONS
+          <h3 class="text-base font-black text-gray-900 dark:text-white tracking-tight">
+            Project Connections
           </h3>
 
           <!-- FILTERS -->
@@ -55,13 +55,13 @@
         <div class="flex items-center justify-end gap-2 ml-auto w-full sm:w-auto">
           <!-- Bulk Actions -->
           <div v-if="selectedConnections.length > 0" class="flex items-center gap-2 mr-2 animate-in fade-in zoom-in duration-200">
-            <span class="text-xs text-gray-500 font-bold">{{ selectedConnections.length }} selected</span>
+            <span class="text-xs text-gray-400 font-bold">{{ selectedConnections.length }} {{ $t('common.selected') }}</span>
             
             <Transition name="slide-left" mode="out-in">
-              <div v-if="confirmingBulkDelete" class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm animate-in fade-in duration-200">
+              <div v-if="confirmingBulkDelete" class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm animate-in fade-in duration-200">
                 <span class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Delete {{ selectedConnections.length }}?</span>
-                <button @click="confirmingBulkDelete = false" class="text-[11px] font-black uppercase text-gray-400 hover:text-gray-600 px-2">No</button>
-                <button @click="confirmingBulkDelete = false; bulkDeleteConnections(true)" class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Yes</button>
+                <button @click="confirmingBulkDelete = false" class="text-[11px] font-black uppercase text-gray-400 hover:text-gray-600 px-2 transition-colors">No</button>
+                <button @click="confirmingBulkDelete = false; bulkDeleteConnections(true)" class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20 active:scale-95">Yes</button>
               </div>
               <div v-else class="flex items-center gap-2">
                 <button @click="bulkTestConnections" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
@@ -94,8 +94,7 @@
         </div>
       </div>
 
-      <!-- Connection Table -->
-      <div class="card overflow-hidden rounded-2xl">
+      <div class="overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800">
@@ -108,43 +107,49 @@
                     class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
                   />
                 </th>
-                <th class="px-4 py-2 text-left text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <th class="px-4 py-1.5 text-left text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                   {{ $t('connections.connectionName') }}
                 </th>
-                <th class="px-4 py-2 text-left text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <th class="px-4 py-1.5 text-left text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                   {{ $t('connections.host') }}
                 </th>
-                <th class="px-4 py-2 text-left text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <th class="px-4 py-3 text-left text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800/40">
                   {{ $t('connections.database') }}
                 </th>
-                <th class="px-4 py-2 text-right text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <th class="px-4 py-3 text-right text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800/40">
                   {{ $t('common.actions') }}
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white dark:bg-gray-900">
+            <tbody class="bg-transparent">
               <!-- Group Headers (by environment when showing all) -->
               <template v-for="group in connectionGroups" :key="group.env">
                 <tr v-if="group.connections.length > 0 && viewMode === 'all'">
-                  <td colspan="5" class="px-6 py-2 bg-gray-50/50 dark:bg-gray-800/20 text-xs font-black text-gray-500 uppercase tracking-widest">
+                  <td colspan="5" class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 dark:border-gray-800/40">
                     <div class="flex items-center gap-2">
-                      <div class="w-1.5 h-1.5 rounded-full" :class="getEnvDotClass(group.env)"></div>
-                      {{ group.env }} <span class="text-gray-400 font-mono ml-1">{{ group.connections.length }}</span>
+                      <div class="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]" :class="getEnvDotClass(group.env)"></div>
+                      {{ group.env }} <span class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[8px] ml-1">{{ group.connections.length }}</span>
                     </div>
                   </td>
                 </tr>
                 <tr v-for="connection in group.connections"
                     :key="connection.id"
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group border-b border-gray-100 dark:border-gray-800/50 last:border-none"
                     :class="{ 'bg-primary-50 dark:bg-primary-900/10': selectedConnections.includes(connection.id) }"
                 >
-                  <td class="px-4 py-2 whitespace-nowrap w-10">
-                    <input
-                      type="checkbox"
-                      :value="connection.id"
-                      v-model="selectedConnections"
-                      class="rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
-                    />
+                  <td class="px-4 py-3 whitespace-nowrap w-12 align-middle">
+                    <div class="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        :id="`conn-${connection.id}`"
+                        :value="connection.id"
+                        v-model="selectedConnections"
+                        class="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div class="w-5 h-5 border-2 border-gray-200 dark:border-gray-800 rounded-lg flex items-center justify-center transition-all peer-checked:bg-primary-500 peer-checked:border-primary-500 peer-hover:border-primary-400">
+                        <Check v-if="selectedConnections.includes(connection.id)" class="w-3.5 h-3.5 text-white" />
+                      </div>
+                    </div>
                   </td>
                   <td class="px-4 py-2 whitespace-nowrap">
                     <div class="flex items-center">
@@ -172,27 +177,27 @@
                             {{ connection.environment }}
                           </span>
                         </div>
-                        <div class="text-[8px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                        <div class="text-[9px] font-black text-gray-400 tracking-widest mt-0.5">
                           {{ connection.type || 'mysql' }}
                           <span v-if="connection.templateId" class="text-primary-500 flex items-center gap-0.5">· <LayoutTemplate class="w-2 h-2" /> linked</span>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td class="px-4 py-2 whitespace-nowrap">
+                  <td class="px-4 py-3 whitespace-nowrap align-middle">
                     <div class="flex flex-col max-w-[200px]">
-                      <div class="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 overflow-hidden">
+                      <div class="flex items-center gap-2 text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight overflow-hidden">
                         <Server class="w-3 h-3 text-gray-400 shrink-0" />
                         <span class="truncate" :title="connection.host">{{ connection.host || '(No Host)' }}</span>
-                        <span v-if="connection.port" class="shrink-0 text-[10px] opacity-75">:{{ connection.port }}</span>
+                        <span v-if="connection.port" class="shrink-0 text-[10px] opacity-40">:{{ connection.port }}</span>
                       </div>
-                      <div class="flex items-center gap-2 text-[10px] mt-0.5 text-gray-500">
-                        <User class="w-2.5 h-2.5 opacity-70" />
-                        {{ connection.username || '(None)' }}
+                      <div class="flex items-center gap-2 text-[10px] mt-0.5 text-gray-400 font-medium">
+                        <User class="w-2.5 h-2.5 opacity-40" />
+                        {{ connection.username || '(Anonymous)' }}
                       </div>
                     </div>
                   </td>
-                  <td class="px-4 py-2 whitespace-nowrap">
+                  <td class="px-4 py-3 whitespace-nowrap align-middle">
                     <div v-if="editingDbConnId === connection.id" class="flex items-center gap-1.5 min-w-[120px]">
                       <input
                         v-model="editingDbValue"
@@ -201,23 +206,23 @@
                         @keyup.esc="editingDbConnId = null"
                         v-focus
                         type="text"
-                        class="w-full px-2 py-0.5 text-xs font-bold border border-primary-500 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500/20"
+                        class="w-full px-2 py-1 text-xs font-bold border border-primary-500 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10"
                       />
                     </div>
-                    <div v-else @click="startEditDb(connection)" class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded w-fit cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group/db">
-                      <Database class="w-3 h-3 text-gray-400 group-hover/db:text-primary-500" />
+                    <div v-else @click="startEditDb(connection)" class="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-tight text-gray-400 dark:text-gray-500 hover:text-primary-500 transition-colors group/db cursor-pointer">
+                      <Database class="w-3 h-3 opacity-50 group-hover/db:opacity-100 transition-opacity" />
                       {{ connection.database || '(No DB)' }}
-                      <Edit2 class="w-2.5 h-2.5 opacity-0 group-hover/db:opacity-100 text-primary-500 transition-opacity" />
+                      <Edit2 class="w-2.5 h-2.5 opacity-0 group-hover/db:opacity-100 transition-opacity" />
                     </div>
                   </td>
-                  <td class="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
+                  <td class="px-4 py-1.5 whitespace-nowrap text-right text-xs font-medium">
                     <div class="flex items-center justify-end gap-2 px-2 py-1 rounded-lg min-h-[40px]">
                       <Transition name="slide-left" mode="out-in">
                         <div v-if="confirmingId === connection.id" class="flex items-center gap-4 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl animate-in fade-in slide-in-from-right-2 duration-300 shadow-sm">
-                            <span class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest shrink-0">Delete connection?</span>
+                            <span class="text-xs font-black text-gray-900 dark:text-white tracking-widest shrink-0">Delete connection?</span>
                             <div class="flex items-center gap-3">
-                                <button @click="confirmingId = null" class="text-xs font-black uppercase text-gray-400 hover:text-gray-600 px-2 transition-colors">Cancel</button>
-                                <button @click="deleteConnection(connection.id, true)" class="text-xs font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Confirm</button>
+                                <button @click="confirmingId = null" class="text-xs font-black text-gray-400 hover:text-gray-600 px-2 transition-colors">Cancel</button>
+                                <button @click="deleteConnection(connection.id, true)" class="text-xs font-black bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20">Confirm</button>
                             </div>
                         </div>
                         <div v-else class="flex items-center justify-end gap-2">
@@ -440,6 +445,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   Plus,
+  Check,
   Database,
   ShieldQuestion,
   Edit2,

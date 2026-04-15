@@ -38,6 +38,7 @@
   --primary-800: #065f46;
   --primary-900: #064e3b;
   --primary-950: #022c22;
+  --bg-selection: #f0fdf4; /* primary-50 for light */
 
   --font-family-general: 'Inter', 'Outfit', system-ui, sans-serif;
   --font-family-code: 'JetBrains Mono', monospace;
@@ -80,6 +81,7 @@
   --primary-800: #d1fae5;
   --primary-900: #ecfdf5;
   --primary-950: #f0fdfa;
+  --bg-selection: rgba(52, 211, 153, 0.1); /* primary-400 at 10% for dark */
 
   /* Code Colors - Premium Dark Mode (High Contrast) */
   --code-text: #e2e8f0; /* slate-200 */
@@ -116,11 +118,128 @@
   --primary-500: #7fdbca; /* Cyan */
   --primary-600: #0c969b;
 
-  --code-keyword: #c792ea;
-  --code-string: #ecc48d;
-  --code-comment: #637777;
   --code-function: #82aaff;
   --code-punctuation: #7fdbca;
+}
+
+:root.dracula {
+  --bg-main: #282a36;
+  --bg-sidebar: #21222c;
+  --bg-selection: #44475a;
+  --text-main: #f8f8f2;
+  --border-color: #44475a;
+  --primary-500: #bd93f9;
+  --primary-600: #a277e3;
+  --code-keyword: #ff79c6;
+  --code-string: #f1fa8c;
+  --code-comment: #6272a4;
+  --code-function: #50fa7b;
+  --code-number: #bd93f9;
+}
+
+:root.one-dark {
+  --bg-main: #282c34;
+  --bg-sidebar: #21252b;
+  --bg-selection: #3e4451;
+  --text-main: #abb2bf;
+  --border-color: #3e4451;
+  --primary-500: #61afef;
+  --primary-600: #4a94d4;
+  --code-keyword: #c678dd;
+  --code-string: #98c379;
+  --code-comment: #5c6370;
+  --code-function: #61afef;
+  --code-number: #d19a66;
+}
+
+:root.monokai {
+  --bg-main: #2d2a2e;
+  --bg-sidebar: #221f22;
+  --bg-selection: #403e41;
+  --text-main: #fcfcfa;
+  --border-color: #403e41;
+  --primary-500: #ffd866;
+  --primary-600: #e5c15c;
+  --code-keyword: #ff6188;
+  --code-string: #ffd866;
+  --code-comment: #727072;
+  --code-function: #a9dc76;
+  --code-number: #ab9df2;
+}
+
+:root.nord {
+  --bg-main: #2e3440;
+  --bg-sidebar: #242933;
+  --bg-selection: #4c566a;
+  --text-main: #d8dee9;
+  --border-color: #3b4252;
+  --primary-500: #88c0d0;
+  --primary-600: #5e81ac;
+  --code-keyword: #81a1c1;
+  --code-string: #a3be8c;
+  --code-comment: #4c566a;
+  --code-function: #88c0d0;
+  --code-number: #b48ead;
+}
+
+:root.github-dark {
+  --bg-main: #0d1117;
+  --bg-sidebar: #010409;
+  --bg-selection: #21262d;
+  --text-main: #c9d1d9;
+  --border-color: #30363d;
+  --primary-500: #1f6feb;
+  --primary-600: #1158c7;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-comment: #8b949e;
+  --code-function: #d2a8ff;
+  --code-number: #79c0ff;
+}
+
+:root.github-light {
+  --bg-main: #ffffff;
+  --bg-sidebar: #f6f8fa;
+  --bg-selection: rgba(3, 102, 214, 0.1);
+  --text-main: #24292e;
+  --border-color: #e1e4e8;
+  --primary-500: #2188ff;
+  --primary-600: #0366d6;
+  --code-keyword: #d73a49;
+  --code-string: #032f62;
+  --code-comment: #6a737d;
+  --code-function: #6f42c1;
+  --code-number: #005cc5;
+}
+
+:root.solarized-light {
+  --bg-main: #fdf6e3;
+  --bg-sidebar: #eee8d5;
+  --bg-selection: #d7d1be;
+  --text-main: #657b83;
+  --border-color: #eee8d5;
+  --primary-500: #268bd2;
+  --primary-600: #2aa198;
+  --code-keyword: #859900;
+  --code-string: #2aa198;
+  --code-comment: #93a1a1;
+  --code-function: #268bd2;
+  --code-number: #d33682;
+}
+
+:root.nord-light {
+  --bg-main: #eceff4;
+  --bg-sidebar: #e5e9f0;
+  --bg-selection: #d8dee9;
+  --text-main: #2e3440;
+  --border-color: #d8dee9;
+  --primary-500: #5e81ac;
+  --primary-600: #81a1c1;
+  --code-keyword: #5e81ac;
+  --code-string: #a3be8c;
+  --code-comment: #4c566a;
+  --code-function: #88c0d0;
+  --code-number: #b48ead;
 }
 
 :root.night-owl-light {
@@ -198,6 +317,43 @@
 .night-owl-light .border-gray-200,
 .night-owl-light .border-gray-100 {
   border-color: var(--border-color) !important;
+}
+
+/* Global Overrides for Theme Sync */
+.dracula body, .one-dark body, .monokai body, .nord body, .github-dark body,
+.dracula .bg-white, .one-dark .bg-white, .monokai .bg-white, .nord .bg-white, .github-dark .bg-white,
+.dracula .bg-gray-50, .one-dark .bg-gray-50, .monokai .bg-gray-50, .nord .bg-gray-50, .github-dark .bg-gray-50 {
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
+}
+
+.dracula .bg-gray-50\/30, .one-dark .bg-gray-50\/30, .monokai .bg-gray-50\/30, .nord .bg-gray-50\/30, .github-dark .bg-gray-50\/30,
+.dracula .bg-gray-100, .one-dark .bg-gray-100, .monokai .bg-gray-100, .nord .bg-gray-100, .github-dark .bg-gray-100 {
+  background-color: var(--bg-sidebar) !important;
+}
+
+.dracula .border-gray-200, .one-dark .border-gray-200, .monokai .border-gray-200, .nord .border-gray-200, .github-dark .border-gray-200,
+.dracula .border-gray-100, .one-dark .border-gray-100, .monokai .border-gray-100, .nord .border-gray-100, .github-dark .border-gray-100,
+.dracula .border-gray-800, .one-dark .border-gray-800, .monokai .border-gray-800, .nord .border-gray-800, .github-dark .border-gray-800 {
+  border-color: var(--border-color) !important;
+}
+
+/* Specific Utility Overrides for Themes */
+.dracula .text-gray-900, .one-dark .text-gray-900, .monokai .text-gray-900, .nord .text-gray-900, .github-dark .text-gray-900,
+.dracula .text-gray-800, .one-dark .text-gray-800, .monokai .text-gray-800, .nord .text-gray-800, .github-dark .text-gray-800,
+.dracula .text-gray-700, .one-dark .text-gray-700, .monokai .text-gray-700, .nord .text-gray-700, .github-dark .text-gray-700 {
+  color: var(--text-main) !important;
+}
+
+.dracula .text-gray-500, .one-dark .text-gray-500, .monokai .text-gray-500, .nord .text-gray-500, .github-dark .text-gray-500,
+.dracula .text-gray-400, .one-dark .text-gray-400, .monokai .text-gray-400, .nord .text-gray-400, .github-dark .text-gray-400 {
+  color: var(--text-main) !important;
+  opacity: 0.7;
+}
+
+.dracula .bg-gray-100, .one-dark .bg-gray-100, .monokai .bg-gray-100, .nord .bg-gray-100, .github-dark .bg-gray-100,
+.dracula .bg-gray-50, .one-dark .bg-gray-50, .monokai .bg-gray-50, .nord .bg-gray-50, .github-dark .bg-gray-50 {
+  background-color: var(--bg-sidebar) !important;
 }
 
 @layer components {

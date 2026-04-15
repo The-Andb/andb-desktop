@@ -30,10 +30,14 @@ export function initSentry() {
  */
 export function configureAppPaths() {
   if (isTest) {
-    app.name = 'TheAndb Test'
-    const userDataPath = app.getPath('userData')
-    if (!userDataPath.endsWith('_v3_test')) {
-      app.setPath('userData', userDataPath + '_v3_test')
+    if (process.env.ANDB_USER_DATA_PATH) {
+      app.setPath('userData', process.env.ANDB_USER_DATA_PATH)
+    } else {
+      app.name = 'TheAndb Test'
+      const userDataPath = app.getPath('userData')
+      if (!userDataPath.endsWith('_v3_test')) {
+        app.setPath('userData', userDataPath + '_v3_test')
+      }
     }
   } else if (isDev) {
     app.name = 'TheAndb Dev'

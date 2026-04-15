@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-export type Theme = 'light' | 'dark' | 'system' | 'solarized-dark' | 'night-owl-dark' | 'night-owl-light'
+export type Theme = 'light' | 'dark' | 'system' | 'solarized-dark' | 'night-owl-dark' | 'night-owl-light' | 'dracula' | 'one-dark' | 'monokai' | 'nord' | 'github-dark' | 'github-light' | 'solarized-light' | 'nord-light'
 export type Language = 'en' | 'vi'
 
 export interface ThemeOption {
@@ -16,10 +16,18 @@ export interface ThemeOption {
 
 export const themeOptions: ThemeOption[] = [
   { id: 'light', label: 'Refined Light', dark: false, preview: { main: '#ffffff', sidebar: '#f9fafb' } },
+  { id: 'github-light', label: 'GitHub Light', dark: false, preview: { main: '#ffffff', sidebar: '#f6f8fa' } },
+  { id: 'solarized-light', label: 'Solarized Light', dark: false, preview: { main: '#fdf6e3', sidebar: '#eee8d5' } },
+  { id: 'nord-light', label: 'Nord Light', dark: false, preview: { main: '#eceff4', sidebar: '#e5e9f0' } },
   { id: 'night-owl-light', label: 'Night Owl Light', dark: false, preview: { main: '#fbfbfb', sidebar: '#f0f0f0' } },
   { id: 'dark', label: 'Pro Dark', dark: true, preview: { main: '#111827', sidebar: '#1f2937' } },
   { id: 'solarized-dark', label: 'Solarized Dark', dark: true, preview: { main: '#002b36', sidebar: '#073642' } },
-  { id: 'night-owl-dark', label: 'Night Owl Dark', dark: true, preview: { main: '#011627', sidebar: '#01111d' } }
+  { id: 'night-owl-dark', label: 'Night Owl Dark', dark: true, preview: { main: '#011627', sidebar: '#01111d' } },
+  { id: 'dracula', label: 'Dracula', dark: true, preview: { main: '#282a36', sidebar: '#21222c' } },
+  { id: 'one-dark', label: 'One Dark', dark: true, preview: { main: '#282c34', sidebar: '#21252b' } },
+  { id: 'monokai', label: 'Monokai Pro', dark: true, preview: { main: '#2d2a2e', sidebar: '#221f22' } },
+  { id: 'nord', label: 'Nord', dark: true, preview: { main: '#2e3440', sidebar: '#242933' } },
+  { id: 'github-dark', label: 'GitHub Dark', dark: true, preview: { main: '#0d1117', sidebar: '#010409' } }
 ]
 
 interface Settings {
@@ -102,18 +110,19 @@ export const useSettingsStore = defineStore('settings', () => {
     const root = document.documentElement
 
     // Clean up existing theme classes
-    const themeClasses = ['dark', 'solarized-dark', 'night-owl-dark', 'night-owl-light']
+    const themeClasses = themeOptions.map(t => t.id).concat(['dark'])
     root.classList.remove(...themeClasses)
 
     if (theme === 'system') {
       const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       root.classList.toggle('dark', isDark)
     } else {
+      // Add the specific theme class
       root.classList.add(theme)
 
-      // For 'dark' variants, we should also add 'dark' class if we want to keep using Tailwind's dark: utilities
-      // unless the theme specifically redefines everything.
-      if (theme.includes('dark')) {
+      // Automatically add 'dark' class if the theme is marked as dark in options
+      const option = themeOptions.find(o => o.id === theme)
+      if (option?.dark) {
         root.classList.add('dark')
       }
     }

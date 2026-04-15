@@ -18,40 +18,18 @@
               projectsStore.currentProject?.name }}</p>
           </div>
 
-          <div class="flex-1 overflow-y-auto px-4 py-2 space-y-6">
-            <!-- Project Settings -->
-            <div class="space-y-1">
-              <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 opacity-50">{{
-                $t('settings.sections.project') }}</h3>
-              <button v-for="cat in projectSettings" :key="cat.id" @click="activeCategory = cat.id"
-                class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden"
-                :class="activeCategory === cat.id
-                  ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 active:scale-95'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'">
-                <component :is="cat.icon" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                <span class="text-[11px] font-bold uppercase tracking-widest">{{ cat.label }}</span>
-                <div v-if="activeCategory === cat.id"
-                  class="absolute inset-0 bg-white/10 translate-x-[-100%] animate-[shimmer_3s_infinite] pointer-events-none">
-                </div>
-              </button>
-            </div>
-
-            <!-- Global Configuration -->
-            <div class="space-y-1 mt-6">
-              <h3 class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 opacity-50">{{
-                $t('settings.sections.global', 'Global Configuration') }}</h3>
-              <button v-for="cat in globalSettings" :key="cat.id" @click="activeCategory = cat.id"
-                class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden"
-                :class="activeCategory === cat.id
-                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20 active:scale-95'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'">
-                <component :is="cat.icon" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                <span class="text-[11px] font-bold uppercase tracking-widest">{{ cat.label }}</span>
-                <div v-if="activeCategory === cat.id"
-                  class="absolute inset-0 bg-white/10 translate-x-[-100%] animate-[shimmer_3s_infinite] pointer-events-none">
-                </div>
-              </button>
-            </div>
+          <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+            <button v-for="cat in projectSettings" :key="cat.id" @click="activeCategory = cat.id"
+              class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden"
+              :class="activeCategory === cat.id
+                ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 active:scale-95'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'">
+              <component :is="cat.icon" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+              <span class="text-[11px] font-bold uppercase tracking-widest text-left leading-tight flex-1">{{ cat.label }}</span>
+              <div v-if="activeCategory === cat.id"
+                class="absolute inset-0 bg-white/10 translate-x-[-100%] animate-[shimmer_3s_infinite] pointer-events-none">
+              </div>
+            </button>
           </div>
 
           <!-- Bottom Actions -->
@@ -65,9 +43,9 @@
         </div>
 
         <!-- Category Detail Pane -->
-        <div :key="projectsStore.selectedProjectId || 'none'" class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        <div :key="projectsStore.selectedProjectId || 'none'" class="flex-1 overflow-y-auto p-10 custom-scrollbar">
           <div
-            :class="activeCategory === 'env_pairs' || activeCategory === 'connections' ? 'w-full max-w-7xl mx-auto' : 'max-w-4xl mx-auto'">
+            :class="activeCategory === 'env_pairs' || activeCategory === 'connections' ? 'w-full max-w-7xl mx-auto' : 'max-w-6xl mx-auto'">
 
             <!-- ENVIRONMENTS & PAIRS SECTION -->
             <div v-if="activeCategory === 'env_pairs'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -87,40 +65,17 @@
               <!-- 50/50 Split View -->
               <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                 <!-- Left Column: Environments -->
-                <div
-                  class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
-                  <EnvironmentManager mode="project" @switchToGlobal="activeCategory = 'global_envs'" @show-connection-manager="activeCategory = 'connections'" />
+                <div class="relative">
+                  <EnvironmentManager mode="project" @switchToGlobal="router.push('/settings?cat=environments')" @show-connection-manager="activeCategory = 'connections'" />
                 </div>
 
                 <!-- Right Column: Sync Pairs -->
-                <div
-                  class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-6 lg:p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative">
+                <div class="relative">
                   <ConnectionPairManager />
                 </div>
               </div>
             </div>
 
-            <!-- GLOBAL ENVIRONMENTS SECTION -->
-            <div v-if="activeCategory === 'global_envs'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-8">
-                <div
-                  class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shadow-inner">
-                  <Database class="w-6 h-6 text-primary-600 dark:text-primary-400" />
-                </div>
-                <div>
-                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-                    Master Environments 
-                  </h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Define the global topology of your infrastructure</p>
-                </div>
-              </div>
-              
-              <div class="max-w-3xl">
-                <div class="bg-white/50 dark:bg-gray-900/50 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm">
-                  <EnvironmentManager mode="global" @show-connection-manager="activeCategory = 'connections'" />
-                </div>
-              </div>
-            </div>
 
             <!-- CONNECTIONS SECTION -->
             <div v-if="activeCategory === 'connections'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -132,59 +87,56 @@
 
             <!-- ENGINE SECTION (PROJECT LEVEL) -->
             <div v-if="activeCategory === 'engine'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div class="flex items-center gap-4 mb-12">
-                <div
-                  class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shadow-inner">
-                  <Cpu class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <div class="flex items-center gap-4 mb-10">
+                <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Cpu class="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
                   <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{
                     $t('settings.engine.title') }}</h2>
-                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">{{
+                  <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest opacity-70">{{
                     $t('settings.engine.subtitle') }}</p>
                 </div>
               </div>
 
-              <div class="space-y-6">
+              <div class="space-y-12">
                 <!-- Text Normalization -->
-                <div
-                  class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all shadow-sm relative overflow-hidden">
+                <div class="relative overflow-hidden transition-all duration-300">
                   <div class="flex items-start gap-4 relative z-10">
-                    <div
-                      class="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl shrink-0">
-                      <Type class="w-6 h-6" />
-                    </div>
                     <div class="flex-1 w-full">
-                      <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{
-                        $t('settings.engine.domainNormalization.title', 'Text Replace Rules (Normalization)') }}</h3>
-                      <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                      <div class="flex items-center gap-3 mb-1">
+                        <Type class="w-4 h-4 text-indigo-500" />
+                        <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest">{{
+                          $t('settings.engine.domainNormalization.title', 'Text Replace Rules (Normalization)') }}</h3>
+                      </div>
+                      <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-8 max-w-2xl leading-relaxed font-medium">
                         Ignore superficial environment differences (e.g. changing <code>flo_dev_db</code> back to
                         <code>flo_uat_db</code>, or stripping static emails) before running structural comparisons. The
                         engine runs a Find & Replace on the SQL strings.
                       </p>
 
-                      <div class="space-y-4">
+                      <div class="space-y-8">
                         <div v-for="(rep, index) in projectsStore.currentProject?.settings?.envReplacements || []" :key="index"
                              class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 space-y-3 relative group/rep transition-colors hover:border-indigo-500/50">
                           <button @click="removeEnvReplacement(index)" class="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover/rep:opacity-100"><Trash2 class="w-4 h-4" /></button>
                           
                           <div class="space-y-1.5 max-w-sm">
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Variable Name</label>
+                            <label class="block text-[10px] font-bold text-gray-400 tracking-widest pl-1">Variable Name</label>
                             <input :value="rep.key" @input="updateEnvReplacement(index, 'key', ($event.target as HTMLInputElement).value)" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none" placeholder="e.g. APP_DOMAIN" />
                           </div>
                           
                           <div class="pt-2 border-t border-gray-200 dark:border-gray-800/50">
-                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">Environment Values</label>
+                            <label class="block text-[10px] font-bold text-gray-400 tracking-widest pl-1 mb-2">Environment Values</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                               <div v-for="env in connectionPairsStore.environments" :key="env.id" class="space-y-1">
-                                <span class="text-[10px] text-gray-500 font-bold ml-1 uppercase">{{ env.name }}</span>
+                                <span class="text-[10px] text-gray-500 font-bold ml-1">{{ env.name }}</span>
                                 <input :value="rep.values[env.name] || ''" @input="updateEnvReplacementValue(index, env.name, ($event.target as HTMLInputElement).value)" type="text" class="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none" placeholder="Value..." />
                               </div>
                             </div>
                           </div>
                         </div>
                         
-                        <button @click="addEnvReplacement" class="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800/30">
+                        <button @click="addEnvReplacement" class="flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary-500 dark:hover:bg-primary-400 transition-colors">
                           <Plus class="w-4 h-4" /> Add Variable
                         </button>
                       </div>
@@ -193,22 +145,21 @@
                 </div>
 
                 <!-- Migration Exclusions -->
-                <div
-                  class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-red-500/30 dark:hover:border-red-500/30 transition-all shadow-sm relative overflow-hidden">
+                <div class="relative overflow-hidden transition-all duration-300 mt-12 pt-12 border-t border-gray-100 dark:border-gray-800/40">
                   <div class="flex items-start gap-4 relative z-10">
-                    <div class="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl shrink-0">
-                      <Ban class="w-6 h-6" />
-                    </div>
                     <div class="flex-1 w-full">
-                      <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">{{
-                        $t('settings.engine.migrationExclusions.title', 'Skip Objects (Exclusions)') }}</h3>
-                      <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                      <div class="flex items-center gap-3 mb-1">
+                        <Ban class="w-4 h-4 text-red-500" />
+                        <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest">{{
+                          $t('settings.engine.migrationExclusions.title', 'Migration Exclusions') }}</h3>
+                      </div>
+                      <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-8 max-w-2xl leading-relaxed font-medium">
                         Protect test tables or legacy backup views from ever being deployed. If an object's name matches
                         this regex, TheAndb strictly ignores it during migrations.
                       </p>
 
-                      <div class="space-y-3">
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Tags (Wildcards supported: `*`)</label>
+                      <div class="space-y-4 ml-1">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Tags (Wildcards supported: `*`)</label>
                         <div class="flex flex-wrap gap-2 mb-2">
                           <div v-for="(tag, index) in projectsStore.currentProject?.settings?.excludeTags || []" :key="index"
                                class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-mono font-medium border border-red-100 dark:border-red-800/50">
@@ -217,11 +168,11 @@
                           </div>
                         </div>
                         <div class="relative max-w-sm">
-                          <ShieldAlert class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <ShieldAlert class="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                           <input v-model="newExcludeTag"
                             @keydown.enter.prevent="addExcludeTag"
                             type="text"
-                            class="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-medium focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
+                            class="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 rounded-lg text-xs font-mono font-medium focus:ring-4 focus:ring-red-500/5 focus:border-red-500/30 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700"
                             placeholder="e.g. test_* (Press Enter to add)" />
                         </div>
                       </div>
@@ -345,7 +296,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   Layers,
   Link2,
@@ -376,6 +327,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const appStore = useAppStore()
+const router = useRouter()
 
 const connectionPairsStore = useConnectionPairsStore()
 const projectsStore = useProjectsStore()
@@ -392,11 +344,6 @@ const categories = computed(() => {
   return projectCats.map(c => ({ ...c, type: 'project' }))
 })
 
-const globalSettings = computed(() => {
-  return [
-    { id: 'global_envs', label: t('settings.categories.global_envs', 'Master Environments'), icon: Database }
-  ].map(c => ({ ...c, type: 'global' }))
-})
 
 const projectSettings = computed(() => categories.value)
 const activeCategory = ref('connections') // Default to connections
@@ -404,7 +351,7 @@ const activeCategory = ref('connections') // Default to connections
 
 // Handle deep linking from query params
 const handleDeepLink = (query: any) => {
-  const allCats = [...categories.value, ...globalSettings.value]
+  const allCats = [...categories.value]
   if (query.cat && allCats.find(c => c.id === query.cat)) {
     activeCategory.value = query.cat as string
   }

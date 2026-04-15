@@ -567,6 +567,12 @@ export async function handlePickWorkspaceDir() {
     config.lastUpdated = new Date().toISOString()
     fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
 
+    // Ensure backup directory exists
+    const backupDir = path.join(targetDir, 'backups')
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true })
+    }
+
     return { success: true, path: targetDir, action }
   } catch (e: any) {
     return { success: false, error: e.message }
