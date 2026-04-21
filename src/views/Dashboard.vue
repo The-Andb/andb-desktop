@@ -203,6 +203,85 @@
            </div>
         </div>
 
+        <!-- Database Intelligence Sector -->
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
+              <Activity class="w-4 h-4 text-primary-500" />
+              {{ $t('dashboard.databaseIntelligence') || 'Database Intelligence' }}
+            </h2>
+            
+            <!-- Connection Selector for Stats -->
+            <div class="relative" v-if="filteredConnections.length > 1">
+              <button 
+                @click="showStatsConnSelector = !showStatsConnSelector"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-primary-500 transition-all shadow-sm"
+              >
+                <span>{{ getConnectionName(selectedStatsConnectionId) }}</span>
+                <ChevronDown class="w-3 h-3 transition-transform" :class="{ 'rotate-180': showStatsConnSelector }" />
+              </button>
+              <div v-if="showStatsConnSelector" class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
+                <button 
+                  v-for="conn in filteredConnections" 
+                  :key="conn.id"
+                  @click="selectStatsConnection(conn.id)"
+                  class="w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
+                  :class="selectedStatsConnectionId === conn.id ? 'text-primary-500 bg-primary-50/50 dark:bg-primary-900/10' : 'text-gray-600 dark:text-gray-400'"
+                >
+                  {{ conn.name }} ({{ conn.environment }})
+                  <div v-if="selectedStatsConnectionId === conn.id" class="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+                </button>
+              </div>
+            </div>
+            <div v-else-if="filteredConnections.length === 1" class="text-[10px] font-black uppercase tracking-widest text-gray-400">
+               Live: <span class="text-primary-500">{{ filteredConnections[0].name }}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Summary Card -->
+            <DBStatsCard 
+              v-if="dbStats && Array.isArray(dbStats) && !isFetchingStats"
+              :stats="dbStats" 
+              :server-info="serverInfo"
+              :loading="isFetchingStats"
+              subtitle="Project Primary Target"
+              @refresh="fetchDashboardStats"
+            />
+            <div v-else-if="isFetchingStats" class="bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800">
+               <RefreshCw class="w-8 h-8 text-primary-500 animate-spin mb-4" />
+               <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Fetching Intelligence...</p>
+            </div>
+            
+            <!-- Future AI Insights Placeholder / Mini Card -->
+            <div class="lg:col-span-2 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-950 rounded-[2rem] p-8 border border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10">
+               <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"></div>
+               <div class="relative z-10 flex flex-col items-start max-w-lg">
+                  <div class="p-2 bg-primary-500/10 rounded-lg text-primary-400 mb-4 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md">
+                    <Zap class="w-4 h-4 fill-primary-400 animate-pulse" />
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ $t('dashboard.aiAssistantPreAlpha') }}</span>
+                  </div>
+                  <h3 class="text-2xl font-black text-white mb-3 tracking-tight">{{ $t('dashboard.aiAutomateTitle') }}</h3>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-8 font-medium">
+                    {{ $t('dashboard.aiAutomateDesc') }}
+                  </p>
+                  <button 
+                    @click="navigateTo('/project-settings')"
+                    class="px-8 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary-500/30 active:scale-95 flex items-center gap-2"
+                  >
+                    <Sparkles class="w-3.5 h-3.5" />
+                    {{ $t('dashboard.enableAIInsights') }}
+                  </button>
+               </div>
+               
+               <!-- Abstract Visual Deco -->
+               <div class="absolute -right-12 -bottom-12 w-64 h-64 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+               <div class="absolute -right-6 -bottom-6 w-48 h-48 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"></div>
+               <Activity class="absolute right-8 top-1/2 -translate-y-1/2 w-32 h-32 text-primary-500/5 group-hover:text-primary-500/10 transition-color duration-500" />
+            </div>
+          </div>
+        </div>
+
         <!-- DDL by Connection & Migration Stats -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- DDL Count by Connection -->
@@ -356,7 +435,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { 
@@ -373,17 +452,23 @@ import {
   Settings,
   FileText,
   Edit3,
+  Folder,
+  ChevronDown,
+  Zap,
+  Sparkles,
   LayoutDashboard,
   ChevronRight
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ReportsViewer from '@/components/reports/ReportsViewer.vue'
+import DBStatsCard from '@/components/dashboard/DBStatsCard.vue'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useOperationsStore } from '@/stores/operations'
 import { projectIconMap } from '@/utils/projectIcons'
 import ProjectIconPicker from '@/components/projects/ProjectIconPicker.vue'
+import Andb from '@/utils/andb'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -395,6 +480,14 @@ const operationsStore = useOperationsStore()
 const isRefreshing = ref(false)
 const showReportsModal = ref(false)
 const isIconPickerOpen = ref(false)
+
+// Database Intelligence Stats
+const dbStats = ref<any[]>([])
+const serverInfo = ref<any>(null)
+const isFetchingStats = ref(false)
+const selectedStatsConnectionId = ref<string>('')
+const showStatsConnSelector = ref(false)
+const statsError = ref<string | null>(null)
 
 const currentProject = computed(() => projectsStore.currentProject)
 
@@ -428,6 +521,8 @@ const displayedConnections = computed(() => {
   if (!currentProject.value) return []
   return appStore.resolvedConnections.filter(c => currentProject.value?.connectionIds.includes(c.id))
 })
+
+const filteredConnections = computed(() => appStore.filteredConnections)
 
 const activeProjectEnvironments = computed(() => {
   if (!currentProject.value) return []
@@ -684,10 +779,62 @@ const comparePair = (pair: any) => {
   router.push({ path: '/compare', query: { pairId: pair.id } })
 }
 
+const fetchDashboardStats = async () => {
+  if (isFetchingStats.value || !selectedStatsConnectionId.value) return
+  
+  const conn = appStore.getConnectionById(selectedStatsConnectionId.value)
+  if (!conn) return
+
+  isFetchingStats.value = true
+  statsError.value = null
+  
+  try {
+    const [stats, info] = await Promise.all([
+      Andb.getTableStats(conn as any),
+      Andb.getServerInfo(conn as any)
+    ])
+    
+    // Handle potential double-wrapping from legacy or unexpected IPC behavior
+    if (stats && (stats as any).success && (stats as any).data) {
+      dbStats.value = (stats as any).data
+    } else {
+      dbStats.value = Array.isArray(stats) ? stats : []
+    }
+    serverInfo.value = info && (info as any).success ? (info as any).data : info
+  } catch (e: any) {
+    statsError.value = e.message
+    console.warn('[Dashboard] Failed to fetch DB stats:', e)
+  } finally {
+    isFetchingStats.value = false
+  }
+}
+
+const selectStatsConnection = (id: string) => {
+  selectedStatsConnectionId.value = id
+  showStatsConnSelector.value = false
+  fetchDashboardStats()
+}
+
+// Watch for filtered connections changes (e.g. project switch)
+watch(() => filteredConnections.value, (newConns) => {
+  if (newConns.length > 0) {
+    // If current selection is not in new list, pick first one
+    if (!newConns.some(c => c.id === selectedStatsConnectionId.value)) {
+      selectedStatsConnectionId.value = newConns[0].id
+      fetchDashboardStats()
+    }
+  } else {
+    selectedStatsConnectionId.value = ''
+    dbStats.value = []
+    serverInfo.value = null
+  }
+}, { immediate: true })
+
 onMounted(async () => {
   // Load data from store (which loads from storage)
   if ((window as any).electronAPI) {
     await refreshData()
+    // stats fetch handled by watcher
   }
 })
 </script>

@@ -196,6 +196,63 @@
                 </div>
               </div>
             </div>
+            <!-- AI ASSISTANT SECTION (PROJECT LEVEL) -->
+            <div v-if="activeCategory === 'ai'" class="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-8">
+              <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center shadow-inner">
+                  <Sparkles class="w-6 h-6 text-primary-500" />
+                </div>
+                <div>
+                  <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Project AI Intelligence</h2>
+                  <p class="text-xs text-gray-500 font-medium uppercase tracking-widest opacity-70">Customize how the AI DBA interacts with this project</p>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <!-- AI Feature Toggle -->
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 transition-all shadow-sm">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                      <div class="p-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl shrink-0">
+                        <Zap class="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Enable AI Insights</h3>
+                        <p class="text-[11px] text-gray-500 leading-relaxed max-w-lg">Toggle AI-powered analysis on the dashboard and comparison views for this project.</p>
+                      </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" v-model="projectAIEnabled" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- AI System Prompt Override -->
+                <div class="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:border-primary-500/30 dark:hover:border-primary-500/30 transition-all shadow-sm relative overflow-hidden">
+                  <div class="flex items-start gap-4 relative z-10">
+                    <div class="p-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl shrink-0">
+                      <Activity class="w-6 h-6" />
+                    </div>
+                    <div class="flex-1 w-full">
+                      <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Custom DBA Context</h3>
+                      <p class="text-[11px] text-gray-500 mb-5 max-w-2xl leading-relaxed">
+                        Add project-specific constraints or rules (e.g. "We never use triggers" or "All tables must have a tenant_id column"). This will be appended to the AI's system prompt.
+                      </p>
+
+                      <div class="space-y-3">
+                        <textarea 
+                          v-model="projectAIPromptOverride"
+                          class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-700 min-h-[120px] resize-none"
+                          placeholder="Enter your custom project guidelines for the AI..."
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -326,7 +383,10 @@ import {
   Ban,
   ShieldAlert,
   Plus,
-  Cpu
+  Cpu,
+  ArrowRightLeft,
+  Sparkles,
+  Zap
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
@@ -353,7 +413,8 @@ const categories = computed(() => {
   const projectCats = [
     { id: 'env_pairs', label: t('settings.categories.env_pairs', 'Env & Sync Pairs'), icon: GitCompare },
     { id: 'connections', label: t('settings.categories.connections'), icon: Link2 },
-    { id: 'engine', label: t('settings.engine.title'), icon: Cpu }
+    { id: 'engine', label: t('settings.engine.title'), icon: Cpu },
+    { id: 'ai', label: 'AI Assistant', icon: markRaw(Sparkles) }
   ]
 
   return projectCats.map(c => ({ ...c, type: 'project' }))
@@ -361,7 +422,7 @@ const categories = computed(() => {
 
 
 const projectSettings = computed(() => categories.value)
-const activeCategory = ref('connections') // Default to connections
+const activeCategory = ref<string>('connections') // Default to connections
 
 
 // Handle deep linking from query params
@@ -485,6 +546,43 @@ const updateEnvReplacementValue = (index: number, envName: string, value: string
   projectsStore.updateProject(projectsStore.currentProject.id, { settings })
 }
 
+// AI Settings Implementation
+const projectAIEnabled = computed({
+  get: () => projectsStore.currentProject?.settings?.aiEnabled ?? false,
+  set: (val) => {
+    if (!projectsStore.currentProject) return
+    const settings = { ...(projectsStore.currentProject.settings || {}), aiEnabled: val }
+    projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+  }
+})
+
+const projectAIPromptOverride = computed({
+  get: () => projectsStore.currentProject?.settings?.aiPromptOverride ?? '',
+  set: (val) => {
+    if (!projectsStore.currentProject) return
+    const settings = { ...(projectsStore.currentProject.settings || {}), aiPromptOverride: val }
+    projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+  }
+})
+
+import { markRaw } from 'vue'
+const getActivityIcon = (type: string) => {
+  switch (type) {
+    case 'compare':
+      return { icon: markRaw(GitCompare), bg: 'bg-purple-100 dark:bg-purple-900/20', color: 'text-purple-600 dark:text-purple-400' }
+    case 'migrate':
+      return { icon: markRaw(ArrowRightLeft), bg: 'bg-orange-100 dark:bg-orange-900/20', color: 'text-orange-600 dark:text-orange-400' }
+    case 'export':
+      return { icon: markRaw(Database), bg: 'bg-green-100 dark:bg-green-900/20', color: 'text-green-600 dark:text-green-400' }
+    case 'test':
+      return { icon: markRaw(Activity), bg: 'bg-blue-100 dark:bg-blue-900/20', color: 'text-blue-600 dark:text-blue-400' }
+    default:
+      return { icon: markRaw(Activity), bg: 'bg-gray-100 dark:bg-gray-900/20', color: 'text-gray-600 dark:text-gray-400' }
+  }
+}
+
+// Suppress unused warning in script (actually used in template)
+void getActivityIcon;
 </script>
 
 

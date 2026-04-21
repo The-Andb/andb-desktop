@@ -1,59 +1,75 @@
 <template>
-  <div
-    class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-primary-500/10 p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 relative overflow-hidden">
-    <!-- Background Sparkle -->
-    <div
-      class="absolute -right-4 -top-4 w-24 h-24 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/10 transition-colors duration-500">
-    </div>
+  <div class="group bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+    <!-- Background Sparkle Deco -->
+    <div class="absolute -right-20 -top-20 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl group-hover:bg-primary-500/10 transition-colors duration-500"></div>
+    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
 
-    <div class="flex items-center justify-between mb-6 relative z-10">
-      <div class="flex items-center gap-4">
-        <div
-          class="p-3 bg-primary-500/10 text-primary-500 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm border border-primary-500/10">
-          <Activity class="w-6 h-6" />
+    <div class="relative z-10">
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-primary-500/10 text-primary-500 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm border border-primary-500/10 overflow-hidden relative">
+             <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-transparent"></div>
+             <Activity class="w-6 h-6 relative z-10" />
+          </div>
+          <div>
+            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-0.5">Database Intelligence</h3>
+            <p class="text-xs font-bold text-gray-500">{{ subtitle }}</p>
+          </div>
         </div>
-        <div>
-          <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ title || 'Database Intelligence' }}</h3>
-          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ subtitle || 'Live Health Overview' }}</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button @click="$emit('refresh')" :disabled="loading"
-          class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 hover:text-primary-500 transition-all active:scale-90">
+        <button 
+          @click="$emit('refresh')"
+          :disabled="loading"
+          class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all active:scale-90"
+        >
           <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
         </button>
       </div>
-    </div>
 
-    <!-- Main Metrics -->
-    <div class="grid grid-cols-2 gap-4 mb-6 relative z-10">
-      <div
-        class="bg-gray-50/50 dark:bg-gray-900/50 rounded-xl p-3 border border-gray-100 dark:border-gray-700/50 hover:border-primary-500/20 transition-colors">
-        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Rows</span>
-        <div class="flex items-baseline gap-1">
-          <span class="text-xl font-black text-gray-900 dark:text-white">{{ formatNumber(totalRows) }}</span>
-          <span class="text-[9px] font-bold text-primary-500/60 uppercase">Records</span>
+      <!-- Object Distribution (High Level) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div v-for="item in displayStats" :key="item.label" class="space-y-1 p-3 bg-gray-50/50 dark:bg-gray-900/50 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
+          <div class="flex items-center gap-2">
+            <component :is="item.icon" class="w-3.5 h-3.5 text-gray-400" />
+            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">{{ item.label }}</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-lg font-black text-gray-900 dark:text-white tracking-tight">{{ item.value }}</span>
+            <span class="text-[8px] font-bold text-gray-400 uppercase">{{ item.unit }}</span>
+          </div>
         </div>
       </div>
-      <div
-        class="bg-gray-50/50 dark:bg-gray-900/50 rounded-xl p-3 border border-gray-100 dark:border-gray-700/50 hover:border-primary-500/20 transition-colors">
-        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Total Size</span>
-        <div class="flex items-baseline gap-1">
-          <span class="text-xl font-black text-gray-900 dark:text-white">{{ formattedSize.value }}</span>
-          <span class="text-[9px] font-bold text-primary-500/60 uppercase">{{ formattedSize.unit }}</span>
+
+      <!-- row count & sizes (analytical) -->
+       <div class="grid grid-cols-2 gap-6 mb-8">
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-2">
+            <LayoutGrid class="w-3.5 h-3.5 text-indigo-500/60" />
+            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Total Records</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">{{ formatNumber(totalRows) }}</span>
+            <span class="text-[10px] font-bold text-primary-500/60 uppercase">Rows</span>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="flex items-center gap-2 mb-2">
+            <Database class="w-3.5 h-3.5 text-emerald-500/60" />
+            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Storage Size</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">{{ formattedSize.value }}</span>
+            <span class="text-[10px] font-bold text-primary-500/60 uppercase">{{ formattedSize.unit }}</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Distribution / Stats -->
-    <div class="space-y-3 relative z-10">
-      <div v-if="engineCounts" class="flex flex-col gap-1.5">
-        <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+      <!-- distribution / engine -->
+      <div v-if="engineCounts" class="space-y-3 pt-6 border-t border-gray-50 dark:border-gray-700/50">
+        <div class="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-gray-400">
           <span>Engine Distribution</span>
-          <span class="text-primary-500">{{ totalTables }} Tables</span>
+          <span class="text-primary-500">{{ totalTables }} Tables config</span>
         </div>
-        <div class="flex h-1.5 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden">
+        <div class="flex h-2 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden shadow-inner">
           <div v-for="(count, engine, index) in engineCounts" :key="engine"
             :style="{ width: (count / totalTables * 100) + '%' }" :class="[
               index === 0 ? 'bg-primary-500' :
@@ -62,29 +78,25 @@
             ]" class="h-full first:rounded-l-full last:rounded-r-full border-r border-white/10 last:border-0"
             :title="`${engine}: ${count}`"></div>
         </div>
-        <div class="flex flex-wrap gap-x-3 gap-y-1">
-          <div v-for="(count, engine, index) in engineCounts" :key="engine" class="flex items-center gap-1.5">
-            <div class="w-1.5 h-1.5 rounded-full" :class="[
-              index === 0 ? 'bg-primary-500' :
-                index === 1 ? 'bg-blue-500' :
-                  index === 2 ? 'bg-purple-500' : 'bg-gray-400'
-            ]"></div>
-            <span class="text-[9px] font-bold text-gray-500 uppercase">{{ engine }} ({{ count }})</span>
-          </div>
-        </div>
       </div>
 
-      <!-- Server Info Badge -->
-      <div v-if="serverInfo"
-        class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Cpu class="w-3.5 h-3.5 text-gray-400" />
-          <span class="text-[10px] font-mono text-gray-500">{{ serverInfo.version }}</span>
+      <!-- Server Info Footer -->
+      <div v-if="serverInfo" class="mt-8 pt-6 border-t border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 shadow-sm relative group/srv">
+            <Server class="w-5 h-5 text-gray-500 group-hover/srv:scale-110 transition-transform" />
+          </div>
+          <div>
+            <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Version Context</div>
+            <div class="text-[11px] font-black text-gray-700 dark:text-gray-300 font-mono">{{ serverInfo.version || 'Unknown' }}</div>
+          </div>
         </div>
-        <div v-if="serverInfo.hasInstantDDL"
-          class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/20">
-          <Zap class="w-3 h-3" />
-          <span class="text-[8px] font-black uppercase tracking-widest">Instant DDL</span>
+        <div class="text-right">
+          <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Engine Mode</div>
+          <div class="flex items-center gap-1.5 justify-end">
+            <Zap v-if="serverInfo.hasInstantDDL" class="w-3 h-3 text-emerald-500 animate-pulse fill-emerald-500" />
+            <div class="text-xs font-black text-primary-500 uppercase tracking-widest">{{ serverInfo.engine || 'Relational' }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -93,19 +105,48 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Activity, RefreshCw, Cpu, Zap } from 'lucide-vue-next'
+import { 
+  Table, 
+  Eye, 
+  Code2, 
+  Database,
+  RefreshCw,
+  Server,
+  Activity,
+  Cpu,
+  Zap,
+  LayoutGrid
+} from 'lucide-vue-next'
 
 const props = defineProps<{
-  title?: string
-  subtitle?: string
-  loading?: boolean
   stats: any[]
   serverInfo?: any
+  loading?: boolean
+  subtitle?: string
 }>()
 
 defineEmits(['refresh'])
 
-const totalTables = computed(() => props.stats?.length || 0)
+// High-level object counts
+const displayStats = computed(() => {
+  const findStat = (type: string) => props.stats.find(s => s.type === type)?.count || 0
+  
+  return [
+    { label: 'Tables', value: findStat('table'), icon: Table, unit: 'count' },
+    { label: 'Views', value: findStat('view'), icon: Eye, unit: 'count' },
+    { label: 'Routines', value: findStat('routine'), icon: Code2, unit: 'count' },
+    { label: 'Storage', value: formattedSize.value.value, icon: Database, unit: formattedSize.value.unit }
+  ]
+})
+
+// Analytical metrics
+const totalTables = computed(() => {
+    // If stats contains table objects, find their count
+    const tableStat = props.stats.find(s => s.type === 'table')
+    if (tableStat) return tableStat.count
+    // Fallback if stats is an array of tables directly (HEAD behavior)
+    return props.stats.filter(s => !s.type).length || 0
+})
 
 const totalRows = computed(() => {
   if (!Array.isArray(props.stats)) return 0
@@ -116,6 +157,11 @@ const totalSize = computed(() => {
   if (!Array.isArray(props.stats)) return 0
   const data = props.stats.reduce((sum, s) => sum + (s.dataLengthMB || 0), 0) || 0
   const index = props.stats.reduce((sum, s) => sum + (s.indexLengthMB || 0), 0) || 0
+  
+  // Also check if we have a total_size stat from AI branch
+  const totalStat = props.stats.find(s => s.type === 'total_size')
+  if (totalStat) return parseFloat(totalStat.count)
+  
   return data + index
 })
 
@@ -133,8 +179,11 @@ const engineCounts = computed(() => {
   if (!Array.isArray(props.stats)) return null
   const counts: Record<string, number> = {}
   props.stats.forEach(s => {
-    const engine = s.engine || 'Unknown'
-    counts[engine] = (counts[engine] || 0) + 1
+    // Only process if it's a table object (lacks 'type' property from AI branch aggregator)
+    if (!s.type) {
+        const engine = s.engine || 'Unknown'
+        counts[engine] = (counts[engine] || 0) + 1
+    }
   })
   return Object.keys(counts).length > 0 ? counts : null
 })

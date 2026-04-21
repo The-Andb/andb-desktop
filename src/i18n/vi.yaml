@@ -146,6 +146,11 @@ dashboard:
     records: 'Bản ghi'
     ms: 'ms'
     relative: 'Tương đối'
+  aiAssistantPreAlpha: 'Trợ lý AI (Pre-alpha)'
+  aiAutomateTitle: 'Tự động hóa quy trình DBA với AI'
+  aiAutomateDesc: 'Kết nối Gemini API key để mở khóa tính năng đánh giá schema, gợi ý tối ưu index và phân tích tác động tự động trước mỗi lần di trú.'
+  enableAIInsights: 'Bật phân tích AI'
+  databaseIntelligence: 'Trình thu thập thông tin CSDL'
 
 splash:
   tagline: 'Công cụ Di trú Cơ sở dữ liệu Đơn giản nhất'
@@ -575,6 +580,20 @@ settings:
         schema: 'Cây thư mục'
         ddlName: 'Tên đối tượng'
         code: 'Code'
+    ai:
+      title: 'Trợ lý AI DBA'
+      subtitle: 'Trí tuệ DBA được cung cấp bởi Gemini'
+      apiKey: 'Gemini API Key'
+      testButton: 'Kiểm tra kết nối'
+      success: 'Xác thực thành công'
+      error: 'Lỗi cấu hình'
+      capabilities:
+        review: 'Đánh giá thay đổi Schema'
+        reviewDesc: 'Phân tích tự động các thay đổi DDL với đánh giá mức độ rủi ro.'
+        troubleshoot: 'Xử lý sự cố DBA'
+        troubleshootDesc: 'Giao diện ngôn ngữ tự nhiên để hỏi về các cấu trúc bảng phức tạp.'
+        semantic: 'Semantic Diff'
+        semanticDesc: 'Hiểu ý định của các thay đổi schema thay vì chỉ so sánh văn bản.'
     buttons:
       title: 'Mật độ hình ảnh & Kiểu nút'
       subtitle: 'Chọn mức độ thẩm mỹ cho các phần tử'

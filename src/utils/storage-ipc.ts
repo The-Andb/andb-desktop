@@ -32,6 +32,12 @@ interface AppSchema {
     }
     fontSizeProfile?: 'small' | 'medium' | 'large' | 'custom'
     hiddenHorizontalTabs: string[]
+    layoutSettings?: {
+      sidebar: boolean
+      breadcrumbs: boolean
+      toolbar: boolean
+      sidebarPosition: 'left' | 'right'
+    }
     lastCustomFontSizes?: {
       title: number
       subtitle: number
@@ -261,7 +267,13 @@ export const storage = {
         code: "'JetBrains Mono', monospace"
       },
       fontSizeProfile: 'medium' as 'small' | 'medium' | 'large' | 'custom',
-      hiddenHorizontalTabs: []
+      hiddenHorizontalTabs: [],
+      layoutSettings: {
+        sidebar: true,
+        breadcrumbs: true,
+        toolbar: true,
+        sidebarPosition: 'left' as 'left' | 'right'
+      }
     }
     return result.success ? { ...defaults, ...result.data } : defaults
   },

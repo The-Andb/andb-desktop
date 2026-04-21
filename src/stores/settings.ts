@@ -46,7 +46,7 @@ interface Settings {
   excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
-  geminiApiKey?: string
+  aiApiKey?: string
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -64,7 +64,7 @@ const defaultSettings: Settings = {
   excludeTags: [],
   sqlitePath: '',
   setupCompleted: false,
-  geminiApiKey: ''
+  aiApiKey: ''
 }
 
 const loadSettingsAsync = async (currentSettings: any) => {

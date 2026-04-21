@@ -170,6 +170,11 @@ dashboard:
     records: 'Records'
     ms: 'ms'
     relative: 'Relative'
+  aiAssistantPreAlpha: 'AI Assistant Pre-alpha'
+  aiAutomateTitle: 'Automate your DBA workflows with AI'
+  aiAutomateDesc: 'Connect your Gemini API key to unlock semantic schema reviews, index optimization suggestions, and automated impact analysis before every migration.'
+  enableAIInsights: 'Enable AI Insights'
+  databaseIntelligence: 'Database Intelligence'
 
 splash:
   tagline: 'Keep Going. Keep Syncing.'
