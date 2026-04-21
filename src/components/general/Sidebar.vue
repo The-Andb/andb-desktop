@@ -222,24 +222,36 @@
 
         <!-- Sync Pair Navigation (Compare View Only) -->
         <div v-if="isCompareView" class="p-3 space-y-1.5 animate-in fade-in slide-in-from-left-4 duration-500">
-           <div v-for="pair in availablePairs" :key="pair.id"
-             @click="connectionPairsStore.selectPair(pair.id)"
-             class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
-             :class="connectionPairsStore.selectedPairId === pair.id ? 'bg-primary-50 dark:bg-primary-900/10 border-primary-500/50' : 'bg-transparent border-transparent hover:bg-gray-50'"
-           >
-             <div v-if="connectionPairsStore.selectedPairId === pair.id" class="absolute left-0 top-3 bottom-3 w-1 bg-primary-500 rounded-r-full"></div>
-             <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500" :class="{ 'bg-primary-500 text-white shadow-lg': connectionPairsStore.selectedPairId === pair.id }">
-               <component :is="getPairIcon(pair)" class="w-5 h-5" />
-             </div>
-             <div class="min-w-0 flex-1">
-               <div class="text-[12px] font-black truncate tracking-tighter" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600' : 'text-gray-700'">{{ pair.name }}</div>
-               <div class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                  <span class="text-primary-600 font-black">{{ pair.sourceEnv }}</span>
-                  <span class="mx-1 opacity-40">→</span> 
-                  <span class="text-emerald-600 font-black">{{ pair.targetEnv }}</span>
-               </div>
-             </div>
-           </div>
+            <div v-for="pair in availablePairs" :key="pair.id"
+              @click="connectionPairsStore.selectPair(pair.id)"
+              class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
+              :class="connectionPairsStore.selectedPairId === pair.id 
+                ? 'bg-primary-50 dark:bg-primary-900/15 border-primary-500/30 shadow-sm shadow-primary-500/5' 
+                : 'bg-transparent border-transparent hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'"
+            >
+              <div v-if="connectionPairsStore.selectedPairId === pair.id" class="absolute left-0 top-3 bottom-3 w-1.5 bg-primary-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+              
+              <!-- Icon Container -->
+              <div 
+                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300" 
+                :class="[
+                  connectionPairsStore.selectedPairId === pair.id 
+                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30 group-hover:scale-105' 
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700 group-hover:shadow-md'
+                ]"
+              >
+                <component :is="getPairIcon(pair)" class="w-5 h-5 transition-transform duration-300" :class="{ 'group-hover:rotate-6': true }" />
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="text-[12px] font-black truncate tracking-tighter transition-colors" :class="connectionPairsStore.selectedPairId === pair.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'">{{ pair.name }}</div>
+                <div class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                   <span class="text-primary-600 dark:text-primary-400 font-extrabold">{{ pair.sourceEnv }}</span>
+                   <span class="mx-1 opacity-40">→</span> 
+                   <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">{{ pair.targetEnv }}</span>
+                </div>
+              </div>
+            </div>
            <div v-if="availablePairs.length === 0" class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]">No sync pairs configured.</div>
         </div>
       </div>

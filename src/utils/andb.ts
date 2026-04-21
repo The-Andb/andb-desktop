@@ -347,10 +347,10 @@ export class Andb {
   /**
    * Get snapshots for a table
    */
-  static async getSnapshots(environment: string, database: string, type: string, name: string): Promise<Result<any[]>> {
+  static async getSnapshots(environment: string, database: string, type: string, name: string, databaseType: string = 'mysql'): Promise<Result<any[]>> {
     if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
-      const result = await window.electronAPI.getSnapshots(environment, database, type, name)
+      const result = await window.electronAPI.getSnapshots({ environment, database, type, name, databaseType })
       if (result.success) return { success: true, data: result.data }
       throw new Error(result.error || 'Failed to fetch snapshots')
     } catch (error: any) {

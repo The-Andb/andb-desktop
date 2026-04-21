@@ -311,6 +311,20 @@ watch(currentProjectId, () => {
 
 <template>
   <MainLayout>
+    <template #toolbar>
+      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
+           Integrations
+        </div>
+      </div>
+    </template>
+
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+         <GitBranch class="w-3.5 h-3.5 text-gray-400" />
+         <span class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white">Git Sync & Integrations</span>
+      </div>
+    </template>
     <div class="flex-1 overflow-y-auto p-6">
       <div class="max-w-5xl mx-auto w-full pb-12">
       <div class="mb-8">

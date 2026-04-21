@@ -181,8 +181,8 @@ export class BackgroundWorker extends EventEmitter {
     return this.call('getStats')
   }
 
-  public async getComparisons(srcEnv: string, destEnv: string, database: string, type: string): Promise<any> {
-    return this.call('getComparisons', { srcEnv, destEnv, database, type })
+  public async getComparisons(srcEnv: string, destEnv: string, database: string, type: string, databaseType: string = 'mysql'): Promise<any> {
+    return this.call('getComparisons', { srcEnv, destEnv, database, type, databaseType })
   }
 
   public async getLatestComparisons(limit: number = 50): Promise<any> {
@@ -197,12 +197,12 @@ export class BackgroundWorker extends EventEmitter {
     return this.call('execute', { operation: 'compare-custom', payload: { src, dest } })
   }
 
-  public async getDDL(env: string, database: string, type: string, name: string): Promise<any> {
-    return this.call('getDDL', { env, database, type, name })
+  public async getDDL(env: string, database: string, type: string, name: string, databaseType: string = 'mysql'): Promise<any> {
+    return this.call('getDDL', { env, database, type, name, databaseType })
   }
 
-  public async getDDLObjects(env: string, database: string, type: string): Promise<any> {
-    return this.call('getDDLObjects', { env, database, type })
+  public async getDDLObjects(env: string, database: string, type: string, databaseType: string = 'mysql'): Promise<any> {
+    return this.call('getDDLObjects', { env, database, type, databaseType })
   }
 
   public async getEnvironments(): Promise<any> {
@@ -235,12 +235,12 @@ export class BackgroundWorker extends EventEmitter {
   }
   // --------------------------------------
 
-  public async getDatabases(env: string): Promise<any> {
-    return this.call('getDatabases', { env })
+  public async getDatabases(env: string, databaseType?: string): Promise<any> {
+    return this.call('getDatabases', { env, databaseType })
   }
 
-  public async getSnapshots(env: string, database: string, type: string, name: string): Promise<any> {
-    return this.call('getSnapshots', { env, database, type, name })
+  public async getSnapshots(env: string, database: string, type: string, name: string, databaseType: string = 'mysql'): Promise<any> {
+    return this.call('getSnapshots', { env, database, type, name, databaseType })
   }
 
   public async getAllSnapshots(limit: number = 200): Promise<any> {
@@ -251,8 +251,8 @@ export class BackgroundWorker extends EventEmitter {
     return this.call('getMigrationHistory', { limit })
   }
 
-  public async clearConnectionData(env: string, database: string): Promise<any> {
-    return this.call('clearConnectionData', { env, database })
+  public async clearConnectionData(env: string, database: string, databaseType: string = 'mysql'): Promise<any> {
+    return this.call('clearConnectionData', { env, database, databaseType })
   }
 
   public async addMigration(migration: any): Promise<any> {

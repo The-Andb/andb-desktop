@@ -30,7 +30,7 @@
           :class="route.path === '/projects' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : ''"
           :title="$t('projects.title')"
         >
-          <LayoutGridIcon class="w-4 h-4" />
+          <LayersIcon class="w-4 h-4" />
         </button>
 
         <div 
@@ -116,6 +116,7 @@
         <div class="flex items-center space-x-1">
           <ThemeToggle />
           <LanguageToggle />
+          <LayoutCustomizer class="ml-1" />
         </div>
 
         
@@ -171,10 +172,11 @@ import ThemeToggle from './ThemeToggle.vue'
 
 import LanguageToggle from './LanguageToggle.vue'
 import AboutModal from './AboutModal.vue'
+import LayoutCustomizer from './LayoutCustomizer.vue'
 import { 
   Settings,
   Info,
-  LayoutGrid as LayoutGridIcon,
+  Layers as LayersIcon,
   ChevronDown,
   Download,
   Folder,

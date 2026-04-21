@@ -602,7 +602,7 @@ onMounted(() => {
   
   // Set helpful defaults for new connections
   store.adminCredentials.host = 'localhost'
-  store.adminCredentials.port = 3306
+  store.adminCredentials.port = (props.initialData?.type === 'postgres') ? 5432 : 3306
   store.adminCredentials.username = 'root' 
 
   // Generate a random 16-character alphanumeric password for the RESTRICTED user

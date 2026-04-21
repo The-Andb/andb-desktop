@@ -1,58 +1,58 @@
 <template>
   <MainLayout>
     <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full gap-4">
-        <!-- Title & Page Status -->
-        <div class="flex items-center gap-4">
-        <div class="flex items-center gap-6">
-          <h1 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center shrink-0">
-            <History class="w-5 h-5 mr-2 text-primary-500" />
-            {{ $t('history.title') }}
-          </h1>
-          <div class="flex items-center gap-2">
-             <!-- Pill Type Selectors -->
-             <div class="flex bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg">
-                <button 
-                  v-for="type in historyTypes" 
-                  :key="type"
-                  @click="filters.type = type"
-                  class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-md transition-all"
-                  :class="filters.type === type 
-                    ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm' 
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
-                >
-                  {{ type ? $t(`navigation.ddl.${type.toLowerCase()}`) : $t('common.all') }}
-                </button>
-             </div>
-          </div>
-        </div>
+      <div class="flex items-center justify-between w-full h-full gap-4 text-gray-400">
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
+           {{ $t('history.title') }}
         </div>
 
         <!-- Action Group -->
-        <div 
-          class="flex items-center gap-3 p-1.5 rounded-2xl transition-all duration-300 shadow-sm"
-          :class="appStore.buttonStyle === 'full' 
-            ? 'bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm shadow-sm ring-1 ring-black/5' 
-            : 'bg-transparent border-transparent px-0'"
-        >
+        <div class="flex items-center gap-3">
           <button 
             @click="loadSnapshots" 
             class="flex items-center gap-2 font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale"
             :class="appStore.buttonStyle === 'full'
-              ? 'px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white rounded-xl text-[11px] tracking-widest shadow-lg shadow-primary-500/20 active:scale-95'
+              ? 'px-5 py-2'
               : 'px-4 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm'"
             :disabled="loading"
           >
             <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
-            <span>{{ appStore.buttonStyle === 'full' ? $t('history.refreshHistory') : $t('common.refresh') }}</span>
+            <span class="text-[10px] leading-none">{{ $t('common.refresh') }}</span>
           </button>
         </div>
       </div>
     </template>
 
-    <div class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <template #breadcrumbs>
+      <div class="flex items-center gap-3 w-full">
+        <!-- Main Route -->
+        <div class="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+          <History class="w-3.5 h-3.5 text-primary-500 opacity-60" />
+          <span class="text-[11px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{ $t('history.title') }}</span>
+        </div>
+
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+
+        <!-- Pill Type Selectors (Premium Refinement) -->
+        <div class="flex items-center bg-gray-50 dark:bg-gray-900 px-1 py-1 rounded-xl border border-gray-100 dark:border-gray-800 shadow-inner">
+          <button 
+            v-for="type in historyTypes" 
+            :key="type"
+            @click="filters.type = type"
+            class="px-4 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all"
+            :class="filters.type === type 
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-md ring-1 ring-gray-100 dark:ring-gray-600' 
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+          >
+            {{ type ? $t(`navigation.ddl.${type.toLowerCase()}`) : $t('common.all') }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <div class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-950" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
       <!-- Snapshots List -->
-      <div class="w-1/3 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <div v-if="appStore.layoutSettings.sidebar" class="w-1/3 flex flex-col bg-white dark:bg-gray-900 overflow-hidden" :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l border-gray-200 dark:border-gray-800' : 'border-r border-gray-200 dark:border-gray-800'">
         <div class="p-3 border-b border-gray-200 dark:border-gray-800 flex flex-col shrink-0 bg-gray-50 dark:bg-gray-800/50">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">{{ $t('history.snapshotsList') }}</h2>
@@ -127,6 +127,9 @@
           :active-tab-id="activeTabId" 
           @select="handleSelectTab" 
           @close="handleCloseTab"
+          @duplicate="handleDuplicateTab"
+          @close-others="handleCloseOthers"
+          @close-right="handleCloseRight"
         />
         <div v-if="!selectedSnapshot" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8">
            <div class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-8 opacity-50">
@@ -229,7 +232,8 @@ import {
   RotateCcw,
   AlertTriangle,
   Workflow,
-  Sigma
+  Sigma,
+  ChevronRight
 } from 'lucide-vue-next'
 
 const loading = ref(false)
@@ -320,6 +324,32 @@ const handleCloseTab = (id: string) => {
   }
 }
 
+const handleDuplicateTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (!tab) return
+  
+  const newTab = JSON.parse(JSON.stringify(tab))
+  newTab.id = `${tab.id}-copy-${Date.now()}`
+  newTab.name = `${tab.name} (${t('common.copy')})`
+  
+  const index = tabs.value.findIndex(t => t.id === id)
+  tabs.value.splice(index + 1, 0, newTab)
+  handleSelectTab(newTab.id)
+}
+
+const handleCloseOthers = (id: string) => {
+  tabs.value = tabs.value.filter(t => t.id === id)
+  handleSelectTab(id)
+}
+
+const handleCloseRight = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index !== -1) {
+    tabs.value = tabs.value.slice(0, index + 1)
+    handleSelectTab(id)
+  }
+}
+
 // Watch for project changes to reset state
 watch(() => projectsStore.selectedProjectId, () => {
   selectedSnapshot.value = null
@@ -352,7 +382,9 @@ const filteredSnapshots = computed(() => {
   return snapshots.value.filter(s => {
     // 1. Primary Filter: Must belong to current project
     const belongsToProject = projectConnections.value.some(c => 
-      c.environment === s.environment && c.database === s.database_name
+      c.environment === s.environment && 
+      c.database === s.database_name &&
+      (c.type || 'mysql') === (s.database_type || 'mysql')
     )
     if (!belongsToProject) return false
 
@@ -360,6 +392,7 @@ const filteredSnapshots = computed(() => {
     if (currentConnection.value) {
        if (s.environment !== currentConnection.value.environment) return false
        if (s.database_name !== currentConnection.value.database) return false
+       if ((s.database_type || 'mysql') !== (currentConnection.value.type || 'mysql')) return false
     }
 
     // 3. Local UI Filters (Type & Query)

@@ -8,11 +8,17 @@
     />
     
     <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full px-2">
-        <div class="flex items-center gap-2">
-          <Folder class="w-4 h-4 text-primary-500" />
-          <span class="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white">{{ t('projects.title') }}</span>
+      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
+           {{ $t('common.switch') }}
         </div>
+      </div>
+    </template>
+
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+         <LayoutGrid class="w-3.5 h-3.5 text-gray-400" />
+         <span class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white">{{ $t('projects.management') }}</span>
       </div>
     </template>
 
@@ -40,7 +46,7 @@ import ProjectsListView from '@/components/projects/ProjectsListView.vue'
 import DeleteProjectConfirmModal from '@/components/projects/DeleteProjectConfirmModal.vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Folder } from 'lucide-vue-next'
+import { Folder, LayoutGrid } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const router = useRouter()

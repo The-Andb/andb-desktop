@@ -428,8 +428,9 @@ export class AndbBuilder {
     const destEnv = targetConn.environment
     const dbName = sourceConn.database || sourceConn.name
     const destDbName = targetConn.database || targetConn.name
+    const databaseType = sourceConn.type || 'mysql'
  
-    const results = await worker.getComparisons(srcEnv, destEnv, dbName, ddlType);
+    const results = await worker.getComparisons(srcEnv, destEnv, dbName, ddlType, databaseType);
  
     return await Promise.all(results.map(async (res: any) => {
       let alterStmts = res.alter_statements
@@ -445,8 +446,8 @@ export class AndbBuilder {
         type: res.type?.toUpperCase() || '',
         ddl: Array.isArray(alterStmts) ? alterStmts : (alterStmts ? [alterStmts] : []),
         diff: {
-          source: await worker.getDDL(srcEnv, dbName, ddlType, res.name),
-          target: await worker.getDDL(destEnv, destDbName, ddlType, res.name)
+          source: await worker.getDDL(srcEnv, dbName, ddlType, res.name, databaseType),
+          target: await worker.getDDL(destEnv, destDbName, ddlType, res.name, targetConn.type || 'mysql')
         }
       }
     }))
@@ -454,12 +455,13 @@ export class AndbBuilder {
 
   static async clearConnectionData(connection: DatabaseConnection) {
     const worker = BackgroundWorker.getInstance()
-    return await worker.clearConnectionData(connection.environment, connection.database)
+    const databaseType = connection.type || 'mysql'
+    return await worker.clearConnectionData(connection.environment, connection.database, databaseType)
   }
  
-  static async getSnapshots(environment: string, database: string, type: string, name: string) {
+  static async getSnapshots(environment: string, database: string, type: string, name: string, databaseType: string = 'mysql') {
     const worker = BackgroundWorker.getInstance()
-    return await worker.getSnapshots(environment, database, type?.toUpperCase() || '', name)
+    return await worker.getSnapshots(environment, database, type?.toUpperCase() || '', name, databaseType)
   }
  
   static async getMigrationHistory(limit: number = 100) {

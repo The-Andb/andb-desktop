@@ -121,6 +121,13 @@ export const useAppStore = defineStore('app', () => {
   // Telemetry Identity
   const installationId = ref<string>('')
 
+  const layoutSettings = ref({
+    sidebar: true,
+    breadcrumbs: true,
+    toolbar: true,
+    sidebarPosition: 'left' as 'left' | 'right'
+  })
+
   // Initialize state
   let initPromise: Promise<void> | null = null
 
@@ -132,6 +139,10 @@ export const useAppStore = defineStore('app', () => {
       sidebarCollapsed.value = savedSettings.sidebarCollapsed
       buttonStyle.value = savedSettings.buttonStyle || 'full'
       navStyle.value = savedSettings.navStyle || 'vertical-list'
+      
+      if (savedSettings.layoutSettings) {
+        layoutSettings.value = { ...layoutSettings.value, ...savedSettings.layoutSettings }
+      }
       if (savedSettings.fontSizes) {
         fontSizes.value = { ...fontSizes.value, ...savedSettings.fontSizes }
       }
@@ -406,6 +417,10 @@ export const useAppStore = defineStore('app', () => {
     storage.updateSettings({ lastSelectedConnectionId: newValue })
   })
 
+  watch(layoutSettings, newValue => {
+    storage.updateSettings({ layoutSettings: { ...newValue } })
+  }, { deep: true })
+
   const generateId = () => {
     try {
       if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
@@ -438,7 +453,8 @@ export const useAppStore = defineStore('app', () => {
       c.port === connection.port && 
       c.database === connection.database &&
       c.name === connection.name &&
-      c.environment === connection.environment
+      c.environment === connection.environment &&
+      (c.type || 'mysql') === (connection.type || 'mysql')
     )
 
     if (existing) {
@@ -627,6 +643,7 @@ export const useAppStore = defineStore('app', () => {
     fontSizes,
     fontFamilies,
     fontSizeProfile,
+    layoutSettings,
     hiddenHorizontalTabs,
     lastCustomFontSizes,
     connections,

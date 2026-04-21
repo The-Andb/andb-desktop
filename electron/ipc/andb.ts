@@ -38,8 +38,8 @@ export async function handleAndbExecute(_event: any, args: any) {
  */
 export async function handleAndbGetComparisons(_event: any, args: any) {
   try {
-    const { sourceConn, targetConn, type } = args || {}
-    const results = await AndbBuilder.getSavedComparisonResults(sourceConn, targetConn, type)
+    const { sourceConnection, targetConnection, type } = args || {}
+    const results = await AndbBuilder.getSavedComparisonResults(sourceConnection, targetConnection, type)
     return { success: true, data: results }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -77,8 +77,8 @@ export async function handleAndbGetAllSnapshots(_event: any, args: any) {
  */
 export async function handleAndbGetSnapshots(_event: any, args: any) {
   try {
-    const { environment, database, type, name } = args || {}
-    const snapshots = await AndbBuilder.getSnapshots(environment, database, type, name)
+    const { environment, database, type, name, databaseType } = args || {}
+    const snapshots = await AndbBuilder.getSnapshots(environment, database, type, name, databaseType)
     return { success: true, data: snapshots }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -203,17 +203,21 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
 
     for (const env of envs) {
       const dbs = await worker.getDatabases(env) || []
-      if (dbs.length === 0) continue // Skip if no schemas cached for this env
+      if (dbs.length === 0) continue
 
       const envData: any = { name: env, databases: [] }
       for (const db of dbs) {
+        const dbName = typeof db === 'string' ? db : db.name
+        const dbType = typeof db === 'string' ? 'mysql' : db.database_type || 'mysql'
+
         const dbData = {
-          name: db,
-          tables: await worker.getDDLObjects(env, db, 'TABLES') || [],
-          views: await worker.getDDLObjects(env, db, 'VIEWS') || [],
-          procedures: await worker.getDDLObjects(env, db, 'PROCEDURES') || [],
-          functions: await worker.getDDLObjects(env, db, 'FUNCTIONS') || [],
-          triggers: await worker.getDDLObjects(env, db, 'TRIGGERS') || [],
+          name: dbName,
+          type: dbType,
+          tables: await worker.getDDLObjects(env, dbName, 'TABLES', dbType) || [],
+          views: await worker.getDDLObjects(env, dbName, 'VIEWS', dbType) || [],
+          procedures: await worker.getDDLObjects(env, dbName, 'PROCEDURES', dbType) || [],
+          functions: await worker.getDDLObjects(env, dbName, 'FUNCTIONS', dbType) || [],
+          triggers: await worker.getDDLObjects(env, dbName, 'TRIGGERS', dbType) || [],
           lastUpdated: new Date().toISOString()
         }
         envData.databases.push(dbData)

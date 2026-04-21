@@ -74,7 +74,7 @@ declare global {
         type: string
       }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbClearConnectionData: (connection: any) => Promise<{ success: boolean; error?: string }>
-      getSnapshots: (environment: string, database: string, type: string, name: string) => Promise<{ success: boolean; data?: any; error?: string }>
+      getSnapshots: (args: { environment: string, database: string, type: string, name: string, databaseType?: string }) => Promise<{ success: boolean; data?: any; error?: string }>
       getAllSnapshots: (limit?: number) => Promise<{ success: boolean; data?: any; error?: string }>
       andbCreateSnapshot: (args: { connection: any; type: string; name: string }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbRestoreSnapshot: (args: { connection: any; snapshot: any }) => Promise<{ success: boolean; data?: any; error?: string }>

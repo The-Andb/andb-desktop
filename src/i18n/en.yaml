@@ -70,6 +70,11 @@ common:
   copied: 'Copied'
   comingSoon: 'Coming Soon'
   back: 'Back'
+  tabs:
+    duplicate: 'Duplicate Tab'
+    close: 'Close'
+    closeOthers: 'Close Other Tabs'
+    closeRight: 'Close Tabs to the Right'
   tooltips:
     refreshSchema: 'Force Refresh Schema'
     refreshCategory: 'Force Refresh Category'
@@ -293,7 +298,9 @@ compare:
   fetchTooltip: 'Fetch Fresh Data & Compare'
   comparing: 'Comparing'
   compare: 'Compare'
-  runCompareTooltip: 'Run Comparison'
+  runCompareTooltip: 'Run local comparison'
+  ignoreObject: 'Ignore This Object'
+  ignoredNotification: 'Added {name} to migration exclusions'
   summary: 'Summary'
   generatedScript: 'Generated Sync Script'
   diffView:
@@ -495,6 +502,7 @@ settings:
   categories:
     interface: 'Interface'
     environments: 'Master Environments'
+    env_pairs: 'Env & Sync Pairs'
     environment: 'Environments'
     connections: 'Connections'
     pairs: 'Sync Pairs'

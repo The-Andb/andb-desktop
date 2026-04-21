@@ -3,41 +3,32 @@
     <!-- Global Header -->
     <Header />
 
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 flex overflow-hidden" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
       <!-- Global Sidebar -->
       <div 
-        :style="{ width: displaySidebarWidth + 'px', borderRightWidth: displaySidebarWidth === 0 ? '0' : '1px' }" 
-        class="shrink-0 relative transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+        v-if="appStore.layoutSettings.sidebar"
+        :style="{ width: displaySidebarWidth + 'px', borderRightWidth: (displaySidebarWidth === 0 || appStore.layoutSettings.sidebarPosition === 'right') ? '0' : '1px', borderLeftWidth: (appStore.layoutSettings.sidebarPosition === 'right' && displaySidebarWidth !== 0) ? '1px' : '0' }" 
+        class="shrink-0 relative transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
       >
         <Sidebar ref="sidebarRef" style="width: 100%" />
         <!-- Sidebar Resizer -->
         <div 
           @mousedown="startSidebarResize"
-          class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20"
+          class="absolute top-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20"
+          :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'left-0' : 'right-0'"
         ></div>
       </div>
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative">
         <!-- Toolbar Row (Operational context) -->
-        <div v-if="$slots.toolbar || isGlobalLayer" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 transition-all duration-300">
-          <div class="flex-1 flex items-center min-w-0">
+        <div v-if="appStore.layoutSettings.toolbar && ($slots.toolbar || isGlobalLayer)" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 transition-all duration-300">
+          <div v-if="$slots.toolbar" class="flex-1 flex items-center min-w-0">
             <slot name="toolbar"></slot>
-          </div>
-          <!-- Console Toggle (Operational Views Only) -->
-          <div v-if="isMainOperationTab" class="flex items-center ml-2 dark:border-gray-700 shrink-0">
-            <button
-              @click="consoleStore.toggleVisibility()"
-              class="p-1.5 rounded-lg transition-colors border border-transparent shrink-0"
-              :class="consoleStore.isVisible ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'"
-              :title="$t('console.toggle')"
-            >
-              <PanelBottom class="w-4 h-4" />
-            </button>
           </div>
 
           <!-- Close Global Layer (Settings/Project Manager) -->
-          <div v-else-if="isGlobalLayer" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700 shrink-0">
+          <div v-if="isGlobalLayer" class="flex items-center ml-2 pl-2 border-l border-gray-200 dark:border-gray-700 shrink-0">
             <button 
               @click="closeGlobalLayer" 
               data-testid="close-settings"
@@ -47,6 +38,11 @@
               <X class="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        <!-- Breadcrumbs Row -->
+        <div v-if="appStore.layoutSettings.breadcrumbs && $slots.breadcrumbs" class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
+          <slot name="breadcrumbs"></slot>
         </div>
 
         <!-- Content & Console Split -->
@@ -211,7 +207,16 @@ const startSidebarResize = () => {
 
 const handleSidebarResize = (e: MouseEvent) => {
   if (isResizingSidebar.value) {
-    sidebarWidth.value = Math.max(160, Math.min(480, e.clientX))
+    const delta = appStore.layoutSettings.sidebarPosition === 'right' 
+      ? window.innerWidth - e.clientX - (window.innerWidth - sidebarWidth.value) // Simplified, but let's be precise
+      : e.clientX
+    
+    // For simplicity when resizing from right, we use direct calculation
+    if (appStore.layoutSettings.sidebarPosition === 'right') {
+      sidebarWidth.value = Math.max(160, Math.min(480, window.innerWidth - e.clientX))
+    } else {
+      sidebarWidth.value = Math.max(160, Math.min(480, e.clientX))
+    }
   }
 }
 

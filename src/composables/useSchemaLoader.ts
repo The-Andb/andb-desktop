@@ -1,10 +1,27 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import Andb from '@/utils/andb'
+
+export interface ParsedColumnInfo {
+  name: string
+  type: string
+  pk: boolean
+  notNull: boolean
+  unique: boolean
+  autoIncrement: boolean
+  default?: string
+  comment?: string
+}
+
+export interface TableColumnIndex {
+  columns: ParsedColumnInfo[]
+  indexes: any[]
+  foreignKeys: any[]
+}
 
 export function useSchemaLoader(
   selectedConnectionId: { value: string | null },
@@ -21,6 +38,12 @@ export function useSchemaLoader(
   const statusMessage = ref('')
   const error = ref<string | null>(null)
   const selectedDbLastUpdated = ref<string | null>(null)
+
+  // Column Index for instant column-level search
+  const columnIndex = ref<Record<string, TableColumnIndex>>({})
+  const isIndexingColumns = ref(false)
+  const columnIndexProgress = ref({ current: 0, total: 0 })
+  let columnIndexAbortController: AbortController | null = null
 
   const schemaData = ref({
     tables: [] as any[],
@@ -50,6 +73,13 @@ export function useSchemaLoader(
   // Set schemaData back to purely empty initially
   const clearSchemaData = () => {
     selectedDbLastUpdated.value = null
+    columnIndex.value = {}
+    isIndexingColumns.value = false
+    columnIndexProgress.value = { current: 0, total: 0 }
+    if (columnIndexAbortController) {
+      columnIndexAbortController.abort()
+      columnIndexAbortController = null
+    }
     schemaData.value = {
       tables: [],
       procedures: [],
@@ -59,6 +89,94 @@ export function useSchemaLoader(
       events: []
     }
   }
+
+  /**
+   * Background column indexing: parse all table DDLs to extract column metadata.
+   * Runs in batches to avoid blocking the UI.
+   */
+  const buildColumnIndex = async (tables: any[]) => {
+    // Abort any previous indexing
+    if (columnIndexAbortController) {
+      columnIndexAbortController.abort()
+    }
+    columnIndexAbortController = new AbortController()
+    const signal = columnIndexAbortController.signal
+
+    const tablesToParse = tables.filter(t => t.name && (t.content || t.ddl))
+    if (tablesToParse.length === 0) {
+      columnIndex.value = {}
+      return
+    }
+
+    isIndexingColumns.value = true
+    columnIndexProgress.value = { current: 0, total: tablesToParse.length }
+    const newIndex: Record<string, TableColumnIndex> = {}
+    const BATCH_SIZE = 10
+
+    try {
+      for (let i = 0; i < tablesToParse.length; i += BATCH_SIZE) {
+        if (signal.aborted) return
+
+        const batch = tablesToParse.slice(i, i + BATCH_SIZE)
+        const results = await Promise.all(
+          batch.map(async (table) => {
+            try {
+              const ddl = table.content || table.ddl
+              if (!ddl) return { name: table.name, data: null }
+              const result = await (window as any).electronAPI.andbParseTable(ddl)
+              return { name: table.name, data: result?.success ? result.data : null }
+            } catch {
+              return { name: table.name, data: null }
+            }
+          })
+        )
+
+        for (const r of results) {
+          if (signal.aborted) return
+          if (r.data) {
+            newIndex[r.name] = {
+              columns: (r.data.columns || []).map((c: any) => ({
+                name: c.name,
+                type: c.type || '',
+                pk: !!c.pk,
+                notNull: !!c.notNull,
+                unique: !!c.unique,
+                autoIncrement: !!c.autoIncrement,
+                default: c.default ? String(c.default) : undefined,
+                comment: c.comment || undefined
+              })),
+              indexes: r.data.indexes || [],
+              foreignKeys: r.data.foreignKeys || []
+            }
+          }
+        }
+
+        columnIndexProgress.value = { current: Math.min(i + BATCH_SIZE, tablesToParse.length), total: tablesToParse.length }
+        // Yield to UI thread between batches
+        await new Promise(resolve => setTimeout(resolve, 0))
+      }
+
+      if (!signal.aborted) {
+        columnIndex.value = newIndex
+        console.log(`[useSchemaLoader] Column index built: ${Object.keys(newIndex).length} tables, ${Object.values(newIndex).reduce((acc, t) => acc + t.columns.length, 0)} columns`)
+      }
+    } catch (e) {
+      console.warn('[useSchemaLoader] Column indexing failed:', e)
+    } finally {
+      if (!signal.aborted) {
+        isIndexingColumns.value = false
+      }
+    }
+  }
+
+  // Auto-rebuild column index when tables data changes
+  watch(() => schemaData.value.tables, (newTables) => {
+    if (newTables && newTables.length > 0) {
+      buildColumnIndex(newTables)
+    } else {
+      columnIndex.value = {}
+    }
+  })
 
   const loadSchema = async (forceRefresh = false, keepSelection = false) => {
     if (!selectedConnectionId.value) return
@@ -258,6 +376,9 @@ export function useSchemaLoader(
     allResults,
     selectedDbLastUpdated,
     loadSchema,
-    clearSchemaData
+    clearSchemaData,
+    columnIndex,
+    isIndexingColumns,
+    columnIndexProgress
   }
 }

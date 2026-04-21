@@ -83,7 +83,11 @@
               </tr>
             </thead>
             <tbody class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
-              <tr v-for="(col, idx) in columns" :key="col.name" class="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 transition-colors">
+              <tr v-for="(col, idx) in columns" :key="col.name" 
+                :id="'col-row-' + col.name"
+                class="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 transition-colors"
+                :class="{ 'bg-primary-500/10 dark:bg-primary-400/10 ring-1 ring-inset ring-primary-500/30 !text-primary-700 dark:!text-primary-300': highlightColumn === col.name }"
+              >
                 <td class="px-6 py-3 text-gray-400 text-center">{{ idx + 1 }}</td>
                 <td class="px-6 py-3 font-bold text-gray-900 dark:text-gray-100 truncate">
                   <div class="flex items-center gap-2 truncate">
@@ -476,6 +480,7 @@ const props = defineProps<{
   partitions: string | null
   triggers: any[] // All triggers from schema for cross-referencing
   stats?: any    // Table stats from Inspector (AI DBA Super Mode)
+  highlightColumn?: string | null
 }>()
 
 const emit = defineEmits(['refreshStats'])
@@ -520,6 +525,23 @@ watch(() => props.tableName, () => {
   activeTab.value = 0
   selectedTriggerEvent.value = 'BEFORE INSERT'
 })
+
+// Handle column highlighting and scrolling
+watch(() => props.highlightColumn, (newVal) => {
+  if (newVal) {
+    activeTab.value = 0 // Switch to Columns tab
+    scrollToColumn(newVal)
+  }
+}, { immediate: true })
+
+const scrollToColumn = (colName: string) => {
+  setTimeout(() => {
+    const el = document.getElementById(`col-row-${colName}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, 100)
+}
 
 const tableTriggers = computed(() => {
   if (!props.triggers) return []

@@ -66,6 +66,7 @@
           <!-- Items -->
           <div v-show="!collapsedCategories.has(category.type)" class="relative">
             <div v-for="item in category.items" :key="item.name" @click="emit('select', item)"
+              @contextmenu.prevent="emit('contextmenu', $event, item)"
               class="group relative flex items-center py-1 cursor-pointer">
               <!-- Row Hover Effect -->
               <div
@@ -197,6 +198,7 @@ const emit = defineEmits<{
   (e: 'select', item: any): void
   (e: 'update:activeType', type: string): void
   (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
+  (e: 'contextmenu', event: MouseEvent, item: any): void
 }>()
 
 const updateType = (type: string) => {

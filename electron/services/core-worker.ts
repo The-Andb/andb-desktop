@@ -85,7 +85,7 @@ async function handleRpcRequest(request: any) {
         result = await (CoreBridge.getStorage() as any).getStats();
         break;
       case 'getComparisons':
-        result = await (CoreBridge.getStorage() as any).getComparisons(params.srcEnv, params.destEnv, params.database, params.type);
+        result = await (CoreBridge.getStorage() as any).getComparisons(params.srcEnv, params.destEnv, params.database, params.type, params.databaseType);
         break;
       case 'getEnvironments':
         result = await CoreBridge.getApp()?.config.getEnvironments();
@@ -151,16 +151,16 @@ async function handleRpcRequest(request: any) {
         result = await (CoreBridge.getStorage() as any).deleteProjectEnvironment(params.id);
         break;
       case 'getDatabases':
-        result = await (CoreBridge.getStorage() as any).getDatabases(params.env);
+        result = await (CoreBridge.getStorage() as any).getDatabases(params.env, params.databaseType);
         break;
       case 'getDDL':
-        result = await (CoreBridge.getStorage() as any).getDDL(params.env, params.database, params.type, params.name);
+        result = await (CoreBridge.getStorage() as any).getDDL(params.env, params.database, params.type, params.name, params.databaseType);
         break;
       case 'getDDLObjects':
-        result = await (CoreBridge.getStorage() as any).getDDLObjects(params.env, params.database, params.type);
+        result = await (CoreBridge.getStorage() as any).getDDLObjects(params.env, params.database, params.type, params.databaseType);
         break;
       case 'getSnapshots':
-        result = await (CoreBridge.getStorage() as any).getSnapshots(params.env, params.database, params.type, params.name);
+        result = await (CoreBridge.getStorage() as any).getSnapshots(params.env, params.database, params.type, params.name, params.databaseType);
         break;
       case 'getAllSnapshots':
         result = await (CoreBridge.getStorage() as any).getAllSnapshots(params.limit);
@@ -169,7 +169,7 @@ async function handleRpcRequest(request: any) {
         result = await (CoreBridge.getStorage() as any).getMigrationHistory(params.limit);
         break;
       case 'clearConnectionData':
-        result = await (CoreBridge.getStorage() as any).clearConnectionData(params.env, params.database);
+        result = await (CoreBridge.getStorage() as any).clearConnectionData(params.env, params.database, params.databaseType);
         break;
       case 'getLatestComparisons':
         result = await (CoreBridge.getStorage() as any).getLatestComparisons(params.limit);

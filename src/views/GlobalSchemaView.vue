@@ -1,220 +1,89 @@
 <template>
-  <div class="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-950">
-    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between shrink-0 h-16 gap-4">
-        <!-- Title & Connection Selection -->
-        <div class="flex items-center gap-4">
-          <div class="flex flex-col gap-0.5">
-            <h1 class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
-              <Folder class="w-5 h-5 mr-2 text-primary-500" />
-              {{ $t('schema.title') }}
-            </h1>
-             <div class="flex items-center text-[10px] text-gray-500 font-bold uppercase tracking-wider gap-2">
-                <Database class="w-3 h-3 opacity-50" />
-                <span class="text-primary-600 dark:text-primary-400 font-black tracking-widest">{{ activeConnectionName }}</span>
-               <button 
-                 @click="loadSchema(false)" 
-                 class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-400 hover:text-primary-500 transition-colors"
-                 :title="$t('schema.reloadLocal')"
-               >
-                 <RotateCcw class="w-3 h-3" />
-               </button>
-            </div>
-          </div>
+  <MainLayout>
+    <template #toolbar>
+      <div class="flex items-center justify-between w-full h-full gap-4 px-2">
+        <!-- Left Side: Title -->
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black text-gray-400">
+           {{ $t('schema.title') }}
         </div>
 
         <!-- Right Actions Area -->
         <div class="flex items-center gap-4">
+          <!-- Fetch Group -->
+          <div class="flex items-center gap-3">
+            <div v-if="selectedDbLastUpdated && !appStore.isSchemaFetching" class="hidden sm:flex flex-col items-end px-2 border-r border-gray-200 dark:border-gray-700">
+              <span class="text-[9px] text-gray-400 uppercase tracking-tighter">{{ $t('schema.lastSynced') }}</span>
+              <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
+            </div>
 
-            <!-- Fetch Group -->
-           <div class="flex items-center gap-3">
-              
-              <div v-if="selectedDbLastUpdated && !appStore.isSchemaFetching" class="hidden sm:flex flex-col items-end px-2 border-r border-gray-200 dark:border-gray-700">
-                <span class="text-[9px] text-gray-400 uppercase tracking-tighter">{{ $t('schema.lastSynced') }}</span>
-                <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
-              </div>
-
-               <button 
-                 @click="loadSchema(true)" 
-                 :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
-                 class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-md shadow-primary-500/10 transition-all disabled:opacity-50 text-[11px] font-bold border-none"
-                 :title="fetchButtonText"
-               >
-                 <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': appStore.isSchemaFetching || loading }" />
-                 <span class="uppercase tracking-tight">{{ appStore.isSchemaFetching ? $t('schema.fetching') : fetchButtonText }}</span>
-               </button>
-           </div>
-           
-           <!-- Layout Customize -->
-           <div class="relative">
-             <button 
-               @click="showLayoutMenu = !showLayoutMenu" 
-               class="p-2 rounded-xl transition-all border border-transparent flex items-center justify-center"
-               :class="showLayoutMenu ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-800'"
-               title="Customize Layout"
-             >
-               <LayoutDashboard class="w-4 h-4" />
-             </button>
-
-             <!-- Dropdown -->
-             <div v-if="showLayoutMenu" class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-gray-900 dark:text-white">
-               <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
-                 <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Customize Layout</span>
-                 <button @click="showLayoutMenu = false" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                   <X class="w-3.5 h-3.5" />
-                 </button>
-               </div>
-               
-               <div class="py-1.5 px-1.5 space-y-0.5">
-                 <!-- Sidebar Toggle -->
-                 <button @click="layout.sidebar = !layout.sidebar" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                   <div class="flex items-center gap-3">
-                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.sidebar }">
-                       <PanelLeft class="w-4 h-4" :class="layout.sidebar ? 'text-primary-500' : 'text-gray-400'" />
-                     </div>
-                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Sidebar</span>
-                   </div>
-                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.sidebar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
-                     <Check v-if="layout.sidebar" class="w-3 h-3" />
-                   </div>
-                 </button>
-
-                 <!-- Breadcrumbs Toggle -->
-                 <button @click="layout.breadcrumbs = !layout.breadcrumbs" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                   <div class="flex items-center gap-3">
-                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.breadcrumbs }">
-                       <Navigation class="w-4 h-4" :class="layout.breadcrumbs ? 'text-primary-500' : 'text-gray-400'" />
-                     </div>
-                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Breadcrumbs</span>
-                   </div>
-                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.breadcrumbs ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
-                     <Check v-if="layout.breadcrumbs" class="w-3 h-3" />
-                   </div>
-                 </button>
-
-                 <!-- Toolbar Toggle -->
-                 <button @click="layout.toolbar = !layout.toolbar" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                   <div class="flex items-center gap-3">
-                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': layout.toolbar }">
-                       <PanelTop class="w-4 h-4" :class="layout.toolbar ? 'text-primary-500' : 'text-gray-400'" />
-                     </div>
-                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Content Toolbar</span>
-                   </div>
-                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="layout.toolbar ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
-                     <Check v-if="layout.toolbar" class="w-3 h-3" />
-                   </div>
-                 </button>
-
-                 <!-- Panel Toggle (Console) -->
-                 <button @click="consoleStore.toggleVisibility()" class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                   <div class="flex items-center gap-3">
-                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center" :class="{ 'bg-primary-50 dark:bg-primary-900/20': consoleStore.isVisible }">
-                       <PanelBottom class="w-4 h-4" :class="consoleStore.isVisible ? 'text-primary-500' : 'text-gray-400'" />
-                     </div>
-                     <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Console Panel</span>
-                   </div>
-                   <div class="w-5 h-5 rounded-md border transition-all flex items-center justify-center" :class="consoleStore.isVisible ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'">
-                     <Check v-if="consoleStore.isVisible" class="w-3 h-3" />
-                   </div>
-                 </button>
-               </div>
-               
-               <!-- Button Styling / Density -->
-               <div class="border-t border-gray-100 dark:border-gray-800 py-1.5 bg-gray-50/30 dark:bg-gray-900/30">
-                 <div class="px-4 py-1.5 flex items-center justify-between">
-                   <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Visual Density</span>
-                 </div>
-                 <div class="px-2 space-y-0.5">
-                   <button 
-                     @click="appStore.buttonStyle = 'full'"
-                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
-                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'full', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'full' }"
-                   >
-                     <Zap class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'full' ? 'text-primary-500' : 'text-gray-400'" />
-                     <div class="flex flex-col items-start leading-tight">
-                       <span class="text-[11px] font-bold">Premium</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Rich Gradients</span>
-                     </div>
-                     <Check v-if="appStore.buttonStyle === 'full'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
-                   </button>
-                   <button 
-                     @click="appStore.buttonStyle = 'minimal'"
-                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
-                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'minimal', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'minimal' }"
-                   >
-                     <MousePointer2 class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'minimal' ? 'text-primary-500' : 'text-gray-400'" />
-                     <div class="flex flex-col items-start leading-tight">
-                       <span class="text-[11px] font-bold">Minimal</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Sleek Lines</span>
-                     </div>
-                     <Check v-if="appStore.buttonStyle === 'minimal'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
-                   </button>
-                   <button 
-                     @click="appStore.buttonStyle = 'icons'"
-                     class="w-full px-3 py-2 flex items-center gap-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left"
-                     :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600': appStore.buttonStyle === 'icons', 'text-gray-500 dark:text-gray-400': appStore.buttonStyle !== 'icons' }"
-                   >
-                     <Layers class="w-3.5 h-3.5" :class="appStore.buttonStyle === 'icons' ? 'text-primary-500' : 'text-gray-400'" />
-                     <div class="flex flex-col items-start leading-tight">
-                       <span class="text-[11px] font-bold">Icon Only</span>
-                       <span class="text-[9px] opacity-60 uppercase tracking-tighter font-medium">Extreme Density</span>
-                     </div>
-                     <Check v-if="appStore.buttonStyle === 'icons'" class="ml-auto w-3.5 h-3.5 text-primary-500" />
-                   </button>
-                 </div>
-               </div>
-
-               <!-- Sidebar Position -->
-               <div class="border-t border-gray-100 dark:border-gray-800 py-1.5">
-                 <div class="px-4 py-1.5 flex items-center justify-between">
-                   <span class="text-[10px] font-bold uppercase tracking-wider text-primary-400">Sidebar Position</span>
-                 </div>
-                 <div class="px-3 pb-2 flex gap-1.5">
-                   <button 
-                     @click="layout.sidebarPosition = 'left'"
-                     class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
-                     :class="layout.sidebarPosition === 'left' ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'"
-                   >
-                     Left
-                   </button>
-                   <button 
-                     @click="layout.sidebarPosition = 'right'"
-                     class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
-                     :class="layout.sidebarPosition === 'right' ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'"
-                   >
-                     Right
-                   </button>
-                 </div>
-               </div>
-             </div>
-           </div>
+            <button 
+              @click="loadSchema(true)" 
+              :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-md shadow-primary-500/10 transition-all disabled:opacity-50 text-[11px] font-bold border-none"
+              :title="fetchButtonText"
+            >
+              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': appStore.isSchemaFetching || loading }" />
+              <span class="uppercase tracking-tight">{{ appStore.isSchemaFetching ? $t('schema.fetching') : fetchButtonText }}</span>
+            </button>
+          </div>
         </div>
-    </div>
-    <!-- Breadcrumbs -->
-    <div v-if="layout.breadcrumbs" class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
-      <button 
-        @click="resetNavigation"
-        class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary-500 transition-colors shrink-0"
-      >
-        <Database class="w-3 h-3" />
-        {{ $t('schema.overview') }}
-      </button>
-      
+      </div>
+    </template>
+
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+         <div class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 dark:bg-primary-900/20 rounded-md border border-primary-100 dark:border-primary-800/50">
+            <Database class="w-3 h-3 text-primary-500" />
+            <span class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{ activeConnectionName }}</span>
+            <button 
+              @click="loadSchema(false)" 
+              class="p-0.5 hover:bg-white dark:hover:bg-gray-800 rounded transition-colors text-primary-400 hover:text-primary-600"
+              :title="$t('schema.reloadLocal')"
+            >
+              <RotateCcw class="w-2.5 h-2.5" />
+            </button>
+         </div>
+
+         <div class="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1"></div>
+
+          <button 
+            @click="resetNavigation"
+            class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0"
+          >
+            {{ $t('schema.overview') }}
+          </button>
+
+          <template v-if="selectedEnv">
+            <span class="text-gray-300 dark:text-gray-600">/</span>
+            <span class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ selectedEnv }}</span>
+          </template>
+
+          <template v-if="selectedDbName">
+            <span class="text-gray-300 dark:text-gray-600">/</span>
+            <span class="text-[10px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest">{{ selectedDbName }}</span>
+          </template>
+
+          <template v-if="selectedType">
+            <span class="text-gray-300 dark:text-gray-600">/</span>
+            <span class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t(`navigation.ddl.${selectedType.toLowerCase()}`) }}</span>
+          </template>
+
+          <template v-if="selectedObject">
+            <span class="text-gray-300 dark:text-gray-600">/</span>
+            <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono">{{ selectedObject.name }}</span>
+          </template>
+      </div>
+    </template>
+
+    <div class="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-950">
 
 
-      <template v-if="selectedItem">
-        <ChevronRight class="w-3 h-3 text-gray-300 shrink-0" />
-        <span class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-white truncate shrink-0">
-          <component :is="getIconForType(selectedItem.type)" class="w-3 h-3" />
-          {{ selectedItem.name }}
-        </span>
-      </template>
-    </div>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden relative">
-        <main class="flex-1 flex overflow-hidden relative" :class="{ 'flex-row-reverse': layout.sidebarPosition === 'right' }" v-if="!loading || hasResults">
+        <main class="flex-1 flex overflow-hidden relative" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }" v-if="!loading || hasResults">
           <!-- Left: Object Categories & List -->
-          <div v-if="layout.sidebar" :style="{ width: resultsWidth + 'px' }" class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative" :class="layout.sidebarPosition === 'right' ? 'border-l' : 'border-r'">
+          <div v-if="appStore.layoutSettings.sidebar" :style="{ width: resultsWidth + 'px' }" class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 relative" :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l' : 'border-r'">
 
               <!-- Search Bar (Professional Redesign) -->
               <div v-if="hasResults" class="p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
@@ -226,8 +95,8 @@
                     ref="searchInput"
                     v-model="searchQuery"
                     type="text" 
-                    :placeholder="searchFlags.content ? 'Search content & names...' : 'Search names...'"
-                    class="w-full pl-9 pr-32 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner"
+                    :placeholder="searchFlags.columns ? 'Search column names...' : searchFlags.content ? 'Search content & names...' : 'Search names...'"
+                    class="w-full pl-9 pr-36 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner"
                     @keyup.enter="searchFlags.content && performContentSearch()"
                   />
                   
@@ -270,12 +139,32 @@
                     </button>
 
                     <button 
+                      @click="toggleColumnSearch"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.columns ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+                      :title="isIndexingColumns ? 'Column Search (Indexing...)' : 'Column Search'"
+                    >
+                      <Columns class="w-3.5 h-3.5" :class="{ 'animate-pulse': isIndexingColumns }" />
+                    </button>
+
+                    <button 
                       v-if="searchQuery"
                       @click="clearSearch"
                       class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all"
                     >
                       <X class="w-3.5 h-3.5" />
                     </button>
+                  </div>
+                </div>
+
+                <!-- Column Index Progress -->
+                <div v-if="isIndexingColumns" class="mt-2 px-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <RefreshCw class="w-3 h-3 animate-spin text-primary-500" />
+                    <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tight">Indexing columns... {{ columnIndexProgress.current }}/{{ columnIndexProgress.total }}</span>
+                  </div>
+                  <div class="w-full h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary-500 rounded-full transition-all duration-300" :style="{ width: columnIndexProgress.total > 0 ? ((columnIndexProgress.current / columnIndexProgress.total) * 100) + '%' : '0%' }"></div>
                   </div>
                 </div>
 
@@ -287,7 +176,10 @@
                       <span class="text-[10px] text-gray-500 uppercase font-bold tracking-tight animate-pulse">Searching codebases...</span>
                      </div>
                      <div v-else class="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                      <span v-if="searchFlags.content" class="text-primary-600 dark:text-primary-400">
+                      <span v-if="searchFlags.columns" class="text-primary-600 dark:text-primary-400">
+                        {{ columnSearchSummary }}
+                      </span>
+                      <span v-else-if="searchFlags.content" class="text-primary-600 dark:text-primary-400">
                         {{ contentSearchResults.reduce((acc, curr) => acc + (curr.matches?.length || 0), 0) }} total matches
                       </span>
                       <span v-else>
@@ -406,10 +298,12 @@
                   :expand-cmd="treeExpandCmd"
                   :navigatable-names="navigatableNames"
                   :stats="tableStatsMap"
+                  :column-search-active="searchFlags.columns && !!searchQuery.trim()"
                   @select="selectItem"
                   @navigateTo="handleNavigateTo"
                   @navigate-to-definition="handleNavigateToDefinition"
                   @send-to-instant="(item: any, slot: any) => handleSendToInstantFromTree(item, slot)"
+                  @select-column="handleSelectColumn"
                  />
 
               </div>
@@ -430,9 +324,12 @@
                 :active-tab-id="activeTabId" 
                 @select="handleSelectTab" 
                 @close="handleCloseTab"
+                @duplicate="handleDuplicateTab"
+                @close-others="handleCloseOthers"
+                @close-right="handleCloseRight"
               />
               <div v-if="selectedItem" class="flex-1 flex flex-col overflow-hidden">
-                <div v-if="layout.toolbar" class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14">
+                <div v-if="appStore.layoutSettings.toolbar" class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14">
                   <div class="flex items-center overflow-hidden gap-3">
                     <div class="p-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
                       <component :is="getIconForType(selectedItem.type)" class="w-4 h-4" />
@@ -570,6 +467,7 @@
                         :partitions="detailedTableData.partitions"
                         :triggers="schemaData.triggers"
                         :stats="currentTableStats"
+                        :highlight-column="highlightColumnName"
                         @refresh-stats="fetchTableStats"
                     ></TableDetailedView>
                     
@@ -591,9 +489,11 @@
         </main>
       </div>
     </div>
-  </template>
+  </MainLayout>
+</template>
 
 <script setup lang="ts">
+import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick, shallowRef, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -605,36 +505,29 @@ import Andb from '@/utils/andb'
 import DDLViewer from '@/components/ddl/DDLViewer.vue'
 import SchemaDiagram from '@/components/ddl/SchemaDiagram.vue'
 import { 
+  History, 
   RefreshCw, 
+  Database, 
+  Folder,
+  RotateCcw,
+  Search,
+  ChevronRight,
+  ShieldCheck,
+  X,
+  Info,
+  Maximize2,
+  ChevronLeft,
   ArrowDownAZ,
   ArrowUpAZ,
-  Folder,
-  ScanSearch, 
-  MousePointer2,
-  ChevronRight,
-  Search, 
-  Download,
-  Camera,
-  RotateCcw,
-  History,
-  Network,
-  PanelBottom,
-  Code2,
-  LayoutTemplate,
-  CaseSensitive,
-  WholeWord,
-  Regex,
-  X,
+  CalendarClock,
+  Zap,
   Sigma,
   Plus,
   Minus,
-  Database,
-  Binary,
   Grid3X3,
   Eye,
   Cpu,
-  CalendarClock,
-  Zap,
+  Binary,
   Filter,
   Flame,
   LayoutDashboard,
@@ -642,7 +535,18 @@ import {
   PanelTop,
   Navigation,
   Check,
-  Layers
+  Layers,
+  Columns,
+  LayoutTemplate,
+  ScanSearch,
+  MousePointer2,
+  ArrowRight,
+  Download,
+  Camera,
+  Network,
+  PanelBottom,
+  Code2,
+  Server
 } from 'lucide-vue-next'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useNotificationStore } from '@/stores/notification'
@@ -674,6 +578,12 @@ const toggleSortBy = () => {
     if (sortBy.value === 'date') sortOrder.value = 'desc'
     else sortOrder.value = 'asc'
 }
+
+const activeConnection = computed(() => appStore.getConnectionById(appStore.selectedConnectionId))
+const selectedEnv = computed(() => activeConnection.value?.environment)
+const selectedDbName = computed(() => activeConnection.value?.database || activeConnection.value?.name)
+const selectedType = computed(() => selectedFilterType.value === 'all' ? undefined : selectedFilterType.value)
+const selectedObject = computed(() => selectedItem.value)
 
 // Watch for project changes to reset schema selection
 watch(() => projectsStore.selectedProjectId, () => {
@@ -741,8 +651,10 @@ const searchFlags = ref({
   caseSensitive: false,
   wholeWord: false,
   regex: false,
-  content: false
+  content: false,
+  columns: false
 })
+const highlightColumnName = ref<string | null>(null)
 const contentSearchResults = ref<any[]>([])
 const isSearchingContent = ref(false)
 const selectedItem = shallowRef<any>(null)
@@ -779,9 +691,37 @@ const handleCloseTab = (id: string) => {
     } else {
       activeTabId.value = null
       selectedItem.value = null
+      detailedTableData.value = null
     }
   }
 }
+
+const handleDuplicateTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (!tab) return
+  
+  const newTab = JSON.parse(JSON.stringify(tab))
+  newTab.id = `${tab.id}-copy-${Date.now()}`
+  newTab.name = `${tab.name} (Copy)`
+  
+  const index = tabs.value.findIndex(t => t.id === id)
+  tabs.value.splice(index + 1, 0, newTab)
+  handleSelectTab(newTab.id)
+}
+
+const handleCloseOthers = (id: string) => {
+  tabs.value = tabs.value.filter(t => t.id === id)
+  handleSelectTab(id)
+}
+
+const handleCloseRight = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index !== -1) {
+    tabs.value = tabs.value.slice(0, index + 1)
+    handleSelectTab(id)
+  }
+}
+
 
 const handlePrevTab = () => {
   if (tabs.value.length <= 1) return
@@ -804,7 +744,10 @@ const {
   schemaData,
   allResults,
   selectedDbLastUpdated,
-  loadSchema
+  loadSchema,
+  columnIndex,
+  isIndexingColumns,
+  columnIndexProgress
 } = useSchemaLoader(
   // Reconstruct ref matching structure required by the composable
   computed(() => appStore.selectedConnectionId),
@@ -876,8 +819,26 @@ const navigatableNames = computed(() => {
     .map(i => i.name)
 })
 
+// Build search regex helper
+const buildSearchRegex = (query: string): RegExp | null => {
+  if (!query) return null
+  const { caseSensitive, wholeWord, regex } = searchFlags.value
+  try {
+    if (regex) {
+      return new RegExp(query, caseSensitive ? '' : 'i')
+    }
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    if (wholeWord) {
+      return new RegExp(`\\b${escaped}\\b`, caseSensitive ? '' : 'i')
+    }
+    return new RegExp(escaped, caseSensitive ? '' : 'i')
+  } catch {
+    return null
+  }
+}
+
 const filteredResults = computed(() => {
-  if (searchFlags.value.content) {
+  if (searchFlags.value.content && !searchFlags.value.columns) {
     return contentSearchResults.value
   }
 
@@ -887,27 +848,54 @@ const filteredResults = computed(() => {
     filtered = filtered.filter(i => i.type === selectedFilterType.value)
   }
 
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.trim()
-    const { caseSensitive, wholeWord, regex } = searchFlags.value
-    
-    try {
-      let re: RegExp
-      if (regex) {
-         re = new RegExp(query, caseSensitive ? '' : 'i')
-      } else {
-         // Escape regex chars if not regex mode
-         const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-         if (wholeWord) {
-            re = new RegExp(`\\b${escaped}\\b`, caseSensitive ? '' : 'i')
-         } else {
-            re = new RegExp(escaped, caseSensitive ? '' : 'i')
-         }
+  const query = searchQuery.value.trim()
+
+  // --- Column Search Mode ---
+  if (searchFlags.value.columns && query) {
+    const re = buildSearchRegex(query)
+    if (!re) return []
+
+    // Only show tables that have matching columns
+    const results: any[] = []
+    for (const item of filtered) {
+      if (item.type !== 'tables' && item.type !== 'table') continue
+      const tableData = columnIndex.value[item.name]
+      if (!tableData) continue
+
+      const matchedColumns = tableData.columns.filter(col => re.test(col.name))
+      // Also search index column names
+      const matchedIndexCols = tableData.indexes.filter((idx: any) => {
+        const cols = idx.columns || ''
+        return re.test(cols)
+      })
+      // Also search FK column references
+      const matchedFKCols = tableData.foreignKeys.filter((fk: any) => {
+        return re.test(fk.localColumns || '') || re.test(fk.referencedColumns || '') || re.test(fk.referencedTable || '')
+      })
+
+      if (matchedColumns.length > 0 || matchedIndexCols.length > 0 || matchedFKCols.length > 0) {
+        results.push({
+          ...item,
+          matchedColumns,
+          matchedIndexes: matchedIndexCols,
+          matchedForeignKeys: matchedFKCols
+        })
       }
-      
+    }
+
+    return [...results].sort((a, b) => {
+      // Sort by number of matched columns descending, then name
+      const diff = (b.matchedColumns?.length || 0) - (a.matchedColumns?.length || 0)
+      return diff !== 0 ? diff : a.name.localeCompare(b.name)
+    })
+  }
+
+  // --- Default Name Search ---
+  if (query) {
+    const re = buildSearchRegex(query)
+    if (re) {
       filtered = filtered.filter(i => re.test(i.name))
-    } catch (e) {
-      // Invalid regex fallback to simple include
+    } else {
       filtered = filtered.filter(i => i.name.toLowerCase().includes(query.toLowerCase()))
     }
   }
@@ -942,6 +930,19 @@ const filteredResults = computed(() => {
     }
     return sortOrder.value === 'asc' ? cmp : -cmp
   })
+})
+
+// Column search summary text
+const columnSearchSummary = computed(() => {
+  if (!searchFlags.value.columns || !searchQuery.value.trim()) return ''
+  const results = filteredResults.value
+  const totalCols = results.reduce((acc: number, r: any) => acc + (r.matchedColumns?.length || 0), 0)
+  const totalIdxs = results.reduce((acc: number, r: any) => acc + (r.matchedIndexes?.length || 0), 0)
+  const totalFKs = results.reduce((acc: number, r: any) => acc + (r.matchedForeignKeys?.length || 0), 0)
+  const parts = [`${totalCols} columns in ${results.length} tables`]
+  if (totalIdxs > 0) parts.push(`${totalIdxs} indexes`)
+  if (totalFKs > 0) parts.push(`${totalFKs} FKs`)
+  return parts.join(' · ')
 })
 
 const performContentSearch = async () => {
@@ -992,15 +993,34 @@ watch([searchQuery, () => searchFlags.value.caseSensitive, () => searchFlags.val
 const toggleContentSearch = () => {
   searchFlags.value.content = !searchFlags.value.content
   if (searchFlags.value.content) {
+    searchFlags.value.columns = false // Mutually exclusive
     performContentSearch()
   } else {
     contentSearchResults.value = []
   }
 }
 
+const toggleColumnSearch = () => {
+  searchFlags.value.columns = !searchFlags.value.columns
+  if (searchFlags.value.columns) {
+    searchFlags.value.content = false // Mutually exclusive
+    contentSearchResults.value = []
+  }
+  highlightColumnName.value = null
+}
+
 const clearSearch = () => {
   searchQuery.value = ''
   contentSearchResults.value = []
+  highlightColumnName.value = null
+}
+
+const handleSelectColumn = (payload: { item: any; columnName: string }) => {
+  // Navigate to the table and highlight the column in visual view
+  highlightColumnName.value = payload.columnName
+  selectItem(payload.item)
+  // Force visual mode for table detail view
+  viewMode.value = 'visual'
 }
 
 watch(selectedItem, () => {
@@ -1185,14 +1205,7 @@ const fetchButtonText = computed(() => {
 
 const viewMode = ref<'code' | 'visual'>('code')
 
-// Layout customization state
-const showLayoutMenu = ref(false)
-const layout = reactive({
-  sidebar: true,
-  breadcrumbs: true,
-  toolbar: true,
-  sidebarPosition: 'left' as 'left' | 'right'
-})
+// Layout customization state moved to appStore
 
 watch(viewMode, (newVal) => {
   if (activeTabId.value) {

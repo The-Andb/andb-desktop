@@ -36,6 +36,11 @@ common:
   copy: 'Sao chép'
   collapse: 'Thu gọn'
   expand: 'Mở rộng'
+  tabs:
+    duplicate: 'Nhân bản Tab'
+    close: 'Đóng'
+    closeOthers: 'Đóng các Tab khác'
+    closeRight: 'Đóng các Tab bên phải'
   loadingReport: 'Đang tải dữ liệu báo cáo...'
   noReports: 'Không tìm thấy báo cáo'
   generateReportDesc: 'Hãy tạo một báo cáo để hiển thị ở đây'
@@ -268,7 +273,9 @@ compare:
   fetchTooltip: 'Tải dữ liệu mới & So sánh'
   comparing: 'Đang so sánh'
   compare: 'So sánh'
-  runCompareTooltip: 'Chạy so sánh dữ liệu'
+  runCompareTooltip: 'Chạy so sánh dữ liệu cục bộ'
+  ignoreObject: 'Bỏ qua đối tượng này'
+  ignoredNotification: 'Đã thêm {name} vào danh sách loại trừ'
   summary: 'Tóm tắt'
   generatedScript: 'Script đồng bộ được tạo'
   diffView:
@@ -465,6 +472,7 @@ settings:
   categories:
     interface: 'Giao diện'
     environments: 'Quản lý Môi trường'
+    env_pairs: 'Môi trường & Cặp CSDL'
     environment: 'Môi trường'
     connections: 'Kết nối'
     pairs: 'Cặp đồng bộ'

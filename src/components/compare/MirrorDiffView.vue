@@ -162,7 +162,8 @@
                         class="line-content target-content px-2 py-0.5 grow ddl-code overflow-x-auto no-scrollbar"
                         :class="[wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre']"
                         @scroll="handleHorizontalScroll($event, 'target')"
-                        v-html="row.target.highlighted || row.target.content"
+                        v-html="highlightNavLinks(row.target.highlighted || row.target.content)"
+                        @click="handleCodeClick"
                       ></div>
                     </div>
                   </div>

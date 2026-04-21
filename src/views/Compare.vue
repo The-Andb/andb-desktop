@@ -2,68 +2,16 @@
   <MainLayout>
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full gap-4">
-        <!-- Left Side: Title & Breadcrumb -->
-        <div class="flex items-center min-w-0 flex-1 group gap-4">
-          <h1
-            class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter flex items-center gap-2 shrink-0">
-            <div class="p-2 text-primary-500 rounded-xl transition-transform group-hover:scale-110">
-              <GitMerge class="w-5 h-5" />
-            </div>
-            <span
-              class="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">{{
-                $t('common.compare') }}</span>
-          </h1>
-
-          <div v-if="activePair && activePair.source && activePair.target" class="flex items-center gap-3 min-w-0">
-            <div class="w-px h-6 bg-gray-200 dark:bg-gray-700/50"></div>
-
-            <div
-              class="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-gray-50/10 dark:bg-gray-400/5 transition-all duration-300">
-              <!-- Source -->
-              <div class="flex items-center gap-1.5 min-w-0">
-                <div class="flex items-center gap-1.5 group/source">
-                  <Database class="w-3.5 h-3.5 text-primary-500 opacity-60" />
-                  <div class="flex items-baseline gap-1.5 truncate">
-                    <span v-if="isSourceDump"
-                      class="px-1 py-0.5 rounded bg-orange-100/50 text-orange-600 text-[6px] font-black shrink-0">DUMP</span>
-                    <span class="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[140px]">{{
-                      activePair.source.name }}</span>
-                    <span class="text-[10px] text-gray-400 font-mono opacity-60 truncate">({{ activePair.source.database
-                    }})</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bridge Arrow -->
-              <div class="flex items-center px-1">
-                <ArrowRight class="w-3 h-3 text-gray-400" />
-              </div>
-
-              <!-- Target -->
-              <div class="flex items-center gap-1.5 min-w-0">
-                <div class="flex items-center gap-1.5 group/target">
-                  <div class="flex items-baseline gap-1.5 truncate">
-                    <span class="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[140px]">{{
-                      activePair.target.name }}</span>
-                    <span class="text-[10px] text-gray-400 font-mono opacity-60 truncate">({{ activePair.target.database
-                    }})</span>
-                    <span v-if="isTargetDump"
-                      class="px-1 py-0.5 rounded bg-orange-100/50 text-orange-600 text-[6px] font-black shrink-0">DUMP</span>
-                  </div>
-                  <Database class="w-3.5 h-3.5 text-emerald-500 opacity-60" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <p v-else
-            class="text-[9px] text-gray-400 uppercase tracking-widest font-black opacity-30 animate-pulse ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">
-            {{ $t('compare.noPair') }}</p>
+        <!-- Left Side: Title -->
+        <div class="flex items-center gap-2">
+           <GitCompare class="w-4 h-4 text-primary-500" />
+           <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ $t('compare.title') }}</span>
         </div>
 
         <!-- Right Side: Actions & Controls -->
         <div class="flex items-center gap-4 flex-1 justify-end">
           <!-- View Mode Switch -->
-          <div v-if="appStore.compareMode === 'auto'" class="flex items-center space-x-2 shrink-0 p-1.5">
+          <div v-if="appStore.layoutSettings.toolbar && appStore.compareMode === 'auto'" class="flex items-center space-x-2 shrink-0 p-1.5">
             <div class="flex items-center p-1  border border-gray-100 dark:border-gray-700 rounded-xl"
               :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''">
               <button @click="viewMode = 'list'"
@@ -141,6 +89,8 @@
               </div>
             </div>
 
+            <div v-if="appStore.buttonStyle === 'full'" class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
             <button v-if="appStore.compareMode === 'auto'" @click="runComparison()" :disabled="loading || !activePair"
               class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale shrink-0"
               :class="[
@@ -154,16 +104,57 @@
                 $t('compare.comparing') : (appStore.buttonStyle === 'full' ? $t('compare.compare') :
                   $t('compare.compare')) }}</span>
             </button>
+
           </div>
 
         </div>
       </div>
     </template>
 
+    <template #breadcrumbs>
+      <div v-if="activePair" class="flex items-center gap-2">
+        <!-- Source Context -->
+        <div class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex items-center text-gray-500 dark:text-gray-400">
+            <Server class="w-3.5 h-3.5 mr-1.5" />
+            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ activePair.source.environment }}</span>
+          </div>
+          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
+          <div class="flex items-center text-primary-600 dark:text-primary-400">
+            <Database class="w-3.5 h-3.5 mr-1.5" />
+            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{ activePair.source.database || activePair.source.name }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center px-1">
+          <ArrowRightLeft class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" />
+        </div>
+
+        <!-- Target Context -->
+        <div class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex items-center text-gray-500 dark:text-gray-400">
+            <Server class="w-3.5 h-3.5 mr-1.5" />
+            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ activePair.target.environment }}</span>
+          </div>
+          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
+          <div class="flex items-center text-primary-600 dark:text-primary-400">
+            <Database class="w-3.5 h-3.5 mr-1.5" />
+            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{ activePair.target.database || activePair.target.name }}</span>
+          </div>
+        </div>
+        
+        <button @click="runComparison()" :disabled="loading || !activePair"
+          class="ml-3 p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl text-gray-400 hover:text-primary-500 transition-all active:scale-95 disabled:opacity-30 border border-transparent hover:border-primary-100 dark:hover:border-primary-800">
+          <RotateCcw class="w-4 h-4" :class="{ 'animate-spin': (loading && loadingAction === 'compare') }" />
+        </button>
+      </div>
+      <span v-else class="text-[10px] font-black uppercase tracking-widest text-gray-400 opacity-30">{{ $t('compare.noPair') }}</span>
+    </template>
+
     <!-- Comparison & Console Split -->
     <div class="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-white dark:bg-gray-950">
       <!-- Comparison Area (Top) -->
-      <div class="flex-1 flex overflow-hidden relative min-w-0">
+      <div class="flex-1 flex overflow-hidden relative min-w-0" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
         <main class="flex-1 flex flex-col overflow-hidden relative min-w-0">
 
           <!-- MIGRATION INLINE PANEL -->
@@ -180,62 +171,32 @@
           <!-- Removed Manual Compare Dropdowns per user request -->
 
           <!-- Vertical Split: Object List vs DDL View -->
-          <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0">
+          <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
-            <div :style="{ width: resultsWidth + 'px' }"
-              class="border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300">
-              <!-- Results Header: Professional Standarized Style -->
-              <div
-                class="px-4 py-4 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between h-14">
-                <div class="flex items-center min-w-0 flex-1 gap-3">
-                  <button v-if="selectedFilterType !== 'all'" @click="selectedFilterType = 'all'"
-                    class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-gray-400"
-                    title="Back to Database Overview">
-                    <ChevronLeft class="w-4 h-4" />
-                  </button>
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div
-                      class="w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center shrink-0 border border-primary-100 dark:border-primary-500/10">
-                      <Database v-if="selectedFilterType === 'all'" class="w-3.5 h-3.5 text-primary-500" />
-                      <component v-else :is="getIconForType(selectedFilterType)" class="w-3.5 h-3.5 text-primary-500" />
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      <span
-                        class="truncate text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 dark:text-gray-100">
-                        <span v-if="selectedFilterType === 'all'">{{ selectedPath.db || $t('common.database') }}</span>
-                        <span v-else>{{ selectedFilterType }}</span>
-                      </span>
-                    </div>
-                  </div>
+            <div v-if="appStore.layoutSettings.sidebar" :style="{ width: resultsWidth + 'px' }"
+              class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300"
+              :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l' : 'border-r'">
+              <!-- Results Header: Standardized Style -->
+              <div class="px-4 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <Database class="w-3.5 h-3.5 text-gray-400 opacity-50" />
+                  <span class="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Database Overview</span>
                 </div>
-
-                <!-- Action Group -->
-                <div class="flex items-center gap-1.5">
-                  <button v-if="hasChanges(selectedFilterType)"
-                    @click="migrateBatchInline(selectedFilterType === 'all' ? 'Schema' : selectedFilterType)"
-                    class="w-8 h-8 rounded-full transition-all shadow-lg flex items-center justify-center border border-orange-100 dark:border-orange-800/30 active:scale-95 group/zbtn"
-                    :class="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType) ? 'bg-orange-600 text-white cursor-wait' : 'bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white shadow-orange-500/10'"
-                    :disabled="isMigratingBatch !== null"
-                    :title="selectedFilterType === 'all' ? 'Migrate Entire Schema' : 'Migrate All in this category'">
-                    <Loader2 v-if="isMigratingBatch === (selectedFilterType === 'all' ? 'Schema' : selectedFilterType)"
-                      class="w-3.5 h-3.5 animate-spin" />
-                    <Zap v-else
-                      class="w-3.5 h-3.5 fill-current transition-transform duration-300 group-hover/zbtn:scale-125" />
-                  </button>
+                <div v-if="selectedFilterType !== 'all'" @click="selectedFilterType = 'all'" 
+                  class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500">
+                  <ChevronLeft class="w-3.5 h-3.5" />
                 </div>
               </div>
 
               <!-- Search Bar (Professional Redesign) -->
-              <div v-if="hasResults"
-                class="p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
+              <div v-if="hasResults" class="px-3 pt-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
                 <div class="relative group">
-                  <span
-                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200">
                     <Search class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500" />
                   </span>
                   <input ref="searchInput" v-model="searchQuery" type="text"
                     :placeholder="$t('history.searchPlaceholder')"
-                    class="w-full pl-9 pr-32 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner" />
+                    class="w-full pl-9 pr-36 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner" />
 
                   <!-- Unified Search Icons (VS Code Style) -->
                   <div class="absolute inset-y-0 right-0 flex items-center pr-2 space-x-0.5">
@@ -261,7 +222,9 @@
                     <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
 
                     <button
-                      class="p-1 rounded-md transition-all duration-200 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      @click="searchFlags.columns = !searchFlags.columns"
+                      class="p-1 rounded-md transition-all duration-200"
+                      :class="searchFlags.columns ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
                       title="Content Search (Snippets)">
                       <Binary class="w-3.5 h-3.5" />
                     </button>
@@ -273,55 +236,66 @@
                   </div>
                 </div>
 
-                <!-- Search Summary & Quick Filters -->
+                <!-- Search Progress/Summary & Tree Controls (Synchronized) -->
                 <div class="flex items-center justify-between mt-2.5 px-0.5">
-                  <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.15em] whitespace-nowrap">
-                      {{ filteredResults.length }} Objects Found
-                    </span>
-                  </div>
+                   <div class="flex items-center gap-2">
+                     <div class="text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                       {{ filteredResults.length }} Objects Found
+                     </div>
+                     <div class="flex gap-0.5 ml-1">
+                        <button class="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-gray-600">
+                          <CaseSensitive class="w-3 h-3" />
+                        </button>
+                     </div>
+                   </div>
 
-                  <div class="flex items-center gap-1">
-                    <button @click="sortBy = sortBy === 'date' ? 'status' : 'date'"
-                      class="p-1 rounded-md transition-colors"
-                      :class="sortBy === 'date' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
-                      title="Sort by Date (Last Updated)">
-                      <CalendarClock class="w-3.5 h-3.5" />
-                    </button>
-                    <button @click="sortBy = sortBy === 'name' ? 'status' : 'name'"
-                      class="p-1 rounded-md transition-colors"
-                      :class="sortBy === 'name' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
-                      title="Sort Alphabetically (A-Z)">
-                      <ArrowDownAZ class="w-3.5 h-3.5" />
-                    </button>
-                    <div class="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
-                    <button @click="treeExpandCmd = { action: 'expand', ts: Date.now() }; collapsedCategories.clear()"
-                      class="p-1 rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      title="Expand All">
-                      <Plus class="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      @click="treeExpandCmd = { action: 'collapse', ts: Date.now() };['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c => collapsedCategories.add(c))"
-                      class="p-1 rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      title="Collapse All">
-                      <Minus class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                   <div class="flex items-center gap-0.5 shrink-0">
+                      <!-- Sort Options -->
+                      <button @click="sortBy = sortBy === 'date' ? 'status' : 'date'"
+                        class="p-1 rounded-md transition-colors"
+                        :class="sortBy === 'date' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                        title="Sort by Date (Last Updated)">
+                        <CalendarClock class="w-3.5 h-3.5" />
+                      </button>
+                      <button @click="sortBy = sortBy === 'name' ? 'status' : 'name'"
+                        class="p-1 rounded-md transition-colors"
+                        :class="sortBy === 'name' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                        title="Sort Alphabetically (A-Z)">
+                        <ArrowDownAZ class="w-3.5 h-3.5" />
+                      </button>
+                      
+                      <div class="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+                      <button
+                        @click="treeExpandCmd = { action: 'expand', ts: Date.now() }; collapsedCategories.clear()"
+                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        title="Expand All"
+                      >
+                        <Plus class="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        @click="treeExpandCmd = { action: 'collapse', ts: Date.now() };['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c => collapsedCategories.add(c))"
+                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        title="Collapse All"
+                      >
+                        <Minus class="w-3.5 h-3.5" />
+                      </button>
+                   </div>
                 </div>
+              </div>
 
                 <!-- Status Filters (Premium Pills) -->
-                <div
-                  class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 mt-1 border-t border-gray-100 dark:border-gray-800/50">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 px-1 mt-1 border-t border-gray-100 dark:border-gray-800/50">
+                  <span class="text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1">Filter:</span>
                   <button v-for="filter in statusFilters" :key="filter.value"
                     @click="selectedStatusFilter = filter.value"
-                    class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border"
+                    class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shrink-0"
                     :class="selectedStatusFilter === filter.value
-                      ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20'
-                      : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'">
+                      ? 'bg-primary-500 border-primary-500 text-white shadow-sm shadow-primary-500/20'
+                      : 'bg-gray-100 dark:bg-gray-800 border-transparent text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'">
                     {{ filter.label }}
                   </button>
                 </div>
-              </div>
 
               <div class="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-2">
                 <div v-if="!hasResults" class="p-8 text-center text-gray-400 h-full flex flex-col justify-center">
@@ -330,104 +304,67 @@
                 </div>
 
                 <div v-else class="space-y-1 pb-4">
-                  <div v-for="cat in resultsByCategory" :key="cat.type"
-                    class="flex flex-col group/card transition-all duration-300 relative">
-                    <div class="transition-all duration-300 cursor-pointer relative"
-                      @click="collapsedCategories.has(cat.type) ? collapsedCategories.delete(cat.type) : collapsedCategories.add(cat.type)">
-                      <!-- Active Indicator -->
-                      <div v-if="!collapsedCategories.has(cat.type)"
-                        class="absolute left-0 top-1 bottom-1 w-1 bg-primary-500 rounded-r-full z-20"></div>
-
-                      <div class="flex items-center justify-between w-full p-3 rounded-xl transition-all duration-200"
-                        :class="!collapsedCategories.has(cat.type) ? 'bg-primary-50 dark:bg-primary-900/10' : 'bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50'">
-                        <div class="flex items-center min-w-0">
-                          <!-- Subtle Icon -->
-                          <div
-                            class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/card:scale-110 shadow-sm border border-black/5"
-                            :class="selectedFilterType === cat.type ? 'bg-primary-500 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 group-hover/card:text-primary-500'">
-                            <component :is="getIconForType(cat.type)" class="w-5 h-5" />
-                          </div>
-
-                          <div class="ml-3 min-w-0">
-                            <div class="flex items-center gap-2">
-                              <span class="font-black text-[13px] tracking-tight uppercase"
-                                :class="selectedFilterType === cat.type ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'">
-                                {{ cat.type }}
-                              </span>
-                              <span v-if="cat.changes > 0"
-                                class="w-5 h-5 flex items-center justify-center rounded-full bg-orange-500 text-white text-[9px] font-black shadow-lg shadow-orange-500/20 translate-y-[1px]">
-                                {{ cat.changes }}
-                              </span>
-                              <span v-else class="text-[10px] text-emerald-500 opacity-50">
-                                <CheckCircle2 class="w-3.5 h-3.5" />
-                              </span>
-                            </div>
-                            <div
-                              class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5 opacity-60">
-                              {{ cat.total }} DDL Items
-                            </div>
-                          </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0 min-w-[72px] justify-end pr-1">
-                          <button v-if="cat.changes > 0" @click.stop="migrateBatchInline(cat.type)"
-                            class="w-8 h-8 rounded-full transition-all flex items-center justify-center border border-orange-100 dark:border-orange-800/30 text-orange-500 hover:bg-orange-500 hover:text-white opacity-0 group-hover/card:opacity-100 active:scale-95 group/catzbtn shadow-sm hover:shadow-orange-500/20"
-                            title="Migrate All items of this type">
-                            <Zap class="w-4 h-4 fill-current group-hover/catzbtn:scale-110 transition-transform" />
-                          </button>
-                          <div
-                            class="w-6 h-6 flex items-center justify-center text-gray-300 group-hover/card:text-primary-400 transition-colors">
-                            <ChevronRight class="w-4 h-4"
-                              :class="{ 'rotate-90 text-primary-500': !collapsedCategories.has(cat.type) }" />
-                          </div>
-                        </div>
+                  <div v-for="cat in resultsByCategory" :key="cat.type" 
+                    class="flex flex-col group/cat relative">
+                    <!-- Category Header (Synchronized Row Style) -->
+                    <div 
+                      @click="collapsedCategories.has(cat.type) ? collapsedCategories.delete(cat.type) : collapsedCategories.add(cat.type)"
+                      class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm group-hover/cat:bg-gray-50/50 dark:group-hover/cat:bg-gray-800/30 mb-px overflow-hidden select-none"
+                    >
+                      <ChevronRight 
+                        class="w-3 h-3 mr-1.5 transition-transform text-gray-400 shrink-0"
+                        :class="{ 'rotate-90 text-primary-500': !collapsedCategories.has(cat.type) }"
+                      />
+                      <component :is="getIconForType(cat.type)" class="w-3.5 h-3.5 mr-2 shrink-0" :class="getCategoryColor(cat.type)" />
+                      <span class="font-extrabold text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-300 truncate">{{ cat.type }}</span>
+                      
+                      <div class="ml-auto flex items-center gap-1">
+                        <span v-if="cat.changes > 0" 
+                          class="px-1.5 py-0.5 bg-orange-500 text-white text-[8px] rounded-full font-mono font-black shadow-sm shrink-0">
+                          {{ cat.changes }}
+                        </span>
+                        <span class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 text-[8px] rounded-full font-mono shrink-0">
+                          {{ cat.total }}
+                        </span>
                       </div>
-
-                      <!-- Progress underline (subtle) -->
-                      <div v-if="!collapsedCategories.has(cat.type)"
-                        class="absolute bottom-0 left-16 right-4 h-[1px] bg-gray-100 dark:bg-gray-800/50"></div>
                     </div>
 
                     <!-- Items List (Expanded) -->
                     <div v-if="!collapsedCategories.has(cat.type)"
-                      class="px-2 pb-2 space-y-0.5 border-t border-gray-100 dark:border-gray-700/50 pt-2 bg-gray-50/50 dark:bg-gray-900/20 rounded-b-xl border-x-0 border-b-0 relative">
-                      <div class="absolute top-0 bottom-2 left-4 w-px bg-gray-200 dark:bg-gray-700/50 z-0"></div>
-
+                      class="pl-4 border-l border-gray-100 dark:border-gray-800 ml-3.5 mt-0.5 space-y-0.5 pb-2">
                       <div v-for="item in cat.items" :key="item.name" @click="selectItem(item)"
-                        class="cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center group p-2 relative z-10"
-                        :class="[
-                          { 'bg-white dark:bg-gray-800 shadow-sm border border-primary-500/20 ring-1 ring-primary-500/10': selectedItem?.name === item.name }
-                        ]">
-                        <div class="min-w-0 pr-2 relative z-10 ml-6 flex-1">
-                          <div class="absolute right-full top-1/2 w-4 h-px bg-gray-200 dark:bg-gray-700/50 mr-2 -ml-6">
-                          </div>
-
-                          <div class="font-mono truncate text-gray-900 dark:text-gray-100 italic"
-                            :class="{ 'font-bold not-italic': selectedItem?.name === item.name }" :title="item.name">
+                        @contextmenu.prevent="handleItemContextMenu($event, item)"
+                        class="cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center group px-2 py-1.5 relative border border-transparent overflow-hidden"
+                        :class="[{ 'bg-primary-50 dark:bg-primary-900/20 border-primary-200/50 dark:border-primary-800/50 shadow-sm transition-all': selectedItem?.name === item.name }]">
+                        
+                        <div class="flex-1 min-w-0 pr-2">
+                          <div class="font-mono truncate text-[11px] text-gray-700 dark:text-gray-300"
+                            :class="{ 'font-bold text-primary-600 dark:text-primary-400': selectedItem?.name === item.name }" :title="item.name">
                             {{ item.name }}
                           </div>
-                          <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center">
-                            <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
-                            <span>{{ item.type }}</span>
+                          <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center opacity-70 group-hover:opacity-100">
+                             <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
+                             <span>{{ item.type }}</span>
                           </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0 min-w-[72px] justify-end pr-0">
-                          <div
-                            class="flex items-center justify-center w-7 h-7 shrink-0 group/status z-10 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-gray-700 hover:border-orange-500/50 transition-colors">
-                            <component v-if="item.status === 'equal' || item.status === 'same'"
-                              :is="getStatusIcon(item.status)" class="w-3.5 h-3.5 transition-all text-emerald-500"
-                              :title="getStatusText(item.status)" />
-                            <template v-else>
-                              <component :is="getStatusIcon(item.status)"
-                                class="w-3.5 h-3.5 transition-all group-hover/status:hidden"
-                                :class="getStatusClass(item.status)" />
-                              <Zap v-if="!isTargetDump && isMigratingItemId !== item.name"
-                                @click.stop="migrateSingleItem(item)"
-                                class="w-3.5 h-3.5 text-orange-500 hidden group-hover/status:block cursor-pointer hover:scale-125 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.5)] active:scale-95 animate-in fade-in zoom-in-75 duration-200 fill-current"
-                                title="Click to Migrate" />
-                              <RefreshCw v-if="isMigratingItemId === item.name"
-                                class="w-3.5 h-3.5 text-orange-500 animate-spin hidden group-hover/status:block animate-in fade-in" />
-                            </template>
-                          </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-auto pr-1">
+                           <!-- Migration Trigger -->
+                           <div class="flex items-center justify-center w-6 h-6 rounded-full transition-all group/migrate bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/30">
+                              <component 
+                                :is="getStatusIcon(item.status)" 
+                                class="w-3.5 h-3.5 transition-all"
+                                :class="[getStatusClass(item.status), { 'group-hover/migrate:hidden': item.status?.toLowerCase() !== 'equal' && item.status?.toLowerCase() !== 'same' }]" 
+                              />
+                              <template v-if="item.status?.toLowerCase() !== 'equal' && item.status?.toLowerCase() !== 'same' && !isTargetDump">
+                                <Zap v-if="isMigratingItemId !== item.name"
+                                  @click.stop="migrateSingleItem(item)"
+                                  class="w-3.5 h-3.5 text-orange-500 hidden group-hover/migrate:block cursor-pointer hover:scale-110 active:scale-95 fill-current" 
+                                  title="Migrate" />
+                                <RefreshCw v-else
+                                  class="w-3 h-3 text-orange-500 animate-spin" />
+                              </template>
+                           </div>
                         </div>
                       </div>
                     </div>
@@ -445,7 +382,8 @@
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
               <!-- Tab Bar -->
               <TabBar v-if="tabs.length > 0" :tabs="tabs" :active-tab-id="activeTabId" @select="handleSelectTab"
-                @close="handleCloseTab" />
+                @close="handleCloseTab" @duplicate="handleDuplicateTab" @close-others="handleCloseOthers"
+                @close-right="handleCloseRight" />
               <!-- Migration Overlay (Moved to global scope) -->
 
               <div v-if="selectedItem" class="h-full flex flex-col">
@@ -511,7 +449,8 @@
             <CompareTreeMode :results="allResults" :source-name="sourceName" :target-name="targetName"
               :target-is-static="isTargetDump" :migrating-item-id="isMigratingItemId" :tree-expand-cmd="treeExpandCmd"
               v-model:active-type="selectedFilterType" @migrate="migrateSingleItem" @select="selectItem"
-              @send-to-instant="(item, slot) => sendToInstant(item, slot)" />
+              @send-to-instant="(item, slot) => sendToInstant(item, slot)"
+              @contextmenu="handleItemContextMenu" />
           </div>
 
         </main>
@@ -556,8 +495,20 @@
     </div>
   </div>
 
-  <!-- Error Details Modal -->
-
+  <!-- Item Context Menu Container -->
+  <div style="display: contents">
+    <Teleport to="body">
+      <div v-if="itemContextMenu.visible"
+        class="fixed z-[1000] min-w-[180px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 p-1.5 animate-in fade-in zoom-in-95 duration-150"
+        :style="{ top: itemContextMenu.y + 'px', left: itemContextMenu.x + 'px' }">
+        <button @click="handleIgnoreItem(itemContextMenu.item)"
+          class="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group">
+          <Ban class="w-4 h-4 text-red-400 group-hover:text-red-500" />
+          {{ t('compare.ignoreObject') }}
+        </button>
+      </div>
+    </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -603,7 +554,11 @@ import {
   ArrowDownAZ,
   CalendarClock,
   Plus,
-  Minus
+  Minus,
+  Loader2,
+  Ban,
+  ArrowRightLeft,
+  RotateCcw
 } from 'lucide-vue-next'
 import { useOperationsStore } from '@/stores/operations'
 import { useNotificationStore } from '@/stores/notification'
@@ -737,8 +692,24 @@ const typeIcons = {
 }
 
 const getIconForType = (type: string) => {
-  const key = type?.toLowerCase() as keyof typeof typeIcons
-  return typeIcons[key] || Database
+  switch (type?.toLowerCase()) {
+    case 'tables': case 'table': return Table
+    case 'views': case 'view': return Layers
+    case 'procedures': case 'procedure': return Workflow
+    case 'functions': case 'function': return Sigma
+    case 'triggers': case 'trigger': return Zap
+    default: return Database
+  }
+}
+
+const getCategoryColor = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'tables': case 'table': return 'text-blue-500'
+    case 'views': case 'view': return 'text-indigo-500'
+    case 'procedures': case 'procedure': case 'functions': case 'function': return 'text-purple-500'
+    case 'triggers': case 'trigger': return 'text-amber-500'
+    default: return 'text-gray-500'
+  }
 }
 
 // State
@@ -759,7 +730,8 @@ const searchQuery = ref('')
 const searchFlags = ref({
   caseSensitive: false,
   wholeWord: false,
-  regex: false
+  regex: false,
+  columns: false
 })
 const diffOptions = ref({
   hideWhitespace: false,
@@ -777,6 +749,60 @@ const sortBy = ref<'status' | 'name' | 'date'>('status')
 // Tabs State
 const tabs = ref<any[]>([])
 const activeTabId = ref<string | null>(null)
+
+// Item Context Menu State
+const itemContextMenu = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  item: null as any
+})
+
+const handleItemContextMenu = (e: MouseEvent, item: any) => {
+  itemContextMenu.value = {
+    visible: true,
+    x: e.clientX,
+    y: e.clientY,
+    item
+  }
+}
+
+const closeItemContextMenu = () => {
+  itemContextMenu.value.visible = false
+}
+
+const handleIgnoreItem = (item: any) => {
+  if (!item || !projectsStore.currentProject) return
+  
+  const settings = { ...(projectsStore.currentProject.settings || {}) }
+  const excludeTags = [...(settings.excludeTags || [])]
+  
+  if (!excludeTags.includes(item.name)) {
+    excludeTags.push(item.name)
+    settings.excludeTags = excludeTags
+    projectsStore.updateProject(projectsStore.currentProject.id, { settings })
+    
+    // Remove from local state immediately for snappy UX
+    const type = item.type?.toLowerCase() || 'tables'
+    if (type === 'tables') tableResults.value = tableResults.value.filter(i => i.name !== item.name)
+    else if (type === 'procedures') procedureResults.value = procedureResults.value.filter(i => i.name !== item.name)
+    else if (type === 'functions') functionResults.value = functionResults.value.filter(i => i.name !== item.name)
+    else if (type === 'views') viewResults.value = viewResults.value.filter(i => i.name !== item.name)
+    else if (type === 'triggers') triggerResults.value = triggerResults.value.filter(i => i.name !== item.name)
+
+    // Close any open tabs for this object
+    const tabId = `${item.type || 'unknown'}-${item.name}`
+    handleCloseTab(tabId)
+
+    notificationStore.add({
+      type: 'success',
+      title: 'Object Ignored',
+      message: t('compare.ignoredNotification', { name: item.name })
+    })
+  }
+  
+  closeItemContextMenu()
+}
 
 const handleSelectTab = (id: string) => {
   const tab = tabs.value.find(t => t.id === id)
@@ -800,6 +826,32 @@ const handleCloseTab = (id: string) => {
       activeTabId.value = null
       selectedItem.value = null
     }
+  }
+}
+
+const handleDuplicateTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (!tab) return
+  
+  const newTab = JSON.parse(JSON.stringify(tab))
+  newTab.id = `${tab.id}-copy-${Date.now()}`
+  newTab.name = `${tab.name} (${t('common.copy')})`
+  
+  const index = tabs.value.findIndex(t => t.id === id)
+  tabs.value.splice(index + 1, 0, newTab)
+  handleSelectTab(newTab.id)
+}
+
+const handleCloseOthers = (id: string) => {
+  tabs.value = tabs.value.filter(t => t.id === id)
+  handleSelectTab(id)
+}
+
+const handleCloseRight = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index !== -1) {
+    tabs.value = tabs.value.slice(0, index + 1)
+    handleSelectTab(id)
   }
 }
 
@@ -930,11 +982,32 @@ const filteredResults = computed(() => {
         }
       }
 
-      filtered = filtered.filter(i => re.test(i.name))
-    } catch (e) {
-      // Invalid regex fallback to simple include
-      filtered = filtered.filter(i => i.name.toLowerCase().includes(query.toLowerCase()))
-    }
+       filtered = filtered.filter(i => {
+         const nameMatch = re.test(i.name)
+         if (nameMatch) return true
+         
+         if (searchFlags.value.columns) {
+           const sourceMatch = i.diff?.source ? re.test(i.diff.source) : false
+           const targetMatch = i.diff?.target ? re.test(i.diff.target) : false
+           return sourceMatch || targetMatch
+         }
+         return false
+       })
+     } catch (e) {
+       // Invalid regex fallback to simple include
+       filtered = filtered.filter(i => {
+         const lowerQuery = query.toLowerCase()
+         const nameMatch = i.name.toLowerCase().includes(lowerQuery)
+         if (nameMatch) return true
+         
+         if (searchFlags.value.columns) {
+           const sourceMatch = i.diff?.source ? i.diff.source.toLowerCase().includes(lowerQuery) : false
+           const targetMatch = i.diff?.target ? i.diff.target.toLowerCase().includes(lowerQuery) : false
+           return sourceMatch || targetMatch
+         }
+         return false
+       })
+     }
   }
 
   return filtered
@@ -1714,6 +1787,8 @@ onMounted(async () => {
   window.addEventListener('andb-next-tab', handleNextTab)
   window.addEventListener('andb-refresh-active-view', handleRefreshActiveView)
   window.addEventListener('andb-focus-search', handleFocusSearch)
+
+  window.addEventListener('click', closeItemContextMenu)
 })
 
 const handlePrevTab = () => {
@@ -1746,6 +1821,8 @@ onUnmounted(() => {
   window.removeEventListener('andb-next-tab', handleNextTab)
   window.removeEventListener('andb-refresh-active-view', handleRefreshActiveView)
   window.removeEventListener('andb-focus-search', handleFocusSearch)
+
+  window.removeEventListener('click', closeItemContextMenu)
 })
 
 // Auto-run comparison when sidebar refresh is clicked (Top refresh button)

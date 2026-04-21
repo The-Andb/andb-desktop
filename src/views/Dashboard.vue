@@ -2,60 +2,8 @@
   <MainLayout>
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full gap-4">
-        <!-- Title & Status -->
-        <div class="flex items-center gap-4">
-          <!-- Icon & Branding Group -->
-          <div class="flex items-center group relative h-10">
-            <div 
-              @click.stop="isIconPickerOpen = !isIconPickerOpen"
-              class="w-10 h-10 rounded-2xl flex items-center justify-center text-white mr-3 shadow-xl cursor-pointer hover:scale-110 active:scale-95 transition-all border border-white/20 relative z-30 shrink-0"
-              :style="{ backgroundColor: currentProject?.color || '#6366f1' }"
-            >
-              <component :is="projectIconMap[currentProject?.icon || 'Database']" class="w-5 h-5" />
-            </div>
-
-            <!-- Icon Picker Popover -->
-            <div v-if="isIconPickerOpen" class="absolute left-0 top-full mt-2 z-[100]" @click.stop>
-              <ProjectIconPicker 
-                :selected-icon="currentProject?.icon" 
-                :selected-color="currentProject?.color"
-                @select="data => { 
-                   if (currentProject) {
-                      projectsStore.updateProject(currentProject.id, data);
-                   }
-                   isIconPickerOpen = false;
-                }"
-              />
-            </div>
-
-            <div class="flex flex-col justify-center">
-              <div class="flex items-center">
-                <input
-                  v-if="isEditingName"
-                  v-model="tempName"
-                  @blur="saveProjectName"
-                  @keyup.enter="saveProjectName"
-                  @keyup.escape="cancelEdit"
-                  v-focus
-                  type="text"
-                  class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight bg-transparent border-b-2 border-primary-500 outline-none px-0 py-0 w-auto min-w-[100px]"
-                  :style="{ width: (tempName.length || 1) + 'ch' }"
-                />
-                <h1 
-                  v-else 
-                  @click="startEditing"
-                  data-testid="dashboard-title"
-                  class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight cursor-text hover:text-primary-500 transition-colors flex items-center gap-2 group-hover:translate-x-1 transition-transform leading-none"
-                >
-                  {{ currentProject?.name || $t('dashboard.title') }}
-                  <Edit3 class="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                </h1>
-              </div>
-              <p class="text-[9px] text-gray-500 font-bold tracking-widest opacity-60 mt-0.5">
-                {{ $t('dashboard.projectDashboard') }}
-              </p>
-            </div>
-          </div>
+        <div class="flex items-center gap-2">
+           <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{{ $t('dashboard.title') }}</span>
         </div>
 
         <!-- Project Quick Actions (Unified) -->
@@ -100,6 +48,23 @@
                     <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{ $t('common.settings') }}</span>
                 </div>
             </button>
+
+            <!-- Vertical Divider -->
+            <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
+
+
+        </div>
+      </div>
+    </template>
+
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+        <LayoutGrid class="w-3.5 h-3.5 text-primary-500 opacity-60" />
+        <span class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 opacity-50">{{ $t('dashboard.title') }}</span>
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+           <Layers class="w-3.5 h-3.5 text-indigo-500" />
+           <span class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{ projectsStore.currentProject?.name }}</span>
         </div>
       </div>
     </template>
@@ -407,7 +372,9 @@ import {
   LayoutGrid,
   Settings,
   FileText,
-  Edit3
+  Edit3,
+  LayoutDashboard,
+  ChevronRight
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ReportsViewer from '@/components/reports/ReportsViewer.vue'

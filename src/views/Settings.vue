@@ -1,23 +1,27 @@
 <template>
   <MainLayout>
     <template #toolbar>
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer select-none" @click="activeCategory = 'interface'">{{ $t('settings.title') }}</span>
-        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
-        <div v-if="activeCategoryInfo" class="flex items-center gap-2 group cursor-default">
-           <component :is="activeCategoryInfo.icon" class="w-8 h-8 p-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg" />
-           <div class="flex flex-col">
-              <span class="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white leading-none mb-0.5">{{ activeCategoryInfo.label }}</span>
-              <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 leading-none">{{ activeCategoryInfo.subtitle }}</span>
-           </div>
+      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
+           {{ $t('settings.title') }}
         </div>
       </div>
     </template>
 
-    <!-- Settings Workspace -->
-    <main class="flex-1 flex overflow-hidden bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer select-none" @click="activeCategory = 'interface'">{{ $t('settings.title') }}</span>
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+        <div v-if="activeCategoryInfo" class="flex items-center gap-2 group cursor-default">
+           <span class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white">{{ activeCategoryInfo.label }}</span>
+           <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter opacity-60">/ {{ activeCategoryInfo.subtitle }}</span>
+        </div>
+      </div>
+    </template>
+
+    <main class="flex-1 flex overflow-hidden bg-white dark:bg-gray-900" :class="{ 'border-l border-gray-200 dark:border-gray-800': appStore.layoutSettings.sidebar }">
         <!-- Settings Category Sidebar -->
-        <div class="w-64 border-r border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 backdrop-blur-md flex flex-col shrink-0">
+        <div v-if="appStore.layoutSettings.sidebar" class="w-64 border-r border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 backdrop-blur-md flex flex-col shrink-0">
           <!-- Back to Project Button (Moved to Top) -->
 
           <div class="p-8 pb-4">

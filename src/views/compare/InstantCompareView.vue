@@ -1,24 +1,24 @@
 <template>
   <MainLayout>
-    <div class="flex-1 w-full h-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden relative">
-      <!-- Header -->
-      <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between shrink-0 bg-gray-50/50 dark:bg-gray-900/20">
+    <template #toolbar>
+      <div class="flex items-center justify-between w-full h-full px-2">
         <div class="flex items-center gap-3">
           <div class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl text-orange-600 dark:text-orange-400">
             <Flame class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">Instant Compare</h2>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Paste & Diff Arbitrary SQL Snippets</p>
+            <h2 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Instant Compare</h2>
+            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Paste & Diff Arbitrary SQL Snippets</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+
+        <div class="flex items-center gap-3">
           <button 
             v-if="step === 'compare'"
             @click="step = 'input'" 
-            class="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase transition-all"
+            class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-[10px] font-black uppercase transition-all"
           >
-            <ArrowLeft class="w-4 h-4" />
+            <ArrowLeft class="w-3.5 h-3.5" />
             Back to Inputs
           </button>
           
@@ -26,10 +26,10 @@
             v-if="step === 'input'"
             @click="runCompare" 
             :disabled="loading || (!srcDDL && !destDDL)"
-            class="flex items-center gap-2 px-6 py-2.5 bg-orange-500/20 hover:bg-orange-500/30 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl text-xs font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group/zbtn"
+            class="flex items-center gap-2 px-4 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group/zbtn"
           >
-            <GitCompare class="w-4 h-4 transition-transform duration-300 group-hover/zbtn:scale-125" v-if="!loading" />
-            <RefreshCw class="w-4 h-4 animate-spin" v-else />
+            <GitCompare class="w-3.5 h-3.5 transition-transform duration-300 group-hover/zbtn:scale-125" v-if="!loading" />
+            <RefreshCw class="w-3.5 h-3.5 animate-spin" v-else />
             {{ loading ? 'Comparing...' : 'Analyze & Compare' }}
           </button>
 
@@ -37,12 +37,16 @@
           <button 
             v-if="isOverlay"
             @click="$emit('close')" 
-            class="ml-2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-             <X class="w-6 h-6" />
+             <X class="w-5 h-5" />
           </button>
         </div>
       </div>
+    </template>
+
+    <div class="flex-1 w-full h-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden relative">
+
 
       <!-- Main Workspace -->
       <div class="flex-1 flex overflow-hidden relative min-w-0">

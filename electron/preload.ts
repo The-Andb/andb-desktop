@@ -176,8 +176,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-get-saved-comparison-results', args)
   },
 
-  getSnapshots: (environment: string, database: string, type: string, name: string) => {
-    return ipcRenderer.invoke('get-snapshots', environment, database, type, name)
+  getSnapshots: (args: { environment: string, database: string, type: string, name: string, databaseType?: string }) => {
+    return ipcRenderer.invoke('get-snapshots', args)
   },
 
   getAllSnapshots: (limit?: number) => {

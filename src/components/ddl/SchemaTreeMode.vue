@@ -117,8 +117,47 @@
                   </div>
                 </div>
                 
+                <!-- Column/Index/FK Matches (Visual Mode) -->
+                <div v-if="columnSearchActive && (item.matchedColumns?.length || item.matchedIndexes?.length || item.matchedForeignKeys?.length)" class="mt-1.5 space-y-1 ml-1 border-l-2 border-primary-100 dark:border-primary-900/30 pl-2 pb-0.5">
+                  <!-- Columns -->
+                  <div v-for="col in item.matchedColumns" :key="'col-'+col.name"
+                    @click.stop="emit('select-column', { item, columnName: col.name })"
+                    class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                  >
+                    <div class="flex items-center gap-1 min-w-0">
+                      <Key v-if="col.pk" class="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 shrink-0" />
+                      <Circle v-else class="w-2 h-2 text-blue-400 opacity-50 shrink-0" />
+                      <span class="text-[10px] font-mono font-bold text-gray-700 dark:text-gray-300 truncate" v-html="highlightPlain(col.name)"></span>
+                    </div>
+                    <span class="text-[9px] text-primary-600/60 dark:text-primary-400/60 font-mono uppercase truncate">{{ col.type }}</span>
+                    <div class="flex gap-0.5 shrink-0 ml-auto">
+                      <span v-if="col.notNull" class="text-[8px] px-1 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded font-black">NN</span>
+                      <span v-if="col.unique" class="text-[8px] px-1 bg-blue-100 dark:bg-blue-900 text-blue-500 rounded font-black">UQ</span>
+                    </div>
+                  </div>
+
+                  <!-- Indexes -->
+                  <div v-for="idx in item.matchedIndexes" :key="'idx-'+idx.name"
+                    @click.stop="emit('select-column', { item, columnName: idx.columns.split(',')[0].trim() })"
+                    class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+                  >
+                    <Search class="w-2.5 h-2.5 text-indigo-400 shrink-0" />
+                    <span class="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 truncate">{{ idx.name }}</span>
+                    <span class="text-[9px] text-gray-400 font-mono truncate">({{ idx.columns }})</span>
+                  </div>
+
+                  <!-- Foreign Keys -->
+                  <div v-for="fk in item.matchedForeignKeys" :key="'fk-'+fk.name"
+                    @click.stop="emit('select-column', { item, columnName: fk.localColumns.split(',')[0].trim() })"
+                    class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
+                  >
+                    <Network class="w-2.5 h-2.5 text-purple-400 shrink-0" />
+                    <span class="text-[10px] font-mono text-purple-600 dark:text-purple-400 truncate">{{ fk.localColumns }} → {{ fk.referencedTable }}</span>
+                  </div>
+                </div>
+
                 <!-- Search Snippets -->
-                <div v-if="item.matches?.length > 0" class="mt-1.5 space-y-1.5 ml-1 border-l-2 border-gray-100 dark:border-gray-800 pl-2 pb-0.5">
+                <div v-if="item.matches?.length > 0 && !columnSearchActive" class="mt-1.5 space-y-1.5 ml-1 border-l-2 border-gray-100 dark:border-gray-800 pl-2 pb-0.5">
                   <div v-for="(match, mIdx) in item.matches.slice(0, 3)" :key="mIdx" 
                     @click.stop="handleSnippetClick($event, item, match.line)"
                     class="text-[10px] leading-tight hover:bg-primary-500/5 dark:hover:bg-primary-400/5 rounded p-0.5 transition-colors group/snippet"
@@ -148,16 +187,19 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { 
-  ChevronRight, 
-  Database,
+  Network,
+  Flame,
+  Key,
+  Circle,
+  Search,
   Grid3X3,
   Eye,
   Cpu,
-  CalendarClock,
-  Zap,
   Sigma,
-  Network,
-  Flame
+  Zap,
+  CalendarClock,
+  Database,
+  ChevronRight
 } from 'lucide-vue-next'
 
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
@@ -174,6 +216,7 @@ const props = defineProps<{
   activeSearchLine?: number | null
   navigatableNames?: string[]
   stats?: Record<string, any>
+  columnSearchActive?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -181,6 +224,7 @@ const emit = defineEmits<{
   (e: 'navigateTo', payload: { item: any, line: number }): void
   (e: 'navigate-to-definition', name: string): void
   (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
+  (e: 'select-column', payload: { item: any, columnName: string }): void
 }>()
 
 const collapsedCategories = ref(new Set<string>())
@@ -198,10 +242,10 @@ watch(() => props.focusType, (type) => {
   }
 })
 
-// Auto-expand all when search results contain matches
-watch(() => props.results, (newResults) => {
-  const hasMatches = newResults.some(r => r.matches?.length > 0)
-  if (hasMatches) {
+// Auto-expand all when search results contain matches or column search is active
+watch(() => [props.results, props.columnSearchActive], ([newResults, colActive]) => {
+  const hasMatches = (newResults as any[]).some(r => r.matches?.length > 0 || r.matchedColumns?.length > 0)
+  if (hasMatches || colActive) {
     collapsedCategories.value = new Set()
   }
 }, { immediate: true })
@@ -269,6 +313,17 @@ const highlightText = (text: string) => {
 
   // 2. Highlight Navigatable Identifiers
   return highlightLinks(processed, props.navigatableNames || [])
+}
+
+const highlightPlain = (text: string) => {
+  if (!props.searchTerm || !props.searchTerm.trim()) return text
+  try {
+    const escaped = props.searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(`(${escaped})`, 'gi')
+    return text.replace(re, '<span class="bg-primary-500/30 text-primary-900 dark:text-primary-100 rounded-sm px-0.5">$1</span>')
+  } catch (e) {
+    return text
+  }
 }
 
 const handleSnippetClick = (event: MouseEvent, item: any, line: number) => {

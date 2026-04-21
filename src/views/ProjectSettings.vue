@@ -1,12 +1,27 @@
 <template>
-  <div class="h-screen flex flex-col pt-0 bg-gray-50 dark:bg-gray-900"
-    :style="{ fontFamily: appStore.fontFamilies.general }">
-    <Header />
-    <div class="flex-1 flex overflow-hidden">
-      <Sidebar />
-      <main class="flex-1 flex overflow-hidden bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">
+  <MainLayout>
+    <template #toolbar>
+      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
+        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
+           {{ $t('settings.project_settings') }}
+        </div>
+      </div>
+    </template>
+
+    <template #breadcrumbs>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer select-none" @click="activeCategory = 'env_pairs'">{{ $t('settings.project_settings') }}</span>
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+        <div v-if="activeCategory" class="flex items-center gap-2 group cursor-default">
+           <span class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white">{{ projectSettings.find(c => c.id === activeCategory)?.label }}</span>
+           <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter opacity-60">/ {{ projectsStore.currentProject?.name }}</span>
+        </div>
+      </div>
+    </template>
+
+    <div class="flex-1 flex overflow-hidden bg-white dark:bg-gray-900" :class="{ 'border-l border-gray-200 dark:border-gray-800': appStore.layoutSettings.sidebar }">
         <!-- Settings Category Sidebar -->
-        <div
+        <div v-if="appStore.layoutSettings.sidebar"
           class="w-64 border-r border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 backdrop-blur-md flex flex-col shrink-0">
           <div class="p-8 pb-4">
             <h1
@@ -288,10 +303,9 @@
               </button>
             </div>
           </div>
-        </div>
-      </main>
+      </div>
     </div>
-  </div>
+  </MainLayout>
 </template>
 
 <script setup lang="ts">
@@ -299,6 +313,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Layers,
+  ChevronRight,
+  Type,
   Link2,
   GitCompare,
   Database,
@@ -317,8 +333,7 @@ import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useProjectsStore } from '@/stores/projects'
 import { useOperationsStore } from '@/stores/operations'
 
-import Header from '@/components/general/Header.vue'
-import Sidebar from '@/components/general/Sidebar.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
 import EnvironmentManager from '@/components/connection/EnvironmentManager.vue'
 import ConnectionPairManager from '@/components/connection/ConnectionPairManager.vue'
 import ConnectionManager from '@/components/connection/ConnectionManager.vue'
