@@ -669,8 +669,8 @@ export async function handleAndbAIConfigure(_event: any, args: any) {
  */
 export async function handleAndbAIReview(_event: any, args: any) {
   try {
-    const { context } = args || {}
-    const result = await AndbBuilder.reviewSchema(context)
+    const { context, locale } = args || {}
+    const result = await AndbBuilder.reviewSchema(context, locale)
     return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -682,9 +682,49 @@ export async function handleAndbAIReview(_event: any, args: any) {
  */
 export async function handleAndbAIAsk(_event: any, args: any) {
   try {
-    const { question, context } = args || {}
-    const result = await AndbBuilder.askDBA(question, context)
+    const { question, context, locale } = args || {}
+    const result = await AndbBuilder.askDBA(question, context, locale)
     return { success: true, data: result }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+// --- AI Chat Storage Handlers ---
+
+import { database } from '../utils/database'
+
+export async function handleSaveAiChat(_event: any, chat: any) {
+  try {
+    database.saveAiChat(chat)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function handleGetAiChats(_event: any) {
+  try {
+    const chats = database.getAiChats()
+    return { success: true, data: chats }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function handleDeleteAiChat(_event: any, id: string) {
+  try {
+    database.deleteAiChat(id)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function handleClearAiChats(_event: any) {
+  try {
+    database.clearAiChats()
+    return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

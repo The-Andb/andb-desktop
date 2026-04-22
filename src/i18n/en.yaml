@@ -293,6 +293,7 @@ schema:
   never: 'Never'
 
 compare:
+  title: 'Diff & Sync'
   noPair: 'No Pair Selected'
   listView: 'List'
   treeViewLabel: 'Tree'
@@ -307,6 +308,13 @@ compare:
   ignoreObject: 'Ignore This Object'
   ignoredNotification: 'Added {name} to migration exclusions'
   summary: 'Summary'
+  startCompare: 'Start Comparison'
+  noDataDesc: 'Start a fresh comparison to see schema differences between environments'
+  noPairDesc: 'Please select a source and target environment from the sidebar to begin'
+  perfectlyInSync: 'Everything is perfectly synchronized.'
+  noSearchMatches: 'No results match your current search query'
+  viewIdentical: 'View Identical Items'
+  clearSearch: 'Clear Search'
   generatedScript: 'Generated Sync Script'
   diffView:
     source: 'SOURCE: {label}'
@@ -646,6 +654,23 @@ settings:
       secondary: 'Secondary'
       checkHistory: 'Check History'
       utility: 'Utility'
+  ai:
+    title: 'AI Assistant'
+    subtitle: 'DBA intelligence powered by Gemini'
+    apiKey: 'Gemini API Key'
+    testButton: 'Test Connection'
+    success: 'Authenticated successfully'
+    error: 'Configuration error'
+    responseLanguage:
+      label: 'Response Language'
+      desc: 'Language used by AI for code reviews and chats'
+    capabilities:
+      review: 'Schema Change Review'
+      reviewDesc: 'Automated analysis of DDL changes with risk level assessment.'
+      troubleshoot: 'DBA Troubleshooting'
+      troubleshootDesc: 'Natural language interface to ask about complex table patterns.'
+      semantic: 'Semantic Diff'
+      semanticDesc: 'Understand the intent of schema changes beyond text comparison.'
   environment:
     title: 'Database Environment Matrix'
     subtitle: 'Infrastructure hierarchy and lifecycle tiers'

@@ -1,7 +1,7 @@
 {
   "name": "@the-andb/desktop",
   "productName": "TheAndb",
-  "version": "3.3.7",
+  "version": "4.0.0",
   "private": true,
   "description": "TheAndb - Keep Going. Keep Syncing.",
   "main": "dist-electron/main.cjs",

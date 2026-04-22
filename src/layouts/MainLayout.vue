@@ -3,12 +3,12 @@
     <!-- Global Header -->
     <Header />
 
-    <div class="flex-1 flex overflow-hidden" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
-      <!-- Global Sidebar -->
+    <div class="flex-1 flex overflow-hidden relative">
+      <!-- Sidebar (Left or Right) -->
       <div 
         v-if="appStore.layoutSettings.sidebar"
         :style="{ width: displaySidebarWidth + 'px', borderRightWidth: (displaySidebarWidth === 0 || appStore.layoutSettings.sidebarPosition === 'right') ? '0' : '1px', borderLeftWidth: (appStore.layoutSettings.sidebarPosition === 'right' && displaySidebarWidth !== 0) ? '1px' : '0' }" 
-        class="shrink-0 relative transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+        :class="['shrink-0 relative transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden', appStore.layoutSettings.sidebarPosition === 'right' ? 'order-3' : 'order-1']"
       >
         <Sidebar ref="sidebarRef" style="width: 100%" />
         <!-- Sidebar Resizer -->
@@ -19,8 +19,25 @@
         ></div>
       </div>
 
+      <div 
+        v-if="appStore.layoutSettings.aiPanel"
+        :style="{ width: appStore.layoutSettings.aiPanelWidth + 'px', borderRightWidth: appStore.layoutSettings.aiPanelPosition === 'left' ? '1px' : '0', borderLeftWidth: appStore.layoutSettings.aiPanelPosition === 'right' ? '1px' : '0' }"
+        :class="['shrink-0 relative transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col', appStore.layoutSettings.aiPanelPosition === 'right' ? 'order-4' : 'order-1']"
+      >
+        <AIReviewPanel 
+          :context="appStore.aiContext" 
+          :locale="locale"
+        />
+        <!-- AI Resizer -->
+        <div 
+          @mousedown="startAiResize"
+          class="absolute top-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-50"
+          :class="appStore.layoutSettings.aiPanelPosition === 'right' ? 'left-0' : 'right-0'"
+        ></div>
+      </div>
+
       <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative">
+      <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative order-2">
         <!-- Toolbar Row (Operational context) -->
         <div v-if="appStore.layoutSettings.toolbar && ($slots.toolbar || isGlobalLayer)" class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 transition-all duration-300">
           <div v-if="$slots.toolbar" class="flex-1 flex items-center min-w-0">
@@ -51,10 +68,12 @@
 
           <!-- Page Content -->
           <main 
-            class="flex-1 flex overflow-hidden relative"
+            class="flex-1 flex overflow-x-auto overflow-y-hidden relative custom-scrollbar"
             :style="{ height: consoleStore.isVisible ? `calc(100% - ${consoleStore.height}px)` : '100%' }"
           >
-            <slot></slot>
+            <div class="flex-1 flex flex-col min-w-[768px] h-full relative">
+              <slot></slot>
+            </div>
           </main>
 
           <!-- Console Resizer -->
@@ -145,19 +164,35 @@
             :style="{ height: consoleStore.height + 'px' }"
           >
             <ConsoleOutput :logs="consoleStore.logs" @clear="consoleStore.clearLogs()" @close="consoleStore.setVisibility(false)" />
-          </div>
-
         </div>
       </div>
     </div>
     
+    </div>
     <Notification ref="notificationRef" />
     <CompareStackBar />
+
+    <!-- Floating Selection to AI Button -->
+    <Teleport to="body">
+      <div 
+        v-if="selectionState.visible"
+        :style="{ top: selectionState.y + 'px', left: selectionState.x + 'px' }"
+        class="fixed z-[9999] animate-in fade-in zoom-in-75 duration-200"
+      >
+        <button 
+          @mousedown.prevent="sendSelectionToAi"
+          class="flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-500 text-white rounded-full shadow-xl shadow-primary-500/30 border border-primary-400/50 scale-90 hover:scale-100 transition-all active:scale-95 group"
+        >
+          <Sparkles class="w-3.5 h-3.5 group-hover:animate-pulse" />
+          <span class="text-[10px] font-black uppercase tracking-wider">Ask AI</span>
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Header from '@/components/general/Header.vue'
@@ -165,7 +200,8 @@ import Sidebar from '@/components/general/Sidebar.vue'
 import ConsoleOutput from '@/components/general/ConsoleOutput.vue'
 import Notification from '@/components/general/Notification.vue'
 import CompareStackBar from '@/components/compare/CompareStackBar.vue'
-import { PanelBottom, X, Layers, ChevronDown, ChevronUp, LayoutList, Maximize2 } from 'lucide-vue-next'
+import AIReviewPanel from '@/components/ai/AIReviewPanel.vue'
+import { PanelBottom, X, Layers, ChevronDown, ChevronUp, LayoutList, Maximize2, Sparkles } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'
 
@@ -173,7 +209,7 @@ const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const consoleStore = useConsoleStore()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 
 const isGlobalLayer = computed(() => {
   const globalRoutes = ['Settings', 'Projects']
@@ -190,7 +226,7 @@ const closeGlobalLayer = () => {
 }
 
 // Sidebar Resizing
-const isCollapsed = computed(() => appStore.sidebarCollapsed)
+const isCollapsed = computed(() => appStore.sidebarCollapsed || isGlobalLayer.value)
 const sidebarWidth = ref(280)
 const displaySidebarWidth = computed(() => {
   return isCollapsed.value ? 64 : sidebarWidth.value
@@ -273,6 +309,101 @@ const toggleExpansion = () => {
     progressDisplayMode.value = 'expanded'
   }
 }
+
+// AI Panel Resizing
+const isResizingAi = ref(false)
+const startAiResize = () => {
+  isResizingAi.value = true
+  document.addEventListener('mousemove', handleAiResize)
+  document.addEventListener('mouseup', stopAiResize)
+  document.body.style.cursor = 'col-resize'
+}
+
+const handleAiResize = (e: MouseEvent) => {
+  if (isResizingAi.value) {
+    const newWidth = appStore.layoutSettings.aiPanelPosition === 'right'
+      ? window.innerWidth - e.clientX
+      : e.clientX
+    
+    appStore.layoutSettings.aiPanelWidth = Math.max(280, Math.min(600, newWidth))
+  }
+}
+
+const stopAiResize = () => {
+  isResizingAi.value = false
+  document.removeEventListener('mousemove', handleAiResize)
+  document.removeEventListener('mouseup', stopAiResize)
+  document.body.style.cursor = ''
+}
+// Global Selection Handler
+const selectionState = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  text: ''
+})
+
+const handleMouseUp = (e: MouseEvent) => {
+  const selection = window.getSelection()
+  const selectedText = selection?.toString().trim()
+
+  const target = e.target as HTMLElement
+  // Ignore selection if it occurs inside common UI components (headers, sidebars, buttons, inputs, ai panel)
+  if (
+    target.closest('header') || 
+    target.closest('nav') || 
+    target.closest('button') || 
+    target.closest('.sidebar') || 
+    target.closest('.ai-chat-container') ||
+    target.tagName === 'INPUT' || 
+    target.tagName === 'TEXTAREA'
+  ) {
+    selectionState.value.visible = false
+    return
+  }
+
+  if (selectedText && selectedText.length > 5) { // Minimum length to avoid noise
+    const range = selection?.getRangeAt(0)
+    const rect = range?.getBoundingClientRect()
+    
+    if (rect) {
+      selectionState.value = {
+        visible: true,
+        x: rect.left + (rect.width / 2) - 40,
+        y: rect.top - 40,
+        text: selectedText
+      }
+    }
+  } else {
+    selectionState.value.visible = false
+  }
+}
+
+const sendSelectionToAi = () => {
+  if (!selectionState.value.text) return
+  
+  // Ensure AI panel is open
+  appStore.layoutSettings.aiPanel = true
+  
+  // Dispatch custom event to the AI Panel
+  window.dispatchEvent(new CustomEvent('andb-ai-inject-selection', { 
+    detail: { text: selectionState.value.text } 
+  }))
+
+  selectionState.value.visible = false
+  window.getSelection()?.removeAllRanges()
+}
+
+
+onMounted(() => {
+  window.addEventListener('mouseup', handleMouseUp)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') selectionState.value.visible = false
+  })
+})
+onUnmounted(() => {
+  window.removeEventListener('mouseup', handleMouseUp)
+})
 
 </script>
 

@@ -83,12 +83,12 @@
 
                 <!-- Links Card (Full Width) -->
                 <div class="col-span-2 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex items-center justify-around group">
-                  <a href="https://github.com/The-Andb/andb-desktop" target="_blank" class="flex flex-col items-center space-y-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  <a href="#" @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop')" class="flex flex-col items-center space-y-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                     <Github class="w-5 h-5" />
                     <span class="text-xs font-semibold">{{ $t('about.github') }}</span>
                   </a>
                   <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
-                  <a href="https://github.com/The-Andb/andb-desktop/issues" target="_blank" class="flex flex-col items-center space-y-1 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                  <a href="#" @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop/issues')" class="flex flex-col items-center space-y-1 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                     <Bug class="w-5 h-5" />
                     <span class="text-xs font-semibold">{{ $t('about.issue') }}</span>
                   </a>
@@ -155,6 +155,14 @@ const close = () => {
 const openShortcuts = () => {
   emit('close')
   shortcutStore.openModal()
+}
+
+const openExternal = (url: string) => {
+  if ((window as any).electronAPI?.openExternal) {
+    (window as any).electronAPI.openExternal(url)
+  } else {
+    window.open(url, '_blank')
+  }
 }
 </script>
 

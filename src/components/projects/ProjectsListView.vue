@@ -203,8 +203,33 @@ const getValidConnectionCount = (project: any) => {
 }
 
 const getValidPairCount = (project: any) => {
-  if (!project.pairIds) return 0
-  return project.pairIds.filter((id: string) => connectionPairsStore.connectionPairs.some(p => p.id === id)).length
+  // 1. Count custom pairs (explicitly linked)
+  const customCount = (project.pairIds || []).filter((id: string) => 
+    connectionPairsStore.connectionPairs.some(p => p.id === id)
+  ).length
+
+  // 2. Count potential auto-pairs based on environments
+  // We need to see how many sequential paths exist within this project's environments
+  const envIds = project.enabledEnvironmentIds || []
+  if (envIds.length < 2) return customCount
+
+  const sortedEnvs = [...connectionPairsStore.environments]
+    .filter(env => envIds.includes(env.id))
+    .sort((a, b) => a.order - b.order)
+
+  let autoCount = 0
+  for (let i = 0; i < sortedEnvs.length - 1; i++) {
+    const source = sortedEnvs[i]
+    const target = sortedEnvs[i + 1]
+    
+    // Only count as auto-pair if there isn't a custom one already covering this path
+    const hasCustom = connectionPairsStore.connectionPairs.some(p => 
+      project.pairIds?.includes(p.id) && p.sourceEnv === source.id && p.targetEnv === target.id
+    )
+    if (!hasCustom) autoCount++
+  }
+
+  return customCount + autoCount
 }
 </script>
 
@@ -318,17 +343,24 @@ const getValidPairCount = (project: any) => {
           :style="{ '--project-accent': project.color || '#6366f1' }"
           :class="[
             selectedIds.includes(project.id)
-              ? 'ring-2 ring-[var(--project-accent)] bg-[var(--project-accent)]/5 border-[var(--project-accent)]/30 hover:shadow-[var(--project-accent)]/20'
+              ? 'ring-2 ring-[var(--project-accent)] bg-white/80 dark:bg-gray-800/80 border-[var(--project-accent)]/40 shadow-[0_0_40px_-10px_var(--project-accent)] scale-[1.02]'
               : 'hover:shadow-[var(--project-accent)]/10 hover:border-[var(--project-accent)]/40 hover:-translate-y-1',
             (activeMenuId === project.id || activeIconPickerId === project.id) ? 'z-[60]' : 'z-10'
           ]" @click="isSelectionMode ? toggleSelection(project.id) : emit('open', project.id)">
+          
+          <!-- Protected Corner Ribbon (Grid) -->
+          <div v-if="project.isProtected" class="absolute top-0 left-0 w-24 h-24 overflow-hidden rounded-tl-[2.5rem] pointer-events-none z-50">
+            <div class="absolute top-[18px] left-[-28px] w-[120px] bg-amber-500 text-white text-[8px] font-black py-1 shadow-lg transform -rotate-45 flex items-center justify-center gap-1.5 tracking-[0.2em] uppercase">
+              <Shield class="w-2.5 h-2.5" />
+              Protected
+            </div>
+          </div>
           
           <!-- Quick Open Overlay (Hover) -->
           <div class="absolute inset-0 bg-[var(--project-accent)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0"></div>
           
           <!-- Selection Checkbox (Grid) -->
-          <div v-if="project.name !== 'TheAndb System'" class="absolute top-5 left-5 z-40 transition-all duration-300"
-            :class="[isSelectionMode ? 'opacity-100 scale-100' : 'opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100']">
+          <div v-if="project.name !== 'TheAndb System'" class="absolute top-5 left-5 z-40 transition-all duration-300 opacity-100 scale-100">
             <button @click.stop="toggleSelection(project.id)"
               class="w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all bg-white dark:bg-gray-800"
               :class="[
@@ -337,7 +369,7 @@ const getValidPairCount = (project: any) => {
                   : 'border-gray-200 dark:border-gray-600 hover:border-[var(--project-accent)] shadow-sm'
               ]">
               <Check v-if="selectedIds.includes(project.id)"
-                class="w-4 h-4 text-white stroke-[4.5px] animate-in zoom-in-50 duration-200" />
+                class="w-4 h-4 text-white stroke-[5px] animate-in zoom-in-50 duration-200" />
             </button>
           </div>
 
@@ -400,7 +432,6 @@ const getValidPairCount = (project: any) => {
             <h3 v-if="renamingId !== project.id"
               class="text-2xl font-black text-gray-900 dark:text-white leading-tight flex items-center gap-2">
               {{ project.name }}
-              <ShieldAlert v-if="project.isProtected" class="w-4 h-4 text-amber-500" title="Protected Project" />
               <span v-if="project.isActive" class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span>
             </h3>
             <div v-else class="relative z-50">
@@ -443,9 +474,9 @@ const getValidPairCount = (project: any) => {
             </div>
 
             <div
-              class="flex items-center gap-2 text-[var(--project-accent)] opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500 font-black">
+              class="flex items-center gap-2 text-[var(--project-accent)] transition-all duration-300 font-black group-hover:scale-110 active:scale-95">
               EXPLORE
-              <ChevronRight class="w-5 h-5" />
+              <ChevronRight class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </div>
           </div>
         </div>
@@ -486,14 +517,21 @@ const getValidPairCount = (project: any) => {
           :style="{ '--project-accent': project.color || '#6366f1' }"
           :class="[
             selectedIds.includes(project.id)
-              ? 'ring-2 ring-[var(--project-accent)] bg-[var(--project-accent)]/5 border-[var(--project-accent)]/30'
-              : 'hover:border-[var(--project-accent)]/40 hover:bg-white/60 dark:hover:bg-gray-800/60',
+              ? 'ring-2 ring-[var(--project-accent)] bg-white/80 dark:bg-gray-800/80 border-[var(--project-accent)]/40 shadow-[0_0_30px_-10px_var(--project-accent)]'
+              : 'hover:border-[var(--project-accent)]/40 hover:bg-white/60 dark:hover:bg-gray-800/60 shadow-sm',
             (activeMenuId === project.id || activeIconPickerId === project.id) ? 'z-[60]' : 'z-10'
           ]" @click="isSelectionMode ? toggleSelection(project.id) : emit('open', project.id)">
           
+          <!-- Protected Corner Ribbon (List) -->
+          <div v-if="project.isProtected" class="absolute top-0 left-0 w-20 h-20 overflow-hidden rounded-tl-3xl pointer-events-none z-50">
+            <div class="absolute top-[14px] left-[-24px] w-[100px] bg-amber-500 text-white text-[7px] font-black py-0.5 shadow-lg transform -rotate-45 flex items-center justify-center gap-1 tracking-[0.2em] uppercase">
+              <Shield class="w-2 h-2" />
+              Protected
+            </div>
+          </div>
+          
           <!-- Selection Checkbox (List) -->
-          <div v-if="project.name !== 'TheAndb System'" class="shrink-0 z-40 transition-all duration-300"
-            :class="[isSelectionMode ? 'opacity-100 w-7' : 'opacity-0 w-0 group-hover:opacity-100 group-hover:w-7']">
+          <div v-if="project.name !== 'TheAndb System'" class="shrink-0 w-7 z-40 transition-all duration-300 opacity-100">
             <button @click.stop="toggleSelection(project.id)"
               class="w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all bg-white dark:bg-gray-800"
               :class="[
@@ -502,7 +540,7 @@ const getValidPairCount = (project: any) => {
                   : 'border-gray-200 dark:border-gray-600 hover:border-[var(--project-accent)] shadow-sm'
               ]">
               <Check v-if="selectedIds.includes(project.id)"
-                class="w-4 h-4 text-white stroke-[4.5px] animate-in zoom-in-50 duration-200" />
+                class="w-4 h-4 text-white stroke-[5px] animate-in zoom-in-50 duration-200" />
             </button>
           </div>
 
@@ -571,9 +609,9 @@ const getValidPairCount = (project: any) => {
               </div>
 
               <div
-                class="flex items-center gap-2 text-[var(--project-accent)] font-black text-[10px] tracking-widest opacity-0 group-hover:opacity-100 translate-x-3 group-hover:translate-x-0 transition-all duration-500">
+                class="flex items-center gap-2 text-[var(--project-accent)] font-black text-[10px] tracking-widest transition-all duration-300 group-hover:scale-105 active:scale-95">
                 ENTER
-                <ChevronRight class="w-5 h-5" />
+                <ChevronRight class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
               </div>
             </div>
           </div>

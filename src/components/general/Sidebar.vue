@@ -343,7 +343,7 @@ const projectsStore = useProjectsStore()
 const featuresStore = useFeaturesStore()
 
 
-const isCollapsed = computed(() => appStore.sidebarCollapsed)
+const isCollapsed = computed(() => appStore.sidebarCollapsed || isGlobalLayer.value)
 const selectedItem = computed(() => (route.path === '/schema' || route.path === '/history') ? (window as any)._andbSelectedObject : null)
 
 const activePair = computed(() => connectionPairsStore.activePair)

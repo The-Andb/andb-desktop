@@ -94,12 +94,23 @@ class DatabaseManager {
       )
     `)
 
+    // AI Chats table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS ai_chats (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        messages TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `)
+
     // Create indexes
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_migrations_timestamp ON migrations(timestamp);
       CREATE INDEX IF NOT EXISTS idx_comparisons_timestamp ON comparisons(timestamp);
       CREATE INDEX IF NOT EXISTS idx_export_logs_timestamp ON export_logs(timestamp);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_ai_chats_updated_at ON ai_chats(updated_at);
     `)
   }
 
@@ -229,6 +240,40 @@ class DatabaseManager {
       SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT ?
     `)
     return stmt.all(limit)
+  }
+
+  // --- AI Chat Methods ---
+
+  saveAiChat(chat: any): void {
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO ai_chats (id, title, messages, updated_at)
+      VALUES (?, ?, ?, ?)
+    `)
+    stmt.run(chat.id, chat.title, JSON.stringify(chat.messages), chat.updated_at)
+  }
+
+  getAiChats(): any[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM ai_chats ORDER BY updated_at DESC
+    `)
+    const rows = stmt.all()
+    return rows.map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      messages: JSON.parse(row.messages),
+      updatedAt: row.updated_at // normalize casing for frontend
+    }))
+  }
+
+  deleteAiChat(id: string): void {
+    const stmt = this.db.prepare(`
+      DELETE FROM ai_chats WHERE id = ?
+    `)
+    stmt.run(id)
+  }
+
+  clearAiChats(): void {
+    this.db.exec(`DELETE FROM ai_chats`)
   }
 
   /**

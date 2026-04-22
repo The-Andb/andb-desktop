@@ -16,6 +16,20 @@
               <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
             </div>
 
+            <button @click="triggerAIReview"
+              class="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 active:scale-95 transition-all">
+              <Sparkles class="w-4 h-4" />
+              AI Review
+            </button>
+            
+            <div class="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-1"></div>
+
+            <button @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
+              :class="['p-2 rounded-xl border transition-all', appStore.layoutSettings.aiPanel ? 'bg-primary-50 border-primary-200 text-primary-600' : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-400 hover:bg-gray-50']"
+              title="Toggle AI Panel">
+              <LayoutList class="w-4 h-4" />
+            </button>
+
             <button 
               @click="loadSchema(true)" 
               :disabled="appStore.isSchemaFetching || loading || !selectedConnectionId"
@@ -74,6 +88,8 @@
           </template>
       </div>
     </template>
+
+
 
     <div class="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-950">
 
@@ -394,6 +410,15 @@
                       <History class="w-4 h-4" />
                     </button>
 
+                    <button 
+                      @click="appStore.requestAiReview()"
+                      class="flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg transition-all border border-indigo-500/20 group/ai"
+                      :class="{ 'bg-indigo-500 text-white': appStore.layoutSettings.aiPanel }"
+                    >
+                      <Sparkles class="w-3.5 h-3.5 group-hover/ai:animate-pulse" />
+                      <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
+                    </button>
+
                     <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
                     <!-- Inline segmented control for Instant Compare -->
                     <div class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm transition-all hover:shadow ml-2">
@@ -489,6 +514,8 @@
         </main>
       </div>
     </div>
+
+    <!-- No slot needed, AI Panel is now in MainLayout -->
   </MainLayout>
 </template>
 
@@ -554,16 +581,19 @@ import TableDetailedView from '@/components/ddl/TableDetailedView.vue'
 import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
 import TabBar from '@/components/general/TabBar.vue'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
+import AIReviewPanel from '@/components/ai/AIReviewPanel.vue'
 
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const router = useRouter()
 const route = useRoute()
 const searchInput = ref<HTMLInputElement | null>(null)
+
+const isAIReviewOpen = ref(false)
 
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const sortBy = ref<'name' | 'date'>('name')
@@ -1646,7 +1676,24 @@ onMounted(() => {
 
   watch(() => selectedItem.value, (newVal) => {
     (window as any)._andbSelectedObject = newVal
+    if (newVal) {
+      appStore.aiContext = {
+        target: { name: newVal.name, ddl: formattedDDL.value },
+        objectName: newVal.name,
+        objectType: newVal.type || 'Table'
+      }
+    }
   }, { immediate: true })
+
+  watch(() => formattedDDL.value, (newVal) => {
+    if (selectedItem.value) {
+      appStore.aiContext = {
+        target: { name: selectedItem.value.name, ddl: newVal },
+        objectName: selectedItem.value.name,
+        objectType: selectedItem.value.type || 'Table'
+      }
+    }
+  })
 
   watch(() => route.query.select, processDeepLink)
   watch(() => allResults.value.length, processDeepLink)

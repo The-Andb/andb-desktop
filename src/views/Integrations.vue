@@ -307,6 +307,14 @@ watch(currentProjectId, () => {
   loadGitConfig()
   checkGitStatus()
 })
+
+const openExternal = (url: string) => {
+  if ((window as any).electronAPI?.openExternal) {
+    (window as any).electronAPI.openExternal(url)
+  } else {
+    window.open(url, '_blank')
+  }
+}
 </script>
 
 <template>
@@ -437,7 +445,7 @@ watch(currentProjectId, () => {
                                    <span class="mt-1 w-1 h-1 rounded-full bg-primary-400 shrink-0"></span>
                                    <div class="flex-1">
                                       {{ step.text }}
-                                      <a v-if="step.url" :href="step.url" target="_blank" class="text-primary-500 hover:underline inline-flex items-center ml-1">
+                                      <a v-if="step.url" href="#" @click.prevent="openExternal(step.url)" class="text-primary-500 hover:underline inline-flex items-center ml-1">
                                          link <ExternalLink class="w-2 h-2 ml-0.5" />
                                       </a>
                                    </div>
@@ -456,7 +464,7 @@ watch(currentProjectId, () => {
                                    <span class="mt-1 w-1 h-1 rounded-full bg-primary-400 shrink-0"></span>
                                    <div class="flex-1">
                                       {{ step.text }}
-                                      <a v-if="step.url" :href="step.url" target="_blank" class="text-primary-500 hover:underline inline-flex items-center ml-1">
+                                      <a v-if="step.url" href="#" @click.prevent="openExternal(step.url)" class="text-primary-500 hover:underline inline-flex items-center ml-1">
                                          link <ExternalLink class="w-2 h-2 ml-0.5" />
                                       </a>
                                    </div>

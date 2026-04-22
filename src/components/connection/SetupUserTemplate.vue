@@ -160,7 +160,7 @@
             </div>
           
             <div class="space-y-3">
-              <!-- Read Only (Locked) -->
+              <!-- Read Only (Protected) -->
               <div class="flex items-center justify-between p-5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 opacity-80 cursor-not-allowed">
                   <div class="flex items-center gap-4">
                       <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">

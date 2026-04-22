@@ -51,6 +51,13 @@ export interface ConnectionPair {
   target: DatabaseConnection | null
 }
 
+export interface AIContext {
+  source?: { name: string; ddl: string }
+  target?: { name: string; ddl: string }
+  objectName: string
+  objectType: string
+}
+
 export const FONT_SIZE_PROFILES = {
   small: {
     title: 16,
@@ -125,8 +132,14 @@ export const useAppStore = defineStore('app', () => {
     sidebar: true,
     breadcrumbs: true,
     toolbar: true,
-    sidebarPosition: 'left' as 'left' | 'right'
+    sidebarPosition: 'left' as 'left' | 'right',
+    aiPanel: false,
+    aiPanelPosition: 'right' as 'left' | 'right',
+    aiPanelWidth: 320
   })
+
+  // Global AI Context
+  const aiContext = ref<AIContext | null>(null)
 
   // Initialize state
   let initPromise: Promise<void> | null = null
@@ -371,33 +384,6 @@ export const useAppStore = defineStore('app', () => {
     if (fontSizeProfile.value === 'custom') {
       lastCustomFontSizes.value = { ...newValue }
       storage.updateSettings({ lastCustomFontSizes: { ...newValue } })
-    } else {
-      // If we make changes while NOT in custom mode, we should auto-switch to custom
-      // But checking for deep equality is tricky because of the circular update nature.
-      // Instead, we rely on the UI to call applyFontSizeProfile('custom') if needed, 
-      // OR we accept that any manual change in UI (which v-models directly into fontSizes) 
-      // implicitly means we are diverging.
-
-      // Ideally the UI inputs should trigger a "switchToCustom" first, OR we detect deviation here.
-      if (!isInitialized.value) return
-
-      const currentProfileTarget = FONT_SIZE_PROFILES[fontSizeProfile.value]
-      if (currentProfileTarget) {
-        // Use loose equality or String comparison to avoid type issues (number vs string from inputs/storage)
-        const isMatch = Object.keys(newValue).every(k => {
-          const key = k as keyof typeof newValue
-          // eslint-disable-next-line eqeqeq
-          return newValue[key] == currentProfileTarget[key]
-        })
-
-        if (!isMatch) {
-          // console.log('Font size deviation detected, switching to custom', newValue, currentProfileTarget)
-          fontSizeProfile.value = 'custom'
-          // And now that we are custom, save this new state as the custom preference
-          lastCustomFontSizes.value = { ...newValue }
-          storage.updateSettings({ lastCustomFontSizes: { ...newValue } })
-        }
-      }
     }
   }, { deep: true })
 
@@ -694,6 +680,17 @@ export const useAppStore = defineStore('app', () => {
         conn.status = 'idle'
       })
     },
-    reloadData: init
+    reloadData: init,
+    
+    // AI Trigger signalling
+    aiContext,
+    aiReviewTrigger: ref(0),
+    requestAiReview: () => {
+      layoutSettings.value.aiPanel = true
+      // Incrementing a counter is a simple, effective signal that watchers can detect
+      // @ts-ignore
+      const appStore = useAppStore()
+      appStore.aiReviewTrigger++
+    }
   }
 })

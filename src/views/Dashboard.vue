@@ -246,38 +246,53 @@
               :server-info="serverInfo"
               :loading="isFetchingStats"
               subtitle="Project Primary Target"
+              class="lg:col-span-2"
               @refresh="fetchDashboardStats"
             />
-            <div v-else-if="isFetchingStats" class="bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800">
+            <div v-else-if="isFetchingStats" class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800">
                <RefreshCw class="w-8 h-8 text-primary-500 animate-spin mb-4" />
                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Fetching Intelligence...</p>
             </div>
             
             <!-- Future AI Insights Placeholder / Mini Card -->
-            <div class="lg:col-span-2 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-950 rounded-[2rem] p-8 border border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10">
-               <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"></div>
-               <div class="relative z-10 flex flex-col items-start max-w-lg">
-                  <div class="p-2 bg-primary-500/10 rounded-lg text-primary-400 mb-4 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md">
-                    <Zap class="w-4 h-4 fill-primary-400 animate-pulse" />
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ $t('dashboard.aiAssistantPreAlpha') }}</span>
+            <div @click="navigateTo('/project-settings')" class="lg:col-span-1 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 rounded-3xl p-6 border border-primary-500/20 dark:border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10">
+               <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.03),transparent)] dark:bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"></div>
+               <div class="relative z-10 flex flex-col items-start max-w-md">
+                  <div class="px-2 py-1 bg-primary-500/10 rounded-lg text-primary-600 dark:text-primary-400 mb-3 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md">
+                    <Zap class="w-3.5 h-3.5 fill-primary-500 dark:fill-primary-400 animate-pulse" />
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em]">{{ $t('dashboard.aiAssistantPreAlpha') }}</span>
                   </div>
-                  <h3 class="text-2xl font-black text-white mb-3 tracking-tight">{{ $t('dashboard.aiAutomateTitle') }}</h3>
-                  <p class="text-gray-300 text-sm leading-relaxed mb-8 font-medium">
-                    {{ $t('dashboard.aiAutomateDesc') }}
-                  </p>
-                  <button 
-                    @click="navigateTo('/project-settings')"
-                    class="px-8 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary-500/30 active:scale-95 flex items-center gap-2"
-                  >
-                    <Sparkles class="w-3.5 h-3.5" />
-                    {{ $t('dashboard.enableAIInsights') }}
-                  </button>
+                  <template v-if="!projectsStore.currentProject?.settings?.aiEnabled">
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white mb-2 tracking-tight leading-tight">{{ $t('dashboard.aiAutomateTitle') }}</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium">
+                      {{ $t('dashboard.aiAutomateDesc') }}
+                    </p>
+                    <button 
+                      class="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-500/25 active:scale-95 flex items-center gap-2"
+                    >
+                      <Sparkles class="w-3 h-3" />
+                      {{ $t('dashboard.enableAIInsights') }}
+                    </button>
+                  </template>
+                  <template v-else>
+                    <h3 class="text-lg font-black text-emerald-600 dark:text-emerald-400 mb-2 tracking-tight leading-tight">AI Intelligence Active</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium">
+                      Your DBA workflows are supercharged. Check the AI Panel or use intelligent actions across the application.
+                    </p>
+                    <button 
+                      @click.stop="navigateTo('/project-settings?cat=ai')"
+                      class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-500/25 active:scale-95 flex items-center gap-2"
+                    >
+                      <Settings class="w-3 h-3" />
+                      CONFIGURE
+                    </button>
+                  </template>
                </div>
                
                <!-- Abstract Visual Deco -->
-               <div class="absolute -right-12 -bottom-12 w-64 h-64 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
-               <div class="absolute -right-6 -bottom-6 w-48 h-48 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"></div>
-               <Activity class="absolute right-8 top-1/2 -translate-y-1/2 w-32 h-32 text-primary-500/5 group-hover:text-primary-500/10 transition-color duration-500" />
+               <div class="absolute -right-8 -bottom-8 w-48 h-48 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+               <div class="absolute -right-4 -bottom-4 w-32 h-32 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"></div>
+               <Activity class="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 text-primary-500/5 group-hover:text-primary-500/10 transition-color duration-500" />
             </div>
           </div>
         </div>

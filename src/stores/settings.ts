@@ -47,6 +47,8 @@ interface Settings {
   sqlitePath: string
   setupCompleted: boolean
   aiApiKey?: string
+  aiModelVersion?: string
+  aiLanguage?: Language
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -64,7 +66,9 @@ const defaultSettings: Settings = {
   excludeTags: [],
   sqlitePath: '',
   setupCompleted: false,
-  aiApiKey: ''
+  aiApiKey: '',
+  aiModelVersion: 'gemini-2.5-flash',
+  aiLanguage: 'en'
 }
 
 const loadSettingsAsync = async (currentSettings: any) => {

@@ -115,6 +115,10 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-ai-configure', andb.handleAndbAIConfigure)
   ipcMain.handle('andb-ai-review', andb.handleAndbAIReview)
   ipcMain.handle('andb-ai-ask', andb.handleAndbAIAsk)
+  ipcMain.handle('ai-save-chat', andb.handleSaveAiChat)
+  ipcMain.handle('ai-get-chats', andb.handleGetAiChats)
+  ipcMain.handle('ai-delete-chat', andb.handleDeleteAiChat)
+  ipcMain.handle('ai-clear-chats', andb.handleClearAiChats)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

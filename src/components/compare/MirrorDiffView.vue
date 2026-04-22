@@ -19,8 +19,9 @@
               <!-- AI Review Button -->
               <button 
                 v-if="sourceDdl || targetDdl"
-                @click="isAIReviewOpen = true"
+                @click="appStore.requestAiReview()"
                 class="flex items-center gap-1.5 px-2 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-md transition-all border border-primary-500/20 group"
+                :class="{ 'bg-primary-500 text-white': appStore.layoutSettings.aiPanel }"
               >
                 <Sparkles class="w-3 h-3 group-hover:animate-pulse" />
                 <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
@@ -214,8 +215,9 @@
           <!-- AI Review Button -->
           <button 
             v-if="sourceDdl || targetDdl"
-            @click="isAIReviewOpen = true"
+            @click="appStore.requestAiReview()"
             class="flex items-center gap-1.5 px-2 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-md transition-all border border-primary-500/20 group"
+            :class="{ 'bg-primary-500 text-white': appStore.layoutSettings.aiPanel }"
           >
             <Sparkles class="w-3 h-3 group-hover:animate-pulse" />
             <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
@@ -347,15 +349,7 @@
           </template>
       </div>
     </div>
-    <AIReviewDrawer 
-      :is-open="isAIReviewOpen"
-      :context="{
-        sourceDdl: sourceDdl || '',
-        targetDdl: targetDdl || '',
-        tableName: targetLabel || sourceLabel || 'Unknown'
-      }"
-      @close="isAIReviewOpen = false"
-    />
+
   </div>
 </template>
 
@@ -366,7 +360,7 @@ const Prism = prismjs;
 import 'prismjs/components/prism-sql'
 import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown, Sparkles } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
-import AIReviewDrawer from '../ai/AIReviewDrawer.vue'
+import AIReviewPanel from '../ai/AIReviewPanel.vue'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 
 const appStore = useAppStore()

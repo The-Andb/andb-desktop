@@ -621,12 +621,12 @@ export class AndbBuilder {
     return await BackgroundWorker.getInstance().execute('ai-configure', { apiKey, provider });
   }
 
-  static async reviewSchema(context: any) {
-    return await BackgroundWorker.getInstance().execute('ai-review', { context });
+  static async reviewSchema(context: any, locale?: string) {
+    return await BackgroundWorker.getInstance().execute('ai-review', { context, locale });
   }
 
-  static async askDBA(question: string, context?: any) {
-    return await BackgroundWorker.getInstance().execute('ai-ask', { question, context });
+  static async askDBA(question: string, context?: any, locale?: string) {
+    return await BackgroundWorker.getInstance().execute('ai-ask', { question, context, locale });
   }
 }
 

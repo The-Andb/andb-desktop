@@ -268,6 +268,7 @@ schema:
   never: 'Chưa từng'
 
 compare:
+  title: 'Khác biệt & Đồng bộ'
   noPair: 'Chưa chọn cặp'
   listView: 'Danh sách'
   treeViewLabel: 'Cây'
@@ -282,6 +283,13 @@ compare:
   ignoreObject: 'Bỏ qua đối tượng này'
   ignoredNotification: 'Đã thêm {name} vào danh sách loại trừ'
   summary: 'Tóm tắt'
+  startCompare: 'Bắt đầu So sánh'
+  noDataDesc: 'Hãy bắt đầu so sánh để xem sự khác biệt về schema giữa các môi trường'
+  noPairDesc: 'Vui lòng chọn môi trường nguồn và đích ở thanh bên để bắt đầu'
+  perfectlyInSync: 'Mọi thứ đã được đồng bộ hoàn hảo.'
+  noSearchMatches: 'Không tìm thấy kết quả nào khớp với tìm kiếm của bạn'
+  viewIdentical: 'Xem các mục giống nhau'
+  clearSearch: 'Xóa tìm kiếm'
   generatedScript: 'Script đồng bộ được tạo'
   diffView:
     source: 'NGUỒN: {label}'
@@ -580,20 +588,6 @@ settings:
         schema: 'Cây thư mục'
         ddlName: 'Tên đối tượng'
         code: 'Code'
-    ai:
-      title: 'Trợ lý AI DBA'
-      subtitle: 'Trí tuệ DBA được cung cấp bởi Gemini'
-      apiKey: 'Gemini API Key'
-      testButton: 'Kiểm tra kết nối'
-      success: 'Xác thực thành công'
-      error: 'Lỗi cấu hình'
-      capabilities:
-        review: 'Đánh giá thay đổi Schema'
-        reviewDesc: 'Phân tích tự động các thay đổi DDL với đánh giá mức độ rủi ro.'
-        troubleshoot: 'Xử lý sự cố DBA'
-        troubleshootDesc: 'Giao diện ngôn ngữ tự nhiên để hỏi về các cấu trúc bảng phức tạp.'
-        semantic: 'Semantic Diff'
-        semanticDesc: 'Hiểu ý định của các thay đổi schema thay vì chỉ so sánh văn bản.'
     buttons:
       title: 'Mật độ hình ảnh & Kiểu nút'
       subtitle: 'Chọn mức độ thẩm mỹ cho các phần tử'
@@ -611,6 +605,23 @@ settings:
       secondary: 'Phụ'
       checkHistory: 'Xem lịch sử'
       utility: 'Tiện ích'
+  ai:
+    title: 'Trợ lý AI DBA'
+    subtitle: 'Trí tuệ DBA được cung cấp bởi Gemini'
+    apiKey: 'Gemini API Key'
+    testButton: 'Kiểm tra kết nối'
+    success: 'Xác thực thành công'
+    error: 'Lỗi cấu hình'
+    capabilities:
+      review: 'Đánh giá thay đổi Schema'
+      reviewDesc: 'Phân tích tự động các thay đổi DDL với đánh giá mức độ rủi ro.'
+      troubleshoot: 'Xử lý sự cố DBA'
+      troubleshootDesc: 'Giao diện ngôn ngữ tự nhiên để hỏi về các cấu trúc bảng phức tạp.'
+      semantic: 'Semantic Diff'
+      semanticDesc: 'Hiểu ý định của các thay đổi schema thay vì chỉ so sánh văn bản.'
+    responseLanguage:
+      label: 'Ngôn ngữ phản hồi'
+      desc: 'Ngôn ngữ AI sử dụng để review code và trò chuyện'
   environment:
     title: 'Ma trận môi trường CSDL'
     subtitle: 'Hệ thống phân cấp và vòng đời cơ sở hạ tầng'
