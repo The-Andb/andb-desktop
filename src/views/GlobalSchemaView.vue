@@ -16,12 +16,7 @@
               <span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">{{ formatTimeAgo(selectedDbLastUpdated) }}</span>
             </div>
 
-            <button @click="triggerAIReview"
-              class="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 active:scale-95 transition-all">
-              <Sparkles class="w-4 h-4" />
-              AI Review
-            </button>
-            
+
             <div class="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-1"></div>
 
             <button @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
@@ -408,15 +403,6 @@
                       :title="$t('schema.viewHistory')"
                     >
                       <History class="w-4 h-4" />
-                    </button>
-
-                    <button 
-                      @click="appStore.requestAiReview()"
-                      class="flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg transition-all border border-indigo-500/20 group/ai"
-                      :class="{ 'bg-indigo-500 text-white': appStore.layoutSettings.aiPanel }"
-                    >
-                      <Sparkles class="w-3.5 h-3.5 group-hover/ai:animate-pulse" />
-                      <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
                     </button>
 
                     <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>

@@ -16,16 +16,7 @@
             <span class="font-bold text-emerald-600 dark:text-emerald-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.target', { label: targetLabel }) }}</span>
             <div class="flex items-center gap-3">
               <span v-if="isEmptyTarget" class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">{{ $t('compare.diffView.new') }}</span>
-              <!-- AI Review Button -->
-              <button 
-                v-if="sourceDdl || targetDdl"
-                @click="appStore.requestAiReview()"
-                class="flex items-center gap-1.5 px-2 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-md transition-all border border-primary-500/20 group"
-                :class="{ 'bg-primary-500 text-white': appStore.layoutSettings.aiPanel }"
-              >
-                <Sparkles class="w-3 h-3 group-hover:animate-pulse" />
-                <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
-              </button>
+
               <!-- Settings Component -->
               <div class="relative" ref="settingsRef">
                 <button 
@@ -212,16 +203,7 @@
         <span class="font-bold text-primary-600 dark:text-primary-400 opacity-80 uppercase tracking-widest text-[10px]">{{ $t('compare.diffView.unified', { source: sourceLabel, target: targetLabel }) }}</span>
         
         <div class="flex items-center gap-3">
-          <!-- AI Review Button -->
-          <button 
-            v-if="sourceDdl || targetDdl"
-            @click="appStore.requestAiReview()"
-            class="flex items-center gap-1.5 px-2 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-md transition-all border border-primary-500/20 group"
-            :class="{ 'bg-primary-500 text-white': appStore.layoutSettings.aiPanel }"
-          >
-            <Sparkles class="w-3 h-3 group-hover:animate-pulse" />
-            <span class="text-[10px] font-bold uppercase tracking-wider">AI Review</span>
-          </button>
+
 
           <!-- Settings inside header -->
           <div class="relative" ref="settingsRefUnified">

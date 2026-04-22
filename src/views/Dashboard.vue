@@ -257,7 +257,7 @@
             <!-- Future AI Insights Placeholder / Mini Card -->
             <div @click="navigateTo('/project-settings')" class="lg:col-span-1 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 rounded-3xl p-6 border border-primary-500/20 dark:border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10">
                <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.03),transparent)] dark:bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"></div>
-               <div class="relative z-10 flex flex-col items-start max-w-md">
+               <div class="relative z-10 flex flex-col items-start max-w-md pr-24">
                   <div class="px-2 py-1 bg-primary-500/10 rounded-lg text-primary-600 dark:text-primary-400 mb-3 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md">
                     <Zap class="w-3.5 h-3.5 fill-primary-500 dark:fill-primary-400 animate-pulse" />
                     <span class="text-[9px] font-black uppercase tracking-[0.2em]">{{ $t('dashboard.aiAssistantPreAlpha') }}</span>
@@ -292,7 +292,7 @@
                <!-- Abstract Visual Deco -->
                <div class="absolute -right-8 -bottom-8 w-48 h-48 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
                <div class="absolute -right-4 -bottom-4 w-32 h-32 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"></div>
-               <Activity class="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 text-primary-500/5 group-hover:text-primary-500/10 transition-color duration-500" />
+               <Activity class="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 text-primary-500 opacity-5 group-hover:opacity-10 transition-opacity duration-500" />
             </div>
           </div>
         </div>

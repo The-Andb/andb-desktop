@@ -283,8 +283,46 @@ export const storage = {
   },
 
   async updateSettings(updates: Partial<AppSchema['settings']>): Promise<void> {
-    const settings = await this.getSettings()
-    await this.saveSettings({ ...settings, ...updates })
+    if (typeof window === 'undefined') {
+      const settings = await this.getSettings()
+      await this.saveSettings({ ...settings, ...updates })
+      return
+    }
+    
+    // @ts-ignore
+    window.__settingsUpdateQueue = { ...(window.__settingsUpdateQueue || {}), ...updates }
+    // @ts-ignore
+    window.__settingsResolvers = window.__settingsResolvers || []
+    
+    // @ts-ignore
+    if (window.__settingsUpdateTimer) clearTimeout(window.__settingsUpdateTimer)
+    
+    return new Promise((resolve) => {
+      // @ts-ignore
+      window.__settingsResolvers.push(resolve)
+      
+      // @ts-ignore
+      window.__settingsUpdateTimer = setTimeout(async () => {
+        // @ts-ignore
+        const pendingUpdates = { ...window.__settingsUpdateQueue }
+        // @ts-ignore
+        const resolvers = [...window.__settingsResolvers]
+        
+        // @ts-ignore
+        window.__settingsUpdateQueue = {}
+        // @ts-ignore
+        window.__settingsResolvers = []
+        
+        try {
+          const settings = await this.getSettings()
+          await this.saveSettings({ ...settings, ...pendingUpdates })
+        } catch (e) {
+          console.error('[Storage] Failed to update settings', e)
+        } finally {
+          resolvers.forEach(res => res())
+        }
+      }, 50)
+    })
   },
 
   // ==================== Connection Templates ====================
