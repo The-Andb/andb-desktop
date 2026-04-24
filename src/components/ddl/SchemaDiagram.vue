@@ -19,13 +19,25 @@
 
       <!-- Relationships (Edges) -->
       <svg v-if="settings.showRelationships" class="absolute inset-0 pointer-events-none" :width="workspaceSize.width" :height="workspaceSize.height">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="fill-primary-500/50" />
+          </marker>
+          <marker id="arrowhead-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="fill-primary-500" />
+          </marker>
+        </defs>
         <g v-for="(edge, index) in edges" :key="index">
           <path 
             :d="calculatePath(edge)" 
-            class="stroke-primary-500/30 dark:stroke-primary-500/20"
+            class="transition-all duration-300"
+            :class="[
+                isEdgeActive(edge) 
+                    ? 'stroke-primary-500 stroke-[3px] opacity-100' 
+                    : 'stroke-primary-500/30 dark:stroke-primary-500/20 stroke-[1.5px] opacity-40'
+            ]"
             fill="none" 
-            stroke-width="2"
-            stroke-dasharray="4"
+            :marker-end="isEdgeActive(edge) ? 'url(#arrowhead-active)' : 'url(#arrowhead)'"
           />
         </g>
       </svg>
@@ -35,24 +47,34 @@
         v-for="table in tablesWithPos" 
         :key="table.name"
         class="absolute transition-all duration-700 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)]"
-        :class="{ '!transition-none': draggingTable?.name === table.name }"
+        :class="{ 
+            '!transition-none': draggingTable?.name === table.name,
+            'pointer-events-none': settings.focusMode && hoveredTable && hoveredTable !== table.name && !isTableConnected(table.name)
+        }"
         :style="{ 
           left: table.x + 'px', 
           top: table.y + 'px',
-          zIndex: draggingTable?.name === table.name ? 100 : 1
+          zIndex: draggingTable?.name === table.name ? 100 : 1,
+          transition: isLayouting ? 'none' : undefined
         }"
         @mousedown.stop="onTableMouseDown($event, table)"
+        @click="fetchTableDetails(table)"
+        @mouseenter="hoveredTable = table.name"
+        @mouseleave="hoveredTable = null"
       >
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden w-64 ring-1 ring-black/5 transition-all duration-300"
              :class="{ 
                  'shadow-2xl ring-primary-500/50 scale-105': draggingTable?.name === table.name,
-                 'opacity-30 grayscale-[0.8] blur-[1px]': searchQuery && !table.name.toLowerCase().includes(searchQuery.toLowerCase()),
-                 'ring-2 ring-primary-500 shadow-primary-500/20': searchQuery && table.name.toLowerCase().includes(searchQuery.toLowerCase())
+                 'ring-2 ring-primary-500 shadow-primary-500/40': hoveredTable === table.name || isTableConnected(table.name),
+                 'opacity-30 grayscale-[0.8] blur-[1px]': !settings.focusMode && ((searchQuery && !table.name.toLowerCase().includes(searchQuery.toLowerCase())) || (hoveredTable && hoveredTable !== table.name && !isTableConnected(table.name))),
+                 'opacity-0 scale-90 pointer-events-none invisible': settings.focusMode && hoveredTable && hoveredTable !== table.name && !isTableConnected(table.name),
+                 'ring-2 ring-primary-500 shadow-primary-500/20 !opacity-100 !grayscale-0 !blur-0 !visible !scale-100': searchQuery && table.name.toLowerCase().includes(searchQuery.toLowerCase())
              }">
           <!-- Table Header -->
-          <div class="px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
-            <Table class="w-4 h-4 text-primary-500" />
-            <span class="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white truncate">{{ table.name }}</span>
+          <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2"
+               :style="{ backgroundColor: getTableColor(table.name) + '15' }">
+            <Table class="w-4 h-4" :style="{ color: getTableColor(table.name) }" />
+            <span class="text-[13px] font-bold uppercase tracking-wider text-gray-900 dark:text-white">{{ table.name }}</span>
           </div>
 
           <!-- Table Content -->
@@ -68,7 +90,7 @@
                 <div class="flex items-center gap-2 overflow-hidden">
                   <Key v-if="col.pk" class="w-3 h-3 text-yellow-500 shrink-0" />
                   <Circle v-else class="w-1.5 h-1.5 text-gray-300 dark:text-gray-600 shrink-0" />
-                  <span class="text-[11px] font-mono text-gray-600 dark:text-gray-300 truncate" :class="{ 'font-bold': col.pk }">{{ col.name }}</span>
+                  <span class="text-[12px] font-mono text-gray-700 dark:text-gray-200 truncate" :class="{ 'font-bold': col.pk }">{{ col.name }}</span>
                 </div>
                 <span v-if="settings.detailLevel === 'all'" class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">{{ col.type }}</span>
               </div>
@@ -124,6 +146,14 @@
             >
                 <Grid3X3 class="w-4 h-4" />
             </button>
+            <button 
+                @click="settings.focusMode = !settings.focusMode" 
+                class="p-2 rounded-xl transition-all active:scale-90" 
+                :class="settings.focusMode ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-500' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                title="Toggle Focus Mode (Hide non-connected tables on hover)"
+            >
+                <Zap class="w-4 h-4" />
+            </button>
         </div>
 
         <!-- View Controls -->
@@ -155,7 +185,7 @@
                 </button>
             </div>
 
-             <button @click="resetView" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90" title="Center View & Reset Zoom">
+             <button @click="fitToView" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition-all active:scale-90" title="Fit to Screen">
                 <Maximize2 class="w-4 h-4" />
             </button>
 
@@ -184,7 +214,7 @@
 <script setup lang="ts">
 import Andb from '@/utils/andb'
 import { ref, computed, onMounted, watch, reactive } from 'vue'
-import { Table, Key, Circle, Minus, Plus, Maximize2, LayoutTemplate, MousePointer2, GitBranch, Grid3X3, Search, Download, RefreshCw } from 'lucide-vue-next'
+import { Table, Key, Circle, Minus, Plus, Maximize2, LayoutTemplate, MousePointer2, GitBranch, Grid3X3, Search, Download, RefreshCw, Zap } from 'lucide-vue-next'
 import { toPng } from 'html-to-image'
 
 const props = defineProps<{
@@ -221,12 +251,53 @@ const isExporting = ref(false)
 const settings = reactive({
     showGrid: true,
     showRelationships: true,
+    focusMode: false,
     detailLevel: 'all' as 'names' | 'keys' | 'all'
 })
+
+const hoveredTable = ref<string | null>(null)
 
 // Enhanced Tables with Positions and basic column parsing
 const tablesWithPos = ref<any[]>([])
 const edges = ref<any[]>([])
+
+// Point 3: Clustering Logic
+const getTableColor = (name: string) => {
+    const prefix = name.split('_')[0].toLowerCase()
+    const colors: Record<string, string> = {
+        'auth': '#ef4444', // red
+        'user': '#3b82f6', // blue
+        'order': '#10b981', // emerald
+        'product': '#f59e0b', // amber
+        'category': '#8b5cf6', // violet
+        'payment': '#ec4899', // pink
+        'sys': '#64748b', // slate
+        'core': '#6366f1'  // indigo
+    }
+    
+    if (colors[prefix]) return colors[prefix]
+    
+    // Fallback: Generate consistent color from string hash
+    let hash = 0
+    for (let i = 0; i < prefix.length; i++) {
+        hash = prefix.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const h = Math.abs(hash % 360)
+    return `hsl(${h}, 70%, 50%)`
+}
+
+const isTableConnected = (name: string) => {
+    if (!hoveredTable.value) return false
+    return edges.value.some(e => 
+        (e.from.name === hoveredTable.value && e.to.name === name) ||
+        (e.to.name === hoveredTable.value && e.from.name === name)
+    )
+}
+
+const isEdgeActive = (edge: Edge) => {
+    if (!hoveredTable.value) return true
+    return edge.from.name === hoveredTable.value || edge.to.name === hoveredTable.value
+}
 
 const gridStyle = computed(() => ({
   backgroundImage: `radial-gradient(circle, #9ca3af 1px, transparent 1px)`,
@@ -236,50 +307,33 @@ const gridStyle = computed(() => ({
   transform: 'translate(-2500px, -2500px)' // Center the huge grid
 }))
 
+const isLayouting = ref(false)
+
 // Auto-layout logic (Balanced Grid)
+// Auto-layout logic (Deterministic Masonry Waterfall)
 // Auto-layout logic (Deterministic Masonry Waterfall)
 const autoLayout = async () => {
   if (props.tables.length === 0) return
+  isLayouting.value = true
   
-  const horizontalSpacing = 320
-  const verticalMargin = 32
-  // Fixed a standard 6-column grid for better horizontal density on wide monitors
-  const cols = Math.min(props.tables.length, 6)
+  const horizontalSpacing = 280
+  const verticalMargin = 24
   
-  // 1. First Pass: Parallel Parsing + Sorting for predictability
-  let tablesWithColumns = await Promise.all(props.tables.map(async (table) => {
-    let columns: Column[] | null = null
-    const ddl = table.ddl || table.content || ''
-    
-    if (table.columns && Array.isArray(table.columns) && table.columns.length > 0) {
-      columns = table.columns
-    } else if (ddl) {
-      try {
-        const parsed = await Andb.parseTable(ddl)
-        if (parsed && parsed.columns) {
-          if (Array.isArray(parsed.columns)) {
-            columns = parsed.columns.slice(0, 20)
-          } else {
-            columns = Object.keys(parsed.columns).map(colName => ({
-              name: colName,
-              type: parsed.columns[colName].split(' ')[0] || 'unknown',
-              pk: parsed.primaryKey?.includes(colName) || false
-            })).slice(0, 20)
-          }
-        }
-      } catch (e) {
-        console.warn('[SchemaDiagram] IPC Parse failed', e)
-      }
-    }
-    return { ...table, columns }
-  }))
+  const containerRect = container.value?.getBoundingClientRect()
+  const containerAspect = containerRect ? containerRect.width / containerRect.height : 1.5
+  
+  // Calculate dynamic columns based on table count and container aspect ratio
+  const cols = Math.max(2, Math.ceil(Math.sqrt(props.tables.length * containerAspect))) 
+  
+  // 1. First Pass: Use existing table data (No aggressive IPC parsing)
+  const tablesToPosition = [...props.tables]
 
   // SORT BY NAME: Alphabetical flow from left-to-right, top-to-bottom
-  tablesWithColumns.sort((a, b) => a.name.localeCompare(b.name))
+  tablesToPosition.sort((a, b) => a.name.localeCompare(b.name))
 
   // 2. Second Pass: Sequential Masonry Placement
   const colHeights = new Array(cols).fill(0)
-  const positioned = tablesWithColumns.map((table) => {
+  const positioned = tablesToPosition.map((table) => {
     // Find column with minimum height
     let minCol = 0
     for (let c = 1; c < cols; c++) {
@@ -287,8 +341,8 @@ const autoLayout = async () => {
     }
 
     // Estimate Card Height: Header(40) + rows(N*22) + footer(30) + inner(24) + safety(8)
-    // If parsing hasn't yielded columns yet but DDL exists, assume a typical 8-column table
-    const colCount = table.columns ? table.columns.length : (table.ddl ? 8 : 1)
+    // Use columns if already present, otherwise estimate based on typical size
+    const colCount = table.columns ? table.columns.length : 8
     const visibleColsCap = Math.min(colCount, 20)
     const showMoreHeight = colCount > 20 ? 30 : 0
     
@@ -323,6 +377,66 @@ const autoLayout = async () => {
 
   tablesWithPos.value = finalPositioned
   calculateEdges()
+
+  // Auto-fit after layout
+  setTimeout(() => {
+    fitToView()
+    // Restore transitions after everything is in place
+    setTimeout(() => {
+        isLayouting.value = false
+    }, 500)
+  }, 100)
+}
+
+const fitToView = () => {
+  if (tablesWithPos.value.length === 0 || !container.value) return
+
+  const rect = container.value.getBoundingClientRect()
+  if (rect.width === 0 || rect.height === 0) return
+
+  const padding = 80
+
+  // Calculate bounding box of all tables
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  
+  tablesWithPos.value.forEach(t => {
+    const tableWidth = 256
+    // Estimate card height exactly like in autoLayout
+    const colCount = t.columns ? t.columns.length : (t.ddl ? 8 : 1)
+    const visibleColsCap = Math.min(colCount, 20)
+    const showMoreHeight = colCount > 20 ? 30 : 0
+    let cardHeight = 40 + (visibleColsCap * 22) + showMoreHeight + 24 + 8 
+    if (settings.detailLevel === 'names') cardHeight = 50
+    else if (settings.detailLevel === 'keys') {
+        const pkCount = t.columns ? t.columns.filter((c: Column) => c.pk).length : 1
+        cardHeight = 40 + (pkCount * 22) + 24 + 8
+    }
+
+    minX = Math.min(minX, t.x)
+    minY = Math.min(minY, t.y)
+    maxX = Math.max(maxX, t.x + tableWidth)
+    maxY = Math.max(maxY, t.y + cardHeight)
+  })
+
+  const contentWidth = maxX - minX
+  const contentHeight = maxY - minY
+
+  const availableWidth = rect.width - padding * 2
+  const availableHeight = rect.height - padding * 2
+
+  const zoomX = availableWidth / contentWidth
+  const zoomY = availableHeight / contentHeight
+  
+  // Choose zoom that fits both dimensions, but don't exceed 1.0 or go below 0.5 (readable level)
+  const nextZoom = Math.max(0.5, Math.min(1, Math.min(zoomX, zoomY)))
+
+  zoom.value = nextZoom
+  
+  // Center the bounding box in the view
+  offset.value = {
+    x: (rect.width / 2) - ((minX + contentWidth / 2) * nextZoom),
+    y: (rect.height / 2) - ((minY + contentHeight / 2) * nextZoom)
+  }
 }
 
 
@@ -418,10 +532,6 @@ const onWheel = (e: WheelEvent) => {
 
 const zoomIn = () => { zoom.value = Math.min(2, zoom.value + 0.1) }
 const zoomOut = () => { zoom.value = Math.max(0.2, zoom.value - 0.1) }
-const resetView = () => {
-    zoom.value = 0.8
-    offset.value = { x: 50, y: 50 }
-}
 
 const exportAsPng = async () => {
     if (!container.value) return
@@ -470,6 +580,38 @@ const exportAsPng = async () => {
     }
 }
 
+const fetchTableDetails = async (table: any) => {
+  // Only fetch if columns are missing and not currently layouting/dragging
+  if (table.columns || isLayouting.value || draggingTable.value) return
+  
+  const ddl = table.ddl || table.content || ''
+  if (!ddl) return
+  
+  try {
+    const parsed = await Andb.parseTable(ddl)
+    if (parsed && parsed.columns) {
+      let columns: any[] = []
+      if (Array.isArray(parsed.columns)) {
+        columns = parsed.columns.slice(0, 20)
+      } else {
+        columns = Object.keys(parsed.columns).map(colName => ({
+          name: colName,
+          type: parsed.columns[colName].split(' ')[0] || 'unknown',
+          pk: parsed.primaryKey?.includes(colName) || false
+        })).slice(0, 20)
+      }
+      
+      const target = tablesWithPos.value.find(t => t.name === table.name)
+      if (target) {
+        target.columns = columns
+        calculateEdges() // Re-calculate edges as we might have new FK info
+      }
+    }
+  } catch (e) {
+    console.warn('[SchemaDiagram] Lazy parse failed', e)
+  }
+}
+
 watch(() => props.tables, () => {
   autoLayout()
 }, { immediate: true })
@@ -479,7 +621,7 @@ watch(() => settings.detailLevel, () => {
 })
 
 onMounted(() => {
-  autoLayout()
+  // autoLayout is already called by watch with immediate: true
 })
 </script>
 

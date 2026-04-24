@@ -23,6 +23,7 @@ export interface DatabaseConnection {
   host: string
   port: number
   database: string
+  schema?: string
   username: string
   password?: string
   status: 'idle' | 'connected' | 'testing' | 'failed'
@@ -86,6 +87,7 @@ export const useAppStore = defineStore('app', () => {
   // State
   const sidebarCollapsed = ref(false)
   const safeMode = ref(true) // Default to true for safety
+  const aiEnabled = ref(true) // Master switch for AI features
   const isInitialized = ref(false)
   const compareMode = ref<'auto' | 'instant'>('auto')
   const compareStack = ref<{
@@ -173,6 +175,7 @@ export const useAppStore = defineStore('app', () => {
       }
 
       safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
+      aiEnabled.value = savedSettings.aiEnabled !== undefined ? savedSettings.aiEnabled : true
 
       // If we loaded 'custom', we should ensure fontSizes reflects the loaded values (already done by fontSizes loading logic above)
       // If we loaded a profile, apply it to ensure consistency.
@@ -367,6 +370,10 @@ export const useAppStore = defineStore('app', () => {
 
   watch(safeMode, newValue => {
     storage.updateSettings({ safeMode: newValue })
+  })
+
+  watch(aiEnabled, newValue => {
+    storage.updateSettings({ aiEnabled: newValue })
   })
 
   watch(navStyle, newValue => {
@@ -623,6 +630,7 @@ export const useAppStore = defineStore('app', () => {
     isInitialized,
     sidebarCollapsed,
     safeMode,
+    aiEnabled,
     isDark,
     buttonStyle,
     navStyle,

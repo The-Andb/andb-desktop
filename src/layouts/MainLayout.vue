@@ -20,7 +20,7 @@
       </div>
 
       <div 
-        v-if="appStore.layoutSettings.aiPanel"
+        v-if="appStore.layoutSettings.aiPanel && appStore.aiEnabled"
         :style="{ width: appStore.layoutSettings.aiPanelWidth + 'px', borderRightWidth: appStore.layoutSettings.aiPanelPosition === 'left' ? '1px' : '0', borderLeftWidth: appStore.layoutSettings.aiPanelPosition === 'right' ? '1px' : '0' }"
         :class="['shrink-0 relative transition-all duration-300 ease-in-out border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col', appStore.layoutSettings.aiPanelPosition === 'right' ? 'order-4' : 'order-1']"
       >
@@ -175,7 +175,7 @@
     <!-- Floating Selection to AI Button -->
     <Teleport to="body">
       <div 
-        v-if="selectionState.visible"
+        v-if="selectionState.visible && appStore.aiEnabled"
         :style="{ top: selectionState.y + 'px', left: selectionState.x + 'px' }"
         class="fixed z-[9999] animate-in fade-in zoom-in-75 duration-200"
       >
@@ -201,7 +201,7 @@ import ConsoleOutput from '@/components/general/ConsoleOutput.vue'
 import Notification from '@/components/general/Notification.vue'
 import CompareStackBar from '@/components/compare/CompareStackBar.vue'
 import AIReviewPanel from '@/components/ai/AIReviewPanel.vue'
-import { PanelBottom, X, Layers, ChevronDown, ChevronUp, LayoutList, Maximize2, Sparkles } from 'lucide-vue-next'
+import { PanelBottom, X, Layers, ChevronDown, ChevronUp, LayoutList, Maximize2, Sparkles, Zap } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'
 

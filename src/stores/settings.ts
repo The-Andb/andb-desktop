@@ -46,9 +46,12 @@ interface Settings {
   excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
+  aiProvider: 'gemini' | 'openai' | 'anthropic' | 'custom'
   aiApiKey?: string
   aiModelVersion?: string
   aiLanguage?: Language
+  aiPersona?: 'dba' | 'secretary' | 'coworker' | 'playful'
+  secretRepoUrl?: string
 }
 
 const STORAGE_KEY = 'andb-ui-settings'
@@ -66,9 +69,12 @@ const defaultSettings: Settings = {
   excludeTags: [],
   sqlitePath: '',
   setupCompleted: false,
+  aiProvider: 'gemini',
   aiApiKey: '',
-  aiModelVersion: 'gemini-2.5-flash',
-  aiLanguage: 'en'
+  aiModelVersion: 'gemini-1.5-flash',
+  aiLanguage: 'en',
+  aiPersona: 'coworker',
+  secretRepoUrl: ''
 }
 
 const loadSettingsAsync = async (currentSettings: any) => {

@@ -83,6 +83,7 @@ declare global {
       aiConfigure: (apiKey: string, provider: string) => Promise<{ success: boolean; error?: string }>
       aiReview: (args: { context: any }) => Promise<{ success: boolean; data: any; error?: string }>
       aiAsk: (args: { question: string, context?: any }) => Promise<{ success: boolean; data: any; error?: string }>
+      onAiControlEvent: (callback: (payload: any) => void) => void
 
       openBackupFolder: () => Promise<{ success: boolean; error?: string }>
       getReportList: () => Promise<{ success: boolean; data?: any[]; error?: string }>

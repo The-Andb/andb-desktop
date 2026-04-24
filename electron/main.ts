@@ -10,6 +10,7 @@ import {
 } from './bootstrap'
 import { createWindow, setupAppMenu } from './window_manager'
 import { registerIpcHandlers, setupUpdaterEventListeners } from './ipc'
+import BackgroundWorker from './services/background-worker'
 
 // 0. Global Error Handling (EPIPE mitigation)
 const handleEPIPE = (err: any) => {
@@ -65,6 +66,12 @@ app.whenReady().then(async () => {
 
   // 7. Register Global IPC Handlers
   registerIpcHandlers()
+
+  BackgroundWorker.getInstance().on('app-control', (payload: any) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('ai-control-event', payload)
+    }
+  })
 
   // 8. Auto Updater Startup (Production)
   if (!isDev) {

@@ -23,6 +23,8 @@ import { useConsoleStore } from '@/stores/console'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useFeaturesStore } from '@/stores/features'
 import { useShortcutStore } from '@/stores/shortcut'
+import { useProjectsStore } from '@/stores/projects'
+import { useRouter } from 'vue-router'
 import Andb from '@/utils/andb'
 
 import UpdateModal from '@/components/general/UpdateModal.vue'
@@ -35,6 +37,7 @@ const consoleStore = useConsoleStore()
 const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
 const shortcutStore = useShortcutStore()
+const router = useRouter()
 
 // Inject Dynamic Typography Variables into DOM root
 watch(() => appStore.fontSizes, (sizes) => {
@@ -295,6 +298,83 @@ onMounted(async () => {
             connectionName: data.env || data.connectionName || 'GLOBAL'
           })
         }
+      }
+    })
+  }
+
+  // AI Agent Control Events
+  if (window.electronAPI?.onAiControlEvent) {
+    window.electronAPI.onAiControlEvent((payload: any) => {
+      console.log('🤖 AI Control Event:', payload)
+      const { action, payload: data } = payload
+      
+      switch (action) {
+        case 'NAVIGATE':
+          if (data.view === 'Dashboard') router.push('/')
+          else if (data.view === 'Settings') router.push('/settings')
+          else if (data.view === 'GlobalSchema') router.push('/schema')
+          else if (data.view === 'ProjectDetail') {
+            if (data.projectId) {
+              const projectsStore = useProjectsStore()
+              projectsStore.selectProject(data.projectId)
+              router.push('/')
+            }
+          }
+          break
+        
+        case 'SWITCH_PROJECT':
+          if (data.projectId) {
+            const projectsStore = useProjectsStore()
+            projectsStore.selectProject(data.projectId)
+            consoleStore.addLog(`🤖 AI Switched project to: ${data.projectId}`, 'info')
+          }
+          break
+
+        case 'CREATE_PROJECT':
+          if (data.name) {
+            const projectsStore = useProjectsStore()
+            const newProj = projectsStore.addProject({
+              name: data.name,
+              description: data.description || '',
+              icon: data.icon || 'Package',
+              color: data.color || '#64748b',
+              connectionIds: [],
+              pairIds: [],
+              enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD']
+            })
+            projectsStore.selectProject(newProj.id)
+            consoleStore.addLog(`🤖 AI Created and switched to new project: ${data.name}`, 'success')
+          }
+          break
+        
+        case 'TRIGGER_COMPARE':
+          consoleStore.addLog(`AI Triggering Comparison: ${data.sourceEnv} vs ${data.targetEnv}`, 'info')
+          router.push({
+            path: '/compare',
+            query: {
+              src: data.sourceEnv,
+              dest: data.targetEnv,
+              auto: 'true',
+              focus: data.objectName
+            }
+          })
+          break
+        
+        case 'FOCUS_OBJECT':
+          consoleStore.addLog(`AI Focusing Object: ${data.objectName} in ${data.env}`, 'info')
+          router.push({
+            path: '/schema',
+            query: {
+              env: data.env,
+              object: data.objectName
+            }
+          })
+          break
+        
+        case 'SHOW_TOAST':
+          consoleStore.addLog(`🤖 AI: ${data.message}`, data.type || 'info')
+          consoleStore.setVisibility(true)
+          break
       }
     })
   }

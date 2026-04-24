@@ -24,6 +24,7 @@
           <LayersIcon class="w-4 h-4" />
         </button>
 
+
         <div v-if="route.path !== '/settings'"
           class="relative flex flex-col justify-center min-w-[130px] max-w-[220px] h-10 group cursor-pointer hover:bg-white dark:hover:bg-gray-800/80 rounded-xl px-3 transition-all -ml-1 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm"
           @click="isProjectPickerOpen = !isProjectPickerOpen">
@@ -164,6 +165,7 @@ import {
   Layout,
   PanelLeft,
   PanelBottom,
+  Zap
 } from 'lucide-vue-next'
 
 import { useUpdaterStore } from '@/stores/updater'

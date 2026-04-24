@@ -88,6 +88,7 @@ navigation:
     history: 'Khám phá Lịch sử'
     schema: 'Khám phá Schema'
   ddl:
+    all: 'Tất cả đối tượng'
     tables: 'Bảng'
     views: 'Views'
     procedures: 'Thủ tục'
@@ -498,9 +499,11 @@ settings:
     subtitle: 'Cài đặt hành vi cốt lõi cho dự án này'
     domainNormalization:
       title: 'Chuẩn hóa Tên miền'
+      subtitle: 'Bỏ qua các khác biệt về tên miền (như email hardcoded) giữa các môi trường để tập trung vào thay đổi cấu trúc.'
       desc: 'Bỏ qua các khác biệt về tên miền (như email hardcoded) giữa các môi trường để tập trung vào thay đổi cấu trúc.'
     migrationExclusions:
       title: 'Loại trừ Di trú'
+      subtitle: 'Ngăn chặn di trú nhầm các đối tượng tạm thời hoặc thử nghiệm. Các đối tượng khớp pattern này sẽ bị bỏ qua tuyệt đối.'
       desc: 'Ngăn chặn di trú nhầm các đối tượng tạm thời hoặc thử nghiệm. Các đối tượng khớp pattern này sẽ bị bỏ qua tuyệt đối.'
     global_connections: 'Kết nối toàn cục'
   security:
@@ -846,3 +849,30 @@ restrictedUserSetup:
     done: 'HOÀN TẤT. Hệ thống đã sẵn sàng.'
     verifying: 'Đang thực hiện kiểm tra an toàn...'
     clickVerify: 'Nhấn nút bên dưới để xác minh quyền hạn'
+
+aiErrors:
+  quota: "Rất tiếc! Có vẻ như bạn đã hết hạn mức (quota) của Gemini. Vui lòng đợi vài phút hoặc kiểm tra cài đặt thanh toán trong Google AI Console. ☕️"
+  overloaded: "Dịch vụ AI hiện đang quá tải hoặc đang nghỉ ngơi một chút. Vui lòng thử lại sau vài giây nhé! 🧘‍♂️"
+  invalidKey: "Có vấn đề với API Key của bạn. Vui lòng kiểm tra lại trong Cài đặt > Trợ lý AI. 🔑"
+  timeout: "Kết nối quá hạn. Vui lòng kiểm tra lại đường truyền internet của bạn. 🌐"
+  generic: "Trợ lý AI gặp một chút trục trặc nhỏ. Hãy thử gửi lại yêu cầu nhé? 🛠️"
+
+aiAssistant:
+  title: "Trợ lý AI"
+  history: "Lịch sử"
+  noPreviousChats: "Chưa có cuộc trò chuyện nào"
+  clearAllHistory: "Xóa toàn bộ lịch sử"
+  readyToHelp: "Sẵn sàng hỗ trợ"
+  new: "Mới"
+  close: "Đóng Trợ lý"
+  hello: "Xin chào"
+  xinChao: "Xin chào"
+  bonjour: "Bonjour"
+  tagline: "Sẵn sàng đánh giá schema và tối ưu hóa dữ liệu của bạn."
+  analyzeIndexSafety: "Phân tích an toàn Index"
+  optimizeDataTypes: "Tối ưu hóa kiểu dữ liệu"
+  analysisError: "Lỗi phân tích AI"
+  retryNow: "Thử lại ngay"
+  thinking: "Đang suy nghĩ..."
+  askAnything: "Hỏi AI bất cứ điều gì... (Enter để gửi, Shift+Enter để xuống dòng)"
+  tipSelectText: "✨ Mẹo: Bôi đen văn bản để đặt câu hỏi nhanh"

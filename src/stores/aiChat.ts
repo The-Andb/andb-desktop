@@ -35,12 +35,12 @@ export const useAiChatStore = defineStore('aiChat', {
     },
     async saveConversation(conv: Conversation) {
       try {
-        await (window as any).electronAPI.invoke('ai-save-chat', {
+        await (window as any).electronAPI.invoke('ai-save-chat', JSON.parse(JSON.stringify({
             id: conv.id,
             title: conv.title,
             messages: conv.messages,
             updated_at: conv.updatedAt
-        })
+        })))
       } catch (e) {
         console.error('Failed to save AI chat', e)
       }

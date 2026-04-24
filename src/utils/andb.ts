@@ -628,6 +628,25 @@ export class Andb {
       throw new Error(`AI Assistance failed: ${error.message}`)
     }
   }
+
+  /**
+   * Execute raw SQL query against a connection
+   */
+  static async executeQuery(connection: DatabaseConnection, sql: string, params: any[] = []): Promise<any[]> {
+    if (!isElectron) throw new Error('Not in Electron environment')
+    try {
+      const result = await window.electronAPI.andbExecute(this.sanitize({
+        sourceConnection: connection,
+        operation: 'executeQuery',
+        options: { sql, params }
+      }))
+
+      if (result.success) return result.data
+      throw new Error(result.error || 'Query failed')
+    } catch (error: any) {
+      throw new Error(`Query failed: ${error.message}`)
+    }
+  }
 }
 
 export default Andb

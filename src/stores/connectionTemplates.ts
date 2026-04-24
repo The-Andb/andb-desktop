@@ -9,6 +9,7 @@ export interface ConnectionTemplate {
   host: string
   port: number
   database?: string
+  schema?: string
   username: string
   password?: string
   type: 'mysql' | 'postgres' | 'sqlite' | 'dump'

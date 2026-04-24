@@ -628,6 +628,68 @@ export class AndbBuilder {
   static async askDBA(question: string, context?: any, locale?: string) {
     return await BackgroundWorker.getInstance().execute('ai-ask', { question, context, locale });
   }
+
+  /**
+   * Sync private secrets repository via Git
+   */
+  public static async syncSecretRepo(url: string) {
+    const fs = require('fs')
+    const path = require('path')
+    const { execSync } = require('child_process')
+    const secretsDir = path.join(AndbBuilder.userDataPath, 'secrets')
+
+    try {
+      if (!fs.existsSync(secretsDir)) {
+        fs.mkdirSync(secretsDir, { recursive: true })
+        // Use depth 1 for faster clone
+        execSync(`git clone --depth 1 ${url} .`, { cwd: secretsDir, stdio: 'pipe' })
+      } else {
+        execSync(`git pull`, { cwd: secretsDir, stdio: 'pipe' })
+      }
+      
+      // Update the provider path in core if available
+      try {
+        const { secretPromptProvider } = require('@the-andb/core')
+        if (secretPromptProvider) {
+          secretPromptProvider.setSecretsPath(secretsDir)
+        }
+      } catch (e) {
+        SafeLogger.log('Could not notify SecretPromptProvider (might be normal if not yet loaded)')
+      }
+
+      return { success: true }
+    } catch (e: any) {
+      SafeLogger.log(`Git Sync Error: ${e.message}`)
+      return { success: false, error: e.message }
+    }
+  }
+
+  /**
+   * Test AI Connection with specific provider/key
+   */
+  public static async testAIConnection(args: any) {
+    const { provider, apiKey, model } = args
+    try {
+      // Temporarily configure AI to test
+      await BackgroundWorker.getInstance().execute('ai-configure', { apiKey, provider, model })
+      
+      const result = await BackgroundWorker.getInstance().execute('ai-ask', { 
+        question: 'Respond with exactly the word "PONG" and nothing else if you are operational.',
+        context: {}
+      })
+      
+      const rawResult = typeof result === 'string' ? result : (result.data?.content || result.data || '');
+      const responseText = String(rawResult).toUpperCase();
+      
+      if (responseText.includes('PONG')) {
+        return { success: true }
+      }
+      
+      return { success: false, error: 'AI responded but validation failed: ' + responseText }
+    } catch (e: any) {
+      return { success: false, error: e.message }
+    }
+  }
 }
 
 export default AndbBuilder

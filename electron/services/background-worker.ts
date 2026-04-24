@@ -47,6 +47,17 @@ export class BackgroundWorker extends EventEmitter {
       args.push('--sqlite-path', this.sqlitePath)
     }
 
+    // Pass internal secrets path if reachable from Main
+    try {
+      const secretsPkgPath = path.dirname(require.resolve('@the-andb/secrets/package.json'));
+      if (secretsPkgPath) {
+        args.push('--secrets-path', secretsPkgPath);
+        SafeLogger.log(`[BackgroundWorker] Passing internal secrets path: ${secretsPkgPath}`);
+      }
+    } catch (e) {
+      // Ignore if not found in prod bundle
+    }
+
     SafeLogger.log(`🚀 [BackgroundWorker] Spawning Internal Core Worker: ${process.execPath} ${this.cliPath} ${args.join(' ')}`)
     SafeLogger.log(`🚀 [BackgroundWorker] Using Electron environment (ABI compatibility)`)
 

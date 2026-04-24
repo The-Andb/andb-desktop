@@ -109,6 +109,7 @@ navigation:
     history: 'History Explorer'
     schema: 'Schema Explorer'
   ddl:
+    all: 'All Objects'
     tables: 'Tables'
     views: 'Views'
     procedures: 'Procedures'
@@ -539,9 +540,11 @@ settings:
     subtitle: 'Core behavior settings for this project'
     domainNormalization:
       title: 'Domain Normalization'
+      subtitle: 'Ignore differences that vary by environment (like hardcoded email domains) to focus on structural changes.'
       desc: 'Ignore differences that vary by environment (like hardcoded email domains) to focus on structural changes.'
     migrationExclusions:
       title: 'Migration Exclusions'
+      subtitle: 'Prevent accidental deployment of temporary or test objects. Objects matching this pattern will be strictly skipped.'
       desc: 'Prevent accidental deployment of temporary or test objects. Objects matching this pattern will be strictly skipped.'
     global_connections: 'Global Connections'
   security:
@@ -910,3 +913,30 @@ restrictedUserSetup:
     done: 'DONE. System is ready.'
     verifying: 'Performing safety verification...'
     clickVerify: 'Click the button below to verify'
+
+aiErrors:
+  quota: "Oops! It looks like you've reached your Gemini quota limit. You might need to wait a few minutes or check your billing settings in the Google AI Console. ☕️"
+  overloaded: "The AI service is currently overloaded or taking a break. Please try again in a few seconds! 🧘‍♂️"
+  invalidKey: "There's a problem with your API Key. Please verify it in Settings > AI Assistant. 🔑"
+  timeout: "Connection timed out. Please check your internet and try again. 🌐"
+  generic: "The AI assistant hit a small snag. Let's try sending that again? 🛠️"
+
+aiAssistant:
+  title: "AI Assistant"
+  history: "History"
+  noPreviousChats: "No previous chats"
+  clearAllHistory: "Clear All History"
+  readyToHelp: "Ready to help"
+  new: "New"
+  close: "Close Assistant"
+  hello: "Hello"
+  xinChao: "Xin chào"
+  bonjour: "Bonjour"
+  tagline: "Ready to review schemas and optimize your data."
+  analyzeIndexSafety: "Analyze Index Safety"
+  optimizeDataTypes: "Optimize Data Types"
+  analysisError: "AI Analysis Error"
+  retryNow: "Retry Now"
+  thinking: "Thinking..."
+  askAnything: "Ask AI anything... (Enter to send, Shift+Enter for new line)"
+  tipSelectText: "✨ Tip: Select text to ask about it"

@@ -109,6 +109,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   aiReview: (context: any) => ipcRenderer.invoke('andb-ai-review', { context }),
   aiAsk: (question: string, context?: any) => ipcRenderer.invoke('andb-ai-ask', { question, context }),
   getTableStats: (args: any) => ipcRenderer.invoke('andb-get-table-stats', args),
+
+  // Strategic AI & Secrets
+  testAIConnection: (args: any) => ipcRenderer.invoke('testAIConnection', args),
+  syncSecretRepo: (url: string) => ipcRenderer.invoke('syncSecretRepo', url),
   
   onUpdateStatus: (callback: (data: any) => void) => {
     const subscription = (_event: any, data: any) => callback(data)
@@ -120,6 +124,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Remove existing listener to prevent duplicate subscriptions on hot reload
     ipcRenderer.removeAllListeners('andb-progress');
     ipcRenderer.on('andb-progress', callback);
+  },
+
+  onAiControlEvent: (callback: (data: any) => void) => {
+    ipcRenderer.removeAllListeners('ai-control-event');
+    ipcRenderer.on('ai-control-event', (_event, data) => callback(data));
   },
 
   // Storage (electron-store)

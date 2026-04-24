@@ -21,6 +21,8 @@ export interface TableColumnIndex {
   columns: ParsedColumnInfo[]
   indexes: any[]
   foreignKeys: any[]
+  options: any
+  partitions: string | null
 }
 
 export function useSchemaLoader(
@@ -95,6 +97,8 @@ export function useSchemaLoader(
    * Runs in batches to avoid blocking the UI.
    */
   const buildColumnIndex = async (tables: any[]) => {
+    if (!appStore.aiEnabled) return // Safety switch: No background processing if AI is disabled
+
     // Abort any previous indexing
     if (columnIndexAbortController) {
       columnIndexAbortController.abort()
@@ -146,7 +150,9 @@ export function useSchemaLoader(
                 comment: c.comment || undefined
               })),
               indexes: r.data.indexes || [],
-              foreignKeys: r.data.foreignKeys || []
+              foreignKeys: r.data.foreignKeys || [],
+              options: r.data.options || {},
+              partitions: r.data.partitions || null
             }
           }
         }
@@ -169,7 +175,9 @@ export function useSchemaLoader(
     }
   }
 
-  // Auto-rebuild column index when tables data changes
+  // Manual/On-demand rebuild column index when tables data changes
+  // Disabling automatic background indexing as it causes massive IPC overhead and hangs
+  /*
   watch(() => schemaData.value.tables, (newTables) => {
     if (newTables && newTables.length > 0) {
       buildColumnIndex(newTables)
@@ -177,6 +185,7 @@ export function useSchemaLoader(
       columnIndex.value = {}
     }
   })
+  */
 
   const loadSchema = async (forceRefresh = false, keepSelection = false) => {
     if (!selectedConnectionId.value) return
@@ -319,16 +328,27 @@ export function useSchemaLoader(
       
       const allSchemasRes = await Andb.getSchemas()
       const allSchemas = allSchemasRes.data || []
+      console.log('[useSchemaLoader] All Schemas from Backend:', JSON.stringify(allSchemas.map((e: any) => ({ name: e.name, dbCount: e.databases?.length })), null, 2))
       
       const envData = allSchemas?.find((e: any) => e.name === conn.environment)
-      if (!envData) console.warn('[useSchemaLoader] Environment not found in schemas:', conn.environment)
+      if (!envData) {
+        console.warn('[useSchemaLoader] Environment not found in schemas:', conn.environment, 'Available envs:', allSchemas?.map((e:any) => e.name))
+      }
 
       const targetDbName = conn.database || conn.name
       const dbData = envData?.databases?.find((d: any) => {
          const dName = d.name.toLowerCase()
-         return dName === targetDbName.toLowerCase() || 
-                (conn.name && dName === conn.name.toLowerCase()) ||
-                (conn.database && dName === conn.database.toLowerCase())
+         const tName = targetDbName.toLowerCase()
+         const cName = conn.name?.toLowerCase()
+         return dName === tName || dName === cName
+      })
+
+      console.log('[useSchemaLoader] Sync Result:', {
+        connEnv: conn.environment,
+        targetDbName,
+        foundEnv: !!envData,
+        foundDb: !!dbData,
+        dbTableCount: dbData?.tables?.length || 0
       })
 
       if (dbData) {

@@ -113,6 +113,20 @@
           <p v-if="errors.database" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ errors.database }}</p>
         </div>
 
+        <!-- Target Schema (Postgres Only) -->
+        <div v-if="form.type === 'postgres'" class="space-y-2">
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.schema') }}</label>
+          <div class="relative">
+              <input
+                v-model="form.schema"
+                type="text"
+                :placeholder="$t('connections.schemaPlaceholder') || 'public'"
+                class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold"
+              />
+              <Layers class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+          </div>
+        </div>
+
         <!-- Timeout (Keep here as it might vary by connection) -->
         <div class="space-y-2">
           <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ $t('connections.connectionTimeout') }}</label>
@@ -189,6 +203,7 @@ import {
   Server,
   User,
   Database,
+  Layers,
   Save
 } from 'lucide-vue-next'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
@@ -225,6 +240,7 @@ const form = ref({
   host: '',
   port: 3306,
   database: '',
+  schema: '',
   username: '',
   password: '',
   environment: '',
@@ -260,7 +276,8 @@ if (props.connection) {
     name: props.connection.name || '',
     environment: props.connection.environment || '',
     templateId: props.connection.templateId || '',
-    database: props.connection.database || ''
+    database: props.connection.database || '',
+    schema: props.connection.schema || ''
   }
 }
 
@@ -280,9 +297,12 @@ watch(() => form.value.templateId, (newId) => {
     form.value.type = template.type
     form.value.ssh = (template.ssh as any) || { enabled: false, host: '', port: 22, username: '', privateKeyPath: '' }
     
-    // Auto-fill database only if empty
     if (template.database && !form.value.database) {
       form.value.database = template.database
+    }
+
+    if (template.schema && !form.value.schema) {
+      form.value.schema = template.schema
     }
     
     // Auto-fill connection name if empty
@@ -365,6 +385,7 @@ const saveConnection = async () => {
       password: isReference ? undefined : (form.value.password || undefined),
       
       database: form.value.database,
+      schema: form.value.schema || undefined,
       environment: form.value.environment as any,
       status: 'testing',
       type: form.value.type as any,

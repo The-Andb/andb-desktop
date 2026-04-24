@@ -119,6 +119,10 @@ export function registerIpcHandlers() {
   ipcMain.handle('ai-get-chats', andb.handleGetAiChats)
   ipcMain.handle('ai-delete-chat', andb.handleDeleteAiChat)
   ipcMain.handle('ai-clear-chats', andb.handleClearAiChats)
+
+  // Strategic AI & Secrets
+  ipcMain.handle('testAIConnection', andb.handleAndbTestAIConnection)
+  ipcMain.handle('syncSecretRepo', andb.handleAndbSyncSecretRepo)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

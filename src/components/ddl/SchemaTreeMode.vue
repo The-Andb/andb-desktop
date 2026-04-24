@@ -1,114 +1,110 @@
 <template>
   <div class="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden select-none">
-    <!-- Tree Content -->
-    <div class="flex-1 overflow-auto custom-scrollbar p-2">
+    <!-- Tree Content with Virtual Scroller -->
+    <div class="flex-1 overflow-hidden relative p-1">
       <div v-if="results.length === 0" class="text-center text-gray-400 py-10 italic text-xs">
         No schema objects found
       </div>
 
-      <div v-else class="space-y-1">
-        <!-- Pinned: Interactive ERD (Hide during search) -->
-        <div
-          v-if="!results.some(r => r.matches?.length > 0) && results.some(r => r.type === 'diagrams')"
-          @click="emit('select', { name: 'Interactive ERD', type: 'diagrams' })"
-          class="group flex items-center py-1.5 px-2 cursor-pointer rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors mb-1"
-          :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedItemName === 'Interactive ERD' }"
-        >
-          <Network class="w-3.5 h-3.5 mr-2 text-primary-500 shrink-0" />
-          <span class="truncate font-bold text-[10px] uppercase tracking-widest text-primary-600 dark:text-primary-400">Interactive ERD</span>
-        </div>
-        <div v-if="!results.some(r => r.matches?.length > 0) && results.some(r => r.type === 'diagrams')" class="h-px bg-gray-100 dark:bg-gray-800 mb-1" />
-        <div v-for="category in categories" :key="category.type" class="space-y-0.5">
-          <!-- Category Header -->
-          <div 
-            @click="toggleCategory(category.type)"
-            v-show="category.items.length > 0"
-            class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1.5 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm"
+      <DynamicScroller
+        v-else
+        :items="flattenedItems"
+        :min-item-size="28"
+        class="h-full custom-scrollbar"
+        key-field="id"
+      >
+        <template v-slot="{ item, index, active }">
+          <DynamicScrollerItem
+            :item="item"
+            :active="active"
+            :size-dependencies="[
+              item.isExpanded,
+              item.data?.matches?.length,
+              item.data?.matchedColumns?.length,
+              columnSearchActive
+            ]"
+            :data-index="index"
           >
-            <ChevronRight 
-              class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400"
-              :class="{ 'rotate-90': !collapsedCategories.has(category.type) }"
-            />
-            <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2" :class="getCategoryColor(category.type)" />
-            <span class="font-bold text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-300">{{ category.type }}</span>
-            <span class="ml-auto px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-[9px] rounded-full font-mono">{{ category.items.length }}</span>
-          </div>
+            <!-- Category Header -->
+            <div 
+              v-if="item.type === 'category'"
+              @click="toggleCategory(item.categoryId)"
+              class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1.5 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm"
+            >
+              <ChevronRight 
+                class="w-3 h-3 mr-1.5 transition-transform text-gray-400"
+                :class="{ 'rotate-90': !collapsedCategories.has(item.categoryId) }"
+              />
+              <component :is="getCategoryIcon(item.categoryId)" class="w-3 h-3 mr-2" :class="getCategoryColor(item.categoryId)" />
+              <span class="font-bold text-[9px] uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ item.categoryId }}</span>
+              <span class="ml-auto px-1 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 text-[8px] rounded font-mono">{{ item.count }}</span>
+            </div>
 
-          <!-- Items -->
-          <div v-show="!collapsedCategories.has(category.type)" class="pl-4 border-l border-gray-100 dark:border-gray-800 ml-3.5 mt-0.5 space-y-0.5">
-            <div v-for="item in category.items" :key="item.name" 
-              @click="emit('select', item)"
-              class="group relative flex items-center py-1.5 px-2 cursor-pointer rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors"
+            <!-- Schema Item -->
+            <div v-else
+              @click="emit('select', item.data)"
+              class="group relative flex items-center py-1 px-2 ml-4 border-l border-gray-100 dark:border-gray-800 cursor-pointer rounded-md hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors"
               :class="[
-                { 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedItemName === item.name && appStore.compareStack?.source?.name !== item.name && appStore.compareStack?.target?.name !== item.name },
-                { 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 shadow-sm': appStore.compareStack?.source?.name === item.name },
-                { 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 shadow-sm': appStore.compareStack?.target?.name === item.name }
+                { 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': selectedItemName === item.data.name && appStore.compareStack?.source?.name !== item.data.name && appStore.compareStack?.target?.name !== item.data.name },
+                { 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50 shadow-sm': appStore.compareStack?.source?.name === item.data.name },
+                { 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50 shadow-sm': appStore.compareStack?.target?.name === item.data.name }
               ]"
             >
-              <component :is="getCategoryIcon(category.type)" class="w-3.5 h-3.5 mr-2.5 opacity-50 shrink-0" />
+              <component :is="getCategoryIcon(item.categoryId)" class="w-3 h-3 mr-2 opacity-50 shrink-0" />
               <div class="flex-1 min-w-0 flex flex-col">
                 <div class="flex items-center justify-between w-full">
-                  <span class="truncate font-mono" 
+                  <span class="truncate font-mono text-[11px]" 
                         :class="[
-                          selectedItemName === item.name ? 'font-bold' : '',
-                          appStore.compareStack?.source?.name === item.name ? 'text-orange-900 dark:text-orange-100 font-bold' : '',
-                          appStore.compareStack?.target?.name === item.name ? 'text-blue-900 dark:text-blue-100 font-bold' : '',
-                          getTableColorClass(item)
+                          selectedItemName === item.data.name ? 'font-bold' : '',
+                          appStore.compareStack?.source?.name === item.data.name ? 'text-orange-900 dark:text-orange-100 font-bold' : '',
+                          appStore.compareStack?.target?.name === item.data.name ? 'text-blue-900 dark:text-blue-100 font-bold' : '',
+                          getTableColorClass(item.data)
                         ]" 
-                        >{{ item.name }}</span>
+                        >{{ item.data.name }}</span>
                   <div class="flex items-center">
-                    <span v-if="item.matches?.length > 0" class="px-1 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 text-[8px] font-black rounded-sm border border-primary-200 dark:border-primary-800">
-                      {{ item.matches.length }}
+                    <span v-if="item.data.matches?.length > 0" class="px-1 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 text-[8px] font-black rounded-sm border border-primary-200 dark:border-primary-800">
+                      {{ item.data.matches.length }}
                     </span>
-                    <div v-else-if="item.updated_at" class="relative flex items-center h-full">
+                    <div v-else-if="item.data.updated_at" class="relative flex items-center h-full">
                       <span class="text-[9px] text-gray-400 opacity-40 group-hover:opacity-0 transition-opacity" 
-                            :class="{ 'opacity-0': appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name }">
-                        {{ formatTimeAgo(item.updated_at).replace(' ago', '') }}
+                            :class="{ 'opacity-0': appStore.compareStack?.source?.name === item.data.name || appStore.compareStack?.target?.name === item.data.name }">
+                        {{ formatTimeAgo(item.data.updated_at).replace(' ago', '') }}
                       </span>
                     </div>
                     
-                    <!-- Send to Instant Buttons (Extreme Compact Mode) -->
-                    <div class="absolute right-2 flex items-center px-0.5 bg-white/90 dark:bg-gray-800/90 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow p-0.5"
-                         :class="(appStore.compareStack?.source?.name === item.name || appStore.compareStack?.target?.name === item.name) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
+                    <!-- Send to Instant Buttons -->
+                    <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center px-0.5 bg-white/90 dark:bg-gray-800/90 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow p-0.5"
+                         :class="(appStore.compareStack?.source?.name === item.data.name || appStore.compareStack?.target?.name === item.data.name) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'">
                       
-                      <!-- Case 1: This item is the SOURCE -->
                       <button 
-                        v-if="appStore.compareStack?.source?.name === item.name"
-                        @click.stop="emit('send-to-instant', item, 'source')"
+                        v-if="appStore.compareStack?.source?.name === item.data.name"
+                        @click.stop="emit('send-to-instant', item.data, 'source')"
                         class="p-1 rounded-full bg-orange-500 text-white dark:bg-orange-600 transition-all shadow-sm"
-                        title="Unset Source"
                       >
                         <Flame class="w-3 h-3 text-white" />
                       </button>
 
-                      <!-- Case 2: This item is the TARGET -->
                       <button 
-                        v-else-if="appStore.compareStack?.target?.name === item.name"
-                        @click.stop="emit('send-to-instant', item, 'target')"
+                        v-else-if="appStore.compareStack?.target?.name === item.data.name"
+                        @click.stop="emit('send-to-instant', item.data, 'target')"
                         class="p-1 rounded-full bg-blue-500 text-white dark:bg-blue-600 transition-all shadow-sm"
-                        title="Unset Target"
                       >
                         <Flame class="w-3 h-3 text-white" />
                       </button>
 
-                      <!-- Case 3: Neutral Item - Show only the next available slot placeholder -->
                       <template v-else>
-                        <!-- If no source set, show Orange Placeholder -->
                         <button 
                           v-if="!appStore.compareStack?.source"
-                          @click.stop="emit('send-to-instant', item, 'source')"
+                          @click.stop="emit('send-to-instant', item.data, 'source')"
                           class="p-1 rounded-full text-orange-400/60 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all animate-pulse"
-                          title="Set as Source (Orange Flame)"
                         >
                           <Flame class="w-3 h-3" />
                         </button>
                         
-                        <!-- If source is set but target is empty, show Blue Placeholder -->
                         <button 
                           v-else-if="!appStore.compareStack?.target"
-                          @click.stop="emit('send-to-instant', item, 'target')"
+                          @click.stop="emit('send-to-instant', item.data, 'target')"
                           class="p-1 rounded-full text-blue-400/60 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all animate-pulse"
-                          title="Set as Target (Blue Flame)"
                         >
                           <Flame class="w-3 h-3" />
                         </button>
@@ -117,11 +113,10 @@
                   </div>
                 </div>
                 
-                <!-- Column/Index/FK Matches (Visual Mode) -->
-                <div v-if="columnSearchActive && (item.matchedColumns?.length || item.matchedIndexes?.length || item.matchedForeignKeys?.length)" class="mt-1.5 space-y-1 ml-1 border-l-2 border-primary-100 dark:border-primary-900/30 pl-2 pb-0.5">
-                  <!-- Columns -->
-                  <div v-for="col in item.matchedColumns" :key="'col-'+col.name"
-                    @click.stop="emit('select-column', { item, columnName: col.name })"
+                <!-- Expanded Metadata (Variable Height) -->
+                <div v-if="columnSearchActive && (item.data.matchedColumns?.length || item.data.matchedIndexes?.length || item.data.matchedForeignKeys?.length)" class="mt-1.5 space-y-1 ml-1 border-l-2 border-primary-100 dark:border-primary-900/30 pl-2 pb-0.5">
+                  <div v-for="col in item.data.matchedColumns" :key="'col-'+col.name"
+                    @click.stop="emit('select-column', { item: item.data, columnName: col.name })"
                     class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
                   >
                     <div class="flex items-center gap-1 min-w-0">
@@ -130,56 +125,26 @@
                       <span class="text-[10px] font-mono font-bold text-gray-700 dark:text-gray-300 truncate" v-html="highlightPlain(col.name)"></span>
                     </div>
                     <span class="text-[9px] text-primary-600/60 dark:text-primary-400/60 font-mono uppercase truncate">{{ col.type }}</span>
-                    <div class="flex gap-0.5 shrink-0 ml-auto">
-                      <span v-if="col.notNull" class="text-[8px] px-1 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded font-black">NN</span>
-                      <span v-if="col.unique" class="text-[8px] px-1 bg-blue-100 dark:bg-blue-900 text-blue-500 rounded font-black">UQ</span>
-                    </div>
-                  </div>
-
-                  <!-- Indexes -->
-                  <div v-for="idx in item.matchedIndexes" :key="'idx-'+idx.name"
-                    @click.stop="emit('select-column', { item, columnName: idx.columns.split(',')[0].trim() })"
-                    class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
-                  >
-                    <Search class="w-2.5 h-2.5 text-indigo-400 shrink-0" />
-                    <span class="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 truncate">{{ idx.name }}</span>
-                    <span class="text-[9px] text-gray-400 font-mono truncate">({{ idx.columns }})</span>
-                  </div>
-
-                  <!-- Foreign Keys -->
-                  <div v-for="fk in item.matchedForeignKeys" :key="'fk-'+fk.name"
-                    @click.stop="emit('select-column', { item, columnName: fk.localColumns.split(',')[0].trim() })"
-                    class="group/item flex items-center gap-1.5 py-0.5 px-1 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
-                  >
-                    <Network class="w-2.5 h-2.5 text-purple-400 shrink-0" />
-                    <span class="text-[10px] font-mono text-purple-600 dark:text-purple-400 truncate">{{ fk.localColumns }} → {{ fk.referencedTable }}</span>
                   </div>
                 </div>
 
-                <!-- Search Snippets -->
-                <div v-if="item.matches?.length > 0 && !columnSearchActive" class="mt-1.5 space-y-1.5 ml-1 border-l-2 border-gray-100 dark:border-gray-800 pl-2 pb-0.5">
-                  <div v-for="(match, mIdx) in item.matches.slice(0, 3)" :key="mIdx" 
-                    @click.stop="handleSnippetClick($event, item, match.line)"
+                <div v-if="item.data.matches?.length > 0 && !columnSearchActive" class="mt-1.5 space-y-1.5 ml-1 border-l-2 border-gray-100 dark:border-gray-800 pl-2 pb-0.5">
+                  <div v-for="(match, mIdx) in item.data.matches.slice(0, 3)" :key="mIdx" 
+                    @click.stop="handleSnippetClick($event, item.data, match.line)"
                     class="text-[10px] leading-tight hover:bg-primary-500/5 dark:hover:bg-primary-400/5 rounded p-0.5 transition-colors group/snippet"
-                    :class="[
-                      { '!bg-primary-500/20 dark:!bg-primary-400/30 !text-primary-700 dark:!text-primary-300 ring-1 ring-primary-500/30': selectedItemName === item.name && activeSearchLine === match.line },
-                      { 'is-navigating': isNavigating }
-                    ]"
+                    :class="[{ '!bg-primary-500/20 dark:!bg-primary-400/30 !text-primary-700 dark:!text-primary-300 ring-1 ring-primary-500/30': selectedItemName === item.data.name && activeSearchLine === match.line }]"
                   >
                     <div class="flex items-start gap-1.5 text-gray-400 font-mono">
-                      <span class="shrink-0 opacity-50 group-hover/snippet:opacity-100 transition-opacity">{{ match.line }}:</span>
+                      <span class="shrink-0 opacity-50">{{ match.line }}:</span>
                       <span class="text-gray-600 dark:text-gray-400 break-all line-clamp-2 italic" v-html="highlightText(match.content)"></span>
                     </div>
-                  </div>
-                  <div v-if="item.matches.length > 3" class="text-[9px] text-gray-400 font-bold uppercase tracking-widest pl-1">
-                    + {{ item.matches.length - 3 }} more matches
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </DynamicScrollerItem>
+        </template>
+      </DynamicScroller>
     </div>
   </div>
 </template>
@@ -280,15 +245,47 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleGlobalKeyup)
 })
 
-const categories = computed(() => {
+const flattenedItems = computed(() => {
+  const list: any[] = []
+  
+  // 1. Add Diagrams/Pinned items if needed (Simplified for now)
+  if (!props.results.some(r => r.matches?.length > 0) && props.results.some(r => r.type === 'diagrams')) {
+    list.push({
+      id: 'pinned-erd',
+      type: 'pinned',
+      name: 'Interactive ERD',
+      categoryId: 'diagrams'
+    })
+  }
+
+  // 2. Flatten categories and items
   const cats = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
-  return cats.map(type => {
+  cats.forEach(type => {
     const items = props.results.filter(r => r.type === type)
-    return {
-      type,
-      items
+    if (items.length === 0) return
+
+    // Add Category Header
+    list.push({
+      id: `cat-${type}`,
+      type: 'category',
+      categoryId: type,
+      count: items.length
+    })
+
+    // Add Items if not collapsed
+    if (!collapsedCategories.value.has(type)) {
+      items.forEach(item => {
+        list.push({
+          id: `item-${type}-${item.name}`,
+          type: 'item',
+          categoryId: type,
+          data: item
+        })
+      })
     }
-  }).filter(c => c.items.length > 0)
+  })
+
+  return list
 })
 
 const toggleCategory = (type: string) => {
@@ -297,6 +294,8 @@ const toggleCategory = (type: string) => {
   } else {
     collapsedCategories.value.add(type)
   }
+  // Force reactivity for the computed flattenedItems
+  collapsedCategories.value = new Set(collapsedCategories.value)
 }
 
 const highlightText = (text: string) => {

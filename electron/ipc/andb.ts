@@ -729,3 +729,17 @@ export async function handleClearAiChats(_event: any) {
     return { success: false, error: error.message }
   }
 }
+
+/**
+ * Handle Test AI Connection
+ */
+export async function handleAndbTestAIConnection(_event: any, args: any) {
+  return await AndbBuilder.testAIConnection(args)
+}
+
+/**
+ * Handle Sync Secret Repo
+ */
+export async function handleAndbSyncSecretRepo(_event: any, url: string) {
+  return await AndbBuilder.syncSecretRepo(url)
+}

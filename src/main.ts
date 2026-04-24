@@ -4,6 +4,8 @@ import App from './App.vue'
 import router from './router'
 import { i18n } from './i18n'
 import './style.css'
+import VueVirtualScroller from 'vue-virtual-scroller'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import * as Sentry from '@sentry/electron/renderer'
 
 Sentry.init({
@@ -16,6 +18,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(i18n)
+app.use(VueVirtualScroller)
 
 // Expose Andb and stores for E2E testing
 if (process.env.NODE_ENV === 'test' || (window as any).PLAYWRIGHT_TEST) {

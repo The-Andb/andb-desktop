@@ -100,10 +100,14 @@ export function initAutoUpdater() {
   return ApplicationUpdater.getInstance().init()
 }
 
+import { database } from './utils/database'
+
 /**
  * Initialize Core Engine & Builder
  */
 export async function initCoreServices() {
+  // Initialize SQLite history database (chats, logs, etc.)
+  database.initialize()
   const userDataPath = app.getPath('userData')
   const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
 
@@ -125,7 +129,13 @@ export async function initCoreServices() {
 
   try {
     if ((global as any).logger) (global as any).logger.info(`Booting CoreEngine against SQLite: ${customDbPath}, BaseDir: ${projectBaseDir}`)
-    await CoreBridge.init(userDataPath, customDbPath, desktopStorageStrategy, projectBaseDir)
+    
+    // Initialize the Secret Prompt Provider (reads from andb-secrets repo)
+    const { SecretPromptProvider } = require('./services/ai/SecretPromptProvider')
+    const secretsPath = isDev ? path.resolve(app.getAppPath(), '..', 'andb-secrets') : path.join(userDataPath, 'secrets')
+    const promptProvider = new SecretPromptProvider(secretsPath)
+
+    await CoreBridge.init(userDataPath, customDbPath, desktopStorageStrategy, projectBaseDir, undefined, promptProvider)
     if ((global as any).logger) (global as any).logger.info(`Core Engine Initialized successfully. DB: ${CoreBridge.getDbPath()}`)
 
     // Sync RSA Keychain directory to DB path to ensure password decryptions survive cross-device syncing

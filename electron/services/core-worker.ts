@@ -213,6 +213,7 @@ async function bootstrap() {
   // Parse custom args since we don't use commander here
   let userDataPath = '';
   let sqlitePath = '';
+  let secretsPathArg = '';
   
   for (let i = 0; i < process.argv.length; i++) {
     if (process.argv[i] === '--user-data-path') {
@@ -220,6 +221,9 @@ async function bootstrap() {
     }
     if (process.argv[i] === '--sqlite-path') {
       sqlitePath = process.argv[i + 1];
+    }
+    if (process.argv[i] === '--secrets-path') {
+      secretsPathArg = process.argv[i + 1];
     }
   }
 
@@ -247,7 +251,24 @@ async function bootstrap() {
 
   try {
     const strategy = new DesktopStorageStrategy();
-    await CoreBridge.init(userDataPath, sqlitePath || undefined, strategy, globalProjectBaseDir);
+    const { secretPromptProvider } = require('@the-andb/core');
+    const p = require('path');
+    const fsSync = require('fs');
+    
+    // Priority: 1. Passed argument (Internal Workspace) -> 2. User Data Dir (External Overrides)
+    let finalSecretsPath = secretsPathArg;
+    
+    if (!finalSecretsPath || !fsSync.existsSync(finalSecretsPath)) {
+       finalSecretsPath = p.join(userDataPath, 'secrets');
+    }
+    
+    if (secretPromptProvider) {
+       secretPromptProvider.setSecretsPath(finalSecretsPath);
+    }
+
+    await CoreBridge.init(userDataPath, sqlitePath || undefined, strategy, globalProjectBaseDir, (event) => {
+      sendEvent('app-control', event);
+    }, secretPromptProvider);
     logger.log(`✅ DesktopStorageStrategy & Core Engine ready for RPC. BaseDir: ${globalProjectBaseDir}`);
 
     if (process.send) {

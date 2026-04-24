@@ -73,7 +73,9 @@ const swapSidebarAndAi = () => {
         title="Toggle Console">
         <PanelBottom class="w-3.5 h-3.5" />
       </button>
-      <button @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
+      <button 
+        v-if="appStore.aiEnabled"
+        @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
         class="w-7 h-7 rounded-lg transition-all duration-200 flex items-center justify-center relative group"
         :class="appStore.layoutSettings.aiPanel ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm border border-gray-100 dark:border-gray-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-gray-700/50'"
         title="Toggle AI Panel">
@@ -153,7 +155,9 @@ const swapSidebarAndAi = () => {
           </button>
 
           <!-- AI Panel Toggle -->
-          <button @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
+          <button 
+            v-if="appStore.aiEnabled"
+            @click="appStore.layoutSettings.aiPanel = !appStore.layoutSettings.aiPanel"
             class="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all border group/panel"
             :class="appStore.layoutSettings.aiPanel ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-100 dark:border-primary-800 shadow-inner' : 'border-transparent hover:bg-gray-100 dark:hover:bg-gray-800'"
             title="AI Assistant">
@@ -185,7 +189,9 @@ const swapSidebarAndAi = () => {
         </button>
 
         <!-- Swap AI -->
-        <button @click="swapAiPanel"
+        <button 
+          v-if="appStore.aiEnabled"
+          @click="swapAiPanel"
           class="w-full px-3 py-2 flex items-center justify-between rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all group/item">
           <div class="flex items-center gap-3">
             <PanelRight class="w-4 h-4 text-gray-400 group-hover/item:text-primary-500 transition-colors" />
@@ -195,7 +201,9 @@ const swapSidebarAndAi = () => {
         </button>
 
         <!-- SWAP SIDEBAR & AI -->
-        <button @click="swapSidebarAndAi"
+        <button 
+          v-if="appStore.aiEnabled"
+          @click="swapSidebarAndAi"
           class="w-full px-3 py-2 flex items-center justify-between rounded-xl bg-primary-500/5 hover:bg-primary-500/10 border border-primary-500/10 transition-all group/item">
           <div class="flex items-center gap-3">
             <ArrowRightLeft class="w-4 h-4 text-primary-500" />
