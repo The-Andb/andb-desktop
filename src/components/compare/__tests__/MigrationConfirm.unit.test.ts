@@ -105,7 +105,7 @@ describe('MigrationConfirm.vue', () => {
     // Verify groups and items are rendered
     expect(screen.getByText('tables')).toBeTruthy()
     expect(screen.getByText('procedures')).toBeTruthy()
-    
+
     // Select items by their name within the list
     expect(screen.getAllByText('users').length).toBeGreaterThan(0)
     expect(screen.getAllByText('posts').length).toBeGreaterThan(0)

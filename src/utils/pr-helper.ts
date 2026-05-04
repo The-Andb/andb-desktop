@@ -1,12 +1,19 @@
 /**
  * Helper to generate Pull Request / Merge Request URLs for various Git providers
  */
-export function generatePrUrl(remoteUrl: string, sourceBranch: string, targetBranch: string): string | null {
+export function generatePrUrl(
+  remoteUrl: string,
+  sourceBranch: string,
+  targetBranch: string
+): string | null {
   if (!remoteUrl) return null
 
   try {
     // Basic normalization: remove .git and trailing slashes
-    let cleanUrl = remoteUrl.trim().replace(/\.git$/, '').replace(/\/$/, '')
+    let cleanUrl = remoteUrl
+      .trim()
+      .replace(/\.git$/, '')
+      .replace(/\/$/, '')
 
     // Convert SSH to HTTPS if needed (best effort)
     if (cleanUrl.startsWith('git@')) {

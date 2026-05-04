@@ -2,10 +2,7 @@
   <div id="app" class="h-screen bg-gray-50 dark:bg-gray-900">
     <router-view />
     <UpdateModal />
-    <ShortcutsModal 
-      :isOpen="shortcutStore.isModalOpen" 
-      @close="shortcutStore.closeModal" 
-    />
+    <ShortcutsModal :isOpen="shortcutStore.isModalOpen" @close="shortcutStore.closeModal" />
     <MigrationChangelogModal
       :isOpen="showMigrationChangelog"
       :report="migrationReport"
@@ -40,22 +37,30 @@ const shortcutStore = useShortcutStore()
 const router = useRouter()
 
 // Inject Dynamic Typography Variables into DOM root
-watch(() => appStore.fontSizes, (sizes) => {
-  if (!sizes) return
-  const root = document.documentElement
-  root.style.setProperty('--font-title', `${sizes.title || 18}px`)
-  root.style.setProperty('--font-subtitle', `${sizes.subtitle || 14}px`)
-  root.style.setProperty('--font-content', `${sizes.content || 13}px`)
-  root.style.setProperty('--font-quote', `${sizes.quote || 11}px`)
-  root.style.setProperty('--font-code', `${sizes.code || 12}px`)
-}, { deep: true, immediate: true })
+watch(
+  () => appStore.fontSizes,
+  sizes => {
+    if (!sizes) return
+    const root = document.documentElement
+    root.style.setProperty('--font-title', `${sizes.title || 18}px`)
+    root.style.setProperty('--font-subtitle', `${sizes.subtitle || 14}px`)
+    root.style.setProperty('--font-content', `${sizes.content || 13}px`)
+    root.style.setProperty('--font-quote', `${sizes.quote || 11}px`)
+    root.style.setProperty('--font-code', `${sizes.code || 12}px`)
+  },
+  { deep: true, immediate: true }
+)
 
-watch(() => appStore.fontFamilies, (families) => {
-  if (!families) return
-  const root = document.documentElement
-  root.style.setProperty('--font-family-general', families.general)
-  root.style.setProperty('--font-family-code', families.code)
-}, { deep: true, immediate: true })
+watch(
+  () => appStore.fontFamilies,
+  families => {
+    if (!families) return
+    const root = document.documentElement
+    root.style.setProperty('--font-family-general', families.general)
+    root.style.setProperty('--font-family-code', families.code)
+  },
+  { deep: true, immediate: true }
+)
 
 // Migration Changelog state
 const showMigrationChangelog = ref(false)
@@ -80,9 +85,13 @@ const dismissMigrationChangelog = async () => {
 // Global Refresh Handlers
 const handleDatabaseRefreshRequested = async (e: any) => {
   const { env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(c => 
-    c.environment === env && 
-    (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
+  const conn = appStore.resolvedConnections.find(
+    c =>
+      c.environment === env &&
+      (c.database === db ||
+        c.database?.toLowerCase() === db?.toLowerCase() ||
+        c.name === db ||
+        c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
@@ -90,28 +99,40 @@ const handleDatabaseRefreshRequested = async (e: any) => {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`Database Refresh: ${db}`, 'info')
     consoleStore.setVisibility(true)
-    
+
     // Clear data first for full refresh
     await Andb.clearConnectionData(conn)
-    
+
     const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
     consoleStore.addLog(`Fetching all DDL types for ${conn.name} (parallel)...`, 'info')
-    
-    await Promise.all(ddlTypes.map(async type => {
-      const taskId = `${conn.id}-${type}`
-      appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
-      
-      try {
-        await Andb.export(conn, null as any, { 
+
+    await Promise.all(
+      ddlTypes.map(async type => {
+        const taskId = `${conn.id}-${type}`
+        appStore.updateSchemaProgress(taskId, {
+          current: 0,
+          total: 1,
           type,
-          environment: conn.environment 
+          connectionName: conn.name
         })
-      } finally {
-        appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
-        setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
-      }
-    }))
-    
+
+        try {
+          await Andb.export(conn, null as any, {
+            type,
+            environment: conn.environment
+          })
+        } finally {
+          appStore.updateSchemaProgress(taskId, {
+            current: 1,
+            total: 1,
+            type,
+            connectionName: conn.name
+          })
+          setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+        }
+      })
+    )
+
     consoleStore.addLog(`Database ${db} refresh complete.`, 'success')
     sidebarStore.triggerRefresh()
   } catch (err: any) {
@@ -123,9 +144,13 @@ const handleDatabaseRefreshRequested = async (e: any) => {
 
 const handleCategoryRefreshRequested = async (e: any) => {
   const { type, env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(c => 
-    c.environment === env && 
-    (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
+  const conn = appStore.resolvedConnections.find(
+    c =>
+      c.environment === env &&
+      (c.database === db ||
+        c.database?.toLowerCase() === db?.toLowerCase() ||
+        c.name === db ||
+        c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
@@ -133,17 +158,22 @@ const handleCategoryRefreshRequested = async (e: any) => {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`Category Refresh: ${type} in ${db}`, 'info')
     consoleStore.setVisibility(true)
-    
+
     const taskId = `${conn.id}-${type}`
     appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
 
     try {
       await Andb.export(conn, null as any, { type: type as any, environment: conn.environment })
     } finally {
-      appStore.updateSchemaProgress(taskId, { current: 1, total: 1, type, connectionName: conn.name })
+      appStore.updateSchemaProgress(taskId, {
+        current: 1,
+        total: 1,
+        type,
+        connectionName: conn.name
+      })
       setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
     }
-    
+
     consoleStore.addLog(`${type} refresh complete.`, 'success')
     sidebarStore.triggerRefresh()
   } catch (err: any) {
@@ -155,25 +185,35 @@ const handleCategoryRefreshRequested = async (e: any) => {
 
 const handleObjectRefreshRequested = async (e: any) => {
   const { name, type, env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(c => 
-    c.environment === env && 
-    (c.database === db || c.database?.toLowerCase() === db?.toLowerCase() || c.name === db || c.name?.toLowerCase() === db?.toLowerCase())
+  const conn = appStore.resolvedConnections.find(
+    c =>
+      c.environment === env &&
+      (c.database === db ||
+        c.database?.toLowerCase() === db?.toLowerCase() ||
+        c.name === db ||
+        c.name?.toLowerCase() === db?.toLowerCase())
   )
   if (!conn) return
 
   try {
     consoleStore.addLog(`Object Refresh: ${name} (${type})`, 'info')
     consoleStore.setVisibility(true)
-    
-    await Andb.export(conn, null as any, { type: type as any, environment: conn.environment, name })
-      .then((summary) => {
-         if (summary) {
-           consoleStore.addLog(`Exported ${type} ${name} for ${conn.environment}: ${JSON.stringify(summary)}`, 'success')
-         } else {
-           consoleStore.addLog(`export success.`, 'success')
-         }
-      })
-      
+
+    await Andb.export(conn, null as any, {
+      type: type as any,
+      environment: conn.environment,
+      name
+    }).then(summary => {
+      if (summary) {
+        consoleStore.addLog(
+          `Exported ${type} ${name} for ${conn.environment}: ${JSON.stringify(summary)}`,
+          'success'
+        )
+      } else {
+        consoleStore.addLog(`export success.`, 'success')
+      }
+    })
+
     sidebarStore.triggerRefresh()
   } catch (err: any) {
     consoleStore.addLog(`Refresh failed: ${err.message}`, 'error')
@@ -235,15 +275,14 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 onMounted(async () => {
   await featuresStore.fetchFeatures()
-  
-  
+
   document.addEventListener('keydown', handleKeydown)
-  
+
   // global refresh listeners
   window.addEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
   window.addEventListener('category-refresh-requested', handleCategoryRefreshRequested)
   window.addEventListener('object-refresh-requested', handleObjectRefreshRequested)
-  
+
   // Listen for Electron Updater events
   if (window.electronAPI?.updater) {
     window.electronAPI.updater.onUpdateStatus((response: any) => {
@@ -256,26 +295,27 @@ onMounted(async () => {
     window.electronAPI.onAndbProgress((_event: any, data: any) => {
       if (data.operation === 'export') {
         let connId = data.connectionId || data.connId
-        
+
         // Priority Resolution: Use active context if ID is missing from event
         if (!connId && appStore.activeFetchConnectionId) {
           connId = appStore.activeFetchConnectionId
         }
-        
+
         // Fallback: Multi-factor lookup (Env + DB)
         if (!connId && data.env) {
-          const conn = appStore.resolvedConnections.find(c => 
-            c.environment === data.env && 
-            (c.database === data.db || c.name === data.db || !data.db)
+          const conn = appStore.resolvedConnections.find(
+            c =>
+              c.environment === data.env &&
+              (c.database === data.db || c.name === data.db || !data.db)
           )
           if (conn) {
             connId = conn.id
           }
         }
-        
+
         // Final fallback
         connId = connId || appStore.selectedConnectionId || 'default'
-        
+
         const opId = data.type ? `${connId}-${data.type}` : `export-${connId}`
         const connObj = appStore.getConnectionById(connId)
         const connectionName = connObj?.name || data.env || data.connectionName || 'GLOBAL'
@@ -307,7 +347,7 @@ onMounted(async () => {
     window.electronAPI.onAiControlEvent((payload: any) => {
       console.log('🤖 AI Control Event:', payload)
       const { action, payload: data } = payload
-      
+
       switch (action) {
         case 'NAVIGATE':
           if (data.view === 'Dashboard') router.push('/')
@@ -321,7 +361,7 @@ onMounted(async () => {
             }
           }
           break
-        
+
         case 'SWITCH_PROJECT':
           if (data.projectId) {
             const projectsStore = useProjectsStore()
@@ -343,12 +383,18 @@ onMounted(async () => {
               enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD']
             })
             projectsStore.selectProject(newProj.id)
-            consoleStore.addLog(`🤖 AI Created and switched to new project: ${data.name}`, 'success')
+            consoleStore.addLog(
+              `🤖 AI Created and switched to new project: ${data.name}`,
+              'success'
+            )
           }
           break
-        
+
         case 'TRIGGER_COMPARE':
-          consoleStore.addLog(`AI Triggering Comparison: ${data.sourceEnv} vs ${data.targetEnv}`, 'info')
+          consoleStore.addLog(
+            `AI Triggering Comparison: ${data.sourceEnv} vs ${data.targetEnv}`,
+            'info'
+          )
           router.push({
             path: '/compare',
             query: {
@@ -359,7 +405,7 @@ onMounted(async () => {
             }
           })
           break
-        
+
         case 'FOCUS_OBJECT':
           consoleStore.addLog(`AI Focusing Object: ${data.objectName} in ${data.env}`, 'info')
           router.push({
@@ -370,7 +416,7 @@ onMounted(async () => {
             }
           })
           break
-        
+
         case 'SHOW_TOAST':
           consoleStore.addLog(`🤖 AI: ${data.message}`, data.type || 'info')
           consoleStore.setVisibility(true)
@@ -408,36 +454,37 @@ onMounted(async () => {
   }, 2000)
 
   // Wait for store to init and identify telemetry user
-  watch(() => appStore.installationId, (id) => {
-    if (id) {
-      import('@/composables/usePostHog').then(({ usePostHog }) => {
-        const { posthog } = usePostHog()
-        posthog.identify(id, { is_desktop: true })
-      })
-      import('@sentry/electron/renderer').then(Sentry => {
-        Sentry.setUser({ id })
-      })
-    }
-  }, { immediate: true })
+  watch(
+    () => appStore.installationId,
+    id => {
+      if (id) {
+        import('@/composables/usePostHog').then(({ usePostHog }) => {
+          const { posthog } = usePostHog()
+          posthog.identify(id, { is_desktop: true })
+        })
+        import('@sentry/electron/renderer').then(Sentry => {
+          Sentry.setUser({ id })
+        })
+      }
+    },
+    { immediate: true }
+  )
 
   // FAILSAFE: Verify Project Selection state after mounting
   setTimeout(() => {
-     // Recover Name from storage
-     const lastPName = localStorage.getItem('andb_last_pname')
-     const lastPId = localStorage.getItem('andb_last_pid')
-     console.log('[App] Failsafe Check:', { lastPName, lastPId })
-     
-     // Note: Store init happens before this, but let's just log verification.
-     // Actual recovery logic is better placed in the store itself, which we improved.
+    // Recover Name from storage
+    const lastPName = localStorage.getItem('andb_last_pname')
+    const lastPId = localStorage.getItem('andb_last_pid')
+    console.log('[App] Failsafe Check:', { lastPName, lastPId })
+
+    // Note: Store init happens before this, but let's just log verification.
+    // Actual recovery logic is better placed in the store itself, which we improved.
   }, 1000)
-
-
-
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
-  
+
   window.removeEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
   window.removeEventListener('category-refresh-requested', handleCategoryRefreshRequested)
   window.removeEventListener('object-refresh-requested', handleObjectRefreshRequested)

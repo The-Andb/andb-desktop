@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock browser globals before stores are imported
 if (typeof window === 'undefined') {
-  (global as any).window = {
+  ;(global as any).window = {
     matchMedia: vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
@@ -11,17 +11,17 @@ if (typeof window === 'undefined') {
       removeListener: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      dispatchEvent: vi.fn()
     })),
     electronAPI: {
       storage: {
         get: vi.fn().mockResolvedValue({ success: true, data: null }),
         set: vi.fn().mockResolvedValue({ success: true }),
-        delete: vi.fn().mockResolvedValue({ success: true }),
+        delete: vi.fn().mockResolvedValue({ success: true })
       }
     }
-  };
-  (global as any).matchMedia = (global as any).window.matchMedia;
+  }
+  ;(global as any).matchMedia = (global as any).window.matchMedia
 }
 
 import { setActivePinia, createPinia } from 'pinia'
@@ -49,7 +49,7 @@ vi.mock('@/utils/storage-ipc', () => ({
     saveConnections: vi.fn().mockResolvedValue({}),
     saveConnectionPairs: vi.fn().mockResolvedValue({}),
     saveEnvironments: vi.fn().mockResolvedValue({}),
-    saveConnectionTemplates: vi.fn().mockResolvedValue({}),
+    saveConnectionTemplates: vi.fn().mockResolvedValue({})
   }
 }))
 
@@ -80,25 +80,73 @@ describe('Project Isolation', () => {
 
     projectsStore.projects = [
       {
-        id: p1Id, name: 'Project 1', connectionIds: ['conn-1'], pairIds: ['pair-1'],
-        enabledEnvironmentIds: ['DEV'], createdAt: '', updatedAt: '', description: ''
+        id: p1Id,
+        name: 'Project 1',
+        connectionIds: ['conn-1'],
+        pairIds: ['pair-1'],
+        enabledEnvironmentIds: ['DEV'],
+        createdAt: '',
+        updatedAt: '',
+        description: ''
       },
       {
-        id: p2Id, name: 'Project 2', connectionIds: ['conn-2'], pairIds: ['pair-2'],
-        enabledEnvironmentIds: ['DEV'], createdAt: '', updatedAt: '', description: ''
+        id: p2Id,
+        name: 'Project 2',
+        connectionIds: ['conn-2'],
+        pairIds: ['pair-2'],
+        enabledEnvironmentIds: ['DEV'],
+        createdAt: '',
+        updatedAt: '',
+        description: ''
       }
     ]
 
     // Setup connections
     appStore.connections = [
-      { id: 'conn-1', name: 'Conn 1', environment: 'DEV', host: '', port: 0, database: 'db1', username: '', password: '', status: 'idle' },
-      { id: 'conn-2', name: 'Conn 2', environment: 'DEV', host: '', port: 0, database: 'db2', username: '', password: '', status: 'idle' }
+      {
+        id: 'conn-1',
+        name: 'Conn 1',
+        environment: 'DEV',
+        host: '',
+        port: 0,
+        database: 'db1',
+        username: '',
+        password: '',
+        status: 'idle'
+      },
+      {
+        id: 'conn-2',
+        name: 'Conn 2',
+        environment: 'DEV',
+        host: '',
+        port: 0,
+        database: 'db2',
+        username: '',
+        password: '',
+        status: 'idle'
+      }
     ]
 
     // Setup pairs
     pairsStore.connectionPairs = [
-      { id: 'pair-1', name: 'Pair 1', sourceEnv: 'DEV', targetEnv: 'PROD', description: '', isDefault: true, status: 'idle' },
-      { id: 'pair-2', name: 'Pair 2', sourceEnv: 'DEV', targetEnv: 'PROD', description: '', isDefault: false, status: 'idle' }
+      {
+        id: 'pair-1',
+        name: 'Pair 1',
+        sourceEnv: 'DEV',
+        targetEnv: 'PROD',
+        description: '',
+        isDefault: true,
+        status: 'idle'
+      },
+      {
+        id: 'pair-2',
+        name: 'Pair 2',
+        sourceEnv: 'DEV',
+        targetEnv: 'PROD',
+        description: '',
+        isDefault: false,
+        status: 'idle'
+      }
     ]
 
     // 1. Select Project 1
@@ -132,14 +180,52 @@ describe('Project Isolation', () => {
 
     // Setup connections FIRST
     appStore.connections = [
-      { id: 'c1', name: 'C1', environment: 'DEV', host: '', port: 0, database: 'db1', username: '', password: '', status: 'idle' },
-      { id: 'c2', name: 'C2', environment: 'DEV', host: '', port: 0, database: 'db2', username: '', password: '', status: 'idle' }
+      {
+        id: 'c1',
+        name: 'C1',
+        environment: 'DEV',
+        host: '',
+        port: 0,
+        database: 'db1',
+        username: '',
+        password: '',
+        status: 'idle'
+      },
+      {
+        id: 'c2',
+        name: 'C2',
+        environment: 'DEV',
+        host: '',
+        port: 0,
+        database: 'db2',
+        username: '',
+        password: '',
+        status: 'idle'
+      }
     ]
 
     // Setup projects
     projectsStore.projects = [
-      { id: p1Id, name: 'P1', connectionIds: ['c1'], pairIds: [], enabledEnvironmentIds: ['DEV'], createdAt: '', updatedAt: '', description: '' },
-      { id: p2Id, name: 'P2', connectionIds: ['c2'], pairIds: [], enabledEnvironmentIds: ['DEV'], createdAt: '', updatedAt: '', description: '' }
+      {
+        id: p1Id,
+        name: 'P1',
+        connectionIds: ['c1'],
+        pairIds: [],
+        enabledEnvironmentIds: ['DEV'],
+        createdAt: '',
+        updatedAt: '',
+        description: ''
+      },
+      {
+        id: p2Id,
+        name: 'P2',
+        connectionIds: ['c2'],
+        pairIds: [],
+        enabledEnvironmentIds: ['DEV'],
+        createdAt: '',
+        updatedAt: '',
+        description: ''
+      }
     ]
 
     // Start with P1 selected

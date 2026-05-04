@@ -1,1 +1,1 @@
-declare module 'splitpanes';
+declare module 'splitpanes'

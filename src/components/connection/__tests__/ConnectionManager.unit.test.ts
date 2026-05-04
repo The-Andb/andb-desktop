@@ -109,8 +109,28 @@ describe('ConnectionManager.vue', () => {
 
   it('renders a list of connections', async () => {
     mockAppStore.filteredConnections = [
-      { id: '1', name: 'Dev DB', host: 'localhost', port: 3306, database: 'test_db', username: 'root', environment: 'DEV', type: 'mysql', status: 'idle' },
-      { id: '2', name: 'Prod DB', host: 'prod.com', port: 5432, database: 'prod_db', username: 'admin', environment: 'PROD', type: 'postgres', status: 'idle' }
+      {
+        id: '1',
+        name: 'Dev DB',
+        host: 'localhost',
+        port: 3306,
+        database: 'test_db',
+        username: 'root',
+        environment: 'DEV',
+        type: 'mysql',
+        status: 'idle'
+      },
+      {
+        id: '2',
+        name: 'Prod DB',
+        host: 'prod.com',
+        port: 5432,
+        database: 'prod_db',
+        username: 'admin',
+        environment: 'PROD',
+        type: 'postgres',
+        status: 'idle'
+      }
     ] as any
     renderComponent()
 
@@ -188,7 +208,14 @@ describe('ConnectionManager.vue', () => {
 
   it('calls duplicate connection action', async () => {
     mockAppStore.filteredConnections = [
-      { id: 'custom-1', name: 'To Duplicate', environment: 'DEV', host: 'localhost', port: 1234, status: 'idle' }
+      {
+        id: 'custom-1',
+        name: 'To Duplicate',
+        environment: 'DEV',
+        host: 'localhost',
+        port: 1234,
+        status: 'idle'
+      }
     ] as any
 
     renderComponent()
@@ -197,10 +224,13 @@ describe('ConnectionManager.vue', () => {
     const duplicateButton = screen.getByTitle('common.duplicate')
     await fireEvent.click(duplicateButton)
 
-    expect(mockAppStore.addConnection).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'To Duplicate (Copy)',
-      host: 'localhost',
-      port: 1234
-    }), 'proj-1')
+    expect(mockAppStore.addConnection).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'To Duplicate (Copy)',
+        host: 'localhost',
+        port: 1234
+      }),
+      'proj-1'
+    )
   })
 })

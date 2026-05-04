@@ -5,7 +5,7 @@ import type { Result } from '@the-andb/core'
 
 /**
  * Andb Service - Programmatic API Wrapper
- * 
+ *
  * New approach: Direct integration with andb-core via IPC
  * No subprocess, no command injection risks
  */
@@ -80,7 +80,7 @@ export class Andb {
    */
   private static compileNormalization(reps?: any[], existing?: any): any[] {
     const rules: any[] = []
-    
+
     // Add legacy rule if it exists (for compatibility)
     if (existing) rules.push(existing)
 
@@ -160,13 +160,14 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection,
-        targetConnection,
-        operation: 'export',
-        options: { ...options, ...this.getCoreSettings() }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection,
+          targetConnection,
+          operation: 'export',
+          options: { ...options, ...this.getCoreSettings() }
+        })
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Export failed')
@@ -185,13 +186,14 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection,
-        targetConnection,
-        operation: 'compare',
-        options: { ...options, ...this.getCoreSettings() }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection,
+          targetConnection,
+          operation: 'compare',
+          options: { ...options, ...this.getCoreSettings() }
+        })
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Compare failed')
@@ -210,11 +212,13 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-      const result = await window.electronAPI.andbGetSavedComparisonResults(this.sanitize({
-        sourceConnection,
-        targetConnection,
-        type
-      }))
+      const result = await window.electronAPI.andbGetSavedComparisonResults(
+        this.sanitize({
+          sourceConnection,
+          targetConnection,
+          type
+        })
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Failed to fetch saved results')
@@ -233,13 +237,14 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection,
-        targetConnection,
-        operation: 'migrate',
-        options: { ...options, ...this.getCoreSettings() }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection,
+          targetConnection,
+          operation: 'migrate',
+          options: { ...options, ...this.getCoreSettings() }
+        })
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Migration failed')
@@ -260,12 +265,14 @@ export class Andb {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
       const coreSettings = this.getCoreSettings() as any
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection,
-        targetConnection,
-        operation: 'generate',
-        options: { ...options, ...coreSettings }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection,
+          targetConnection,
+          operation: 'generate',
+          options: { ...options, ...coreSettings }
+        })
+      )
 
       if (result.success && result.data?.sql) {
         let sql = result.data.sql
@@ -273,7 +280,10 @@ export class Andb {
         // INJECTION LOGIC: Replace placeholders with target environment values
         const projectsStore = useProjectsStore()
         const settingsStore = useSettingsStore()
-        const reps = projectsStore.currentProject?.settings?.envReplacements || settingsStore.settings.envReplacements || []
+        const reps =
+          projectsStore.currentProject?.settings?.envReplacements ||
+          settingsStore.settings.envReplacements ||
+          []
 
         if (reps.length > 0) {
           reps.forEach(r => {
@@ -296,7 +306,6 @@ export class Andb {
       throw new Error(`Generation failed: ${error.message}`)
     }
   }
-
 
   /**
    * Test a single database connection
@@ -322,7 +331,7 @@ export class Andb {
     try {
       const result = await window.electronAPI.andbGetSchemas()
       if (result.success) return { success: true, data: result.data }
-      
+
       // FATAL error if core returns success: false
       throw new Error(result.error || 'Failed to fetch schemas')
     } catch (error: any) {
@@ -347,10 +356,22 @@ export class Andb {
   /**
    * Get snapshots for a table
    */
-  static async getSnapshots(environment: string, database: string, type: string, name: string, databaseType: string = 'mysql'): Promise<Result<any[]>> {
+  static async getSnapshots(
+    environment: string,
+    database: string,
+    type: string,
+    name: string,
+    databaseType: string = 'mysql'
+  ): Promise<Result<any[]>> {
     if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
-      const result = await window.electronAPI.getSnapshots({ environment, database, type, name, databaseType })
+      const result = await window.electronAPI.getSnapshots({
+        environment,
+        database,
+        type,
+        name,
+        databaseType
+      })
       if (result.success) return { success: true, data: result.data }
       throw new Error(result.error || 'Failed to fetch snapshots')
     } catch (error: any) {
@@ -375,7 +396,11 @@ export class Andb {
   /**
    * Create a new snapshot for an object
    */
-  static async createSnapshot(connection: DatabaseConnection, type: string, name: string): Promise<any> {
+  static async createSnapshot(
+    connection: DatabaseConnection,
+    type: string,
+    name: string
+  ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron')
     try {
       const result = await window.electronAPI.andbCreateSnapshot({
@@ -439,7 +464,9 @@ export class Andb {
       throw new Error(result.error || 'The backend returned a failure without an error message.')
     } catch (error: any) {
       // Re-throw with more context to avoid "Generation failed: Generation failed"
-      const msg = error.message.includes('Generation failed') ? error.message : `Generation failed: ${error.message}`
+      const msg = error.message.includes('Generation failed')
+        ? error.message
+        : `Generation failed: ${error.message}`
       throw new Error(msg)
     }
   }
@@ -459,10 +486,7 @@ export class Andb {
   /**
    * Probes the restricted user permissions
    */
-  static async probeRestrictedUser(args: {
-    connection: any
-    permissions: any
-  }): Promise<any> {
+  static async probeRestrictedUser(args: { connection: any; permissions: any }): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron')
     try {
       const result = await (window as any).electronAPI.probeRestrictedUser(this.sanitize(args))
@@ -483,11 +507,13 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron')
     try {
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection: connection,
-        operation: 'search',
-        options: { query, flags }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection: connection,
+          operation: 'search',
+          options: { query, flags }
+        })
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Search failed')
@@ -632,14 +658,20 @@ export class Andb {
   /**
    * Execute raw SQL query against a connection
    */
-  static async executeQuery(connection: DatabaseConnection, sql: string, params: any[] = []): Promise<any[]> {
+  static async executeQuery(
+    connection: DatabaseConnection,
+    sql: string,
+    params: any[] = []
+  ): Promise<any[]> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
-      const result = await window.electronAPI.andbExecute(this.sanitize({
-        sourceConnection: connection,
-        operation: 'executeQuery',
-        options: { sql, params }
-      }))
+      const result = await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection: connection,
+          operation: 'executeQuery',
+          options: { sql, params }
+        } as any)
+      )
 
       if (result.success) return result.data
       throw new Error(result.error || 'Query failed')

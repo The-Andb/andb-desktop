@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock browser globals
 if (typeof window === 'undefined') {
-  (global as any).window = {
+  ;(global as any).window = {
     crypto: {
       randomUUID: () => 'test-uuid-' + Math.random().toString(36).substring(2, 9)
     },
@@ -14,20 +14,20 @@ if (typeof window === 'undefined') {
       removeListener: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      dispatchEvent: vi.fn()
     })),
     electronAPI: {
       storage: {
         get: vi.fn().mockResolvedValue({ success: true, data: null }),
         set: vi.fn().mockResolvedValue({ success: true }),
-        delete: vi.fn().mockResolvedValue({ success: true }),
+        delete: vi.fn().mockResolvedValue({ success: true })
       },
       log: {
         send: vi.fn()
       }
     }
-  };
-  (global as any).matchMedia = (global as any).window.matchMedia;
+  }
+  ;(global as any).matchMedia = (global as any).window.matchMedia
 }
 
 // Mock storage-ipc
@@ -50,7 +50,7 @@ vi.mock('@/utils/storage-ipc', () => ({
     saveConnections: vi.fn().mockResolvedValue({}),
     saveConnectionPairs: vi.fn().mockResolvedValue({}),
     saveEnvironments: vi.fn().mockResolvedValue({}),
-    saveConnectionTemplates: vi.fn().mockResolvedValue({}),
+    saveConnectionTemplates: vi.fn().mockResolvedValue({})
   }
 }))
 
@@ -205,7 +205,9 @@ describe('App Store (Connections & UI Settings)', () => {
 
     const conn = store.getConnectionById(connId)
     expect(conn?.status).toBe('connected')
-    expect(Andb.testConnection).toHaveBeenCalledWith(expect.objectContaining({ id: connId, name: 'DEV' }))
+    expect(Andb.testConnection).toHaveBeenCalledWith(
+      expect.objectContaining({ id: connId, name: 'DEV' })
+    )
   })
 
   it('should apply pre-defined font size profiles correctly', async () => {

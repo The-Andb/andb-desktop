@@ -6,26 +6,29 @@
       @close="isDeleteModalOpen = false"
       @confirm="confirmDeleteProject"
     />
-    
+
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
         <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
-           {{ $t('common.switch') }}
+          {{ $t('common.switch') }}
         </div>
       </div>
     </template>
 
     <template #breadcrumbs>
       <div class="flex items-center gap-2">
-         <LayoutGrid class="w-3.5 h-3.5 text-gray-400" />
-         <span class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white">{{ $t('projects.management') }}</span>
+        <LayoutGrid class="w-3.5 h-3.5 text-gray-400" />
+        <span
+          class="text-[11px] font-black uppercase tracking-widest text-gray-900 dark:text-white"
+          >{{ $t('projects.management') }}</span
+        >
       </div>
     </template>
 
     <div class="flex-1 flex w-full h-full overflow-hidden">
       <!-- Projects Content -->
       <div class="flex-1 overflow-hidden">
-        <ProjectsListView 
+        <ProjectsListView
           @open="openProject"
           @create="createNewProject"
           @delete="handleDeleteProject"
@@ -45,10 +48,8 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import ProjectsListView from '@/components/projects/ProjectsListView.vue'
 import DeleteProjectConfirmModal from '@/components/projects/DeleteProjectConfirmModal.vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { Folder, LayoutGrid } from 'lucide-vue-next'
+import { LayoutGrid } from 'lucide-vue-next'
 
-const { t } = useI18n()
 const router = useRouter()
 const projectsStore = useProjectsStore()
 
@@ -58,18 +59,18 @@ const openProject = (id: string) => {
 }
 
 onMounted(() => {
-   projectsStore.viewMode = 'list'
+  projectsStore.viewMode = 'list'
 })
 
 const createNewProject = () => {
   let nextNumber = 1
   let newName = 'Untitled Project'
-  
+
   const existingNames = projectsStore.projects.map(p => p.name)
   while (existingNames.includes(newName + (nextNumber > 1 ? ` ${nextNumber}` : ''))) {
     nextNumber++
   }
-  
+
   if (nextNumber > 1) {
     newName = `${newName} ${nextNumber}`
   }
@@ -81,17 +82,17 @@ const createNewProject = () => {
     pairIds: [],
     enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD']
   })
-  
+
   projectsStore.selectProject(newProject.id)
 }
 
 const isDeleteModalOpen = ref(false)
-const projectToDelete = ref<{id: string, name: string} | null>(null)
+const projectToDelete = ref<{ id: string; name: string } | null>(null)
 
 const handleDeleteProject = (id: string) => {
   const project = projectsStore.projects.find(p => p.id === id)
   if (!project) return
-  
+
   projectToDelete.value = { id: project.id, name: project.name }
   isDeleteModalOpen.value = true
 }
@@ -135,7 +136,6 @@ const handleToggleProtectProject = (id: string) => {
   background: #1f2937;
 }
 </style>
-
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {

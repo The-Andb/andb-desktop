@@ -35,18 +35,21 @@ export const useOperationsStore = defineStore('operations', () => {
   const totalOperations = computed(() => filteredOperations.value.length)
 
   const operationsByType = computed(() => {
-    return filteredOperations.value.reduce((acc, op) => {
-      acc[op.type] = (acc[op.type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    return filteredOperations.value.reduce(
+      (acc, op) => {
+        acc[op.type] = (acc[op.type] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
   })
 
-  const successfulOperations = computed(() =>
-    filteredOperations.value.filter(op => op.status === 'success').length
+  const successfulOperations = computed(
+    () => filteredOperations.value.filter(op => op.status === 'success').length
   )
 
-  const failedOperations = computed(() =>
-    filteredOperations.value.filter(op => op.status === 'failed').length
+  const failedOperations = computed(
+    () => filteredOperations.value.filter(op => op.status === 'failed').length
   )
 
   const totalDDLCount = computed(() =>
@@ -128,7 +131,8 @@ export const useOperationsStore = defineStore('operations', () => {
       // Calculate duration if endTime is set
       if (updates.endTime && operations.value[index].startTime) {
         operations.value[index].duration =
-          new Date(updates.endTime).getTime() - new Date(operations.value[index].startTime).getTime()
+          new Date(updates.endTime).getTime() -
+          new Date(operations.value[index].startTime).getTime()
       }
 
       saveToStorage()

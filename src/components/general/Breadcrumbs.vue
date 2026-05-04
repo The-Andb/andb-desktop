@@ -1,13 +1,18 @@
 <template>
-  <nav v-if="breadcrumbs.length > 0" class="flex items-center text-[10px] uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-500 mt-0.5">
+  <nav
+    v-if="breadcrumbs.length > 0"
+    class="flex items-center text-[10px] uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-500 mt-0.5"
+  >
     <ol class="flex items-center">
       <li v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
         <span v-if="index > 0" class="mx-2 text-gray-300 dark:text-gray-700 select-none">/</span>
-        <button 
-          @click="crumb.action" 
+        <button
+          @click="crumb.action"
           :class="[
             'hover:text-primary-600 dark:hover:text-primary-400 transition-colors py-0.5',
-            index === breadcrumbs.length - 1 ? 'text-gray-600 dark:text-gray-300 font-bold' : 'opacity-70'
+            index === breadcrumbs.length - 1
+              ? 'text-gray-600 dark:text-gray-300 font-bold'
+              : 'opacity-70'
           ]"
           :disabled="!crumb.action"
         >
@@ -39,12 +44,12 @@ const breadcrumbs = computed(() => {
 
   const projectsStore = useProjectsStore()
   const currentProject = projectsStore.currentProject
-  
+
   // Add current project if not default
   if (currentProject && currentProject.id !== 'default') {
-    crumbs.push({ 
-      label: currentProject.name, 
-      action: () => router.push('/projects') 
+    crumbs.push({
+      label: currentProject.name,
+      action: () => router.push('/projects')
     })
   }
 
@@ -54,9 +59,9 @@ const breadcrumbs = computed(() => {
   } else if (route.path === '/compare') {
     const activePair = connectionPairsStore.activePair
     if (activePair) {
-      crumbs.push({ 
-        label: activePair.name, 
-        action: () => router.push('/compare') 
+      crumbs.push({
+        label: activePair.name,
+        action: () => router.push('/compare')
       })
     }
     crumbs.push({ label: t('common.compare') })

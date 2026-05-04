@@ -1,94 +1,140 @@
 <template>
   <teleport to="body">
     <Transition name="fade">
-      <div 
-        v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-0"
-      >
+      <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-0">
         <!-- Backdrop -->
-        <div 
-          class="absolute inset-0 bg-gray-900/60 backdrop-blur-md transition-opacity" 
+        <div
+          class="absolute inset-0 bg-gray-900/60 backdrop-blur-md transition-opacity"
           @click="close"
         ></div>
 
         <!-- Modal Content -->
         <Transition name="scale">
-          <div 
+          <div
             v-if="isOpen"
             class="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10"
             @click.stop
           >
             <!-- Background Gradient Decorations -->
-            <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-primary-600 to-indigo-700 opacity-10 dark:opacity-20"></div>
-            <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-            <div class="absolute -top-24 -left-24 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            <div
+              class="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-primary-600 to-indigo-700 opacity-10 dark:opacity-20"
+            ></div>
+            <div
+              class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
+            ></div>
+            <div
+              class="absolute -top-24 -left-24 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
+            ></div>
 
             <!-- Content Container -->
             <div class="relative z-10 px-10 py-12 flex flex-col items-center">
-              
               <!-- Logo Section -->
               <div class="relative mb-8 group">
-                <div class="absolute inset-0 bg-gradient-to-tr from-primary-500 to-purple-500 rounded-2xl blur-lg opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-                <div class="relative bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg ring-1 ring-gray-100 dark:ring-gray-700">
-                  <img 
-                    src="/icon.png" 
-                    alt="Andb Logo" 
+                <div
+                  class="absolute inset-0 bg-gradient-to-tr from-primary-500 to-purple-500 rounded-2xl blur-lg opacity-40 group-hover:opacity-70 transition-opacity duration-500"
+                ></div>
+                <div
+                  class="relative bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-lg ring-1 ring-gray-100 dark:ring-gray-700"
+                >
+                  <img
+                    src="/icon.png"
+                    alt="Andb Logo"
                     class="w-24 h-24 rounded-xl object-cover transform transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               </div>
 
               <!-- Title & Tagline -->
-              <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">Andb</h2>
-              <p class="text-lg text-primary-600 dark:text-primary-400 font-medium mb-10 text-center px-4 leading-relaxed">
+              <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
+                Andb
+              </h2>
+              <p
+                class="text-lg text-primary-600 dark:text-primary-400 font-medium mb-10 text-center px-4 leading-relaxed"
+              >
                 {{ $t('about.subtitle') }}
               </p>
 
               <!-- Info Grid (Bento Style) -->
               <div class="w-full grid grid-cols-2 gap-6 mb-10">
                 <!-- Version Card -->
-                <div class="col-span-1 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex flex-col items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
-                  <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">{{ $t('about.version') }}</span>
+                <div
+                  class="col-span-1 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex flex-col items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                >
+                  <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">{{
+                    $t('about.version')
+                  }}</span>
                   <div class="flex items-center space-x-2">
-                    <Tag class="w-4 h-4 text-primary-500 group-hover:rotate-12 transition-transform" />
-                    <span class="text-lg font-bold text-gray-800 dark:text-gray-100 font-mono">{{ version }}</span>
+                    <Tag
+                      class="w-4 h-4 text-primary-500 group-hover:rotate-12 transition-transform"
+                    />
+                    <span class="text-lg font-bold text-gray-800 dark:text-gray-100 font-mono">{{
+                      version
+                    }}</span>
                   </div>
                 </div>
 
                 <!-- Author Card -->
-                <div class="col-span-1 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex flex-col items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
-                  <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">{{ $t('about.author') }}</span>
+                <div
+                  class="col-span-1 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex flex-col items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                >
+                  <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">{{
+                    $t('about.author')
+                  }}</span>
                   <div class="flex items-center space-x-2">
-                    <User class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform" />
-                    <span class="text-lg font-bold text-gray-800 dark:text-gray-100">{{ author }}</span>
+                    <User
+                      class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform"
+                    />
+                    <span class="text-lg font-bold text-gray-800 dark:text-gray-100">{{
+                      author
+                    }}</span>
                   </div>
                 </div>
 
                 <!-- Shortcuts Card -->
-                <div 
+                <div
                   @click="openShortcuts"
                   class="col-span-2 bg-primary-50 dark:bg-primary-900/20 p-4 rounded-xl border border-primary-100 dark:border-primary-800/50 flex items-center justify-between hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all cursor-pointer group shadow-sm"
                 >
                   <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-primary-500 text-white rounded-lg group-hover:scale-110 transition-transform">
+                    <div
+                      class="p-2 bg-primary-500 text-white rounded-lg group-hover:scale-110 transition-transform"
+                    >
                       <Command class="w-4 h-4" />
                     </div>
                     <div>
-                      <span class="block text-sm font-bold text-primary-900 dark:text-primary-100">{{ $t('about.shortcutsTitle', 'Keyboard Shortcuts') }}</span>
-                      <span class="block text-[10px] text-primary-600 dark:text-primary-400 font-medium uppercase tracking-wider">{{ $t('about.shortcutsSubtitle', 'View all commands') }}</span>
+                      <span
+                        class="block text-sm font-bold text-primary-900 dark:text-primary-100"
+                        >{{ $t('about.shortcutsTitle', 'Keyboard Shortcuts') }}</span
+                      >
+                      <span
+                        class="block text-[10px] text-primary-600 dark:text-primary-400 font-medium uppercase tracking-wider"
+                        >{{ $t('about.shortcutsSubtitle', 'View all commands') }}</span
+                      >
                     </div>
                   </div>
-                  <ChevronRight class="w-4 h-4 text-primary-400 group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight
+                    class="w-4 h-4 text-primary-400 group-hover:translate-x-1 transition-transform"
+                  />
                 </div>
 
                 <!-- Links Card (Full Width) -->
-                <div class="col-span-2 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex items-center justify-around group">
-                  <a href="#" @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop')" class="flex flex-col items-center space-y-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <div
+                  class="col-span-2 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 flex items-center justify-around group"
+                >
+                  <a
+                    href="#"
+                    @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop')"
+                    class="flex flex-col items-center space-y-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  >
                     <Github class="w-5 h-5" />
                     <span class="text-xs font-semibold">{{ $t('about.github') }}</span>
                   </a>
                   <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
-                  <a href="#" @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop/issues')" class="flex flex-col items-center space-y-1 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                  <a
+                    href="#"
+                    @click.prevent="openExternal('https://github.com/The-Andb/andb-desktop/issues')"
+                    class="flex flex-col items-center space-y-1 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  >
                     <Bug class="w-5 h-5" />
                     <span class="text-xs font-semibold">{{ $t('about.issue') }}</span>
                   </a>
@@ -98,29 +144,35 @@
               <!-- Footer -->
               <div class="text-center space-y-4 mb-8">
                 <div class="flex items-center justify-center space-x-3">
-                  <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-red-200 dark:border-red-800">
+                  <span
+                    class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-red-200 dark:border-red-800"
+                  >
                     DMCA Protected
                   </span>
-                  <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-gray-200 dark:border-gray-700">
+                  <span
+                    class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-[10px] font-bold rounded uppercase tracking-tighter border border-gray-200 dark:border-gray-700"
+                  >
                     Proprietary
                   </span>
                 </div>
                 <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
-                   {{ license }} License &copy; 2024 - 2026 {{ author }}
+                  {{ license }} License &copy; 2024 - 2026 {{ author }}
                 </p>
-                <p class="text-[9px] text-gray-400 dark:text-gray-600 leading-tight px-6 uppercase tracking-widest">
-                  Unauthorized reproduction or distribution of this software is strictly prohibited under DMCA guidelines.
+                <p
+                  class="text-[9px] text-gray-400 dark:text-gray-600 leading-tight px-6 uppercase tracking-widest"
+                >
+                  Unauthorized reproduction or distribution of this software is strictly prohibited
+                  under DMCA guidelines.
                 </p>
               </div>
 
-               <!-- Close Button -->
-               <button 
+              <!-- Close Button -->
+              <button
                 @click="close"
                 class="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transform active:scale-[0.98] transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 {{ $t('about.close') }}
               </button>
-
             </div>
           </div>
         </Transition>
@@ -159,7 +211,7 @@ const openShortcuts = () => {
 
 const openExternal = (url: string) => {
   if ((window as any).electronAPI?.openExternal) {
-    (window as any).electronAPI.openExternal(url)
+    ;(window as any).electronAPI.openExternal(url)
   } else {
     window.open(url, '_blank')
   }
@@ -189,10 +241,18 @@ const openExternal = (url: string) => {
 }
 
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 .animate-blob {
@@ -203,4 +263,3 @@ const openExternal = (url: string) => {
   animation-delay: 2s;
 }
 </style>
-

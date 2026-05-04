@@ -7,7 +7,9 @@
     font-family: var(--font-family-general, 'Inter', 'Outfit', system-ui, sans-serif);
   }
 
-  code, pre, .font-mono {
+  code,
+  pre,
+  .font-mono {
     font-family: var(--font-family-code, 'JetBrains Mono', monospace);
   }
 
@@ -44,13 +46,13 @@
   --font-family-code: 'JetBrains Mono', monospace;
 
   /* Code Colors - Modern Light Theme */
-  --code-text: #1e293b;       /* slate-800 */
-  --code-keyword: #2563eb;    /* blue-600 */
-  --code-string: #059669;     /* emerald-600 */
-  --code-comment: #64748b;    /* slate-500 */
-  --code-function: #b45309;   /* amber-700 */
-  --code-number: #ea580c;     /* orange-600 */
-  --code-operator: #475569;   /* slate-600 */
+  --code-text: #1e293b; /* slate-800 */
+  --code-keyword: #2563eb; /* blue-600 */
+  --code-string: #059669; /* emerald-600 */
+  --code-comment: #64748b; /* slate-500 */
+  --code-function: #b45309; /* amber-700 */
+  --code-number: #ea580c; /* orange-600 */
+  --code-operator: #475569; /* slate-600 */
   --code-punctuation: #64748b; /* slate-500 */
 }
 
@@ -320,39 +322,99 @@
 }
 
 /* Global Overrides for Theme Sync */
-.dracula body, .one-dark body, .monokai body, .nord body, .github-dark body,
-.dracula .bg-white, .one-dark .bg-white, .monokai .bg-white, .nord .bg-white, .github-dark .bg-white,
-.dracula .bg-gray-50, .one-dark .bg-gray-50, .monokai .bg-gray-50, .nord .bg-gray-50, .github-dark .bg-gray-50 {
+.dracula body,
+.one-dark body,
+.monokai body,
+.nord body,
+.github-dark body,
+.dracula .bg-white,
+.one-dark .bg-white,
+.monokai .bg-white,
+.nord .bg-white,
+.github-dark .bg-white,
+.dracula .bg-gray-50,
+.one-dark .bg-gray-50,
+.monokai .bg-gray-50,
+.nord .bg-gray-50,
+.github-dark .bg-gray-50 {
   background-color: var(--bg-main) !important;
   color: var(--text-main) !important;
 }
 
-.dracula .bg-gray-50\/30, .one-dark .bg-gray-50\/30, .monokai .bg-gray-50\/30, .nord .bg-gray-50\/30, .github-dark .bg-gray-50\/30,
-.dracula .bg-gray-100, .one-dark .bg-gray-100, .monokai .bg-gray-100, .nord .bg-gray-100, .github-dark .bg-gray-100 {
+.dracula .bg-gray-50\/30,
+.one-dark .bg-gray-50\/30,
+.monokai .bg-gray-50\/30,
+.nord .bg-gray-50\/30,
+.github-dark .bg-gray-50\/30,
+.dracula .bg-gray-100,
+.one-dark .bg-gray-100,
+.monokai .bg-gray-100,
+.nord .bg-gray-100,
+.github-dark .bg-gray-100 {
   background-color: var(--bg-sidebar) !important;
 }
 
-.dracula .border-gray-200, .one-dark .border-gray-200, .monokai .border-gray-200, .nord .border-gray-200, .github-dark .border-gray-200,
-.dracula .border-gray-100, .one-dark .border-gray-100, .monokai .border-gray-100, .nord .border-gray-100, .github-dark .border-gray-100,
-.dracula .border-gray-800, .one-dark .border-gray-800, .monokai .border-gray-800, .nord .border-gray-800, .github-dark .border-gray-800 {
+.dracula .border-gray-200,
+.one-dark .border-gray-200,
+.monokai .border-gray-200,
+.nord .border-gray-200,
+.github-dark .border-gray-200,
+.dracula .border-gray-100,
+.one-dark .border-gray-100,
+.monokai .border-gray-100,
+.nord .border-gray-100,
+.github-dark .border-gray-100,
+.dracula .border-gray-800,
+.one-dark .border-gray-800,
+.monokai .border-gray-800,
+.nord .border-gray-800,
+.github-dark .border-gray-800 {
   border-color: var(--border-color) !important;
 }
 
 /* Specific Utility Overrides for Themes */
-.dracula .text-gray-900, .one-dark .text-gray-900, .monokai .text-gray-900, .nord .text-gray-900, .github-dark .text-gray-900,
-.dracula .text-gray-800, .one-dark .text-gray-800, .monokai .text-gray-800, .nord .text-gray-800, .github-dark .text-gray-800,
-.dracula .text-gray-700, .one-dark .text-gray-700, .monokai .text-gray-700, .nord .text-gray-700, .github-dark .text-gray-700 {
+.dracula .text-gray-900,
+.one-dark .text-gray-900,
+.monokai .text-gray-900,
+.nord .text-gray-900,
+.github-dark .text-gray-900,
+.dracula .text-gray-800,
+.one-dark .text-gray-800,
+.monokai .text-gray-800,
+.nord .text-gray-800,
+.github-dark .text-gray-800,
+.dracula .text-gray-700,
+.one-dark .text-gray-700,
+.monokai .text-gray-700,
+.nord .text-gray-700,
+.github-dark .text-gray-700 {
   color: var(--text-main) !important;
 }
 
-.dracula .text-gray-500, .one-dark .text-gray-500, .monokai .text-gray-500, .nord .text-gray-500, .github-dark .text-gray-500,
-.dracula .text-gray-400, .one-dark .text-gray-400, .monokai .text-gray-400, .nord .text-gray-400, .github-dark .text-gray-400 {
+.dracula .text-gray-500,
+.one-dark .text-gray-500,
+.monokai .text-gray-500,
+.nord .text-gray-500,
+.github-dark .text-gray-500,
+.dracula .text-gray-400,
+.one-dark .text-gray-400,
+.monokai .text-gray-400,
+.nord .text-gray-400,
+.github-dark .text-gray-400 {
   color: var(--text-main) !important;
   opacity: 0.7;
 }
 
-.dracula .bg-gray-100, .one-dark .bg-gray-100, .monokai .bg-gray-100, .nord .bg-gray-100, .github-dark .bg-gray-100,
-.dracula .bg-gray-50, .one-dark .bg-gray-50, .monokai .bg-gray-50, .nord .bg-gray-50, .github-dark .bg-gray-50 {
+.dracula .bg-gray-100,
+.one-dark .bg-gray-100,
+.monokai .bg-gray-100,
+.nord .bg-gray-100,
+.github-dark .bg-gray-100,
+.dracula .bg-gray-50,
+.one-dark .bg-gray-50,
+.monokai .bg-gray-50,
+.nord .bg-gray-50,
+.github-dark .bg-gray-50 {
   background-color: var(--bg-sidebar) !important;
 }
 

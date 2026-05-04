@@ -4,7 +4,6 @@ import { useAppStore } from './app'
 import { useProjectsStore, projectChangedBus } from './projects'
 import { storage } from '../utils/storage-ipc'
 
-
 export interface Environment {
   id: string
   name: string
@@ -81,9 +80,10 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
         .map(p => p.id)
 
       if (orphanPairIds.length > 0) {
-        console.warn(`Found ${orphanPairIds.length} orphaned connection pairs. They are no longer automatically assigned to a default project.`);
+        console.warn(
+          `Found ${orphanPairIds.length} orphaned connection pairs. They are no longer automatically assigned to a default project.`
+        )
       }
-
     } else {
       connectionPairs.value = [
         {
@@ -121,12 +121,12 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     // Fallback from old default behavior to settings-based persistence
     const settings = await storage.getSettings()
     if (settings && (settings as any).lastSelectedPairId) {
-       selectedPairId.value = (settings as any).lastSelectedPairId
+      selectedPairId.value = (settings as any).lastSelectedPairId
     } else {
-       const defaultPair = connectionPairs.value.find(p => p.isDefault)
-       if (defaultPair) {
-         selectedPairId.value = defaultPair.id
-       }
+      const defaultPair = connectionPairs.value.find(p => p.isDefault)
+      if (defaultPair) {
+        selectedPairId.value = defaultPair.id
+      }
     }
   }
 
@@ -134,7 +134,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
   init()
 
   const selectedPairId = ref('')
-  
+
   projectChangedBus.on(() => {
     selectedPairId.value = ''
   })
@@ -203,15 +203,17 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       if (existing) continue
 
       // Auto-pick connections ONLY from the current project
-      const autoSourceConn = project.connectionIds.find(cid => {
-        const conn = appStore.resolvedConnections.find(c => c.id === cid)
-        return conn && conn.environment === source.id
-      }) || ''
+      const autoSourceConn =
+        project.connectionIds.find(cid => {
+          const conn = appStore.resolvedConnections.find(c => c.id === cid)
+          return conn && conn.environment === source.id
+        }) || ''
 
-      const autoTargetConn = project.connectionIds.find(cid => {
-        const conn = appStore.resolvedConnections.find(c => c.id === cid)
-        return conn && conn.environment === target.id
-      }) || ''
+      const autoTargetConn =
+        project.connectionIds.find(cid => {
+          const conn = appStore.resolvedConnections.find(c => c.id === cid)
+          return conn && conn.environment === target.id
+        }) || ''
 
       autoPairs.push({
         id: `auto-${source.id}-${target.id}`,
@@ -229,36 +231,40 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     const pairs = [...customPairs, ...autoPairs]
     return pairs.map(p => {
       // Resolve actual connection objects to get DB names
-      const sourceConn = appStore.resolvedConnections.find(c => 
-        c.id === p.sourceConnectionId || 
-        (c.environment === p.sourceEnv && project.connectionIds.includes(c.id))
+      const sourceConn = appStore.resolvedConnections.find(
+        c =>
+          c.id === p.sourceConnectionId ||
+          (c.environment === p.sourceEnv && project.connectionIds.includes(c.id))
       )
-      const targetConn = appStore.resolvedConnections.find(c => 
-        c.id === p.targetConnectionId || 
-        (c.environment === p.targetEnv && project.connectionIds.includes(c.id))
+      const targetConn = appStore.resolvedConnections.find(
+        c =>
+          c.id === p.targetConnectionId ||
+          (c.environment === p.targetEnv && project.connectionIds.includes(c.id))
       )
 
       return {
         ...p,
-        sourceDb: sourceConn ? (sourceConn.database || sourceConn.name) : '?',
-        targetDb: targetConn ? (targetConn.database || targetConn.name) : '?'
+        sourceDb: sourceConn ? sourceConn.database || sourceConn.name : '?',
+        targetDb: targetConn ? targetConn.database || targetConn.name : '?'
       }
     })
   })
 
   // Auto-select first pair if current one becomes invalid (e.g. project switch)
-  watch(() => availablePairs.value, (newPairs) => {
-    const projectsStore = useProjectsStore()
-    if (newPairs.length > 0) {
-      if (!newPairs.some(p => p.id === selectedPairId.value)) {
-        selectedPairId.value = newPairs[0].id
+  watch(
+    () => availablePairs.value,
+    newPairs => {
+      const projectsStore = useProjectsStore()
+      if (newPairs.length > 0) {
+        if (!newPairs.some(p => p.id === selectedPairId.value)) {
+          selectedPairId.value = newPairs[0].id
+        }
+      } else if (projectsStore.isLoaded) {
+        selectedPairId.value = ''
       }
-    } else if (projectsStore.isLoaded) {
-      selectedPairId.value = ''
-    }
-  }, { immediate: true })
-
-
+    },
+    { immediate: true }
+  )
 
   const defaultPair = computed(() => {
     return connectionPairs.value.find(pair => pair.isDefault)
@@ -313,7 +319,11 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       }
     } catch (e: any) {
       if (window.electronAPI) {
-        window.electronAPI.log.send('error', 'Error calculating activePair in connectionPairs store', e.message)
+        window.electronAPI.log.send(
+          'error',
+          'Error calculating activePair in connectionPairs store',
+          e.message
+        )
       }
       return null
     }
@@ -353,12 +363,13 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   const addConnectionPair = (pair: Omit<ConnectionPair, 'id'>) => {
     // 1. De-duplication Check
-    const existing = connectionPairs.value.find(p =>
-      p.name === pair.name &&
-      p.sourceEnv === pair.sourceEnv &&
-      p.targetEnv === pair.targetEnv &&
-      p.sourceConnectionId === pair.sourceConnectionId &&
-      p.targetConnectionId === pair.targetConnectionId
+    const existing = connectionPairs.value.find(
+      p =>
+        p.name === pair.name &&
+        p.sourceEnv === pair.sourceEnv &&
+        p.targetEnv === pair.targetEnv &&
+        p.sourceConnectionId === pair.sourceConnectionId &&
+        p.targetConnectionId === pair.targetConnectionId
     )
 
     if (existing) {
@@ -398,14 +409,14 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
           isDefault: basePair.isDefault // preserve default status if applicable
         }
         connectionPairs.value.push(newPair)
-        
+
         // Link to project
         const projectsStore = useProjectsStore()
         projectsStore.addItemToProject('pair', newId)
 
         // If it was the currently selected pair, update selection natively
         if (selectedPairId.value === id) {
-           selectedPairId.value = newId
+          selectedPairId.value = newId
         }
       }
     }
@@ -482,11 +493,15 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
         minDelay
       ])
 
-      pair.status = (sourceSuccess && targetSuccess) ? 'success' : 'failed'
+      pair.status = sourceSuccess && targetSuccess ? 'success' : 'failed'
     } catch (error: any) {
       pair.status = 'failed'
       if (window.electronAPI) {
-        window.electronAPI.log.send('error', `Connection pair test error for pair ${pair.name}`, error.message)
+        window.electronAPI.log.send(
+          'error',
+          `Connection pair test error for pair ${pair.name}`,
+          error.message
+        )
       }
     }
   }
@@ -540,7 +555,6 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     ]
     await storage.saveConnectionPairs(connectionPairs.value)
   }
-
 
   return {
     // State

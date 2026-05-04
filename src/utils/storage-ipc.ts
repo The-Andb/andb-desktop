@@ -9,10 +9,12 @@ interface AppSchema {
   environments: Environment[]
   projects: Project[]
   connectionTemplates: ConnectionTemplate[]
+  quickCompareRecent?: any[]
   settings: {
     sidebarCollapsed: boolean
     lastSelectedConnectionId: string
     lastSelectedProjectId?: string
+    aiEnabled: boolean
     safeMode?: boolean
     theme: 'light' | 'dark' | 'system'
     language: 'en' | 'vi'
@@ -60,7 +62,11 @@ const getStorage = () => {
     get: async (key: string) => {
       try {
         const value = localStorage.getItem(`andb_${key}`)
-        console.log(`[Storage] GET ${key}:`, value ? 'Found' : 'Null', value ? JSON.parse(value) : '')
+        console.log(
+          `[Storage] GET ${key}:`,
+          value ? 'Found' : 'Null',
+          value ? JSON.parse(value) : ''
+        )
         return { success: true, data: value ? JSON.parse(value) : null }
       } catch (e: any) {
         console.error('LocalStorage Get Error:', e)
@@ -109,7 +115,13 @@ export const storage = {
         conn.database,
         conn.username,
         conn.environment
-      ].map(v => String(v || '').trim().toLowerCase()).join('|')
+      ]
+        .map(v =>
+          String(v || '')
+            .trim()
+            .toLowerCase()
+        )
+        .join('|')
 
       if (seen.has(key)) return false
       seen.add(key)
@@ -120,7 +132,7 @@ export const storage = {
   // ==================== Connections ====================
   async getConnections(): Promise<DatabaseConnection[]> {
     const result = await getStorage().get('connections')
-    const raw = result.success ? (result.data || []) : []
+    const raw = result.success ? result.data || [] : []
     return this._deduplicateConnections(raw)
   },
 
@@ -153,7 +165,7 @@ export const storage = {
   // ==================== Connection Pairs ====================
   async getConnectionPairs(): Promise<ConnectionPair[]> {
     const result = await getStorage().get('connectionPairs')
-    return result.success ? (result.data || []) : []
+    return result.success ? result.data || [] : []
   },
 
   async saveConnectionPairs(pairs: ConnectionPair[]): Promise<void> {
@@ -212,7 +224,7 @@ export const storage = {
   // ==================== Projects ====================
   async getProjects(): Promise<Project[]> {
     const result = await getStorage().get('projects')
-    return result.success ? (result.data || []) : []
+    return result.success ? result.data || [] : []
   },
 
   async saveProjects(projects: Project[]): Promise<void> {
@@ -248,6 +260,7 @@ export const storage = {
       sidebarCollapsed: false,
       lastSelectedConnectionId: '',
       lastSelectedProjectId: 'default',
+      aiEnabled: true,
       safeMode: true,
       theme: 'system' as const,
 
@@ -288,31 +301,31 @@ export const storage = {
       await this.saveSettings({ ...settings, ...updates })
       return
     }
-    
+
     // @ts-ignore
     window.__settingsUpdateQueue = { ...(window.__settingsUpdateQueue || {}), ...updates }
     // @ts-ignore
     window.__settingsResolvers = window.__settingsResolvers || []
-    
+
     // @ts-ignore
     if (window.__settingsUpdateTimer) clearTimeout(window.__settingsUpdateTimer)
-    
-    return new Promise((resolve) => {
+
+    return new Promise(resolve => {
       // @ts-ignore
       window.__settingsResolvers.push(resolve)
-      
+
       // @ts-ignore
       window.__settingsUpdateTimer = setTimeout(async () => {
         // @ts-ignore
         const pendingUpdates = { ...window.__settingsUpdateQueue }
         // @ts-ignore
         const resolvers = [...window.__settingsResolvers]
-        
+
         // @ts-ignore
         window.__settingsUpdateQueue = {}
         // @ts-ignore
         window.__settingsResolvers = []
-        
+
         try {
           const settings = await this.getSettings()
           await this.saveSettings({ ...settings, ...pendingUpdates })
@@ -328,7 +341,7 @@ export const storage = {
   // ==================== Connection Templates ====================
   async getConnectionTemplates(): Promise<ConnectionTemplate[]> {
     const result = await getStorage().get('connectionTemplates')
-    return result.success ? (result.data || []) : []
+    return result.success ? result.data || [] : []
   },
 
   async saveConnectionTemplates(templates: ConnectionTemplate[]): Promise<void> {

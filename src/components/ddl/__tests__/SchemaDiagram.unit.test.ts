@@ -83,7 +83,7 @@ describe('SchemaDiagram.vue', () => {
   }
 
   it('renders tables correctly and parses columns from DDL', async () => {
-    const { } = renderComponent()
+    const {} = renderComponent()
 
     // Ensure headers exist
     expect(await screen.findByText('users')).toBeTruthy()
@@ -119,19 +119,19 @@ describe('SchemaDiagram.vue', () => {
   })
 
   it('calculates edges between tables based on naming conventions', async () => {
-    const { } = renderComponent()
+    const {} = renderComponent()
 
     // Wait for tables to render first
     await screen.findByText('users')
     await screen.findByText('posts')
-    
+
     // Look for SVG path elements that signify edges
     const paths = document.body.querySelectorAll('svg path')
     expect(paths.length).toBeGreaterThan(0)
   })
 
   it('filters tables based on search query by applying grayscale to non-matching', async () => {
-    const { } = renderComponent()
+    const {} = renderComponent()
 
     const searchInput = screen.getByPlaceholderText('Search tables...')
     await fireEvent.update(searchInput, 'user')

@@ -6,11 +6,13 @@
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ $t('connections.title') }}
         </h2>
-        <span class="px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+        <span
+          class="px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full"
+        >
           {{ filteredConnections.length }} {{ $t('connections.connections') }}
         </span>
       </div>
-      
+
       <div class="flex items-center gap-2">
         <button
           @click="showBulkActions = !showBulkActions"
@@ -20,27 +22,18 @@
           <CheckSquare class="w-4 h-4 mr-2" />
           {{ selectedConnections.length }} {{ $t('common.selected') }}
         </button>
-        
-        <button
-          @click="exportConnections"
-          class="btn btn-secondary flex items-center"
-        >
+
+        <button @click="exportConnections" class="btn btn-secondary flex items-center">
           <Download class="w-4 h-4 mr-2" />
           {{ $t('common.export') }}
         </button>
-        
-        <button
-          @click="importConnections"
-          class="btn btn-secondary flex items-center"
-        >
+
+        <button @click="importConnections" class="btn btn-secondary flex items-center">
           <Upload class="w-4 h-4 mr-2" />
           {{ $t('common.import') }}
         </button>
-        
-        <button
-          @click="$emit('add')"
-          class="btn btn-primary flex items-center"
-        >
+
+        <button @click="$emit('add')" class="btn btn-primary flex items-center">
           <Plus class="w-4 h-4 mr-2" />
           {{ $t('connections.addConnection') }}
         </button>
@@ -53,7 +46,7 @@
         <span class="text-sm text-gray-600 dark:text-gray-300">
           {{ $t('connections.bulkActionsFor', { count: selectedConnections.length }) }}
         </span>
-        
+
         <div class="flex items-center gap-2">
           <button
             @click="bulkTestConnections"
@@ -64,19 +57,13 @@
             <Loader v-else class="w-4 h-4 mr-2 animate-spin" />
             {{ isBulkTesting ? $t('connections.testing') : $t('connections.testAll') }}
           </button>
-          
-          <button
-            @click="bulkDeleteConnections"
-            class="btn btn-danger flex items-center"
-          >
+
+          <button @click="bulkDeleteConnections" class="btn btn-danger flex items-center">
             <Trash2 class="w-4 h-4 mr-2" />
             {{ $t('connections.deleteSelected') }}
           </button>
-          
-          <button
-            @click="clearSelection"
-            class="btn btn-secondary"
-          >
+
+          <button @click="clearSelection" class="btn btn-secondary">
             {{ $t('common.clear') }}
           </button>
         </div>
@@ -89,7 +76,9 @@
         <!-- Search -->
         <div class="md:col-span-2">
           <div class="relative">
-            <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search
+              class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+            />
             <input
               v-model="searchQuery"
               type="text"
@@ -133,8 +122,16 @@
         <table class="w-full table-fixed">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th 
-                v-for="(header, i) in ['select', 'name', 'host', 'environment', 'status', 'lastTested', 'actions']" 
+              <th
+                v-for="(header, i) in [
+                  'select',
+                  'name',
+                  'host',
+                  'environment',
+                  'status',
+                  'lastTested',
+                  'actions'
+                ]"
                 :key="header"
                 class="px-6 py-3 text-left relative group overflow-hidden"
                 :style="{ width: tableResizer.columnWidths.value[i] + 'px' }"
@@ -148,19 +145,23 @@
                   />
                 </template>
                 <template v-else-if="header === 'actions'">
-                  <span class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider block text-right">
+                  <span
+                    class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider block text-right"
+                  >
                     {{ $t('common.actions') }}
                   </span>
                 </template>
                 <template v-else>
-                  <span class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate block">
+                  <span
+                    class="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate block"
+                  >
                     {{ $t(`connections.${header === 'name' ? 'connectionName' : header}`) }}
                   </span>
                 </template>
-                
-                <div 
-                  class="resize-handle" 
-                  :class="{ 'resizing': tableResizer.activeColumnIndex.value === i }"
+
+                <div
+                  class="resize-handle"
+                  :class="{ resizing: tableResizer.activeColumnIndex.value === i }"
                   @mousedown="tableResizer.handleMouseDown(i, $event)"
                 ></div>
               </th>
@@ -180,11 +181,13 @@
                   class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
               </td>
-              
+
               <td class="px-6 py-4 truncate">
                 <div class="flex items-center truncate">
                   <div class="flex-shrink-0 h-10 w-10">
-                    <div class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    <div
+                      class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
+                    >
                       <Database class="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     </div>
                   </div>
@@ -198,7 +201,7 @@
                   </div>
                 </div>
               </td>
-              
+
               <td class="px-6 py-4 truncate">
                 <div class="text-sm text-gray-900 dark:text-white truncate">
                   {{ connection.host }}:{{ connection.port }}
@@ -207,7 +210,7 @@
                   {{ connection.username }}
                 </div>
               </td>
-              
+
               <td class="px-6 py-4 truncate">
                 <span
                   class="inline-flex px-2 py-1 text-xs font-semibold rounded-full truncate"
@@ -216,7 +219,7 @@
                   {{ $t(`environments.${connection.environment.toLowerCase()}`) }}
                 </span>
               </td>
-              
+
               <td class="px-6 py-4 truncate">
                 <div class="flex items-center truncate">
                   <div
@@ -228,11 +231,11 @@
                   </span>
                 </div>
               </td>
-              
+
               <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 truncate">
                 {{ formatLastTested(connection.lastTested) }}
               </td>
-              
+
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
                   <button
@@ -243,7 +246,7 @@
                   >
                     <Wifi class="w-4 h-4" />
                   </button>
-                  
+
                   <button
                     @click="$emit('edit', connection)"
                     class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
@@ -251,7 +254,7 @@
                   >
                     <Edit class="w-4 h-4" />
                   </button>
-                  
+
                   <button
                     @click="deleteConnection(connection.id)"
                     class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
@@ -276,10 +279,7 @@
           {{ $t('connections.noConnectionsDescription') }}
         </p>
         <div class="mt-6">
-          <button
-            @click="$emit('add')"
-            class="btn btn-primary"
-          >
+          <button @click="$emit('add')" class="btn btn-primary">
             {{ $t('connections.addConnection') }}
           </button>
         </div>
@@ -289,22 +289,24 @@
     <!-- Pagination -->
     <div v-if="totalPages > 1" class="flex items-center justify-between">
       <div class="text-sm text-gray-700 dark:text-gray-300">
-        {{ $t('common.showing', { from: (currentPage - 1) * pageSize + 1, to: Math.min(currentPage * pageSize, filteredConnections.length), total: filteredConnections.length }) }}
+        {{
+          $t('common.showing', {
+            from: (currentPage - 1) * pageSize + 1,
+            to: Math.min(currentPage * pageSize, filteredConnections.length),
+            total: filteredConnections.length
+          })
+        }}
       </div>
-      
+
       <div class="flex items-center gap-2">
-        <button
-          @click="currentPage--"
-          :disabled="currentPage === 1"
-          class="btn btn-secondary"
-        >
+        <button @click="currentPage--" :disabled="currentPage === 1" class="btn btn-secondary">
           {{ $t('common.previous') }}
         </button>
-        
+
         <span class="text-sm text-gray-700 dark:text-gray-300">
           {{ $t('common.page', { current: currentPage, total: totalPages }) }}
         </span>
-        
+
         <button
           @click="currentPage++"
           :disabled="currentPage === totalPages"
@@ -320,17 +322,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { 
-  Plus, 
-  Search, 
-  Download, 
-  Upload, 
-  CheckSquare, 
-  Wifi, 
-  Loader, 
-  Trash2, 
-  Edit, 
-  Database 
+import {
+  Plus,
+  Search,
+  Download,
+  Upload,
+  CheckSquare,
+  Wifi,
+  Loader,
+  Trash2,
+  Edit,
+  Database
 } from 'lucide-vue-next'
 import { useTableResizer } from '@/composables/useTableResizer'
 import type { DatabaseConnection } from '@/stores/app'
@@ -375,11 +377,12 @@ const filteredConnections = computed(() => {
   // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(conn => 
-      conn.name.toLowerCase().includes(query) ||
-      conn.host.toLowerCase().includes(query) ||
-      conn.database.toLowerCase().includes(query) ||
-      conn.username.toLowerCase().includes(query)
+    filtered = filtered.filter(
+      conn =>
+        conn.name.toLowerCase().includes(query) ||
+        conn.host.toLowerCase().includes(query) ||
+        conn.database.toLowerCase().includes(query) ||
+        conn.username.toLowerCase().includes(query)
     )
   }
 
@@ -397,8 +400,10 @@ const filteredConnections = computed(() => {
 })
 
 const selectAll = computed({
-  get: () => selectedConnections.value.length === filteredConnections.value.length && filteredConnections.value.length > 0,
-  set: (value) => {
+  get: () =>
+    selectedConnections.value.length === filteredConnections.value.length &&
+    filteredConnections.value.length > 0,
+  set: value => {
     if (value) {
       selectedConnections.value = filteredConnections.value.map(conn => conn.id)
     } else {
@@ -498,7 +503,7 @@ watch([searchQuery, environmentFilter, statusFilter], () => {
   z-index: 10;
 }
 
-.resize-handle:hover, 
+.resize-handle:hover,
 .resize-handle.resizing {
   background-color: theme('colors.primary.500');
   opacity: 0.5;

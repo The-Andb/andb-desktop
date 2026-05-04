@@ -15,17 +15,23 @@
       class="w-80 pointer-events-auto relative group overflow-hidden"
     >
       <!-- Refined Glassmorphic Background -->
-      <div 
+      <div
         class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
       >
         <div class="px-4 py-3 flex items-start gap-3">
           <!-- Icon -->
           <div class="flex-shrink-0 pt-0.5">
-            <CheckCircle2 v-if="notification.type === 'success'" class="h-5 w-5 text-teal-600 dark:text-teal-400" />
-            <AlertCircle v-else-if="notification.type === 'error'" class="h-5 w-5 text-rose-500 dark:text-rose-400" />
+            <CheckCircle2
+              v-if="notification.type === 'success'"
+              class="h-5 w-5 text-teal-600 dark:text-teal-400"
+            />
+            <AlertCircle
+              v-else-if="notification.type === 'error'"
+              class="h-5 w-5 text-rose-500 dark:text-rose-400"
+            />
             <Info v-else class="h-5 w-5 text-blue-500 dark:text-blue-400" />
           </div>
-          
+
           <!-- Content -->
           <div class="flex-1 min-w-0">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
@@ -35,7 +41,7 @@
               {{ notification.message }}
             </p>
           </div>
-          
+
           <!-- Close Button -->
           <button
             @click="remove(notification.id)"
@@ -44,10 +50,10 @@
             <X class="h-4 w-4" />
           </button>
         </div>
-        
+
         <!-- Subtle Progress Bar -->
         <div class="h-0.5 bg-gray-100 dark:bg-gray-700 w-full overflow-hidden">
-          <div 
+          <div
             class="h-full transition-all duration-100 ease-linear"
             :class="{
               'bg-teal-500 dark:bg-teal-400': notification.type === 'success',

@@ -33,11 +33,19 @@ declare global {
       testConnection: (connection: DatabaseConnection) => Promise<ConnectionTestResult>
 
       // Database/Storage operations
-      getMigrationHistory: (limit?: number) => Promise<{ success: boolean; data?: any[]; error?: string }>
+      getMigrationHistory: (
+        limit?: number
+      ) => Promise<{ success: boolean; data?: any[]; error?: string }>
       addMigration: (migration: any) => Promise<{ success: boolean; id?: number; error?: string }>
-      updateMigrationStatus: (id: number, status: string, error?: string) => Promise<{ success: boolean; error?: string }>
+      updateMigrationStatus: (
+        id: number,
+        status: string,
+        error?: string
+      ) => Promise<{ success: boolean; error?: string }>
 
-      getComparisonHistory: (limit?: number) => Promise<{ success: boolean; data?: any[]; error?: string }>
+      getComparisonHistory: (
+        limit?: number
+      ) => Promise<{ success: boolean; data?: any[]; error?: string }>
       addComparison: (comparison: any) => Promise<{ success: boolean; id?: number; error?: string }>
 
       getExportLogs: (limit?: number) => Promise<{ success: boolean; data?: any[]; error?: string }>
@@ -65,29 +73,56 @@ declare global {
       andbParseTable: (ddl: string) => Promise<{ success: boolean; data?: any; error?: string }>
 
       // Table Inspector (AI DBA Super Mode)
-      andbGetTableStats: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
-      andbGetServerInfo: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
-      andbGetFKGraph: (args: { connection: any }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbGetTableStats: (args: {
+        connection: any
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbGetServerInfo: (args: {
+        connection: any
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbGetFKGraph: (args: {
+        connection: any
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbGetSavedComparisonResults: (args: {
         sourceConnection: any
         targetConnection: any
         type: string
       }) => Promise<{ success: boolean; data?: any; error?: string }>
       andbClearConnectionData: (connection: any) => Promise<{ success: boolean; error?: string }>
-      getSnapshots: (args: { environment: string, database: string, type: string, name: string, databaseType?: string }) => Promise<{ success: boolean; data?: any; error?: string }>
+      getSnapshots: (args: {
+        environment: string
+        database: string
+        type: string
+        name: string
+        databaseType?: string
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
       getAllSnapshots: (limit?: number) => Promise<{ success: boolean; data?: any; error?: string }>
-      andbCreateSnapshot: (args: { connection: any; type: string; name: string }) => Promise<{ success: boolean; data?: any; error?: string }>
-      andbRestoreSnapshot: (args: { connection: any; snapshot: any }) => Promise<{ success: boolean; data?: any; error?: string }>
-      
+      andbCreateSnapshot: (args: {
+        connection: any
+        type: string
+        name: string
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbRestoreSnapshot: (args: {
+        connection: any
+        snapshot: any
+      }) => Promise<{ success: boolean; data?: any; error?: string }>
+
       // AI Assistant
-      aiConfigure: (apiKey: string, provider: string) => Promise<{ success: boolean; error?: string }>
+      aiConfigure: (
+        apiKey: string,
+        provider: string
+      ) => Promise<{ success: boolean; error?: string }>
       aiReview: (args: { context: any }) => Promise<{ success: boolean; data: any; error?: string }>
-      aiAsk: (args: { question: string, context?: any }) => Promise<{ success: boolean; data: any; error?: string }>
+      aiAsk: (args: {
+        question: string
+        context?: any
+      }) => Promise<{ success: boolean; data: any; error?: string }>
       onAiControlEvent: (callback: (payload: any) => void) => void
 
       openBackupFolder: () => Promise<{ success: boolean; error?: string }>
       getReportList: () => Promise<{ success: boolean; data?: any[]; error?: string }>
-      getReportContent: (filename: string) => Promise<{ success: boolean; data?: string; error?: string }>
+      getReportContent: (
+        filename: string
+      ) => Promise<{ success: boolean; data?: string; error?: string }>
 
       // Migration Changelog
       getMigrationChangelog: () => Promise<{ success: boolean; data?: any; error?: string }>
@@ -133,13 +168,22 @@ declare global {
         getMcpPath: () => Promise<string>
       }
 
-      pickWorkspaceDir: () => Promise<{ success: boolean; path?: string; action?: string; error?: string }>
+      pickWorkspaceDir: () => Promise<{
+        success: boolean
+        path?: string
+        action?: string
+        error?: string
+      }>
       resetWorkspaceDir: () => Promise<{ success: boolean; error?: string }>
       getWorkspaceStatus: () => Promise<{ success: boolean; path: string; dbPath: string }>
 
       security: {
-        encryptToken: (token: string) => Promise<{ success: boolean; data?: string; error?: string }>
-        decryptToken: (encryptedToken: string) => Promise<{ success: boolean; data?: string; error?: string }>
+        encryptToken: (
+          token: string
+        ) => Promise<{ success: boolean; data?: string; error?: string }>
+        decryptToken: (
+          encryptedToken: string
+        ) => Promise<{ success: boolean; data?: string; error?: string }>
       }
 
       // Generic invoke for dynamic calls
@@ -148,5 +192,4 @@ declare global {
   }
 }
 
-export { }
-
+export {}

@@ -1,29 +1,39 @@
 <template>
-  <div class="flex flex-col h-full bg-white dark:bg-black text-gray-800 dark:text-gray-300 font-mono text-xs rounded-none overflow-hidden border-t border-gray-200 dark:border-gray-700 shadow-inner">
+  <div
+    class="flex flex-col h-full bg-white dark:bg-black text-gray-800 dark:text-gray-300 font-mono text-xs rounded-none overflow-hidden border-t border-gray-200 dark:border-gray-700 shadow-inner"
+  >
     <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div
+      class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+    >
       <div class="flex items-center gap-2">
         <Terminal class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-        <span class="font-semibold text-gray-700 dark:text-gray-200">{{ $t('console.title') }}</span>
+        <span class="font-semibold text-gray-700 dark:text-gray-200">{{
+          $t('console.title')
+        }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <button 
-          @click="$emit('clear')" 
+        <button
+          @click="$emit('clear')"
           class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           :title="$t('console.clear')"
         >
           <Eraser class="w-3.5 h-3.5" />
         </button>
-        <button 
-          @click="autoScroll = !autoScroll" 
+        <button
+          @click="autoScroll = !autoScroll"
           class="p-1 rounded transition-colors"
-          :class="autoScroll ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400' : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+          :class="
+            autoScroll
+              ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400'
+              : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          "
           :title="$t('console.autoScroll')"
         >
           <ArrowDownCircle class="w-3.5 h-3.5" />
         </button>
-        <button 
-          @click="$emit('close')" 
+        <button
+          @click="$emit('close')"
           class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors ml-1"
           :title="$t('console.close')"
         >
@@ -33,16 +43,16 @@
     </div>
 
     <!-- Logs Area -->
-    <div 
+    <div
       ref="logsContainer"
       class="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar scroll-smooth"
     >
       <div v-if="logs.length === 0" class="text-gray-400 dark:text-gray-600 italic select-none">
         {{ $t('console.waiting') }}
       </div>
-      <div 
-        v-for="(log, index) in logs" 
-        :key="index" 
+      <div
+        v-for="(log, index) in logs"
+        :key="index"
         class="break-words leading-relaxed"
         :class="{
           'text-gray-700 dark:text-gray-300': log.type === 'info',
@@ -52,8 +62,14 @@
           'text-green-600 dark:text-green-400': log.type === 'success'
         }"
       >
-        <span class="opacity-50 mr-2 text-[10px] select-none">[{{ formatTime(log.timestamp) }}]</span>
-        <span v-if="log.type === 'cmd'" class="text-primary-600 dark:text-primary-400 opacity-70 select-none">$ </span>
+        <span class="opacity-50 mr-2 text-[10px] select-none"
+          >[{{ formatTime(log.timestamp) }}]</span
+        >
+        <span
+          v-if="log.type === 'cmd'"
+          class="text-primary-600 dark:text-primary-400 opacity-70 select-none"
+          >$
+        </span>
         <span>{{ log.message }}</span>
       </div>
     </div>
@@ -86,10 +102,10 @@ const logsContainer = ref<HTMLElement | null>(null)
 const autoScroll = ref(true)
 
 const formatTime = (date: Date) => {
-  return date.toLocaleTimeString('en-US', { 
-    hour12: false, 
-    hour: '2-digit', 
-    minute: '2-digit', 
+  return date.toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
     second: '2-digit'
   })
 }
@@ -100,9 +116,12 @@ const scrollToBottom = () => {
   }
 }
 
-watch(() => props.logs.length, () => {
-  nextTick(scrollToBottom)
-})
+watch(
+  () => props.logs.length,
+  () => {
+    nextTick(scrollToBottom)
+  }
+)
 
 onMounted(() => {
   scrollToBottom()

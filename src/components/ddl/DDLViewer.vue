@@ -1,45 +1,55 @@
 <template>
   <div class="flex-1 flex flex-col overflow-hidden relative group h-full">
-    <div ref="containerRef" class="absolute inset-0 flex flex-col overflow-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50 text-sm font-mono">
+    <div
+      ref="containerRef"
+      class="absolute inset-0 flex flex-col overflow-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50 text-sm font-mono"
+    >
       <div class="min-w-max w-full">
-        <div 
-          v-for="(line, idx) in highlightedLines" 
+        <div
+          v-for="(line, idx) in highlightedLines"
           :key="idx"
           :data-line="idx + 1"
           class="flex items-stretch group/line border-l-[6px] border-transparent hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors"
-          :class="{ 
-            '!bg-primary-500/30 dark:!bg-primary-400/30 border-l-primary-600 dark:border-l-primary-400 shadow-[inset_4px_0_0_0_rgba(var(--primary-600),0.5)]': selectedLine === idx + 1 
+          :class="{
+            '!bg-primary-500/30 dark:!bg-primary-400/30 border-l-primary-600 dark:border-l-primary-400 shadow-[inset_4px_0_0_0_rgba(var(--primary-600),0.5)]':
+              selectedLine === idx + 1
           }"
         >
           <!-- Line Numbers -->
-          <div 
-            v-if="showLineNumbers" 
+          <div
+            v-if="showLineNumbers"
             class="flex-none py-0.5 px-3 text-right text-gray-400 dark:text-gray-600 select-none bg-gray-100/30 dark:bg-gray-800/20 border-r border-gray-200 dark:border-gray-700 min-w-[3.5rem] leading-6"
-            :class="{ 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/10': selectedLine === idx + 1 }"
+            :class="{
+              'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/10':
+                selectedLine === idx + 1
+            }"
           >
             {{ idx + 1 }}
           </div>
-          
+
           <!-- Code -->
-          <pre 
+          <pre
             @click="handleCodeClick($event, idx + 1)"
-            class="flex-1 py-0.5 px-4 syntax-highlighter bg-transparent text-gray-800 dark:text-gray-200 !mt-0 !bg-transparent leading-6 overflow-visible" 
+            class="flex-1 py-0.5 px-4 syntax-highlighter bg-transparent text-gray-800 dark:text-gray-200 !mt-0 !bg-transparent leading-6 overflow-visible"
             :style="{ fontSize: fontSize + 'px', fontFamily: fontFamily }"
           ><code class="block overflow-visible"><div v-html="line || ' '" class="min-h-[1.5rem] whitespace-pre" :class="{ 'is-navigating': isNavigating }"></div></code></pre>
         </div>
       </div>
     </div>
-    
+
     <!-- Toolbar (Overlay) -->
-    <div v-if="showCopyButton" class="absolute top-2 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-      <button 
+    <div
+      v-if="showCopyButton"
+      class="absolute top-2 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2"
+    >
+      <button
         @click="appStore.requestAiReview()"
         class="p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg text-indigo-500 dark:text-indigo-400 transition-all shadow-sm border border-black/5 dark:border-white/5"
         title="Ask AI about this code"
       >
         <Sparkles class="w-4 h-4" />
       </button>
-      <button 
+      <button
         @click="copyToClipboard"
         class="p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700/80 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm border border-black/5 dark:border-white/5"
         :title="$t('common.copyScript')"
@@ -100,9 +110,12 @@ const containerRef = ref<HTMLElement | null>(null)
 const selectedLine = ref<number | null>(null)
 
 // Reset selection when content changes
-watch(() => props.content, () => {
-  selectedLine.value = null
-})
+watch(
+  () => props.content,
+  () => {
+    selectedLine.value = null
+  }
+)
 
 defineExpose({
   scrollToLine: (line: number) => {
@@ -132,7 +145,7 @@ const handleGlobalKeyup = (e: KeyboardEvent) => {
   if (e.key === 'Meta' || e.key === 'Control') isNavigating.value = false
 }
 
-watch(isNavigating, (val) => {
+watch(isNavigating, val => {
   if (val) {
     window.addEventListener('keyup', handleGlobalKeyup)
   } else {
@@ -153,12 +166,14 @@ const copyToClipboard = () => {
   if (!props.content) return
   navigator.clipboard.writeText(props.content)
   copied.value = true
-  setTimeout(() => { copied.value = false }, 2000)
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 const highlightedLines = computed(() => {
   if (!props.content) return []
-  
+
   // Highlight with Prism
   const html = Prism.highlight(props.content, Prism.languages.sql, 'sql')
   const lines = html.split('\n')
@@ -177,18 +192,35 @@ const highlightedLines = computed(() => {
   return lines.map(line => {
     let processed = line
     // Custom post-processing for brackets/punctuation
-    processed = processed.replace(/<span class="token punctuation">(\()<\/span>/g, '<span class="token punctuation paren-open text-yellow-500 dark:text-yellow-400 font-bold">(</span>')
-    processed = processed.replace(/<span class="token punctuation">(\))<\/span>/g, '<span class="token punctuation paren-close text-yellow-500 dark:text-yellow-400 font-bold">)</span>')
-    processed = processed.replace(/<span class="token punctuation">(,)<\/span>/g, '<span class="token punctuation comma text-gray-500 dark:text-gray-100 font-bold">,</span>')
-    processed = processed.replace(/<span class="token punctuation">(;)<\/span>/g, '<span class="token punctuation semicolon text-red-500 dark:text-pink-400 font-bold">;</span>')
+    processed = processed.replace(
+      /<span class="token punctuation">(\()<\/span>/g,
+      '<span class="token punctuation paren-open text-yellow-500 dark:text-yellow-400 font-bold">(</span>'
+    )
+    processed = processed.replace(
+      /<span class="token punctuation">(\))<\/span>/g,
+      '<span class="token punctuation paren-close text-yellow-500 dark:text-yellow-400 font-bold">)</span>'
+    )
+    processed = processed.replace(
+      /<span class="token punctuation">(,)<\/span>/g,
+      '<span class="token punctuation comma text-gray-500 dark:text-gray-100 font-bold">,</span>'
+    )
+    processed = processed.replace(
+      /<span class="token punctuation">(;)<\/span>/g,
+      '<span class="token punctuation semicolon text-red-500 dark:text-pink-400 font-bold">;</span>'
+    )
 
     // Search Keyword Highlighting
     if (searchRegex) {
       const parts = processed.split(/(<[^>]+>)/g)
-      processed = parts.map(part => {
-        if (part.startsWith('<')) return part
-        return part.replace(searchRegex!, '<span class="search-highlight bg-yellow-400 dark:bg-yellow-500/80 text-black dark:text-gray-900 ring-2 ring-yellow-400/20 rounded-sm px-0.5 font-bold shadow-sm">$1</span>')
-      }).join('')
+      processed = parts
+        .map(part => {
+          if (part.startsWith('<')) return part
+          return part.replace(
+            searchRegex!,
+            '<span class="search-highlight bg-yellow-400 dark:bg-yellow-500/80 text-black dark:text-gray-900 ring-2 ring-yellow-400/20 rounded-sm px-0.5 font-bold shadow-sm">$1</span>'
+          )
+        })
+        .join('')
     }
 
     // Navigatable Identifier Highlighting (Precise Underline)
@@ -218,14 +250,32 @@ const highlightedLines = computed(() => {
 
 <style>
 /* Syntax Highlighting Styles using Theme Variables */
-.syntax-highlighter { color: var(--code-text); }
-.syntax-highlighter .token.keyword { color: var(--code-keyword); font-weight: bold; }
-.syntax-highlighter .token.string { color: var(--code-string); }
-.syntax-highlighter .token.comment { color: var(--code-comment); font-style: italic; }
-.syntax-highlighter .token.function { color: var(--code-function); }
-.syntax-highlighter .token.number { color: var(--code-number); }
-.syntax-highlighter .token.operator { color: var(--code-operator); }
-.syntax-highlighter .token.punctuation { color: var(--code-punctuation); }
+.syntax-highlighter {
+  color: var(--code-text);
+}
+.syntax-highlighter .token.keyword {
+  color: var(--code-keyword);
+  font-weight: bold;
+}
+.syntax-highlighter .token.string {
+  color: var(--code-string);
+}
+.syntax-highlighter .token.comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+.syntax-highlighter .token.function {
+  color: var(--code-function);
+}
+.syntax-highlighter .token.number {
+  color: var(--code-number);
+}
+.syntax-highlighter .token.operator {
+  color: var(--code-operator);
+}
+.syntax-highlighter .token.punctuation {
+  color: var(--code-punctuation);
+}
 
 .is-navigating .nav-link {
   cursor: pointer;

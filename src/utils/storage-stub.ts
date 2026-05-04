@@ -1,6 +1,6 @@
 /**
  * Storage Stub for Renderer Process
- * 
+ *
  * This is a client-side stub that delegates to main process via IPC
  * Actual storage implementation is in electron/main.ts
  */
@@ -129,4 +129,3 @@ export const storage = {
 }
 
 export default storage
-

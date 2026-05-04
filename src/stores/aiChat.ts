@@ -18,7 +18,7 @@ export const useAiChatStore = defineStore('aiChat', {
   state: () => ({
     conversations: [] as Conversation[],
     currentConversationId: null as string | null,
-    isInitialized: false,
+    isInitialized: false
   }),
   actions: {
     async init() {
@@ -35,12 +35,17 @@ export const useAiChatStore = defineStore('aiChat', {
     },
     async saveConversation(conv: Conversation) {
       try {
-        await (window as any).electronAPI.invoke('ai-save-chat', JSON.parse(JSON.stringify({
-            id: conv.id,
-            title: conv.title,
-            messages: conv.messages,
-            updated_at: conv.updatedAt
-        })))
+        await (window as any).electronAPI.invoke(
+          'ai-save-chat',
+          JSON.parse(
+            JSON.stringify({
+              id: conv.id,
+              title: conv.title,
+              messages: conv.messages,
+              updated_at: conv.updatedAt
+            })
+          )
+        )
       } catch (e) {
         console.error('Failed to save AI chat', e)
       }
@@ -50,12 +55,17 @@ export const useAiChatStore = defineStore('aiChat', {
     },
     async addMessage(role: 'ai' | 'user' | 'error', content: string, lastQuestion?: string) {
       const msg: ChatMessage = { role, content, lastQuestion, timestamp: Date.now() }
-      
+
       if (!this.currentConversationId) {
         // Create new conversation
         const newId = Date.now().toString()
-        const title = role === 'user' ? (content.length > 30 ? content.substring(0, 30) + '...' : content) : 'AI Analysis'
-        
+        const title =
+          role === 'user'
+            ? content.length > 30
+              ? content.substring(0, 30) + '...'
+              : content
+            : 'AI Analysis'
+
         const newConv = {
           id: newId,
           title,
@@ -79,12 +89,12 @@ export const useAiChatStore = defineStore('aiChat', {
       }
     },
     async removeMessage(msgToRemove: ChatMessage) {
-        if (!this.currentConversationId) return
-        const conv = this.conversations.find(c => c.id === this.currentConversationId)
-        if (conv) {
-            conv.messages = conv.messages.filter(m => m !== msgToRemove)
-            await this.saveConversation(conv)
-        }
+      if (!this.currentConversationId) return
+      const conv = this.conversations.find(c => c.id === this.currentConversationId)
+      if (conv) {
+        conv.messages = conv.messages.filter(m => m !== msgToRemove)
+        await this.saveConversation(conv)
+      }
     },
     async deleteConversation(id: string) {
       this.conversations = this.conversations.filter(c => c.id !== id)
@@ -101,13 +111,13 @@ export const useAiChatStore = defineStore('aiChat', {
       this.currentConversationId = id
     },
     async clearAll() {
-        this.conversations = []
-        this.currentConversationId = null
-        try {
-          await (window as any).electronAPI.invoke('ai-clear-chats')
-        } catch (e) {
-          console.error('Failed to clear chats', e)
-        }
+      this.conversations = []
+      this.currentConversationId = null
+      try {
+        await (window as any).electronAPI.invoke('ai-clear-chats')
+      } catch (e) {
+        console.error('Failed to clear chats', e)
+      }
     }
   },
   getters: {
@@ -115,9 +125,8 @@ export const useAiChatStore = defineStore('aiChat', {
       if (!state.currentConversationId) return []
       return state.conversations.find(c => c.id === state.currentConversationId)?.messages || []
     },
-    sortedConversations: (state) => {
+    sortedConversations: state => {
       return [...state.conversations].sort((a, b) => b.updatedAt - a.updatedAt)
     }
   }
 })
-

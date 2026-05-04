@@ -17,4 +17,3 @@ export const i18n = createI18n({
 export function setLanguage(locale: 'en' | 'vi') {
   i18n.global.locale.value = locale
 }
-

@@ -4,7 +4,9 @@ import MirrorDiffView from '../MirrorDiffView.vue'
 
 // Mock dependencies
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string, options?: any) => options ? `${key} ${JSON.stringify(options)}` : key })
+  useI18n: () => ({
+    t: (key: string, options?: any) => (options ? `${key} ${JSON.stringify(options)}` : key)
+  })
 }))
 
 const mockAppStore = {
@@ -43,7 +45,7 @@ describe('MirrorDiffView.vue', () => {
       },
       global: {
         mocks: {
-          $t: (key: string, options?: any) => options ? `${key} ${JSON.stringify(options)}` : key
+          $t: (key: string, options?: any) => (options ? `${key} ${JSON.stringify(options)}` : key)
         }
       }
     })
@@ -98,13 +100,13 @@ describe('MirrorDiffView.vue', () => {
 
     // Verify Unified Header appears
     expect(screen.getAllByText(/compare\.diffView\.unified/)).toBeTruthy()
-    // It should combine the lines in a single pane. The exact DOM is complex to test text content, 
+    // It should combine the lines in a single pane. The exact DOM is complex to test text content,
     // but the split pane headers should disappear
     expect(screen.queryByText(/compare\.diffView\.source/)).toBeNull()
   })
 
   it('aligns diff rows correctly for modified DDL', () => {
-    const { } = renderComponent({
+    const {} = renderComponent({
       sourceDdl: 'CREATE TABLE x (\n  a INT\n);',
       targetDdl: 'CREATE TABLE x (\n  b INT\n);',
       status: 'modified'

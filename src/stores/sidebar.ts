@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import Andb from '@/utils/andb'
 
-
 export const useSidebarStore = defineStore('sidebar', () => {
   const refreshKey = ref(0)
   const refreshRequestKey = ref(0)
@@ -15,8 +14,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
   const expandedEnvironments = ref(new Set<string>())
   const expandedDatabases = ref(new Set<string>())
   const expandedTypes = ref(new Set<string>())
-
-
 
   function triggerRefresh() {
     refreshKey.value++
@@ -37,7 +34,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   async function loadSchemas(force = false) {
     const now = Date.now()
-    if (!force && environments.value.length > 0 && (now - lastFetchTime.value < CACHE_TTL)) {
+    if (!force && environments.value.length > 0 && now - lastFetchTime.value < CACHE_TTL) {
       return environments.value
     }
 
@@ -62,14 +59,13 @@ export const useSidebarStore = defineStore('sidebar', () => {
     environments.value = data
   }
 
-
   // Persistence Logic
   const STORAGE_KEY = 'andb-sidebar-cache'
 
   function loadFromStorage() {
     try {
       if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
-        (window as any).electronAPI.storage.get(STORAGE_KEY).then((result: any) => {
+        ;(window as any).electronAPI.storage.get(STORAGE_KEY).then((result: any) => {
           if (result && result.success && result.data) {
             const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data
             if (data.environments) {
@@ -87,7 +83,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
   function saveToStorage() {
     try {
       if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
-        (window as any).electronAPI.storage.set(STORAGE_KEY, {
+        ;(window as any).electronAPI.storage.set(STORAGE_KEY, {
           environments: JSON.parse(JSON.stringify(environments.value)),
           lastFetchTime: lastFetchTime.value
         })
@@ -98,9 +94,13 @@ export const useSidebarStore = defineStore('sidebar', () => {
   }
 
   // Watch to save
-  watch(environments, () => {
-    saveToStorage()
-  }, { deep: true })
+  watch(
+    environments,
+    () => {
+      saveToStorage()
+    },
+    { deep: true }
+  )
 
   // Initial load
   loadFromStorage()
@@ -116,7 +116,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
     gitLoading.value = true
 
     try {
-      const gitConfigRes = await (window as any).electronAPI?.storage?.get(`git_config_${projectId}`)
+      const gitConfigRes = await (window as any).electronAPI?.storage?.get(
+        `git_config_${projectId}`
+      )
       if (!gitConfigRes?.success || !gitConfigRes.data?.remoteUrl) {
         gitStatus.value = null
         return
@@ -142,10 +144,10 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
   }
 
-  // Auto-check on project switch
-  watch(() => (import('./projects').then(m => m.useProjectsStore().selectedProjectId)), () => {
-    checkGitStatus()
-  })
+  // Auto-check on project switch disabled to prevent background execution
+  // watch(() => (import('./projects').then(m => m.useProjectsStore().selectedProjectId)), () => {
+  //   checkGitStatus()
+  // })
 
   return {
     refreshKey,

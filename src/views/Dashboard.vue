@@ -3,56 +3,67 @@
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full gap-4">
         <div class="flex items-center gap-2">
-           <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{{ $t('dashboard.title') }}</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{{
+            $t('dashboard.title')
+          }}</span>
         </div>
 
         <!-- Project Quick Actions (Unified) -->
         <div class="flex items-center gap-3">
-             <!-- Vertical Divider -->
-             <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
+          <!-- Vertical Divider -->
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
 
-            <!-- Switch Project Button -->
-            <button 
-                @click="navigateTo('/projects')"
-                class="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/5 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                :title="$t('dashboard.switchProject')"
-            >
-                <div class="flex items-center gap-2 relative z-10">
-                    <LayoutGrid class="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500" />
-                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{ $t('common.switch') }}</span>
-                </div>
-            </button>
+          <!-- Switch Project Button -->
+          <button
+            @click="navigateTo('/projects')"
+            class="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/5 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            :title="$t('dashboard.switchProject')"
+          >
+            <div class="flex items-center gap-2 relative z-10">
+              <LayoutGrid
+                class="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500"
+              />
+              <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{
+                $t('common.switch')
+              }}</span>
+            </div>
+          </button>
 
-            <!-- Reports Button -->
-            <button 
-                @click="showReportsModal = true"
-                class="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                :title="$t('dashboard.reports')"
-            >
-                <div class="flex items-center gap-2 relative z-10">
-                    <FileText class="w-3.5 h-3.5" />
-                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{ $t('dashboard.reports') }}</span>
-                </div>
-            </button>
+          <!-- Reports Button -->
+          <button
+            @click="showReportsModal = true"
+            class="group relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            :title="$t('dashboard.reports')"
+          >
+            <div class="flex items-center gap-2 relative z-10">
+              <FileText class="w-3.5 h-3.5" />
+              <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{
+                $t('dashboard.reports')
+              }}</span>
+            </div>
+          </button>
 
+          <!-- Settings Button -->
+          <button
+            @click="navigateTo('/project-settings')"
+            class="group relative overflow-hidden rounded-xl bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white shadow-md shadow-primary-500/20 px-3 py-1.5 border border-transparent transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            :title="$t('common.settings')"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out z-20"
+            ></div>
+            <div class="flex items-center gap-2 relative z-10">
+              <Settings
+                class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-500"
+              />
+              <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{
+                $t('common.settings')
+              }}</span>
+            </div>
+          </button>
 
-            <!-- Settings Button -->
-            <button 
-                @click="navigateTo('/project-settings')"
-                class="group relative overflow-hidden rounded-xl bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white shadow-md shadow-primary-500/20 px-3 py-1.5 border border-transparent transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                :title="$t('common.settings')"
-            >
-                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out z-20"></div>
-                <div class="flex items-center gap-2 relative z-10">
-                    <Settings class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-500" />
-                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{{ $t('common.settings') }}</span>
-                </div>
-            </button>
-
-            <!-- Vertical Divider -->
-            <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
-
-
+          <!-- Vertical Divider -->
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
         </div>
       </div>
     </template>
@@ -60,11 +71,19 @@
     <template #breadcrumbs>
       <div class="flex items-center gap-2">
         <LayoutGrid class="w-3.5 h-3.5 text-primary-500 opacity-60" />
-        <span class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 opacity-50">{{ $t('dashboard.title') }}</span>
+        <span
+          class="text-[11px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 opacity-50"
+          >{{ $t('dashboard.title') }}</span
+        >
         <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
-        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-           <Layers class="w-3.5 h-3.5 text-indigo-500" />
-           <span class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{ projectsStore.currentProject?.name }}</span>
+        <div
+          class="flex items-center gap-1.5 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
+        >
+          <Layers class="w-3.5 h-3.5 text-indigo-500" />
+          <span
+            class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400"
+            >{{ projectsStore.currentProject?.name }}</span
+          >
         </div>
       </div>
     </template>
@@ -72,96 +91,146 @@
       <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <!-- Total Connections -->
-          <div 
+          <div
             @click="navigateTo('/project-settings')"
             class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-500/10 p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
           >
             <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <div
+                class="p-3 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform duration-300"
+              >
                 <Database class="w-6 h-6" />
               </div>
               <div class="flex flex-col items-end">
-              <div class="text-[10px] font-black text-gray-400 tracking-widest">{{ $t('dashboard.active') }}</div>
-                <div class="text-xs font-bold text-green-500">{{ connectedCount }} / {{ totalConnections }}</div>
+                <div class="text-[10px] font-black text-gray-400 tracking-widest">
+                  {{ $t('dashboard.active') }}
+                </div>
+                <div class="text-xs font-bold text-green-500">
+                  {{ connectedCount }} / {{ totalConnections }}
+                </div>
               </div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 tracking-widest">{{ $t('dashboard.connections') }}</p>
-              <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ totalConnections }}</p>
+              <p class="text-xs font-bold text-gray-500 tracking-widest">
+                {{ $t('dashboard.connections') }}
+              </p>
+              <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">
+                {{ totalConnections }}
+              </p>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50">
               <div class="w-full bg-gray-100 dark:bg-gray-700/50 rounded-full h-1">
-                <div class="bg-blue-500 h-1 rounded-full transition-all duration-1000" :style="{ width: (totalConnections > 0 ? (connectedCount/totalConnections*100) : 0) + '%' }"></div>
+                <div
+                  class="bg-blue-500 h-1 rounded-full transition-all duration-1000"
+                  :style="{
+                    width:
+                      (totalConnections > 0 ? (connectedCount / totalConnections) * 100 : 0) + '%'
+                  }"
+                ></div>
               </div>
             </div>
           </div>
 
           <!-- Environments -->
-          <div 
+          <div
             @click="navigateTo('/project-settings')"
             class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 p-5 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
           >
             <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <div
+                class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-300"
+              >
                 <Layers class="w-6 h-6" />
               </div>
-              <div class="text-[10px] font-black text-gray-400 tracking-widest">{{ $t('dashboard.configured') }}</div>
+              <div class="text-[10px] font-black text-gray-400 tracking-widest">
+                {{ $t('dashboard.configured') }}
+              </div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 tracking-widest">{{ $t('dashboard.environments') }}</p>
-              <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ enabledEnvironments.length }}</p>
+              <p class="text-xs font-bold text-gray-500 tracking-widest">
+                {{ $t('dashboard.environments') }}
+              </p>
+              <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">
+                {{ enabledEnvironments.length }}
+              </p>
             </div>
             <div class="mt-4 flex flex-wrap gap-1.5">
-              <span v-for="env in enabledEnvironments" :key="env.id" class="px-2 py-0.5 bg-gray-50 dark:bg-gray-700/50 text-[9px] font-black text-gray-400 rounded border border-gray-100 dark:border-gray-600/50">
+              <span
+                v-for="env in enabledEnvironments"
+                :key="env.id"
+                class="px-2 py-0.5 bg-gray-50 dark:bg-gray-700/50 text-[9px] font-black text-gray-400 rounded border border-gray-100 dark:border-gray-600/50"
+              >
                 {{ env.name }}
               </span>
             </div>
           </div>
 
           <!-- Connection Pairs -->
-          <div 
+          <div
             @click="navigateTo('/settings')"
             class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-purple-500/10 p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
           >
             <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-purple-500/10 text-purple-500 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <div
+                class="p-3 bg-purple-500/10 text-purple-500 rounded-xl group-hover:scale-110 transition-transform duration-300"
+              >
                 <GitCompare class="w-6 h-6" />
               </div>
               <div class="flex flex-col items-end">
-                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.syncPairs') }}</div>
-                <div class="text-xs font-bold text-purple-500">{{ activePairs }} / {{ totalPairs }}</div>
+                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  {{ $t('dashboard.syncPairs') }}
+                </div>
+                <div class="text-xs font-bold text-purple-500">
+                  {{ activePairs }} / {{ totalPairs }}
+                </div>
               </div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('dashboard.mappings') }}</p>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                {{ $t('dashboard.mappings') }}
+              </p>
               <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ totalPairs }}</p>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
-              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{{ $t('dashboard.readyForSync') }}</span>
+            <div
+              class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50 flex items-center justify-between"
+            >
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{{
+                $t('dashboard.readyForSync')
+              }}</span>
               <CheckCircle class="w-3.5 h-3.5 text-purple-500" />
             </div>
           </div>
 
           <!-- Recent Operations -->
-          <div 
+          <div
             @click="navigateTo('/history')"
             class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-orange-500/10 p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 cursor-pointer active:scale-[0.98]"
           >
             <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-orange-500/10 text-orange-500 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <div
+                class="p-3 bg-orange-500/10 text-orange-500 rounded-xl group-hover:scale-110 transition-transform duration-300"
+              >
                 <Activity class="w-6 h-6" />
               </div>
-              <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest">{{ $t('dashboard.liveFeed') }}</div>
+              <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest">
+                {{ $t('dashboard.liveFeed') }}
+              </div>
             </div>
             <div class="space-y-1">
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('dashboard.opsToday') }}</p>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                {{ $t('dashboard.opsToday') }}
+              </p>
               <div class="flex items-baseline gap-2">
-                <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">{{ operationsToday }}</p>
+                <p class="text-3xl font-black text-gray-900 dark:text-white mt-1">
+                  {{ operationsToday }}
+                </p>
                 <span class="text-xs font-bold text-orange-500">+{{ operationsToday }}</span>
               </div>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50">
-              <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+              <div
+                class="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter"
+              >
                 <Clock class="w-3.5 h-3.5" />
                 {{ $t('dashboard.last', { time: lastOperationTime }) }}
               </div>
@@ -171,128 +240,224 @@
 
         <!-- Additional Stats Cards - Operations Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-           <div 
-             v-for="stat in [
-               { label: $t('dashboard.totalChanges'), val: totalDDLCount, unit: $t('dashboard.units.objects'), icon: FileCode, col: 'indigo' },
-               { label: $t('dashboard.migrations'), val: totalMigrations, unit: $t('dashboard.units.records'), icon: ArrowRightLeft, col: 'cyan' },
-               { label: $t('dashboard.avgSpeed'), val: formatDuration(averageDuration), unit: $t('dashboard.units.ms'), icon: Clock, col: 'pink' },
-               { label: $t('dashboard.successRate'), val: successRate + '%', unit: $t('dashboard.units.relative'), icon: TrendingUp, col: 'emerald' }
-             ]" 
-             :key="stat.label"
-             class="bg-white/40 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 group"
-           >
-             <div 
-               class="p-2.5 rounded-xl transition-all duration-300 shadow-sm"
-               :class="[
-                 stat.col === 'indigo' ? 'bg-indigo-500/10 text-indigo-500' : '',
-                 stat.col === 'cyan' ? 'bg-cyan-500/10 text-cyan-500' : '',
-                 stat.col === 'pink' ? 'bg-pink-500/10 text-pink-500' : '',
-                 stat.col === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' : '',
-                 'group-hover:scale-110'
-               ]"
-             >
-               <component :is="stat.icon" class="w-5 h-5" />
-             </div>
-             <div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">{{ stat.label }}</div>
-                <div class="flex items-baseline gap-1">
-                  <span class="text-lg font-black text-gray-900 dark:text-white">{{ stat.val }}</span>
-                  <span class="text-[8px] font-bold text-gray-400 uppercase">{{ stat.unit }}</span>
-                </div>
-             </div>
-           </div>
+          <div
+            v-for="stat in [
+              {
+                label: $t('dashboard.totalChanges'),
+                val: totalDDLCount,
+                unit: $t('dashboard.units.objects'),
+                icon: FileCode,
+                col: 'indigo'
+              },
+              {
+                label: $t('dashboard.migrations'),
+                val: totalMigrations,
+                unit: $t('dashboard.units.records'),
+                icon: ArrowRightLeft,
+                col: 'cyan'
+              },
+              {
+                label: $t('dashboard.avgSpeed'),
+                val: formatDuration(averageDuration),
+                unit: $t('dashboard.units.ms'),
+                icon: Clock,
+                col: 'pink'
+              },
+              {
+                label: $t('dashboard.successRate'),
+                val: successRate + '%',
+                unit: $t('dashboard.units.relative'),
+                icon: TrendingUp,
+                col: 'emerald'
+              }
+            ]"
+            :key="stat.label"
+            class="bg-white/40 dark:bg-gray-800/20 backdrop-blur-xl rounded-2xl p-4 border border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 group"
+          >
+            <div
+              class="p-2.5 rounded-xl transition-all duration-300 shadow-sm"
+              :class="[
+                stat.col === 'indigo' ? 'bg-indigo-500/10 text-indigo-500' : '',
+                stat.col === 'cyan' ? 'bg-cyan-500/10 text-cyan-500' : '',
+                stat.col === 'pink' ? 'bg-pink-500/10 text-pink-500' : '',
+                stat.col === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' : '',
+                'group-hover:scale-110'
+              ]"
+            >
+              <component :is="stat.icon" class="w-5 h-5" />
+            </div>
+            <div>
+              <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                {{ stat.label }}
+              </div>
+              <div class="flex items-baseline gap-1">
+                <span class="text-lg font-black text-gray-900 dark:text-white">{{ stat.val }}</span>
+                <span class="text-[8px] font-bold text-gray-400 uppercase">{{ stat.unit }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Database Intelligence Sector -->
         <div class="mb-8">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
+            <h2
+              class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2"
+            >
               <Activity class="w-4 h-4 text-primary-500" />
               {{ $t('dashboard.databaseIntelligence') || 'Database Intelligence' }}
             </h2>
-            
+
             <!-- Connection Selector for Stats -->
             <div class="relative" v-if="filteredConnections.length > 1">
-              <button 
+              <button
                 @click="showStatsConnSelector = !showStatsConnSelector"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-primary-500 transition-all shadow-sm"
               >
                 <span>{{ getConnectionName(selectedStatsConnectionId) }}</span>
-                <ChevronDown class="w-3 h-3 transition-transform" :class="{ 'rotate-180': showStatsConnSelector }" />
+                <ChevronDown
+                  class="w-3 h-3 transition-transform"
+                  :class="{ 'rotate-180': showStatsConnSelector }"
+                />
               </button>
-              <div v-if="showStatsConnSelector" class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
-                <button 
-                  v-for="conn in filteredConnections" 
+              <div
+                v-if="showStatsConnSelector"
+                class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200"
+              >
+                <button
+                  v-for="conn in filteredConnections"
                   :key="conn.id"
                   @click="selectStatsConnection(conn.id)"
                   class="w-full px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
-                  :class="selectedStatsConnectionId === conn.id ? 'text-primary-500 bg-primary-50/50 dark:bg-primary-900/10' : 'text-gray-600 dark:text-gray-400'"
+                  :class="
+                    selectedStatsConnectionId === conn.id
+                      ? 'text-primary-500 bg-primary-50/50 dark:bg-primary-900/10'
+                      : 'text-gray-600 dark:text-gray-400'
+                  "
                 >
                   {{ conn.name }} ({{ conn.environment }})
-                  <div v-if="selectedStatsConnectionId === conn.id" class="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+                  <div
+                    v-if="selectedStatsConnectionId === conn.id"
+                    class="w-1.5 h-1.5 rounded-full bg-primary-500"
+                  ></div>
                 </button>
               </div>
             </div>
-            <div v-else-if="filteredConnections.length === 1" class="text-[10px] font-black uppercase tracking-widest text-gray-400">
-               Live: <span class="text-primary-500">{{ filteredConnections[0].name }}</span>
+            <div
+              v-else-if="filteredConnections.length === 1"
+              class="text-[10px] font-black uppercase tracking-widest text-gray-400"
+            >
+              Live: <span class="text-primary-500">{{ filteredConnections[0].name }}</span>
             </div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Summary Card -->
-            <DBStatsCard 
+            <DBStatsCard
               v-if="dbStats && Array.isArray(dbStats) && !isFetchingStats"
-              :stats="dbStats" 
+              :stats="dbStats"
               :server-info="serverInfo"
               :loading="isFetchingStats"
               subtitle="Project Primary Target"
               class="lg:col-span-2"
               @refresh="fetchDashboardStats"
             />
-            <div v-else-if="isFetchingStats" class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800">
-               <RefreshCw class="w-8 h-8 text-primary-500 animate-spin mb-4" />
-               <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Fetching Intelligence...</p>
+            <div
+              v-else-if="isFetchingStats"
+              class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800"
+            >
+              <RefreshCw class="w-8 h-8 text-primary-500 animate-spin mb-4" />
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                Fetching Intelligence...
+              </p>
             </div>
-            
+            <div
+              v-else
+              class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800 group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+              @click="fetchDashboardStats"
+            >
+              <Database
+                class="w-8 h-8 text-gray-300 dark:text-gray-600 mb-4 group-hover:text-primary-500 transition-colors"
+              />
+              <p
+                class="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 mb-2"
+              >
+                Connection Idle
+              </p>
+              <button
+                class="px-4 py-1.5 bg-primary-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-primary-500/20 active:scale-95"
+              >
+                Connect & Fetch Intelligence
+              </button>
+            </div>
+
             <!-- Future AI Insights Placeholder / Mini Card -->
-            <div @click="navigateTo('/project-settings')" class="lg:col-span-1 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 rounded-3xl p-6 border border-primary-500/20 dark:border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10">
-               <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.03),transparent)] dark:bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"></div>
-               <div class="relative z-10 flex flex-col items-start max-w-md pr-24">
-                  <div class="px-2 py-1 bg-primary-500/10 rounded-lg text-primary-600 dark:text-primary-400 mb-3 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md">
-                    <Zap class="w-3.5 h-3.5 fill-primary-500 dark:fill-primary-400 animate-pulse" />
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em]">{{ $t('dashboard.aiAssistantPreAlpha') }}</span>
-                  </div>
-                  <template v-if="!projectsStore.currentProject?.settings?.aiEnabled">
-                    <h3 class="text-lg font-black text-gray-900 dark:text-white mb-2 tracking-tight leading-tight">{{ $t('dashboard.aiAutomateTitle') }}</h3>
-                    <p class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium">
-                      {{ $t('dashboard.aiAutomateDesc') }}
-                    </p>
-                    <button 
-                      class="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-500/25 active:scale-95 flex items-center gap-2"
-                    >
-                      <Sparkles class="w-3 h-3" />
-                      {{ $t('dashboard.enableAIInsights') }}
-                    </button>
-                  </template>
-                  <template v-else>
-                    <h3 class="text-lg font-black text-emerald-600 dark:text-emerald-400 mb-2 tracking-tight leading-tight">AI Intelligence Active</h3>
-                    <p class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium">
-                      Your DBA workflows are supercharged. Check the AI Panel or use intelligent actions across the application.
-                    </p>
-                    <button 
-                      @click.stop="navigateTo('/project-settings?cat=ai')"
-                      class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-500/25 active:scale-95 flex items-center gap-2"
-                    >
-                      <Settings class="w-3 h-3" />
-                      CONFIGURE
-                    </button>
-                  </template>
-               </div>
-               
-               <!-- Abstract Visual Deco -->
-               <div class="absolute -right-8 -bottom-8 w-48 h-48 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
-               <div class="absolute -right-4 -bottom-4 w-32 h-32 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"></div>
-               <Activity class="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 text-primary-500 opacity-5 group-hover:opacity-10 transition-opacity duration-500" />
+            <div
+              @click="navigateTo('/project-settings')"
+              class="lg:col-span-1 bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 rounded-3xl p-6 border border-primary-500/20 dark:border-white/5 relative overflow-hidden flex items-center group cursor-pointer transition-all hover:border-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/10"
+            >
+              <div
+                class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.03),transparent)] dark:bg-[radial-gradient(circle_at_30%_30%,rgba(var(--primary-rgb),0.1),transparent)] pointer-events-none"
+              ></div>
+              <div class="relative z-10 flex flex-col items-start max-w-md pr-24">
+                <div
+                  class="px-2 py-1 bg-primary-500/10 rounded-lg text-primary-600 dark:text-primary-400 mb-3 flex items-center gap-2 border border-primary-500/20 backdrop-blur-md"
+                >
+                  <Zap class="w-3.5 h-3.5 fill-primary-500 dark:fill-primary-400 animate-pulse" />
+                  <span class="text-[9px] font-black uppercase tracking-[0.2em]">{{
+                    $t('dashboard.aiAssistantPreAlpha')
+                  }}</span>
+                </div>
+                <template v-if="!projectsStore.currentProject?.settings?.aiEnabled">
+                  <h3
+                    class="text-lg font-black text-gray-900 dark:text-white mb-2 tracking-tight leading-tight"
+                  >
+                    {{ $t('dashboard.aiAutomateTitle') }}
+                  </h3>
+                  <p
+                    class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium"
+                  >
+                    {{ $t('dashboard.aiAutomateDesc') }}
+                  </p>
+                  <button
+                    class="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary-500/25 active:scale-95 flex items-center gap-2"
+                  >
+                    <Sparkles class="w-3 h-3" />
+                    {{ $t('dashboard.enableAIInsights') }}
+                  </button>
+                </template>
+                <template v-else>
+                  <h3
+                    class="text-lg font-black text-emerald-600 dark:text-emerald-400 mb-2 tracking-tight leading-tight"
+                  >
+                    AI Intelligence Active
+                  </h3>
+                  <p
+                    class="text-gray-500 dark:text-gray-400 text-[13px] leading-relaxed mb-6 font-medium"
+                  >
+                    Your DBA workflows are supercharged. Check the AI Panel or use intelligent
+                    actions across the application.
+                  </p>
+                  <button
+                    @click.stop="navigateTo('/project-settings?cat=ai')"
+                    class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-500/25 active:scale-95 flex items-center gap-2"
+                  >
+                    <Settings class="w-3 h-3" />
+                    CONFIGURE
+                  </button>
+                </template>
+              </div>
+
+              <!-- Abstract Visual Deco -->
+              <div
+                class="absolute -right-8 -bottom-8 w-48 h-48 border border-primary-500/10 rounded-full group-hover:scale-110 transition-transform duration-700"
+              ></div>
+              <div
+                class="absolute -right-4 -bottom-4 w-32 h-32 border border-primary-500/5 rounded-full group-hover:scale-125 transition-transform duration-700 delay-100"
+              ></div>
+              <Activity
+                class="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 text-primary-500 opacity-5 group-hover:opacity-10 transition-opacity duration-500"
+              />
             </div>
           </div>
         </div>
@@ -300,42 +465,77 @@
         <!-- DDL by Connection & Migration Stats -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- DDL Count by Connection -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{{ $t('dashboard.ddlByConnection') }}</h2>
+          <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700"
+          >
+            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {{ $t('dashboard.ddlByConnection') }}
+            </h2>
             <div class="space-y-3">
-              <div v-for="(count, connId) in ddlByConnection" :key="connId" class="flex items-center justify-between">
+              <div
+                v-for="(count, connId) in ddlByConnection"
+                :key="connId"
+                class="flex items-center justify-between"
+              >
                 <div class="flex items-center gap-2">
                   <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ getConnectionName(connId) }}</span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                    getConnectionName(connId)
+                  }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-bold text-gray-900 dark:text-white">{{ count }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">DDL</span>
                 </div>
               </div>
-              <div v-if="Object.keys(ddlByConnection).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div
+                v-if="Object.keys(ddlByConnection).length === 0"
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
                 {{ $t('dashboard.noDDLChanges') }}
               </div>
             </div>
           </div>
 
           <!-- Migration Stats by Pair -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{{ $t('dashboard.migrationStats') }}</h2>
+          <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700"
+          >
+            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {{ $t('dashboard.migrationStats') }}
+            </h2>
             <div class="space-y-3">
-              <div v-for="(stats, pair) in migratesByPair" :key="pair" class="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-0">
+              <div
+                v-for="(stats, pair) in migratesByPair"
+                :key="pair"
+                class="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-0"
+              >
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ pair }}</span>
-                  <span class="text-xs font-semibold px-2 py-1 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                    pair
+                  }}</span>
+                  <span
+                    class="text-xs font-semibold px-2 py-1 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400"
+                  >
                     {{ stats.count }} {{ $t('dashboard.times') }}
                   </span>
                 </div>
-                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>{{ $t('dashboard.avgDuration') }}: {{ formatDuration(stats.avgDuration) }}</span>
-                  <span>{{ $t('dashboard.total') }}: {{ formatDuration(stats.totalDuration) }}</span>
+                <div
+                  class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
+                >
+                  <span
+                    >{{ $t('dashboard.avgDuration') }}:
+                    {{ formatDuration(stats.avgDuration) }}</span
+                  >
+                  <span
+                    >{{ $t('dashboard.total') }}: {{ formatDuration(stats.totalDuration) }}</span
+                  >
                 </div>
               </div>
-              <div v-if="Object.keys(migratesByPair).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div
+                v-if="Object.keys(migratesByPair).length === 0"
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
                 {{ $t('dashboard.noMigrations') }}
               </div>
             </div>
@@ -344,48 +544,100 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- Connection Pairs Overview -->
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
-              <h2 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between"
+            >
+              <h2
+                class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2"
+              >
                 <GitCompare class="w-4 h-4 text-primary-500" />
                 {{ $t('dashboard.syncMappings') }}
               </h2>
-              <button @click="navigateTo('/settings')" class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline">{{ $t('dashboard.managePairs') }}</button>
+              <button
+                @click="navigateTo('/settings')"
+                class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline"
+              >
+                {{ $t('dashboard.managePairs') }}
+              </button>
             </div>
             <div class="overflow-x-auto">
               <table class="min-w-full">
                 <thead>
                   <tr class="bg-gray-50/50 dark:bg-gray-900/20">
-                    <th class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.mappingPair') }}</th>
-                    <th class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.topology') }}</th>
-                    <th class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.condition') }}</th>
-                    <th class="text-right py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.actions') }}</th>
+                    <th
+                      class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                    >
+                      {{ $t('dashboard.mappingPair') }}
+                    </th>
+                    <th
+                      class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                    >
+                      {{ $t('dashboard.topology') }}
+                    </th>
+                    <th
+                      class="text-left py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                    >
+                      {{ $t('dashboard.condition') }}
+                    </th>
+                    <th
+                      class="text-right py-3 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                    >
+                      {{ $t('dashboard.actions') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
-                  <tr v-for="pair in displayedPairs" :key="pair.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group">
+                  <tr
+                    v-for="pair in displayedPairs"
+                    :key="pair.id"
+                    class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group"
+                  >
                     <td class="py-4 px-6">
                       <div class="flex flex-col gap-0.5">
-                        <div class="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary-500 transition-colors">{{ pair.name }}</div>
-                        <div class="text-[10px] text-gray-400 font-medium uppercase truncate max-w-[200px]">{{ pair.description || $t('dashboard.systemMapped') }}</div>
+                        <div
+                          class="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary-500 transition-colors"
+                        >
+                          {{ pair.name }}
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-400 font-medium uppercase truncate max-w-[200px]"
+                        >
+                          {{ pair.description || $t('dashboard.systemMapped') }}
+                        </div>
                       </div>
                     </td>
                     <td class="py-4 px-6 text-sm">
                       <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase rounded border border-blue-500/20">{{ pair.sourceEnv }}</span>
+                        <span
+                          class="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase rounded border border-blue-500/20"
+                          >{{ pair.sourceEnv }}</span
+                        >
                         <ArrowRightLeft class="w-3 h-3 text-gray-300" />
-                        <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase rounded border border-emerald-500/20">{{ pair.targetEnv }}</span>
+                        <span
+                          class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase rounded border border-emerald-500/20"
+                          >{{ pair.targetEnv }}</span
+                        >
                       </div>
                     </td>
                     <td class="py-4 px-6">
                       <div class="flex items-center gap-1.5">
-                        <div class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(pair.status)"></div>
-                        <span class="text-[10px] font-black uppercase tracking-widest" :class="getStatusClassText(pair.status)">{{ pair.status }}</span>
+                        <div
+                          class="w-1.5 h-1.5 rounded-full"
+                          :class="getStatusDotClass(pair.status)"
+                        ></div>
+                        <span
+                          class="text-[10px] font-black uppercase tracking-widest"
+                          :class="getStatusClassText(pair.status)"
+                          >{{ pair.status }}</span
+                        >
                       </div>
                     </td>
                     <td class="py-4 px-6 text-right">
-                      <button 
-                        @click="comparePair(pair)" 
+                      <button
+                        @click="comparePair(pair)"
                         class="px-4 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-primary-500 hover:text-white text-gray-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all active:scale-95"
                       >
                         {{ $t('dashboard.compare') }}
@@ -394,50 +646,93 @@
                   </tr>
                 </tbody>
               </table>
-              <div v-if="displayedPairs.length === 0" class="p-12 text-center text-gray-400 uppercase tracking-widest text-xs font-black italic">
+              <div
+                v-if="displayedPairs.length === 0"
+                class="p-12 text-center text-gray-400 uppercase tracking-widest text-xs font-black italic"
+              >
                 {{ $t('dashboard.noProjectMappings') }}
               </div>
             </div>
           </div>
 
           <!-- Recent Activity Timeline -->
-          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
-              <h2 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+          >
+            <div
+              class="px-6 py-4 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between"
+            >
+              <h2
+                class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest flex items-center gap-2"
+              >
                 <Activity class="w-4 h-4 text-orange-500" />
                 {{ $t('dashboard.operationalFeed') }}
               </h2>
-              <button @click="navigateTo('/history')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary-500 transition-colors">{{ $t('dashboard.clearFeed') }}</button>
+              <button
+                @click="navigateTo('/history')"
+                class="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary-500 transition-colors"
+              >
+                {{ $t('dashboard.clearFeed') }}
+              </button>
             </div>
             <div class="p-6">
               <div class="space-y-6 relative">
                 <!-- Vertical Timeline Line -->
                 <div class="absolute left-5 top-2 bottom-2 w-px bg-gray-100 dark:bg-gray-700"></div>
 
-                <div v-for="activity in recentActivities" :key="activity.id" class="flex items-start gap-4 relative group">
-                  <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110 duration-300" :class="getActivityIcon(activity.type).bg">
-                    <component :is="getActivityIcon(activity.type).icon" class="w-5 h-5" :class="getActivityIcon(activity.type).color" />
+                <div
+                  v-for="activity in recentActivities"
+                  :key="activity.id"
+                  class="flex items-start gap-4 relative group"
+                >
+                  <div
+                    class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110 duration-300"
+                    :class="getActivityIcon(activity.type).bg"
+                  >
+                    <component
+                      :is="getActivityIcon(activity.type).icon"
+                      class="w-5 h-5"
+                      :class="getActivityIcon(activity.type).color"
+                    />
                   </div>
                   <div class="flex-1 min-w-0 pt-1">
                     <div class="flex items-center justify-between gap-4 mb-1">
-                      <p class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">{{ getActivityTitle(activity) }}</p>
-                      <div class="flex-shrink-0 text-[10px] font-bold text-gray-400 uppercase tracking-tighter bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-700">
+                      <p
+                        class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight"
+                      >
+                        {{ getActivityTitle(activity) }}
+                      </p>
+                      <div
+                        class="flex-shrink-0 text-[10px] font-bold text-gray-400 uppercase tracking-tighter bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-700"
+                      >
                         {{ formatTimeAgo(activity.startTime) }}
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ getActivityDescription(activity) }}</p>
-                      <span v-if="activity.status === 'success'" class="w-1 h-1 rounded-full bg-green-500"></span>
-                      <span v-if="activity.status === 'failed'" class="w-1 h-1 rounded-full bg-red-500"></span>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {{ getActivityDescription(activity) }}
+                      </p>
+                      <span
+                        v-if="activity.status === 'success'"
+                        class="w-1 h-1 rounded-full bg-green-500"
+                      ></span>
+                      <span
+                        v-if="activity.status === 'failed'"
+                        class="w-1 h-1 rounded-full bg-red-500"
+                      ></span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div v-if="recentActivities.length === 0" class="text-center py-12">
-                   <div class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
-                     <Activity class="w-8 h-8 text-gray-200" />
-                   </div>
-                   <p class="text-xs font-black text-gray-400 uppercase tracking-widest">{{ $t('dashboard.noOpsHistory') }}</p>
+                  <div
+                    class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700"
+                  >
+                    <Activity class="w-8 h-8 text-gray-200" />
+                  </div>
+                  <p class="text-xs font-black text-gray-400 uppercase tracking-widest">
+                    {{ $t('dashboard.noOpsHistory') }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -453,12 +748,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { 
-  Database, 
-  Layers, 
-  GitCompare, 
-  Activity, 
-  TrendingUp, 
+import {
+  Database,
+  Layers,
+  GitCompare,
+  Activity,
+  TrendingUp,
   CheckCircle,
   FileCode,
   Clock,
@@ -466,12 +761,10 @@ import {
   LayoutGrid,
   Settings,
   FileText,
-  Edit3,
-  Folder,
   ChevronDown,
   Zap,
   Sparkles,
-  LayoutDashboard,
+  RefreshCw,
   ChevronRight
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
@@ -481,8 +774,6 @@ import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useOperationsStore } from '@/stores/operations'
-import { projectIconMap } from '@/utils/projectIcons'
-import ProjectIconPicker from '@/components/projects/ProjectIconPicker.vue'
 import Andb from '@/utils/andb'
 
 const { t } = useI18n()
@@ -494,7 +785,6 @@ const operationsStore = useOperationsStore()
 
 const isRefreshing = ref(false)
 const showReportsModal = ref(false)
-const isIconPickerOpen = ref(false)
 
 // Database Intelligence Stats
 const dbStats = ref<any[]>([])
@@ -506,35 +796,11 @@ const statsError = ref<string | null>(null)
 
 const currentProject = computed(() => projectsStore.currentProject)
 
-// Project Name Editing
-const isEditingName = ref(false)
-const tempName = ref('')
-
-const startEditing = () => {
-  tempName.value = currentProject.value?.name || ''
-  isEditingName.value = true
-}
-
-const cancelEdit = () => {
-  isEditingName.value = false
-}
-
-const saveProjectName = async () => {
-  if (!isEditingName.value) return
-  if (tempName.value.trim() && currentProject.value) {
-    projectsStore.updateProject(currentProject.value.id, { name: tempName.value.trim() })
-  }
-  isEditingName.value = false
-}
-
-// Custom directive for auto-focus
-const vFocus = {
-  mounted: (el: HTMLInputElement) => el.focus()
-}
-
 const displayedConnections = computed(() => {
   if (!currentProject.value) return []
-  return appStore.resolvedConnections.filter(c => currentProject.value?.connectionIds.includes(c.id))
+  return appStore.resolvedConnections.filter(c =>
+    currentProject.value?.connectionIds.includes(c.id)
+  )
 })
 
 const filteredConnections = computed(() => appStore.filteredConnections)
@@ -546,23 +812,25 @@ const activeProjectEnvironments = computed(() => {
 
 const displayedPairs = computed(() => {
   if (!currentProject.value) return []
-  
+
   const allowedEnvs = new Set(activeProjectEnvironments.value)
 
   return connectionPairsStore.connectionPairs.filter(p => {
     // 1. Must be linked to the current project
     if (!currentProject.value?.pairIds.includes(p.id)) return false
-    
+
     // 2. Both environments must be currently enabled in the project
     // This allows users to "hide" standard pairs by disabling environments
     if (!allowedEnvs.has(p.sourceEnv) || !allowedEnvs.has(p.targetEnv)) return false
-    
+
     return true
   })
 })
 
 const totalConnections = computed(() => displayedConnections.value.length)
-const connectedCount = computed(() => displayedConnections.value.filter(c => c.status === 'connected').length)
+const connectedCount = computed(
+  () => displayedConnections.value.filter(c => c.status === 'connected').length
+)
 const enabledEnvironments = computed(() => {
   // Filter environments present in displayed connections
   const envs = new Set<string>(displayedConnections.value.map((c: any) => c.environment))
@@ -590,8 +858,8 @@ const lastOperationTime = computed(() => {
 const filteredOperations = computed(() => {
   if (!currentProject.value) return []
   const connIds = new Set(currentProject.value.connectionIds)
-  
-  // Note: For pairs, we check both the specific pair ID (if stored in operation) 
+
+  // Note: For pairs, we check both the specific pair ID (if stored in operation)
   // or the source/target env matching a pair in the project.
   // For simplicity, we'll use the connections as the primary filtering anchor.
   return operationsStore.operations.filter(op => {
@@ -608,7 +876,7 @@ const totalDDLCount = computed(() => {
   const connIds = new Set(currentProject.value.connectionIds)
   return operationsStore.operations.reduce((sum, op) => {
     if (op.connectionId && connIds.has(op.connectionId)) {
-        return sum + (op.ddlCount || 0)
+      return sum + (op.ddlCount || 0)
     }
     return sum
   }, 0)
@@ -618,65 +886,70 @@ const totalMigrations = computed(() => {
   if (!currentProject.value) return 0
   // Filtering migrations by checking if the source/target matches any of our project's pairs
   // This is slightly complex because Operation currently lacks pairId/projectId
-  return operationsStore.operations.filter(op => op.type === 'migrate' && op.status === 'success').length
+  return operationsStore.operations.filter(op => op.type === 'migrate' && op.status === 'success')
+    .length
 })
 
 const averageDuration = computed(() => {
-    const ops = filteredOperations.value.filter(op => op.duration)
-    if (ops.length === 0) return 0
-    const total = ops.reduce((sum, op) => sum + (op.duration || 0), 0)
-    return Math.round(total / ops.length)
+  const ops = filteredOperations.value.filter(op => op.duration)
+  if (ops.length === 0) return 0
+  const total = ops.reduce((sum, op) => sum + (op.duration || 0), 0)
+  return Math.round(total / ops.length)
 })
 
 const totalOperationsCount = computed(() => filteredOperations.value.length)
-const successfulOperations = computed(() => filteredOperations.value.filter(op => op.status === 'success').length)
+const successfulOperations = computed(
+  () => filteredOperations.value.filter(op => op.status === 'success').length
+)
 const successRate = computed(() => {
   if (totalOperationsCount.value === 0) return 0
   return Math.round((successfulOperations.value / totalOperationsCount.value) * 100)
 })
 
 const ddlByConnection = computed(() => {
-    const result: Record<string, number> = {}
-    if (!currentProject.value) return result
-    const connIds = new Set(currentProject.value.connectionIds)
-    
-    operationsStore.operations.forEach(op => {
-      if (op.connectionId && op.ddlCount && connIds.has(op.connectionId)) {
-        result[op.connectionId] = (result[op.connectionId] || 0) + op.ddlCount
-      }
-    })
-    return result
+  const result: Record<string, number> = {}
+  if (!currentProject.value) return result
+  const connIds = new Set(currentProject.value.connectionIds)
+
+  operationsStore.operations.forEach(op => {
+    if (op.connectionId && op.ddlCount && connIds.has(op.connectionId)) {
+      result[op.connectionId] = (result[op.connectionId] || 0) + op.ddlCount
+    }
+  })
+  return result
 })
 
 const migratesByPair = computed(() => {
-    const result: Record<string, { count: number; totalDuration: number; avgDuration: number }> = {}
-    if (!currentProject.value) return result
-    
-    // We only show stats for pairs that belong to this project
-    const projectPairs = connectionPairsStore.connectionPairs.filter((p: any) => currentProject.value?.pairIds.includes(p.id))
-    const pairKeys = new Set(projectPairs.map((p: any) => `${p.sourceEnv}->${p.targetEnv}`))
+  const result: Record<string, { count: number; totalDuration: number; avgDuration: number }> = {}
+  if (!currentProject.value) return result
 
-    operationsStore.operations
-      .filter(op => op.type === 'migrate' && op.sourceEnv && op.targetEnv)
-      .forEach(op => {
-        const key = `${op.sourceEnv}->${op.targetEnv}`
-        if (!pairKeys.has(key)) return
+  // We only show stats for pairs that belong to this project
+  const projectPairs = connectionPairsStore.connectionPairs.filter((p: any) =>
+    currentProject.value?.pairIds.includes(p.id)
+  )
+  const pairKeys = new Set(projectPairs.map((p: any) => `${p.sourceEnv}->${p.targetEnv}`))
 
-        if (!result[key]) {
-          result[key] = { count: 0, totalDuration: 0, avgDuration: 0 }
-        }
-        result[key].count++
-        if (op.duration) {
-          result[key].totalDuration += op.duration
-        }
-      })
+  operationsStore.operations
+    .filter(op => op.type === 'migrate' && op.sourceEnv && op.targetEnv)
+    .forEach(op => {
+      const key = `${op.sourceEnv}->${op.targetEnv}`
+      if (!pairKeys.has(key)) return
 
-    Object.keys(result).forEach(key => {
-      if (result[key].count > 0) {
-        result[key].avgDuration = Math.round(result[key].totalDuration / result[key].count)
+      if (!result[key]) {
+        result[key] = { count: 0, totalDuration: 0, avgDuration: 0 }
+      }
+      result[key].count++
+      if (op.duration) {
+        result[key].totalDuration += op.duration
       }
     })
-    return result
+
+  Object.keys(result).forEach(key => {
+    if (result[key].count > 0) {
+      result[key].avgDuration = Math.round(result[key].totalDuration / result[key].count)
+    }
+  })
+  return result
 })
 
 const getStatusClassText = (status: string) => {
@@ -716,23 +989,43 @@ const getStatusDotClass = (status: string) => {
 
 // Recent activities (Project-scoped)
 const recentActivities = computed(() => {
-    return [...filteredOperations.value]
-      .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
-      .slice(0, 10)
+  return [...filteredOperations.value]
+    .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+    .slice(0, 10)
 })
 
 const getActivityIcon = (type: string) => {
   switch (type) {
     case 'compare':
-      return { icon: GitCompare, bg: 'bg-purple-100 dark:bg-purple-900/20', color: 'text-purple-600 dark:text-purple-400' }
+      return {
+        icon: GitCompare,
+        bg: 'bg-purple-100 dark:bg-purple-900/20',
+        color: 'text-purple-600 dark:text-purple-400'
+      }
     case 'migrate':
-      return { icon: ArrowRightLeft, bg: 'bg-orange-100 dark:bg-orange-900/20', color: 'text-orange-600 dark:text-orange-400' }
+      return {
+        icon: ArrowRightLeft,
+        bg: 'bg-orange-100 dark:bg-orange-900/20',
+        color: 'text-orange-600 dark:text-orange-400'
+      }
     case 'export':
-      return { icon: Database, bg: 'bg-green-100 dark:bg-green-900/20', color: 'text-green-600 dark:text-green-400' }
+      return {
+        icon: Database,
+        bg: 'bg-green-100 dark:bg-green-900/20',
+        color: 'text-green-600 dark:text-green-400'
+      }
     case 'test':
-      return { icon: CheckCircle, bg: 'bg-blue-100 dark:bg-blue-900/20', color: 'text-blue-600 dark:text-blue-400' }
+      return {
+        icon: CheckCircle,
+        bg: 'bg-blue-100 dark:bg-blue-900/20',
+        color: 'text-blue-600 dark:text-blue-400'
+      }
     default:
-      return { icon: Activity, bg: 'bg-gray-100 dark:bg-gray-900/20', color: 'text-gray-600 dark:text-gray-400' }
+      return {
+        icon: Activity,
+        bg: 'bg-gray-100 dark:bg-gray-900/20',
+        color: 'text-gray-600 dark:text-gray-400'
+      }
   }
 }
 
@@ -777,7 +1070,7 @@ const refreshData = async () => {
     ])
   } catch (error: any) {
     if ((window as any).electronAPI) {
-      (window as any).electronAPI.log.send('error', 'Refresh failed in dashboard', error.message)
+      ;(window as any).electronAPI.log.send('error', 'Refresh failed in dashboard', error.message)
     }
   } finally {
     setTimeout(() => {
@@ -796,19 +1089,19 @@ const comparePair = (pair: any) => {
 
 const fetchDashboardStats = async () => {
   if (isFetchingStats.value || !selectedStatsConnectionId.value) return
-  
+
   const conn = appStore.getConnectionById(selectedStatsConnectionId.value)
   if (!conn) return
 
   isFetchingStats.value = true
   statsError.value = null
-  
+
   try {
     const [stats, info] = await Promise.all([
       Andb.getTableStats(conn as any),
       Andb.getServerInfo(conn as any)
     ])
-    
+
     // Handle potential double-wrapping from legacy or unexpected IPC behavior
     if (stats && (stats as any).success && (stats as any).data) {
       dbStats.value = (stats as any).data
@@ -831,19 +1124,24 @@ const selectStatsConnection = (id: string) => {
 }
 
 // Watch for filtered connections changes (e.g. project switch)
-watch(() => filteredConnections.value, (newConns) => {
-  if (newConns.length > 0) {
-    // If current selection is not in new list, pick first one
-    if (!newConns.some(c => c.id === selectedStatsConnectionId.value)) {
-      selectedStatsConnectionId.value = newConns[0].id
-      fetchDashboardStats()
+watch(
+  () => filteredConnections.value,
+  newConns => {
+    if (newConns.length > 0) {
+      // If current selection is not in new list, pick first one
+      if (!newConns.some(c => c.id === selectedStatsConnectionId.value)) {
+        selectedStatsConnectionId.value = newConns[0].id
+        // Auto-fetch disabled to prevent background execution on startup
+        // fetchDashboardStats()
+      }
+    } else {
+      selectedStatsConnectionId.value = ''
+      dbStats.value = []
+      serverInfo.value = null
     }
-  } else {
-    selectedStatsConnectionId.value = ''
-    dbStats.value = []
-    serverInfo.value = null
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   // Load data from store (which loads from storage)

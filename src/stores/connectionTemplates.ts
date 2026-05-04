@@ -67,9 +67,13 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
 
   init()
 
-  watch(templates, (newVal) => {
-    storage.set('connectionTemplates', JSON.parse(JSON.stringify(newVal)))
-  }, { deep: true })
+  watch(
+    templates,
+    newVal => {
+      storage.set('connectionTemplates', JSON.parse(JSON.stringify(newVal)))
+    },
+    { deep: true }
+  )
 
   function checkDuplicate(template: Partial<ConnectionTemplate>, excludeId?: string) {
     return templates.value.some(t => {
@@ -98,7 +102,7 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
     if (index !== -1) {
       const original = templates.value[index]
       const merged = { ...original, ...updates }
-      
+
       // Only check for duplicates if the name is actually being changed
       if (updates.name && updates.name.toLowerCase() !== original.name.toLowerCase()) {
         if (checkDuplicate(merged, id)) {

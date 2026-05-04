@@ -1,9 +1,9 @@
 /**
  * SQLite Database for History & Logs
- * 
+ *
  * ⚠️ STUB FILE - This should NOT be used in renderer process
  * Use window.electronAPI for database operations
- * 
+ *
  * Purpose: Store historical data, logs, audit trails
  * Separate from electron-store for:
  * - Complex queries
@@ -331,10 +331,18 @@ class DatabaseManager {
     if (!this.db) throw new Error('Database not initialized')
 
     return {
-      migrations: this.db.prepare('SELECT COUNT(*) as count FROM migrations').get() as { count: number },
-      comparisons: this.db.prepare('SELECT COUNT(*) as count FROM comparison_history').get() as { count: number },
-      exports: this.db.prepare('SELECT COUNT(*) as count FROM export_logs').get() as { count: number },
-      audits: this.db.prepare('SELECT COUNT(*) as count FROM audit_logs').get() as { count: number },
+      migrations: this.db.prepare('SELECT COUNT(*) as count FROM migrations').get() as {
+        count: number
+      },
+      comparisons: this.db.prepare('SELECT COUNT(*) as count FROM comparison_history').get() as {
+        count: number
+      },
+      exports: this.db.prepare('SELECT COUNT(*) as count FROM export_logs').get() as {
+        count: number
+      },
+      audits: this.db.prepare('SELECT COUNT(*) as count FROM audit_logs').get() as {
+        count: number
+      },
       path: this.dbPath
     }
   }

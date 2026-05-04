@@ -33,13 +33,21 @@ export function useCompareCore() {
   const isSourceDump = computed(() => {
     const conn = activePair.value?.source
     if (!conn) return false
-    return conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
+    return (
+      conn.type === 'dump' ||
+      conn.host?.toLowerCase().endsWith('.sql') ||
+      conn.host?.includes('.sql')
+    )
   })
 
   const isTargetDump = computed(() => {
     const conn = activePair.value?.target
     if (!conn) return false
-    return conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
+    return (
+      conn.type === 'dump' ||
+      conn.host?.toLowerCase().endsWith('.sql') ||
+      conn.host?.includes('.sql')
+    )
   })
 
   // Computed: Consolidated Results
@@ -72,7 +80,9 @@ export function useCompareCore() {
   })
 
   const hasResults = computed(() => allResults.value.length > 0)
-  const totalChanges = computed(() => allResults.value.filter(i => i.status !== 'equal' && i.status !== 'same').length)
+  const totalChanges = computed(
+    () => allResults.value.filter(i => i.status !== 'equal' && i.status !== 'same').length
+  )
 
   // Actions
   const resetResults = () => {
@@ -97,7 +107,13 @@ export function useCompareCore() {
       const { source, target } = activePair.value
 
       // Determine Scope
-      let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = ['tables', 'procedures', 'functions', 'triggers', 'views']
+      let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = [
+        'tables',
+        'procedures',
+        'functions',
+        'triggers',
+        'views'
+      ]
       const compareName = filterName
 
       if (filterName && filterType) {
@@ -112,7 +128,10 @@ export function useCompareCore() {
         statusMessage.value = t('compare.analyzingItem', { name: filterType })
       } else {
         // Full Scope
-        consoleStore.addLog(`Starting comparison between ${source.name} (${source.host}) and ${target.name} (${target.host})`, 'info')
+        consoleStore.addLog(
+          `Starting comparison between ${source.name} (${source.host}) and ${target.name} (${target.host})`,
+          'info'
+        )
         statusMessage.value = t('compare.analyzing')
       }
 
@@ -124,10 +143,7 @@ export function useCompareCore() {
         if (!filterName && (!filterType || filterType === 'all')) {
           statusMessage.value = t('compare.cleaning')
           consoleStore.addLog('Cleaning up local cache for fresh fetch...', 'warn')
-          await Promise.all([
-            Andb.clearConnectionData(source),
-            Andb.clearConnectionData(target)
-          ])
+          await Promise.all([Andb.clearConnectionData(source), Andb.clearConnectionData(target)])
         }
 
         statusMessage.value = t('compare.exporting')
@@ -135,22 +151,34 @@ export function useCompareCore() {
         // Log commands
         for (const type of objTypes) {
           // These are purely visual logs for the user to trust what's happening
-          consoleStore.addLog(`andb export --source ${source.environment} --type ${type}` + (compareName ? ` --name ${compareName}` : ''), 'cmd')
-          consoleStore.addLog(`andb export --source ${target.environment} --type ${type}` + (compareName ? ` --name ${compareName}` : ''), 'cmd')
+          consoleStore.addLog(
+            `andb export --source ${source.environment} --type ${type}` +
+              (compareName ? ` --name ${compareName}` : ''),
+            'cmd'
+          )
+          consoleStore.addLog(
+            `andb export --source ${target.environment} --type ${type}` +
+              (compareName ? ` --name ${compareName}` : ''),
+            'cmd'
+          )
         }
 
         // Execute Exports Parallel
         await Promise.all([
-          ...objTypes.map(type => Andb.export(source, target, {
-            type,
-            environment: source.environment,
-            name: compareName
-          })),
-          ...objTypes.map(type => Andb.export(source, target, {
-            type,
-            environment: target.environment,
-            name: compareName
-          }))
+          ...objTypes.map(type =>
+            Andb.export(source, target, {
+              type,
+              environment: source.environment,
+              name: compareName
+            })
+          ),
+          ...objTypes.map(type =>
+            Andb.export(source, target, {
+              type,
+              environment: target.environment,
+              name: compareName
+            })
+          )
         ])
       }
 
@@ -161,7 +189,7 @@ export function useCompareCore() {
         type: 'compare',
         status: 'running',
         startTime: new Date(),
-        // sourceEnv & targetEnv are optional in Operation interface but good to have if we extended it, 
+        // sourceEnv & targetEnv are optional in Operation interface but good to have if we extended it,
         // but looking at store definition they are top level props.
         // Let's match the interface defined in operations.ts:
         // type: 'compare' | 'migrate' | ...
@@ -178,12 +206,14 @@ export function useCompareCore() {
 
       try {
         const results = await Promise.all(
-          objTypes.map(type => Andb.compare(source, target, {
-            type,
-            sourceEnv: source.environment,
-            targetEnv: target.environment,
-            name: compareName // If filtering by name
-          }))
+          objTypes.map(type =>
+            Andb.compare(source, target, {
+              type,
+              sourceEnv: source.environment,
+              targetEnv: target.environment,
+              name: compareName // If filtering by name
+            })
+          )
         )
 
         // Step 3: Hydrate Results

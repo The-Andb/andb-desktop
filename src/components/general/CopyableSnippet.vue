@@ -13,7 +13,9 @@ const handleCopy = async () => {
   try {
     await navigator.clipboard.writeText(props.content)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 2000)
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch (err) {
     console.error('Failed to copy text: ', err)
   }
@@ -26,8 +28,8 @@ const handleCopy = async () => {
       {{ content }}
     </div>
     <div class="bg-gray-800 flex items-center justify-center p-2 border-l border-gray-700">
-      <button 
-        @click="handleCopy" 
+      <button
+        @click="handleCopy"
         class="p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
         :title="copied ? 'Copied!' : 'Copy to clipboard'"
       >

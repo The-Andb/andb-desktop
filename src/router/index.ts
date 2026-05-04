@@ -83,7 +83,7 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   const projectsStore = useProjectsStore()
-  
+
   if (!projectsStore.isLoaded) {
     await projectsStore.reloadData()
   }
@@ -95,7 +95,7 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
-router.afterEach((to) => {
+router.afterEach(to => {
   posthog.capture('$pageview', {
     $current_url: to.fullPath
   })

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock browser globals before stores are imported
 if (typeof window === 'undefined') {
-  (global as any).window = {
+  ;(global as any).window = {
     matchMedia: vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
@@ -11,17 +11,17 @@ if (typeof window === 'undefined') {
       removeListener: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      dispatchEvent: vi.fn()
     })),
     electronAPI: {
       storage: {
         get: vi.fn().mockResolvedValue({ success: true, data: null }),
         set: vi.fn().mockResolvedValue({ success: true }),
-        delete: vi.fn().mockResolvedValue({ success: true }),
+        delete: vi.fn().mockResolvedValue({ success: true })
       }
     }
-  };
-  (global as any).matchMedia = (global as any).window.matchMedia;
+  }
+  ;(global as any).matchMedia = (global as any).window.matchMedia
 }
 
 import { setActivePinia, createPinia } from 'pinia'
@@ -51,7 +51,7 @@ vi.mock('@/utils/storage-ipc', () => ({
     saveConnections: vi.fn().mockResolvedValue({}),
     saveConnectionPairs: vi.fn().mockResolvedValue({}),
     saveEnvironments: vi.fn().mockResolvedValue({}),
-    saveConnectionTemplates: vi.fn().mockResolvedValue({}),
+    saveConnectionTemplates: vi.fn().mockResolvedValue({})
   }
 }))
 
@@ -194,7 +194,15 @@ describe('Projects Store', () => {
     appStore.selectedConnectionId = 'test-conn'
     pairsStore.selectedPairId = 'test-pair'
     consoleStore.logs = [{ type: 'info', message: 'test', timestamp: new Date() }]
-    operationsStore.operations = [{ id: '1', projectId: newProject.id, type: 'test' as any, status: 'pending', startTime: new Date() }]
+    operationsStore.operations = [
+      {
+        id: '1',
+        projectId: newProject.id,
+        type: 'test' as any,
+        status: 'pending',
+        startTime: new Date()
+      }
+    ]
 
     // Change project
     store.selectProject(newProject.id)

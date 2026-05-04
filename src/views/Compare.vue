@@ -4,109 +4,180 @@
       <div class="flex items-center justify-between w-full h-full gap-4">
         <!-- Left Side: Title -->
         <div class="flex items-center gap-2">
-           <GitCompare class="w-4 h-4 text-primary-500" />
-           <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ $t('compare.title') }}</span>
+          <GitCompare class="w-4 h-4 text-primary-500" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{
+            $t('compare.title')
+          }}</span>
         </div>
 
         <!-- Right Side: Actions & Controls -->
         <div class="flex items-center gap-4 flex-1 justify-end">
           <!-- View Mode Switch -->
-          <div v-if="appStore.layoutSettings.toolbar && appStore.compareMode === 'auto'" class="flex items-center space-x-2 shrink-0 p-1.5">
-            <div class="flex items-center p-1  border border-gray-100 dark:border-gray-700 rounded-xl"
-              :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''">
-              <button @click="viewMode = 'list'"
-                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200" :class="[
-                  viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
-                  appStore.buttonStyle === 'full' ? 'px-3 py-1.5 text-[10px]' : 'px-2 py-1 text-[10px]'
-                ]" :title="$t('compare.listViewTooltip')">
+          <div
+            v-if="appStore.layoutSettings.toolbar && appStore.compareMode === 'auto'"
+            class="flex items-center space-x-2 shrink-0 p-1.5"
+          >
+            <div
+              class="flex items-center p-1 border border-gray-100 dark:border-gray-700 rounded-xl"
+              :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''"
+            >
+              <button
+                @click="viewMode = 'list'"
+                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200"
+                :class="[
+                  viewMode === 'list'
+                    ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
+                  appStore.buttonStyle === 'full'
+                    ? 'px-3 py-1.5 text-[10px]'
+                    : 'px-2 py-1 text-[10px]'
+                ]"
+                :title="$t('compare.listViewTooltip')"
+              >
                 <List class="w-3.5 h-3.5" />
                 <span v-if="appStore.buttonStyle !== 'icons' && appStore.buttonStyle === 'full'">{{
-                  $t('compare.listView') }}</span>
+                  $t('compare.listView')
+                }}</span>
               </button>
-              <button @click="viewMode = 'tree'"
-                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200" :class="[
-                  viewMode === 'tree' ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
-                  appStore.buttonStyle === 'full' ? 'px-3 py-1.5 text-[10px]' : 'px-2 py-1 text-[10px]'
-                ]" :title="$t('compare.treeViewTooltip')">
+              <button
+                @click="viewMode = 'tree'"
+                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200"
+                :class="[
+                  viewMode === 'tree'
+                    ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
+                  appStore.buttonStyle === 'full'
+                    ? 'px-3 py-1.5 text-[10px]'
+                    : 'px-2 py-1 text-[10px]'
+                ]"
+                :title="$t('compare.treeViewTooltip')"
+              >
                 <GitMerge class="w-3.5 h-3.5 rotate-90" />
                 <span v-if="appStore.buttonStyle !== 'icons' && appStore.buttonStyle === 'full'">{{
-                  $t('compare.treeViewLabel') }}</span>
+                  $t('compare.treeViewLabel')
+                }}</span>
               </button>
             </div>
 
-            <div v-if="appStore.buttonStyle === 'full'" class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+            <div
+              v-if="appStore.buttonStyle === 'full'"
+              class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
+            ></div>
 
             <!-- Safe Mode Toggle -->
             <div
-              class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none">
-              <ShieldCheck class="w-4 h-4" :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'" />
+              class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none"
+            >
+              <ShieldCheck
+                class="w-4 h-4"
+                :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'"
+              />
 
               <div class="flex items-center gap-1">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help"
-                  :title="$t('common.tooltips.safeMode', 'Safe Mode prevents potentially destructive actions during comparisons and migrations.')">{{
-                    $t('schema.safeMode', 'Safe Mode') }}</span>
-                <button @click="showSafeModeInfo = !showSafeModeInfo"
-                  class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <span
+                  class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help"
+                  :title="
+                    $t(
+                      'common.tooltips.safeMode',
+                      'Safe Mode prevents potentially destructive actions during comparisons and migrations.'
+                    )
+                  "
+                  >{{ $t('schema.safeMode', 'Safe Mode') }}</span
+                >
+                <button
+                  @click="showSafeModeInfo = !showSafeModeInfo"
+                  class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
                   <Info class="w-3 h-3" />
                 </button>
               </div>
 
-              <button @click="appStore.safeMode = !appStore.safeMode"
+              <button
+                @click="appStore.safeMode = !appStore.safeMode"
                 class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
-                :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'">
+                :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
+              >
                 <span
                   class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                  :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"></span>
+                  :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"
+                ></span>
               </button>
 
               <!-- Info Popover -->
-              <div v-if="showSafeModeInfo"
-                class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
-                <div class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+              <div
+                v-if="showSafeModeInfo"
+                class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50"
+              >
+                <div
+                  class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2"
+                >
                   <h3
-                    class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest">
-                    <ShieldCheck class="w-4 h-4 text-green-500" /> {{ $t('schema.safeMode', 'Safe Mode') }} Info
+                    class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest"
+                  >
+                    <ShieldCheck class="w-4 h-4 text-green-500" />
+                    {{ $t('schema.safeMode', 'Safe Mode') }} Info
                   </h3>
-                  <button @click="showSafeModeInfo = false"
-                    class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <button
+                    @click="showSafeModeInfo = false"
+                    class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     <X class="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <div class="text-gray-600 dark:text-gray-300 space-y-3 text-xs leading-relaxed">
                   <p>
-                    <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"><span
-                        class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry Run)</span>
-                    Simulates changes without affecting your database. Generates SQL for preview only. <span
-                      class="text-gray-400 italic">Recommended.</span>
+                    <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"
+                      ><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry
+                      Run)</span
+                    >
+                    Simulates changes without affecting your database. Generates SQL for preview
+                    only. <span class="text-gray-400 italic">Recommended.</span>
                   </p>
                   <p>
-                    <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"><span
-                        class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span>
-                    Executes actual CREATE, ALTER, and DROP statements directly on the database. <span
-                      class="text-red-400 font-bold">Use with extreme caution!</span>
+                    <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"
+                      ><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span
+                    >
+                    Executes actual CREATE, ALTER, and DROP statements directly on the database.
+                    <span class="text-red-400 font-bold">Use with extreme caution!</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            <div v-if="appStore.buttonStyle === 'full'" class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+            <div
+              v-if="appStore.buttonStyle === 'full'"
+              class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
+            ></div>
 
-            <button v-if="appStore.compareMode === 'auto'" @click="runComparison()" :disabled="loading || !activePair"
+            <button
+              v-if="appStore.compareMode === 'auto'"
+              @click="runComparison()"
+              :disabled="loading || !activePair"
               class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale shrink-0"
               :class="[
-                appStore.buttonStyle === 'full' ? 'px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs tracking-wide shadow-md active:scale-95 gap-2' : '',
-                appStore.buttonStyle === 'minimal' ? 'px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm gap-2' : '',
-                appStore.buttonStyle === 'icons' ? 'w-10 h-10 bg-primary-500 text-white rounded-full shadow-lg hover:scale-110 active:scale-95' : ''
-              ]" :title="$t('compare.runCompareTooltip')">
+                appStore.buttonStyle === 'full'
+                  ? 'px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs tracking-wide shadow-md active:scale-95 gap-2'
+                  : '',
+                appStore.buttonStyle === 'minimal'
+                  ? 'px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm gap-2'
+                  : '',
+                appStore.buttonStyle === 'icons'
+                  ? 'w-10 h-10 bg-primary-500 text-white rounded-full shadow-lg hover:scale-110 active:scale-95'
+                  : ''
+              ]"
+              :title="$t('compare.runCompareTooltip')"
+            >
               <GitCompare v-if="!(loading && loadingAction === 'compare')" class="w-4 h-4" />
               <RefreshCw v-else class="w-4 h-4 animate-spin" />
-              <span v-if="appStore.buttonStyle !== 'icons'">{{ (loading && loadingAction === 'compare') ?
-                $t('compare.comparing') : (appStore.buttonStyle === 'full' ? $t('compare.compare') :
-                  $t('compare.compare')) }}</span>
+              <span v-if="appStore.buttonStyle !== 'icons'">{{
+                loading && loadingAction === 'compare'
+                  ? $t('compare.comparing')
+                  : appStore.buttonStyle === 'full'
+                    ? $t('compare.compare')
+                    : $t('compare.compare')
+              }}</span>
             </button>
-
           </div>
-
         </div>
       </div>
     </template>
@@ -114,15 +185,21 @@
     <template #breadcrumbs>
       <div v-if="activePair" class="flex items-center gap-2">
         <!-- Source Context -->
-        <div class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div
+          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
+        >
           <div class="flex items-center text-gray-500 dark:text-gray-400">
             <Server class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ activePair.source.environment }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{
+              activePair.source.environment
+            }}</span>
           </div>
           <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
           <div class="flex items-center text-primary-600 dark:text-primary-400">
             <Database class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{ activePair.source.database || activePair.source.name }}</span>
+            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{
+              activePair.source.database || activePair.source.name
+            }}</span>
           </div>
         </div>
 
@@ -131,91 +208,166 @@
         </div>
 
         <!-- Target Context -->
-        <div class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div
+          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
+        >
           <div class="flex items-center text-gray-500 dark:text-gray-400">
             <Server class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ activePair.target.environment }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{
+              activePair.target.environment
+            }}</span>
           </div>
           <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
           <div class="flex items-center text-primary-600 dark:text-primary-400">
             <Database class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{ activePair.target.database || activePair.target.name }}</span>
+            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{
+              activePair.target.database || activePair.target.name
+            }}</span>
           </div>
         </div>
-        
-        <button @click="runComparison()" :disabled="loading || !activePair"
-          class="ml-3 p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl text-gray-400 hover:text-primary-500 transition-all active:scale-95 disabled:opacity-30 border border-transparent hover:border-primary-100 dark:hover:border-primary-800">
-          <RotateCcw class="w-4 h-4" :class="{ 'animate-spin': (loading && loadingAction === 'compare') }" />
+
+        <button
+          @click="runComparison()"
+          :disabled="loading || !activePair"
+          class="ml-3 p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl text-gray-400 hover:text-primary-500 transition-all active:scale-95 disabled:opacity-30 border border-transparent hover:border-primary-100 dark:hover:border-primary-800"
+        >
+          <RotateCcw
+            class="w-4 h-4"
+            :class="{ 'animate-spin': loading && loadingAction === 'compare' }"
+          />
         </button>
       </div>
-      <span v-else class="text-[10px] font-black uppercase tracking-widest text-gray-400 opacity-30">{{ $t('compare.noPair') }}</span>
+      <span
+        v-else
+        class="text-[10px] font-black uppercase tracking-widest text-gray-400 opacity-30"
+        >{{ $t('compare.noPair') }}</span
+      >
     </template>
 
     <!-- Comparison & Console Split -->
     <div class="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-white dark:bg-gray-950">
       <!-- Comparison Area (Top) -->
-      <div class="flex-1 flex overflow-hidden relative min-w-0" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
+      <div
+        class="flex-1 flex overflow-hidden relative min-w-0"
+        :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }"
+      >
         <main class="flex-1 flex flex-col overflow-hidden relative min-w-0">
-
           <!-- MIGRATION INLINE PANEL -->
-          <div v-if="migrationTerminal.isOpen"
-            class="absolute inset-0 z-[100] bg-white dark:bg-gray-900 flex flex-col animate-in slide-in-from-right-8 duration-300">
-            <MigrationConfirm :is-open="true" :inline="true" :loading="isMigrating"
-              :item="migrationTerminal.type === 'batch' ? { isBatch: true, items: migrationTerminal.items } : migrationTerminal.items[0]"
-              :source-name="sourceName" :target-name="targetName" :sql-script="migrationTerminal.sqlScript"
-              :sql-map="migrationTerminal.sqlMap" :fetching-sql="migrationTerminal.fetching"
-              :target-is-static="isTargetDump" @close="closeMigrationTerminal" @confirm="executeConfirmedMigration"
-              @select="fetchBatchItemSql" />
+          <div
+            v-if="migrationTerminal.isOpen"
+            class="absolute inset-0 z-[100] bg-white dark:bg-gray-900 flex flex-col animate-in slide-in-from-right-8 duration-300"
+          >
+            <MigrationConfirm
+              :is-open="true"
+              :inline="true"
+              :loading="isMigrating"
+              :item="
+                migrationTerminal.type === 'batch'
+                  ? { isBatch: true, items: migrationTerminal.items }
+                  : migrationTerminal.items[0]
+              "
+              :source-name="sourceName"
+              :target-name="targetName"
+              :sql-script="migrationTerminal.sqlScript"
+              :sql-map="migrationTerminal.sqlMap"
+              :fetching-sql="migrationTerminal.fetching"
+              :target-is-static="isTargetDump"
+              @close="closeMigrationTerminal"
+              @confirm="executeConfirmedMigration"
+              @select="fetchBatchItemSql"
+            />
           </div>
 
           <!-- Removed Manual Compare Dropdowns per user request -->
 
           <!-- Vertical Split: Object List vs DDL View -->
-          <div v-if="viewMode === 'list'" class="flex-1 flex overflow-hidden relative min-w-0" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
+          <div
+            v-if="viewMode === 'list'"
+            class="flex-1 flex overflow-hidden relative min-w-0"
+            :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }"
+          >
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
-            <div v-if="appStore.layoutSettings.sidebar" :style="{ width: resultsWidth + 'px' }"
+            <div
+              v-if="appStore.layoutSettings.sidebar"
+              :style="{ width: resultsWidth + 'px' }"
               class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300"
-              :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l' : 'border-r'">
+              :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l' : 'border-r'"
+            >
               <!-- Results Header: Standardized Style -->
-              <div class="px-4 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between">
+              <div
+                class="px-4 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
+              >
                 <div class="flex items-center gap-2">
                   <Database class="w-3.5 h-3.5 text-gray-400 opacity-50" />
-                  <span class="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Database Overview</span>
+                  <span
+                    class="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500"
+                    >Database Overview</span
+                  >
                 </div>
-                <div v-if="selectedFilterType !== 'all'" @click="selectedFilterType = 'all'" 
-                  class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500">
+                <div
+                  v-if="selectedFilterType !== 'all'"
+                  @click="selectedFilterType = 'all'"
+                  class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500"
+                >
                   <ChevronLeft class="w-3.5 h-3.5" />
                 </div>
               </div>
 
               <!-- Search Bar (Professional Redesign) -->
-              <div v-if="hasResults" class="px-3 pt-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm">
+              <div
+                v-if="hasResults"
+                class="px-3 pt-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm"
+              >
                 <div class="relative group">
-                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200">
+                  <span
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200"
+                  >
                     <Search class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500" />
                   </span>
-                  <input ref="searchInput" v-model="searchQuery" type="text"
+                  <input
+                    ref="searchInput"
+                    v-model="searchQuery"
+                    type="text"
                     :placeholder="$t('history.searchPlaceholder')"
-                    class="w-full pl-9 pr-36 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner" />
+                    class="w-full pl-9 pr-36 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner"
+                  />
 
                   <!-- Unified Search Icons (VS Code Style) -->
                   <div class="absolute inset-y-0 right-0 flex items-center pr-2 space-x-0.5">
-                    <button @click="searchFlags.caseSensitive = !searchFlags.caseSensitive"
+                    <button
+                      @click="searchFlags.caseSensitive = !searchFlags.caseSensitive"
                       class="p-1 rounded-md transition-all duration-200"
-                      :class="searchFlags.caseSensitive ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      title="Match Case">
+                      :class="
+                        searchFlags.caseSensitive
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      "
+                      title="Match Case"
+                    >
                       <CaseSensitive class="w-3.5 h-3.5" />
                     </button>
-                    <button @click="searchFlags.wholeWord = !searchFlags.wholeWord"
+                    <button
+                      @click="searchFlags.wholeWord = !searchFlags.wholeWord"
                       class="p-1 rounded-md transition-all duration-200"
-                      :class="searchFlags.wholeWord ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      title="Match Whole Word">
+                      :class="
+                        searchFlags.wholeWord
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      "
+                      title="Match Whole Word"
+                    >
                       <WholeWord class="w-3.5 h-3.5" />
                     </button>
-                    <button @click="searchFlags.regex = !searchFlags.regex"
+                    <button
+                      @click="searchFlags.regex = !searchFlags.regex"
                       class="p-1 rounded-md transition-all duration-200"
-                      :class="searchFlags.regex ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      title="Use Regex">
+                      :class="
+                        searchFlags.regex
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      "
+                      title="Use Regex"
+                    >
                       <Regex class="w-3.5 h-3.5" />
                     </button>
 
@@ -224,13 +376,21 @@
                     <button
                       @click="searchFlags.columns = !searchFlags.columns"
                       class="p-1 rounded-md transition-all duration-200"
-                      :class="searchFlags.columns ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
-                      title="Content Search (Snippets)">
+                      :class="
+                        searchFlags.columns
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      "
+                      title="Content Search (Snippets)"
+                    >
                       <Binary class="w-3.5 h-3.5" />
                     </button>
 
-                    <button v-if="searchQuery" @click="searchQuery = ''"
-                      class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all">
+                    <button
+                      v-if="searchQuery"
+                      @click="searchQuery = ''"
+                      class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all"
+                    >
                       <X class="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -238,172 +398,310 @@
 
                 <!-- Search Progress/Summary & Tree Controls (Synchronized) -->
                 <div class="flex items-center justify-between mt-2.5 px-0.5">
-                   <div class="flex items-center gap-2">
-                     <div class="text-[9px] text-gray-400 font-black uppercase tracking-widest">
-                       {{ filteredResults.length }} Objects Found
-                     </div>
-                     <div class="flex gap-0.5 ml-1">
-                        <button class="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-gray-600">
-                          <CaseSensitive class="w-3 h-3" />
-                        </button>
-                     </div>
-                   </div>
-
-                   <div class="flex items-center gap-0.5 shrink-0">
-                      <!-- Sort Options -->
-                      <button @click="sortBy = sortBy === 'date' ? 'status' : 'date'"
-                        class="p-1 rounded-md transition-colors"
-                        :class="sortBy === 'date' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
-                        title="Sort by Date (Last Updated)">
-                        <CalendarClock class="w-3.5 h-3.5" />
-                      </button>
-                      <button @click="sortBy = sortBy === 'name' ? 'status' : 'name'"
-                        class="p-1 rounded-md transition-colors"
-                        :class="sortBy === 'name' ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'"
-                        title="Sort Alphabetically (A-Z)">
-                        <ArrowDownAZ class="w-3.5 h-3.5" />
-                      </button>
-                      
-                      <div class="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-1"></div>
-
+                  <div class="flex items-center gap-2">
+                    <div class="text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                      {{ filteredResults.length }} Objects Found
+                    </div>
+                    <div class="flex gap-0.5 ml-1">
                       <button
-                        @click="treeExpandCmd = { action: 'expand', ts: Date.now() }; collapsedCategories.clear()"
-                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                        title="Expand All"
+                        class="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-gray-600"
                       >
-                        <Plus class="w-3.5 h-3.5" />
+                        <CaseSensitive class="w-3 h-3" />
                       </button>
-                      <button
-                        @click="treeExpandCmd = { action: 'collapse', ts: Date.now() };['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c => collapsedCategories.add(c))"
-                        class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                        title="Collapse All"
-                      >
-                        <Minus class="w-3.5 h-3.5" />
-                      </button>
-                   </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-0.5 shrink-0">
+                    <!-- Sort Options -->
+                    <button
+                      @click="sortBy = sortBy === 'date' ? 'status' : 'date'"
+                      class="p-1 rounded-md transition-colors"
+                      :class="
+                        sortBy === 'date'
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      "
+                      title="Sort by Date (Last Updated)"
+                    >
+                      <CalendarClock class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      @click="sortBy = sortBy === 'name' ? 'status' : 'name'"
+                      class="p-1 rounded-md transition-colors"
+                      :class="
+                        sortBy === 'name'
+                          ? 'bg-primary-500 text-white shadow-sm'
+                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      "
+                      title="Sort Alphabetically (A-Z)"
+                    >
+                      <ArrowDownAZ class="w-3.5 h-3.5" />
+                    </button>
+
+                    <div class="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+                    <button
+                      @click="
+                        treeExpandCmd = { action: 'expand', ts: Date.now() }
+                        collapsedCategories.clear()
+                      "
+                      class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                      title="Expand All"
+                    >
+                      <Plus class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      @click="
+                        treeExpandCmd = { action: 'collapse', ts: Date.now() }
+                        ;['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c =>
+                          collapsedCategories.add(c)
+                        )
+                      "
+                      class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                      title="Collapse All"
+                    >
+                      <Minus class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-                <!-- Status Filters (Premium Pills) -->
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 px-1 mt-1 border-t border-gray-100 dark:border-gray-800/50">
-                  <span class="text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1">Filter:</span>
-                  <button v-for="filter in statusFilters" :key="filter.value"
-                    @click="selectedStatusFilter = filter.value"
-                    class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shrink-0"
-                    :class="selectedStatusFilter === filter.value
+              <!-- Status Filters (Premium Pills) -->
+              <div
+                class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 px-1 mt-1 border-t border-gray-100 dark:border-gray-800/50"
+              >
+                <span class="text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1"
+                  >Filter:</span
+                >
+                <button
+                  v-for="filter in statusFilters"
+                  :key="filter.value"
+                  @click="selectedStatusFilter = filter.value"
+                  class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shrink-0"
+                  :class="
+                    selectedStatusFilter === filter.value
                       ? 'bg-primary-500 border-primary-500 text-white shadow-sm shadow-primary-500/20'
-                      : 'bg-gray-100 dark:bg-gray-800 border-transparent text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'">
-                    {{ filter.label }}
-                  </button>
-                </div>
+                      : 'bg-gray-100 dark:bg-gray-800 border-transparent text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                  "
+                >
+                  {{ filter.label }}
+                </button>
+              </div>
 
               <div class="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-2">
                 <!-- No Results / Empty State -->
-                <div v-if="!hasResults && !loading" class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in zoom-in duration-500">
+                <div
+                  v-if="!hasResults && !loading"
+                  class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in zoom-in duration-500"
+                >
                   <div class="relative">
                     <ScanSearch class="w-16 h-16 text-gray-200 dark:text-gray-800" />
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border border-gray-100 dark:border-gray-800">
+                    <div
+                      class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border border-gray-100 dark:border-gray-800"
+                    >
                       <Search class="w-3.5 h-3.5 text-gray-400" />
                     </div>
                   </div>
                   <div class="max-w-xs space-y-1">
-                    <p class="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">{{ activePair ? t('compare.noData') : t('compare.noPair') }}</p>
-                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed">{{ activePair ? t('compare.noDataDesc') : t('compare.noPairDesc') }}</p>
+                    <p
+                      class="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider"
+                    >
+                      {{ activePair ? t('compare.noData') : t('compare.noPair') }}
+                    </p>
+                    <p
+                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
+                    >
+                      {{ activePair ? t('compare.noDataDesc') : t('compare.noPairDesc') }}
+                    </p>
                   </div>
                   <div class="flex items-center gap-3 mt-2">
-                    <button v-if="activePair" @click="runComparison" class="px-6 py-2.5 bg-primary-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all">
+                    <button
+                      v-if="activePair"
+                      @click="runComparison"
+                      class="px-6 py-2.5 bg-primary-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all"
+                    >
                       {{ t('compare.startCompare') }}
                     </button>
-                    <button v-if="activePair" @click="runFetchAndCompare" class="px-6 py-2.5 border border-primary-500/30 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center gap-2">
-                      <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading && loadingAction === 'fetch' }" />
+                    <button
+                      v-if="activePair"
+                      @click="runFetchAndCompare"
+                      class="px-6 py-2.5 border border-primary-500/30 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center gap-2"
+                    >
+                      <RefreshCw
+                        class="w-3.5 h-3.5"
+                        :class="{ 'animate-spin': loading && loadingAction === 'fetch' }"
+                      />
                       Fetch & Compare
                     </button>
                   </div>
                 </div>
 
                 <!-- Identical / Everything Filtered Out -->
-                <div v-else-if="hasResults && filteredResults.length === 0 && !loading" class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                   <div class="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center relative">
-                      <div class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-20"></div>
-                      <CheckCircle2 class="w-10 h-10 text-emerald-500" />
-                   </div>
-                   <div class="max-w-xs space-y-1">
-                      <p class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">{{ t('compare.noChanges') }}</p>
-                      <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed" v-if="!searchQuery">{{ t('compare.perfectlyInSync') }}</p>
-                      <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed" v-else>{{ t('compare.noSearchMatches') }} "{{ searchQuery }}"</p>
-                   </div>
-                   <div class="flex items-center gap-3">
-                      <button v-if="selectedStatusFilter === 'all' && !searchQuery" @click="selectedStatusFilter = 'equal'" class="px-5 py-2 border border-gray-200 dark:border-gray-700 hover:border-emerald-500 text-gray-600 dark:text-gray-400 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all">
-                        {{ t('compare.viewIdentical') }}
-                      </button>
-                      <button v-if="searchQuery" @click="searchQuery = ''" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 text-gray-700 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all">
-                        {{ t('compare.clearSearch') }}
-                      </button>
-                   </div>
+                <div
+                  v-else-if="hasResults && filteredResults.length === 0 && !loading"
+                  class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                >
+                  <div
+                    class="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center relative"
+                  >
+                    <div
+                      class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-20"
+                    ></div>
+                    <CheckCircle2 class="w-10 h-10 text-emerald-500" />
+                  </div>
+                  <div class="max-w-xs space-y-1">
+                    <p
+                      class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest"
+                    >
+                      {{ t('compare.noChanges') }}
+                    </p>
+                    <p
+                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
+                      v-if="!searchQuery"
+                    >
+                      {{ t('compare.perfectlyInSync') }}
+                    </p>
+                    <p
+                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
+                      v-else
+                    >
+                      {{ t('compare.noSearchMatches') }} "{{ searchQuery }}"
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      v-if="selectedStatusFilter === 'all' && !searchQuery"
+                      @click="selectedStatusFilter = 'equal'"
+                      class="px-5 py-2 border border-gray-200 dark:border-gray-700 hover:border-emerald-500 text-gray-600 dark:text-gray-400 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all"
+                    >
+                      {{ t('compare.viewIdentical') }}
+                    </button>
+                    <button
+                      v-if="searchQuery"
+                      @click="searchQuery = ''"
+                      class="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 text-gray-700 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all"
+                    >
+                      {{ t('compare.clearSearch') }}
+                    </button>
+                  </div>
                 </div>
 
                 <div v-else class="space-y-1 pb-4">
-                  <div v-for="cat in resultsByCategory" :key="cat.type" 
-                    class="flex flex-col group/cat relative">
+                  <div
+                    v-for="cat in resultsByCategory"
+                    :key="cat.type"
+                    class="flex flex-col group/cat relative"
+                  >
                     <!-- Category Header (Synchronized Row Style) -->
-                    <div 
-                      @click="collapsedCategories.has(cat.type) ? collapsedCategories.delete(cat.type) : collapsedCategories.add(cat.type)"
+                    <div
+                      @click="
+                        collapsedCategories.has(cat.type)
+                          ? collapsedCategories.delete(cat.type)
+                          : collapsedCategories.add(cat.type)
+                      "
                       class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm group-hover/cat:bg-gray-50/50 dark:group-hover/cat:bg-gray-800/30 mb-px overflow-hidden select-none"
                     >
-                      <ChevronRight 
+                      <ChevronRight
                         class="w-3 h-3 mr-1.5 transition-transform text-gray-400 shrink-0"
-                        :class="{ 'rotate-90 text-primary-500': !collapsedCategories.has(cat.type) }"
+                        :class="{
+                          'rotate-90 text-primary-500': !collapsedCategories.has(cat.type)
+                        }"
                       />
-                      <component :is="getIconForType(cat.type)" class="w-3.5 h-3.5 mr-2 shrink-0" :class="getCategoryColor(cat.type)" />
-                      <span class="font-extrabold text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-300 truncate">{{ cat.type }}</span>
-                      
+                      <component
+                        :is="getIconForType(cat.type)"
+                        class="w-3.5 h-3.5 mr-2 shrink-0"
+                        :class="getCategoryColor(cat.type)"
+                      />
+                      <span
+                        class="font-extrabold text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-300 truncate"
+                        >{{ cat.type }}</span
+                      >
+
                       <div class="ml-auto flex items-center gap-1">
-                        <span v-if="cat.changes > 0" 
-                          class="px-1.5 py-0.5 bg-orange-500 text-white text-[8px] rounded-full font-mono font-black shadow-sm shrink-0">
+                        <span
+                          v-if="cat.changes > 0"
+                          class="px-1.5 py-0.5 bg-orange-500 text-white text-[8px] rounded-full font-mono font-black shadow-sm shrink-0"
+                        >
                           {{ cat.changes }}
                         </span>
-                        <span class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 text-[8px] rounded-full font-mono shrink-0">
+                        <span
+                          class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 text-[8px] rounded-full font-mono shrink-0"
+                        >
                           {{ cat.total }}
                         </span>
                       </div>
                     </div>
 
                     <!-- Items List (Expanded) -->
-                    <div v-if="!collapsedCategories.has(cat.type)"
-                      class="pl-4 border-l border-gray-100 dark:border-gray-800 ml-3.5 mt-0.5 space-y-0.5 pb-2">
-                      <div v-for="item in cat.items" :key="item.name" @click="selectItem(item)"
+                    <div
+                      v-if="!collapsedCategories.has(cat.type)"
+                      class="pl-4 border-l border-gray-100 dark:border-gray-800 ml-3.5 mt-0.5 space-y-0.5 pb-2"
+                    >
+                      <div
+                        v-for="item in cat.items"
+                        :key="item.name"
+                        @click="selectItem(item)"
                         @contextmenu.prevent="handleItemContextMenu($event, item)"
                         class="cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center group px-2 py-1.5 relative border border-transparent overflow-hidden"
-                        :class="[{ 'bg-primary-50 dark:bg-primary-900/20 border-primary-200/50 dark:border-primary-800/50 shadow-sm transition-all': selectedItem?.name === item.name }]">
-                        
+                        :class="[
+                          {
+                            'bg-primary-50 dark:bg-primary-900/20 border-primary-200/50 dark:border-primary-800/50 shadow-sm transition-all':
+                              selectedItem?.name === item.name
+                          }
+                        ]"
+                      >
                         <div class="flex-1 min-w-0 pr-2">
-                          <div class="font-mono truncate text-[11px] text-gray-700 dark:text-gray-300"
-                            :class="{ 'font-bold text-primary-600 dark:text-primary-400': selectedItem?.name === item.name }" :title="item.name">
+                          <div
+                            class="font-mono truncate text-[11px] text-gray-700 dark:text-gray-300"
+                            :class="{
+                              'font-bold text-primary-600 dark:text-primary-400':
+                                selectedItem?.name === item.name
+                            }"
+                            :title="item.name"
+                          >
                             {{ item.name }}
                           </div>
-                          <div class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center opacity-70 group-hover:opacity-100">
-                             <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
-                             <span>{{ item.type }}</span>
+                          <div
+                            class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center opacity-70 group-hover:opacity-100"
+                          >
+                            <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
+                            <span>{{ item.type }}</span>
                           </div>
                         </div>
 
                         <div class="flex items-center gap-1.5 shrink-0 ml-auto pr-1">
-                           <!-- Migration Trigger -->
-                           <div class="flex items-center justify-center w-6 h-6 rounded-full transition-all group/migrate bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/30">
-                              <component 
-                                :is="getStatusIcon(item.status)" 
-                                class="w-3.5 h-3.5 transition-all"
-                                :class="[getStatusClass(item.status), { 'group-hover/migrate:hidden': item.status?.toLowerCase() !== 'equal' && item.status?.toLowerCase() !== 'same' }]" 
+                          <!-- Migration Trigger -->
+                          <div
+                            class="flex items-center justify-center w-6 h-6 rounded-full transition-all group/migrate bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/30"
+                          >
+                            <component
+                              :is="getStatusIcon(item.status)"
+                              class="w-3.5 h-3.5 transition-all"
+                              :class="[
+                                getStatusClass(item.status),
+                                {
+                                  'group-hover/migrate:hidden':
+                                    item.status?.toLowerCase() !== 'equal' &&
+                                    item.status?.toLowerCase() !== 'same'
+                                }
+                              ]"
+                            />
+                            <template
+                              v-if="
+                                item.status?.toLowerCase() !== 'equal' &&
+                                item.status?.toLowerCase() !== 'same' &&
+                                !isTargetDump
+                              "
+                            >
+                              <Zap
+                                v-if="isMigratingItemId !== item.name"
+                                @click.stop="migrateSingleItem(item)"
+                                class="w-3.5 h-3.5 text-orange-500 hidden group-hover/migrate:block cursor-pointer hover:scale-110 active:scale-95 fill-current"
+                                title="Migrate"
                               />
-                              <template v-if="item.status?.toLowerCase() !== 'equal' && item.status?.toLowerCase() !== 'same' && !isTargetDump">
-                                <Zap v-if="isMigratingItemId !== item.name"
-                                  @click.stop="migrateSingleItem(item)"
-                                  class="w-3.5 h-3.5 text-orange-500 hidden group-hover/migrate:block cursor-pointer hover:scale-110 active:scale-95 fill-current" 
-                                  title="Migrate" />
-                                <RefreshCw v-else
-                                  class="w-3 h-3 text-orange-500 animate-spin" />
-                              </template>
-                           </div>
+                              <RefreshCw v-else class="w-3 h-3 text-orange-500 animate-spin" />
+                            </template>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -412,22 +710,31 @@
               </div>
 
               <!-- Resize Handle -->
-              <div @mousedown="startResultsResize"
-                class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20">
-              </div>
+              <div
+                @mousedown="startResultsResize"
+                class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20"
+              ></div>
             </div>
 
             <!-- Right: Split DDL Detail -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
               <!-- Tab Bar -->
-              <TabBar v-if="tabs.length > 0" :tabs="tabs" :active-tab-id="activeTabId" @select="handleSelectTab"
-                @close="handleCloseTab" @duplicate="handleDuplicateTab" @close-others="handleCloseOthers"
-                @close-right="handleCloseRight" />
+              <TabBar
+                v-if="tabs.length > 0"
+                :tabs="tabs"
+                :active-tab-id="activeTabId"
+                @select="handleSelectTab"
+                @close="handleCloseTab"
+                @duplicate="handleDuplicateTab"
+                @close-others="handleCloseOthers"
+                @close-right="handleCloseRight"
+              />
               <!-- Migration Overlay (Moved to global scope) -->
 
               <div v-if="selectedItem" class="h-full flex flex-col">
                 <div
-                  class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0">
+                  class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0"
+                >
                   <div class="flex items-center text-xs space-x-2 overflow-hidden">
                     <div class="flex items-center text-gray-500 dark:text-gray-400">
                       <Server class="w-3.5 h-3.5 mr-1" />
@@ -440,38 +747,65 @@
                     </div>
                     <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
                     <div class="flex items-center text-gray-600 dark:text-gray-300 font-bold">
-                      <component :is="getIconForType(selectedItem.type)" class="w-3.5 h-3.5 mr-1 text-gray-400" />
+                      <component
+                        :is="getIconForType(selectedItem.type)"
+                        class="w-3.5 h-3.5 mr-1 text-gray-400"
+                      />
                       <span class="uppercase">{{ selectedItem.type }}</span>
                     </div>
                     <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
                     <div class="flex items-center">
-                      <span class="font-bold text-gray-900 dark:text-white truncate text-sm">{{ selectedItem.name
-                        }}</span>
+                      <span class="font-bold text-gray-900 dark:text-white truncate text-sm">{{
+                        selectedItem.name
+                      }}</span>
                     </div>
-                    <span :class="getStatusClass(selectedItem.status)"
+                    <span
+                      :class="getStatusClass(selectedItem.status)"
                       class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-opacity-10 font-black border uppercase tracking-tighter"
-                      :style="{ borderColor: 'currentColor' }">
+                      :style="{ borderColor: 'currentColor' }"
+                    >
                       {{ getStatusText(selectedItem.status) }}
                     </span>
                   </div>
                   <div class="flex space-x-2 items-center">
-                    <button v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
+                    <button
+                      v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
                       @click="migrateSingleItem(selectedItem)"
                       class="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-500 text-orange-600 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-orange-500/10 active:scale-95 group/migrate border border-orange-100 dark:border-orange-800/30"
                       :disabled="isMigrating || isTargetDump"
-                      :title="isTargetDump ? 'Target is read-only (Static Dump)' : $t('compare.migrateTo', { name: targetName })">
-                      <Loader2 v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
-                      <Zap v-else
-                        class="w-4 h-4 fill-orange-500/20 group-hover/migrate:fill-white/20 group-hover/migrate:animate-pulse transition-transform duration-300 group-hover/migrate:scale-125" />
-                      <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? $t('common.processing') : 'Sync Now' }}</span>
+                      :title="
+                        isTargetDump
+                          ? 'Target is read-only (Static Dump)'
+                          : $t('compare.migrateTo', { name: targetName })
+                      "
+                    >
+                      <Loader2
+                        v-if="isMigratingItemId === selectedItem.name"
+                        class="w-4 h-4 animate-spin"
+                      />
+                      <Zap
+                        v-else
+                        class="w-4 h-4 fill-orange-500/20 group-hover/migrate:fill-white/20 group-hover/migrate:animate-pulse transition-transform duration-300 group-hover/migrate:scale-125"
+                      />
+                      <span class="font-bold">{{
+                        isMigratingItemId === selectedItem.name
+                          ? $t('common.processing')
+                          : 'Sync Now'
+                      }}</span>
                     </button>
                   </div>
                 </div>
                 <div class="flex-1 flex flex-col min-h-0 min-w-0">
-                  <MirrorDiffView :source-ddl="selectedItem.diff?.source || null"
-                    :target-ddl="selectedItem.diff?.target || null" :source-label="sourceName"
-                    :target-label="targetName" :status="selectedItem.status || 'equal'" :diff-options="diffOptions"
-                    :navigatable-names="navigatableNames" @navigate-to-definition="handleNavigateToDefinition" />
+                  <MirrorDiffView
+                    :source-ddl="selectedItem.diff?.source || null"
+                    :target-ddl="selectedItem.diff?.target || null"
+                    :source-label="sourceName"
+                    :target-label="targetName"
+                    :status="selectedItem.status || 'equal'"
+                    :diff-options="diffOptions"
+                    :navigatable-names="navigatableNames"
+                    @navigate-to-definition="handleNavigateToDefinition"
+                  />
                 </div>
               </div>
               <div v-else class="flex-1 flex items-center justify-center text-gray-400 italic">
@@ -485,50 +819,74 @@
 
           <!-- Tree Mode View -->
           <div v-else class="flex-1 relative min-h-0 flex flex-col">
-            <CompareTreeMode :results="allResults" :source-name="sourceName" :target-name="targetName"
-              :target-is-static="isTargetDump" :migrating-item-id="isMigratingItemId" :tree-expand-cmd="treeExpandCmd"
-              v-model:active-type="selectedFilterType" @migrate="migrateSingleItem" @select="selectItem"
+            <CompareTreeMode
+              :results="allResults"
+              :source-name="sourceName"
+              :target-name="targetName"
+              :target-is-static="isTargetDump"
+              :migrating-item-id="isMigratingItemId"
+              :tree-expand-cmd="treeExpandCmd"
+              v-model:active-type="selectedFilterType"
+              @migrate="migrateSingleItem"
+              @select="selectItem"
               @send-to-instant="(item, slot) => sendToInstant(item, slot)"
-              @contextmenu="handleItemContextMenu" />
+              @contextmenu="handleItemContextMenu"
+            />
           </div>
-
         </main>
       </div>
     </div>
-    
+
     <!-- No slot needed, AI Panel is now in MainLayout -->
   </MainLayout>
 
   <!-- Error Details Modal -->
-  <div v-if="showErrorModal && error"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+  <div
+    v-if="showErrorModal && error"
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+  >
     <div
-      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-red-100 dark:border-red-900/30 w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-red-100 dark:border-red-900/30 w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+    >
       <div class="p-6 flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+          <div
+            class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0"
+          >
             <AlertCircle class="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h3 class="text-lg font-extrabold text-gray-900 dark:text-white uppercase tracking-tight">{{
-              $t('common.error') }}</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">An unexpected issue occurred during the
-              operation</p>
+            <h3
+              class="text-lg font-extrabold text-gray-900 dark:text-white uppercase tracking-tight"
+            >
+              {{ $t('common.error') }}
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              An unexpected issue occurred during the operation
+            </p>
           </div>
         </div>
 
         <div
-          class="bg-gray-50 dark:bg-gray-950 rounded-xl p-4 border border-gray-100 dark:border-gray-800/50 font-mono text-xs text-red-600 dark:text-red-400 break-words max-h-[300px] overflow-y-auto custom-scrollbar leading-relaxed">
+          class="bg-gray-50 dark:bg-gray-950 rounded-xl p-4 border border-gray-100 dark:border-gray-800/50 font-mono text-xs text-red-600 dark:text-red-400 break-words max-h-[300px] overflow-y-auto custom-scrollbar leading-relaxed"
+        >
           {{ error }}
         </div>
 
         <div class="flex items-center gap-3 mt-2">
-          <button @click="showErrorModal = false"
-            class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all">
+          <button
+            @click="showErrorModal = false"
+            class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all"
+          >
             {{ $t('common.close') }}
           </button>
-          <button @click="runComparison(); showErrorModal = false"
-            class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">
+          <button
+            @click="
+              runComparison()
+              showErrorModal = false
+            "
+            class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95"
+          >
             Retry
           </button>
         </div>
@@ -539,11 +897,15 @@
   <!-- Item Context Menu Container -->
   <div style="display: contents">
     <Teleport to="body">
-      <div v-if="itemContextMenu.visible"
+      <div
+        v-if="itemContextMenu.visible"
         class="fixed z-[1000] min-w-[180px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 p-1.5 animate-in fade-in zoom-in-95 duration-150"
-        :style="{ top: itemContextMenu.y + 'px', left: itemContextMenu.x + 'px' }">
-        <button @click="handleIgnoreItem(itemContextMenu.item)"
-          class="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group">
+        :style="{ top: itemContextMenu.y + 'px', left: itemContextMenu.x + 'px' }"
+      >
+        <button
+          @click="handleIgnoreItem(itemContextMenu.item)"
+          class="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
+        >
           <Ban class="w-4 h-4 text-red-400 group-hover:text-red-500" />
           {{ t('compare.ignoreObject') }}
         </button>
@@ -583,8 +945,6 @@ import {
   Binary,
   ShieldCheck,
   Info,
-  GitCompare,
-  ArrowRight,
   Search,
   CheckCircle2,
   X,
@@ -607,7 +967,6 @@ import { useSidebarStore } from '@/stores/sidebar'
 import CompareTreeMode from '@/components/compare/CompareTreeMode.vue'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
 import TabBar from '@/components/general/TabBar.vue'
-import AIReviewPanel from '@/components/ai/AIReviewPanel.vue'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
@@ -616,7 +975,7 @@ const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const searchInput = ref<HTMLInputElement | null>(null)
 
@@ -627,16 +986,12 @@ const targetName = computed(() => activePair.value?.target?.name || 'Target')
 const route = useRoute()
 const router = useRouter() // Ensure router is available
 
-const isSourceDump = computed(() => {
-  const conn = activePair.value?.source
-  if (!conn) return false
-  return conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
-})
-
 const isTargetDump = computed(() => {
   const conn = activePair.value?.target
   if (!conn) return false
-  return conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
+  return (
+    conn.type === 'dump' || conn.host?.toLowerCase().endsWith('.sql') || conn.host?.includes('.sql')
+  )
 })
 
 const sendToInstant = (item: any, slot: 'source' | 'target' = 'source') => {
@@ -663,18 +1018,21 @@ const sendToInstant = (item: any, slot: 'source' | 'target' = 'source') => {
 }
 
 // Watch for project changes to reset state
-watch(() => projectsStore.selectedProjectId, () => {
-  tableResults.value = []
-  procedureResults.value = []
-  functionResults.value = []
-  viewResults.value = []
-  triggerResults.value = []
-  selectedItem.value = null
-  selectedFilterType.value = 'all'
-  error.value = null
-  tabs.value = []
-  activeTabId.value = null
-})
+watch(
+  () => projectsStore.selectedProjectId,
+  () => {
+    tableResults.value = []
+    procedureResults.value = []
+    functionResults.value = []
+    viewResults.value = []
+    triggerResults.value = []
+    selectedItem.value = null
+    selectedFilterType.value = 'all'
+    error.value = null
+    tabs.value = []
+    activeTabId.value = null
+  }
+)
 
 // Deep Link Handling
 onMounted(async () => {
@@ -723,40 +1081,52 @@ const viewMode = ref<'list' | 'tree'>('list')
 
 // Removed fetchButtonText as there is no manual fetch button anymore
 
-
-
-const typeIcons = {
-  tables: Table,
-  views: Layers,
-  procedures: Workflow,
-  functions: Sigma,
-  triggers: Zap
-}
-
 const getIconForType = (type: string) => {
   switch (type?.toLowerCase()) {
-    case 'tables': case 'table': return Table
-    case 'views': case 'view': return Layers
-    case 'procedures': case 'procedure': return Workflow
-    case 'functions': case 'function': return Sigma
-    case 'triggers': case 'trigger': return Zap
-    default: return Database
+    case 'tables':
+    case 'table':
+      return Table
+    case 'views':
+    case 'view':
+      return Layers
+    case 'procedures':
+    case 'procedure':
+      return Workflow
+    case 'functions':
+    case 'function':
+      return Sigma
+    case 'triggers':
+    case 'trigger':
+      return Zap
+    default:
+      return Database
   }
 }
 
 const getCategoryColor = (type: string) => {
   switch (type?.toLowerCase()) {
-    case 'tables': case 'table': return 'text-blue-500'
-    case 'views': case 'view': return 'text-indigo-500'
-    case 'procedures': case 'procedure': case 'functions': case 'function': return 'text-purple-500'
-    case 'triggers': case 'trigger': return 'text-amber-500'
-    default: return 'text-gray-500'
+    case 'tables':
+    case 'table':
+      return 'text-blue-500'
+    case 'views':
+    case 'view':
+      return 'text-indigo-500'
+    case 'procedures':
+    case 'procedure':
+    case 'functions':
+    case 'function':
+      return 'text-purple-500'
+    case 'triggers':
+    case 'trigger':
+      return 'text-amber-500'
+    default:
+      return 'text-gray-500'
   }
 }
 
 // State
 const loading = ref(false)
-const loadingAction = ref<'compare' | null>(null)
+const loadingAction = ref<'compare' | 'fetch' | null>(null)
 const showSafeModeInfo = ref(false)
 const statusMessage = ref('')
 const resultsWidth = ref(300)
@@ -784,7 +1154,7 @@ const diffOptions = ref({
 const selectedStatusFilter = ref('all')
 const lastCompareTime = ref(0)
 const showErrorModal = ref(false)
-const treeExpandCmd = ref<{ action: 'expand' | 'collapse' | '', ts: number }>({ action: '', ts: 0 })
+const treeExpandCmd = ref<{ action: 'expand' | 'collapse'; ts: number } | null>(null)
 const collapsedCategories = ref(new Set<string>())
 const sortBy = ref<'status' | 'name' | 'date'>('status')
 
@@ -815,22 +1185,26 @@ const closeItemContextMenu = () => {
 
 const handleIgnoreItem = (item: any) => {
   if (!item || !projectsStore.currentProject) return
-  
+
   const settings = { ...(projectsStore.currentProject.settings || {}) }
   const excludeTags = [...(settings.excludeTags || [])]
-  
+
   if (!excludeTags.includes(item.name)) {
     excludeTags.push(item.name)
     settings.excludeTags = excludeTags
     projectsStore.updateProject(projectsStore.currentProject.id, { settings })
-    
+
     // Remove from local state immediately for snappy UX
     const type = item.type?.toLowerCase() || 'tables'
     if (type === 'tables') tableResults.value = tableResults.value.filter(i => i.name !== item.name)
-    else if (type === 'procedures') procedureResults.value = procedureResults.value.filter(i => i.name !== item.name)
-    else if (type === 'functions') functionResults.value = functionResults.value.filter(i => i.name !== item.name)
-    else if (type === 'views') viewResults.value = viewResults.value.filter(i => i.name !== item.name)
-    else if (type === 'triggers') triggerResults.value = triggerResults.value.filter(i => i.name !== item.name)
+    else if (type === 'procedures')
+      procedureResults.value = procedureResults.value.filter(i => i.name !== item.name)
+    else if (type === 'functions')
+      functionResults.value = functionResults.value.filter(i => i.name !== item.name)
+    else if (type === 'views')
+      viewResults.value = viewResults.value.filter(i => i.name !== item.name)
+    else if (type === 'triggers')
+      triggerResults.value = triggerResults.value.filter(i => i.name !== item.name)
 
     // Close any open tabs for this object
     const tabId = `${item.type || 'unknown'}-${item.name}`
@@ -842,7 +1216,7 @@ const handleIgnoreItem = (item: any) => {
       message: t('compare.ignoredNotification', { name: item.name })
     })
   }
-  
+
   closeItemContextMenu()
 }
 
@@ -874,11 +1248,11 @@ const handleCloseTab = (id: string) => {
 const handleDuplicateTab = (id: string) => {
   const tab = tabs.value.find(t => t.id === id)
   if (!tab) return
-  
+
   const newTab = JSON.parse(JSON.stringify(tab))
   newTab.id = `${tab.id}-copy-${Date.now()}`
   newTab.name = `${tab.name} (${t('common.copy')})`
-  
+
   const index = tabs.value.findIndex(t => t.id === id)
   tabs.value.splice(index + 1, 0, newTab)
   handleSelectTab(newTab.id)
@@ -897,8 +1271,6 @@ const handleCloseRight = (id: string) => {
   }
 }
 
-
-
 const statusFilters = computed(() => [
   { label: t('common.all'), value: 'all' },
   { label: t('compare.filters.modified'), value: 'modified' },
@@ -911,11 +1283,6 @@ const statusFilters = computed(() => [
 const isMigrating = ref(false)
 const isMigratingBatch = ref<string | null>(null)
 const isMigratingItemId = ref<string | null>(null)
-
-
-const hasChanges = (type: string) => {
-  return allResults.value.some(i => (type === 'all' || i.type.toLowerCase() === type.toLowerCase()) && i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same')
-}
 
 const selectedPath = ref({
   env: '',
@@ -995,7 +1362,8 @@ const filteredResults = computed(() => {
   const filter = selectedStatusFilter.value
   filtered = filtered.filter(i => {
     const status = i.status.toLowerCase()
-    if (filter === 'modified') return status === 'modified' || status === 'different' || status === 'updated'
+    if (filter === 'modified')
+      return status === 'modified' || status === 'different' || status === 'updated'
     if (filter === 'new') return status === 'new' || status === 'missing_in_target'
     if (filter === 'deprecated') return status === 'deprecated' || status === 'missing_in_source'
     if (filter === 'equal') return status === 'equal' || status === 'same'
@@ -1024,32 +1392,36 @@ const filteredResults = computed(() => {
         }
       }
 
-       filtered = filtered.filter(i => {
-         const nameMatch = re.test(i.name)
-         if (nameMatch) return true
-         
-         if (searchFlags.value.columns) {
-           const sourceMatch = i.diff?.source ? re.test(i.diff.source) : false
-           const targetMatch = i.diff?.target ? re.test(i.diff.target) : false
-           return sourceMatch || targetMatch
-         }
-         return false
-       })
-     } catch (e) {
-       // Invalid regex fallback to simple include
-       filtered = filtered.filter(i => {
-         const lowerQuery = query.toLowerCase()
-         const nameMatch = i.name.toLowerCase().includes(lowerQuery)
-         if (nameMatch) return true
-         
-         if (searchFlags.value.columns) {
-           const sourceMatch = i.diff?.source ? i.diff.source.toLowerCase().includes(lowerQuery) : false
-           const targetMatch = i.diff?.target ? i.diff.target.toLowerCase().includes(lowerQuery) : false
-           return sourceMatch || targetMatch
-         }
-         return false
-       })
-     }
+      filtered = filtered.filter(i => {
+        const nameMatch = re.test(i.name)
+        if (nameMatch) return true
+
+        if (searchFlags.value.columns) {
+          const sourceMatch = i.diff?.source ? re.test(i.diff.source) : false
+          const targetMatch = i.diff?.target ? re.test(i.diff.target) : false
+          return sourceMatch || targetMatch
+        }
+        return false
+      })
+    } catch (e) {
+      // Invalid regex fallback to simple include
+      filtered = filtered.filter(i => {
+        const lowerQuery = query.toLowerCase()
+        const nameMatch = i.name.toLowerCase().includes(lowerQuery)
+        if (nameMatch) return true
+
+        if (searchFlags.value.columns) {
+          const sourceMatch = i.diff?.source
+            ? i.diff.source.toLowerCase().includes(lowerQuery)
+            : false
+          const targetMatch = i.diff?.target
+            ? i.diff.target.toLowerCase().includes(lowerQuery)
+            : false
+          return sourceMatch || targetMatch
+        }
+        return false
+      })
+    }
   }
 
   return filtered
@@ -1071,22 +1443,25 @@ const hasResults = computed(() => allResults.value.length > 0)
 
 const resultsByCategory = computed(() => {
   const categories = ['tables', 'views', 'procedures', 'functions', 'triggers']
-  return categories.map(cat => {
-    // 1. Get raw items (unfiltered by search) to show total DDL count
-    const rawItems = allResults.value.filter(i => i.type === cat)
+  return categories
+    .map(cat => {
+      // 1. Get raw items (unfiltered by search) to show total DDL count
+      const rawItems = allResults.value.filter(i => i.type === cat)
 
-    // 2. respect search and status filters for active display
-    const items = filteredResults.value.filter(i => i.type === cat)
+      // 2. respect search and status filters for active display
+      const items = filteredResults.value.filter(i => i.type === cat)
 
-    return {
-      type: cat,
-      items,
-      total: rawItems.length,
-      changes: items.filter(i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same').length
-    }
-  }).filter(c => c.total > 0)
+      return {
+        type: cat,
+        items,
+        total: rawItems.length,
+        changes: items.filter(
+          i => i.status.toLowerCase() !== 'equal' && i.status.toLowerCase() !== 'same'
+        ).length
+      }
+    })
+    .filter(c => c.total > 0)
 })
-
 
 // Actions
 const runComparison = async () => {
@@ -1106,7 +1481,13 @@ const runComparison = async () => {
   try {
     const { source, target } = activePair.value
 
-    let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = ['tables', 'procedures', 'functions', 'triggers', 'views']
+    let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = [
+      'tables',
+      'procedures',
+      'functions',
+      'triggers',
+      'views'
+    ]
     let compareName: string | undefined = undefined
 
     // Atomic Compare Logic
@@ -1114,7 +1495,10 @@ const runComparison = async () => {
       // 1. Compare specific object
       objTypes = [selectedItem.value.type.toLowerCase() as any] // e.g., 'tables'
       compareName = selectedItem.value.name
-      consoleStore.addLog(`Comparing single object: ${selectedItem.value.name} (${selectedItem.value.type})`, 'info')
+      consoleStore.addLog(
+        `Comparing single object: ${selectedItem.value.name} (${selectedItem.value.type})`,
+        'info'
+      )
       statusMessage.value = t('compare.analyzingItem', { name: selectedItem.value.name })
     } else if (selectedFilterType.value && selectedFilterType.value !== 'all') {
       // 2. Compare specific category
@@ -1122,13 +1506,15 @@ const runComparison = async () => {
       consoleStore.addLog(`Comparing category: ${selectedFilterType.value}`, 'info')
       statusMessage.value = t('compare.analyzingItem', { name: selectedFilterType.value })
     } else {
-      consoleStore.addLog(`Starting comparison between ${source.name} (${source.host}) and ${target.name} (${target.host})`, 'info')
+      consoleStore.addLog(
+        `Starting comparison between ${source.name} (${source.host}) and ${target.name} (${target.host})`,
+        'info'
+      )
       statusMessage.value = t('compare.analyzing')
     }
 
     // Compare (Always run to update comparison results from local cache)
     statusMessage.value = t('compare.comparingObjects')
-
 
     // Start recording operation
     const opId = operationsStore.addOperation({
@@ -1139,14 +1525,16 @@ const runComparison = async () => {
       startTime: new Date()
     })
 
-    const results = await Promise.all(objTypes.map(type =>
-      Andb.compare(source, target, {
-        type,
-        sourceEnv: activePair.value!.sourceEnv,
-        targetEnv: activePair.value!.targetEnv,
-        name: compareName
-      })
-    ))
+    const results = await Promise.all(
+      objTypes.map(type =>
+        Andb.compare(source, target, {
+          type,
+          sourceEnv: activePair.value!.sourceEnv,
+          targetEnv: activePair.value!.targetEnv,
+          name: compareName
+        })
+      )
+    )
 
     // Map results based on what we fetched
     objTypes.forEach((type, index) => {
@@ -1175,7 +1563,6 @@ const runComparison = async () => {
         else if (type === 'functions') functionResults.value = newArray
         else if (type === 'views') viewResults.value = newArray
         else if (type === 'triggers') triggerResults.value = newArray
-
       } else {
         if (type === 'tables') tableResults.value = res
         else if (type === 'procedures') procedureResults.value = res
@@ -1185,7 +1572,12 @@ const runComparison = async () => {
       }
     })
 
-    const totalCount = tableResults.value.length + procedureResults.value.length + functionResults.value.length + viewResults.value.length + triggerResults.value.length
+    const totalCount =
+      tableResults.value.length +
+      procedureResults.value.length +
+      functionResults.value.length +
+      viewResults.value.length +
+      triggerResults.value.length
 
     // Complete operation record
     operationsStore.completeOperation(opId, true, { ddlCount: totalCount })
@@ -1209,8 +1601,8 @@ const runComparison = async () => {
       message: e.message
     })
   } finally {
-    appStore.isSchemaFetching = false; // Release global fetch state
-    appStore.schemaFetchProgresses = {};
+    appStore.isSchemaFetching = false // Release global fetch state
+    appStore.schemaFetchProgresses = {}
 
     // 5. Update Sidebar to show new objects
     await sidebarStore.loadSchemas(true)
@@ -1224,24 +1616,24 @@ const runFetchAndCompare = async () => {
   loading.value = true
   loadingAction.value = 'fetch'
   statusMessage.value = 'Fetching fresh DDLs from databases...'
-  
+
   try {
     const { source, target } = activePair.value
-    
+
     // 1. Export source
     consoleStore.addLog(`Fetching Source: ${source.name}`, 'info')
     await Andb.export(source, target, { type: 'tables', environment: source.environment })
     await Andb.export(source, target, { type: 'views', environment: source.environment })
-    
+
     // 2. Export target
     consoleStore.addLog(`Fetching Target: ${target.name}`, 'info')
     await Andb.export(source, target, { type: 'tables', environment: target.environment })
     await Andb.export(source, target, { type: 'views', environment: target.environment })
-    
+
     // 3. Run comparison
     statusMessage.value = 'Analyzing differences...'
     await runComparison()
-    
+
     notificationStore.add({
       title: 'Fetch Complete',
       message: 'Fresh DDLs imported and compared successfully',
@@ -1261,7 +1653,6 @@ const runFetchAndCompare = async () => {
 // Expose for debugging if needed
 // ==========================================
 defineExpose({})
-
 
 const selectItem = (item: any) => {
   if (!item) return
@@ -1301,9 +1692,8 @@ const handleObjectSelected = (event: any) => {
   // Normalize type (ensure plural)
   const normalizedType = type.endsWith('s') ? type : type + 's'
 
-  const found = allResults.value.find(i =>
-    i.name === name &&
-    (i.type === normalizedType || i.type === type)
+  const found = allResults.value.find(
+    i => i.name === name && (i.type === normalizedType || i.type === type)
   )
 
   if (found) {
@@ -1313,7 +1703,10 @@ const handleObjectSelected = (event: any) => {
   } else {
     // If NOT found, it might be because comparison hasn't run or item is new/missing
     // Let's trigger a LOCAL comparison first to check cache
-    consoleStore.addLog(`Object ${name} not in current results. Triggering local comparison...`, 'info')
+    consoleStore.addLog(
+      `Object ${name} not in current results. Triggering local comparison...`,
+      'info'
+    )
     runComparison().then(() => {
       const retryFound = allResults.value.find(i => i.name === name)
       if (retryFound) selectedItem.value = retryFound
@@ -1329,7 +1722,7 @@ const handleCategorySelected = (event: any) => {
   // Clear diff view when category is selected
   selectedItem.value = null
 
-  // If we have literally 0 results for this category after selection, 
+  // If we have literally 0 results for this category after selection,
   // maybe we should auto-trigger a comparison?
   const hasTypeResults = allResults.value.some(i => i.type.toLowerCase() === type.toLowerCase())
   if (type !== 'all' && !hasTypeResults) {
@@ -1381,15 +1774,20 @@ const getStatusClass = (status: string) => {
 const getStatusText = (status: string) => {
   switch (status?.toLowerCase()) {
     case 'equal':
-    case 'same': return t('common.status.identical')
+    case 'same':
+      return t('common.status.identical')
     case 'different':
     case 'updated':
-    case 'modified': return t('common.status.modified')
+    case 'modified':
+      return t('common.status.modified')
     case 'missing_in_target':
-    case 'new': return t('common.status.newSource')
+    case 'new':
+      return t('common.status.newSource')
     case 'missing_in_source':
-    case 'deprecated': return t('common.status.deprecatedTarget')
-    default: return status
+    case 'deprecated':
+      return t('common.status.deprecatedTarget')
+    default:
+      return status
   }
 }
 
@@ -1412,7 +1810,7 @@ const migrationTerminal = ref<{
   type: 'single'
 })
 
-const fetchBatchItemSql = async (item: { type: string, name: string }) => {
+const fetchBatchItemSql = async (item: { type: string; name: string }) => {
   if (!migrationTerminal.value.isOpen || migrationTerminal.value.type !== 'batch') return
   if (!activePair.value) return
 
@@ -1433,7 +1831,8 @@ const fetchBatchItemSql = async (item: { type: string, name: string }) => {
     migrationTerminal.value.sqlMap[key] = result.sql || `-- Result: ${result.message}`
   } catch (e: any) {
     if (!migrationTerminal.value.sqlMap) migrationTerminal.value.sqlMap = {}
-    migrationTerminal.value.sqlMap[key] = `-- Error generating SQL preview: ${e.message || 'Unknown'}`
+    migrationTerminal.value.sqlMap[key] =
+      `-- Error generating SQL preview: ${e.message || 'Unknown'}`
   } finally {
     migrationTerminal.value.fetching = false
   }
@@ -1447,19 +1846,27 @@ const closeMigrationTerminal = () => {
 }
 
 const executeConfirmedMigration = () => {
-  if (!migrationTerminal.value.isOpen) return;
-  const dialog = { ...migrationTerminal.value };
-  closeMigrationTerminal();
+  if (!migrationTerminal.value.isOpen) return
+  const dialog = { ...migrationTerminal.value }
+  closeMigrationTerminal()
 
   if (dialog.type === 'single') {
-    migrateSingleItem(dialog.items[0], true);
+    migrateSingleItem(dialog.items[0], true)
   } else if (dialog.type === 'batch') {
-    migrateBatchInline(dialog.batchType!, true);
+    migrateBatchInline(dialog.batchType!, true)
   }
 }
 
 const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
-  if (!activePair.value || !item || !item.name || isMigratingItemId.value === item.name || isMigrating.value || isTargetDump.value) return
+  if (
+    !activePair.value ||
+    !item ||
+    !item.name ||
+    isMigratingItemId.value === item.name ||
+    isMigrating.value ||
+    isTargetDump.value
+  )
+    return
 
   // Prompt user for confirmation to prevent accidental clicks if not skipped
   if (!skipConfirm) {
@@ -1488,7 +1895,7 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
       migrationTerminal.value.fetching = false
     }
 
-    return;
+    return
   }
 
   isMigratingItemId.value = item.name
@@ -1498,9 +1905,14 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
     const { source, target } = activePair.value
 
     let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
-    if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') status = 'UPDATED'
+    if (item.status === 'modified' || item.status === 'different' || item.status === 'updated')
+      status = 'UPDATED'
     if (item.status === 'deprecated' || item.status === 'missing_in_source') {
-      notificationStore.add({ type: 'warning', title: 'Migration Skipped', message: `"${item.name}" is deprecated. DROP operations are not allowed by default.` })
+      notificationStore.add({
+        type: 'warning',
+        title: 'Migration Skipped',
+        message: `"${item.name}" is deprecated. DROP operations are not allowed by default.`
+      })
       isMigrating.value = false
       isMigratingItemId.value = null
       return
@@ -1600,21 +2012,40 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
 
   if (!skipConfirm) {
     const batchTypeLower = type.toLowerCase()
-    const ddlTypes = batchTypeLower === 'schema'
-      ? ['tables', 'views', 'procedures', 'functions', 'triggers']
-      : [batchTypeLower]
+    const ddlTypes =
+      batchTypeLower === 'schema'
+        ? ['tables', 'views', 'procedures', 'functions', 'triggers']
+        : [batchTypeLower]
 
     let pendingItems: any[] = []
-    const resultsMap: Record<string, any> = { tables: tableResults.value, procedures: procedureResults.value, functions: functionResults.value, views: viewResults.value, triggers: triggerResults.value }
+    const resultsMap: Record<string, any> = {
+      tables: tableResults.value,
+      procedures: procedureResults.value,
+      functions: functionResults.value,
+      views: viewResults.value,
+      triggers: triggerResults.value
+    }
     for (const dtype of ddlTypes) {
-      pendingItems.push(...(resultsMap[dtype] || []).filter((i: any) => {
-        const s = i.status?.toLowerCase()
-        return s === 'new' || s === 'updated' || s === 'different' || s === 'modified' || s === 'missing_in_target'
-      }))
+      pendingItems.push(
+        ...(resultsMap[dtype] || []).filter((i: any) => {
+          const s = i.status?.toLowerCase()
+          return (
+            s === 'new' ||
+            s === 'updated' ||
+            s === 'different' ||
+            s === 'modified' ||
+            s === 'missing_in_target'
+          )
+        })
+      )
     }
 
     if (pendingItems.length === 0) {
-      notificationStore.add({ type: 'info', title: 'Nothing to migrate', message: 'There are no pending changes in this category.' })
+      notificationStore.add({
+        type: 'info',
+        title: 'Nothing to migrate',
+        message: 'There are no pending changes in this category.'
+      })
       return
     }
 
@@ -1626,7 +2057,8 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     migrationTerminal.value = {
       isOpen: true,
       items: pendingItems,
-      sqlScript: '-- Note: Interactive preview is not available for batch mode migrations.\n-- All selected items will be executed consecutively.',
+      sqlScript:
+        '-- Note: Interactive preview is not available for batch mode migrations.\n-- All selected items will be executed consecutively.',
       sqlMap: {},
       fetching: false,
       type: 'batch',
@@ -1652,9 +2084,10 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     try {
       const batchTypeLower = type.toLowerCase()
 
-      const ddlTypes = batchTypeLower === 'schema'
-        ? ['tables', 'views', 'procedures', 'functions', 'triggers']
-        : [batchTypeLower]
+      const ddlTypes =
+        batchTypeLower === 'schema'
+          ? ['tables', 'views', 'procedures', 'functions', 'triggers']
+          : [batchTypeLower]
 
       // Rule: Never migrate DROP. Only NEW and UPDATED.
       const statuses: ('NEW' | 'UPDATED')[] = ['NEW', 'UPDATED']
@@ -1694,7 +2127,10 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
 
         // 4. Update UI State immediately
         if (Array.isArray(results) && resultsMap[ddlType]) {
-          resultsMap[ddlType].value = results.map((r: any) => ({ ...r, type: ddlType.endsWith('s') ? ddlType : ddlType + 's' }))
+          resultsMap[ddlType].value = results.map((r: any) => ({
+            ...r,
+            type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
+          }))
 
           if (selectedItem.value && selectedItem.value.type === ddlType) {
             const found = results.find((r: any) => r.name === selectedItem.value.name)
@@ -1818,7 +2254,11 @@ const applyAtomicVerify = async (item: any) => {
     }
   } catch (e: any) {
     if (window.electronAPI) {
-      window.electronAPI.log.send('warn', `Atomic verify failed for ${item.name}, falling back to full comparison`, e.message)
+      window.electronAPI.log.send(
+        'warn',
+        `Atomic verify failed for ${item.name}, falling back to full comparison`,
+        e.message
+      )
     }
     // Fallback to full comparison if atomic fails
     await runComparison()
@@ -1827,14 +2267,20 @@ const applyAtomicVerify = async (item: any) => {
 
 const handleDatabaseRefreshRequested = (e: any) => {
   const { env } = e.detail
-  if (activePair.value && (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)) {
+  if (
+    activePair.value &&
+    (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)
+  ) {
     runComparison()
   }
 }
 
 const handleCategoryRefreshRequested = (e: any) => {
   const { type, env } = e.detail
-  if (activePair.value && (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)) {
+  if (
+    activePair.value &&
+    (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)
+  ) {
     selectedFilterType.value = type
     runComparison()
   }
@@ -1842,7 +2288,10 @@ const handleCategoryRefreshRequested = (e: any) => {
 
 const handleObjectRefreshRequested = (e: any) => {
   const { name, type, env } = e.detail
-  if (activePair.value && (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)) {
+  if (
+    activePair.value &&
+    (activePair.value.sourceEnv === env || activePair.value.targetEnv === env)
+  ) {
     // Select it first so runComparison(true) knows what to refresh atomically
     const normalizedType = type.endsWith('s') ? type : type + 's'
     const item = allResults.value.find(i => i.name === name && i.type === normalizedType)
@@ -1893,7 +2342,9 @@ const handleNextTab = () => {
   handleSelectTab(tabs.value[nextIndex].id)
 }
 
-const handleCloseActiveTab = () => { if (activeTabId.value) handleCloseTab(activeTabId.value) }
+const handleCloseActiveTab = () => {
+  if (activeTabId.value) handleCloseTab(activeTabId.value)
+}
 const handleRefreshActiveView = () => runComparison()
 const handleFocusSearch = () => searchInput.value?.focus()
 
@@ -1914,29 +2365,32 @@ onUnmounted(() => {
 })
 
 // Auto-run comparison when sidebar refresh is clicked (Top refresh button)
-watch(() => sidebarStore.refreshRequestKey, () => {
-  if (route.path === '/compare' && activePair.value) {
-    consoleStore.addLog('Sidebar refresh requested: Re-running local comparison...', 'info')
-    runComparison()
+watch(
+  () => sidebarStore.refreshRequestKey,
+  () => {
+    if (route.path === '/compare' && activePair.value) {
+      consoleStore.addLog('Sidebar refresh requested: Re-running local comparison...', 'info')
+      runComparison()
+    }
   }
-})
+)
 
 // Auto-load or Auto-compare on pair change
-watch(() => connectionPairsStore.selectedPairId, (newId) => {
-  if (newId) {
-    // Reset state first
-    tableResults.value = []
-    procedureResults.value = []
-    functionResults.value = []
-    viewResults.value = []
-    triggerResults.value = []
-    selectedItem.value = null // Resets detail view
+watch(
+  () => connectionPairsStore.selectedPairId,
+  newId => {
+    if (newId) {
+      // Reset state first
+      tableResults.value = []
+      procedureResults.value = []
+      functionResults.value = []
+      viewResults.value = []
+      triggerResults.value = []
+      selectedItem.value = null // Resets detail view
 
-    // Trigger local comparison on pair change
-    runComparison()
+      // Trigger local comparison on pair change
+      runComparison()
+    }
   }
-})
-
-
-
+)
 </script>

@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <template #toolbar>
-      <SchemaActionToolbar 
+      <SchemaActionToolbar
         :connection-id="selectedConnectionId"
         :connection-name="activeConnectionName"
         :last-updated="selectedDbLastUpdated || undefined"
@@ -11,7 +11,7 @@
         <template #actions>
           <div class="flex items-center gap-1 mr-4">
             <!-- Primary Action: New Query -->
-            <button 
+            <button
               @click="openQueryConsole()"
               class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-sm text-[10px] font-black uppercase tracking-widest transition-all transform active:scale-95 shrink-0"
             >
@@ -23,19 +23,31 @@
 
             <!-- Quick Object Templates -->
             <div class="flex items-center gap-1">
-              <button @click="openNewObjectTemplate('TABLE')" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+              <button
+                @click="openNewObjectTemplate('TABLE')"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+              >
                 <Table2 class="w-3.5 h-3.5" />
                 <span class="hidden xl:inline">Table</span>
               </button>
-              <button @click="openNewObjectTemplate('VIEW')" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+              <button
+                @click="openNewObjectTemplate('VIEW')"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+              >
                 <Eye class="w-3.5 h-3.5" />
                 <span class="hidden xl:inline">View</span>
               </button>
-              <button @click="openNewObjectTemplate('FUNCTION')" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+              <button
+                @click="openNewObjectTemplate('FUNCTION')"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+              >
                 <Sigma class="w-3.5 h-3.5" />
                 <span class="hidden xl:inline">Function</span>
               </button>
-              <button @click="openNewObjectTemplate('PROCEDURE')" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+              <button
+                @click="openNewObjectTemplate('PROCEDURE')"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+              >
                 <Cpu class="w-3.5 h-3.5" />
                 <span class="hidden xl:inline">Procedure</span>
               </button>
@@ -45,7 +57,7 @@
 
             <!-- Toggleable Advanced Search -->
             <div class="flex items-center gap-2">
-              <button 
+              <button
                 v-if="!isSearchExpanded"
                 @click="isSearchExpanded = true"
                 class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg transition-all text-[10px] font-black uppercase tracking-widest"
@@ -54,20 +66,28 @@
                 Advanced Search
               </button>
 
-              <div v-else class="flex items-center gap-2 animate-in slide-in-from-right-4 duration-300">
+              <div
+                v-else
+                class="flex items-center gap-2 animate-in slide-in-from-right-4 duration-300"
+              >
                 <div class="relative group">
-                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                  >
                     <Search class="w-3.5 h-3.5 text-primary-500" />
                   </span>
-                  <input 
+                  <input
                     ref="toolbarSearchInput"
                     v-model="searchQuery"
-                    type="text" 
+                    type="text"
                     placeholder="Search objects..."
                     class="w-48 xl:w-80 pl-9 pr-8 py-1.5 bg-white dark:bg-gray-900 border-2 border-primary-500/20 rounded-full text-[11px] font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-lg"
                   />
-                  <button 
-                    @click="isSearchExpanded = false; searchQuery = ''"
+                  <button
+                    @click="
+                      isSearchExpanded = false
+                      searchQuery = ''
+                    "
                     class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-red-500"
                   >
                     <X class="w-3.5 h-3.5" />
@@ -75,9 +95,31 @@
                 </div>
 
                 <!-- Flag Controls (Only when expanded) -->
-                <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/50 p-0.5 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <button @click="searchFlags.columns = !searchFlags.columns" class="p-1.5 rounded-md transition-all" :class="searchFlags.columns ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm' : 'text-gray-400'"><Columns class="w-3.5 h-3.5" /></button>
-                  <button @click="searchFlags.regex = !searchFlags.regex" class="p-1.5 rounded-md transition-all" :class="searchFlags.regex ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm' : 'text-gray-400'"><Regex class="w-3.5 h-3.5" /></button>
+                <div
+                  class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/50 p-0.5 rounded-lg border border-gray-200 dark:border-gray-700"
+                >
+                  <button
+                    @click="searchFlags.columns = !searchFlags.columns"
+                    class="p-1.5 rounded-md transition-all"
+                    :class="
+                      searchFlags.columns
+                        ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm'
+                        : 'text-gray-400'
+                    "
+                  >
+                    <Columns class="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    @click="searchFlags.regex = !searchFlags.regex"
+                    class="p-1.5 rounded-md transition-all"
+                    :class="
+                      searchFlags.regex
+                        ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm'
+                        : 'text-gray-400'
+                    "
+                  >
+                    <Regex class="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -87,14 +129,22 @@
     </template>
 
     <template #breadcrumbs>
-      <div class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 dark:bg-primary-900/20 rounded-md border border-primary-100 dark:border-primary-800/50">
+      <div
+        class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 dark:bg-primary-900/20 rounded-md border border-primary-100 dark:border-primary-800/50"
+      >
         <Database class="w-3 h-3 text-primary-500" />
-        <span class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{ activeConnectionName }}</span>
+        <span
+          class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400"
+          >{{ activeConnectionName }}</span
+        >
       </div>
 
       <div class="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1 opacity-50"></div>
 
-      <button @click="resetNavigation" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+      <button
+        @click="resetNavigation"
+        class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+      >
         {{ $t('schema.overview') }}
       </button>
 
@@ -102,24 +152,35 @@
 
       <template v-if="selectedFilterType && selectedFilterType !== 'all'">
         <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t(`navigation.ddl.${selectedFilterType.toLowerCase()}`) }}</span>
+        <span
+          class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest"
+          >{{ $t(`navigation.ddl.${selectedFilterType.toLowerCase()}`) }}</span
+        >
       </template>
       <template v-else-if="selectedFilterType === 'all'">
         <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $t('navigation.ddl.all') }}</span>
+        <span
+          class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest"
+          >{{ $t('navigation.ddl.all') }}</span
+        >
       </template>
 
       <template v-if="selectedItem">
         <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono">{{ selectedItem.name }}</span>
+        <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono">{{
+          selectedItem.name
+        }}</span>
       </template>
     </template>
 
     <div class="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-950">
       <div class="flex-1 flex flex-col overflow-hidden relative">
-        <main class="flex-1 flex overflow-hidden relative" :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }" v-if="!loading || hasResults">
-          
-          <SchemaObjectSidebar 
+        <main
+          class="flex-1 flex overflow-hidden relative"
+          :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }"
+          v-if="!loading || hasResults"
+        >
+          <SchemaObjectSidebar
             :width="resultsWidth"
             :has-results="hasResults"
             :filtered-results="filteredResults"
@@ -137,14 +198,16 @@
             @toggle-column-search="searchFlags.columns = !searchFlags.columns"
             @expand-all="treeExpandCmd = { action: 'expand', ts: Date.now() }"
             @collapse-all="treeExpandCmd = { action: 'collapse', ts: Date.now() }"
-            @update-size-filter="(size) => selectedSizeFilter = size === selectedSizeFilter ? 'all' : size"
+            @update-size-filter="
+              size => (selectedSizeFilter = size === selectedSizeFilter ? 'all' : size)
+            "
             @select="handleSelectItem"
             @refresh="loadSchema(true)"
             @start-resize="startResultsResize"
             @new-query="openQueryConsole"
           />
 
-          <SchemaContentWorkspace 
+          <SchemaContentWorkspace
             class="flex-1 min-w-0"
             :tabs="tabs"
             :active-tab-id="activeTabId"
@@ -163,9 +226,7 @@
             @snapshot="takeSnapshot"
             @download="downloadDDL"
           />
-
         </main>
-        
       </div>
     </div>
   </MainLayout>
@@ -174,9 +235,7 @@
 <script setup lang="ts">
 import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, CaseSensitive, WholeWord, Regex } from 'lucide-vue-next'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex } from 'lucide-vue-next'
 
 import { useAppStore } from '@/stores/app'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
@@ -185,35 +244,37 @@ import { useSchemaLoader } from '@/composables/useSchemaLoader'
 import SchemaActionToolbar from '@/components/schema/SchemaActionToolbar.vue'
 import SchemaObjectSidebar from '@/components/schema/SchemaObjectSidebar.vue'
 import SchemaContentWorkspace from '@/components/schema/SchemaContentWorkspace.vue'
-import AIReviewPanel from '@/components/ai/AIReviewPanel.vue'
 
 const appStore = useAppStore()
-const { t, locale } = useI18n()
-const route = useRoute()
 
 // Composable integration
 const selectedConnectionId = computed(() => appStore.selectedConnectionId)
 const selectedItem = ref<any>(null)
 const selectedFilterType = ref('all')
 
-const { 
-  loading, schemaData, allResults, loadSchema, 
-  selectedDbLastUpdated, columnIndex, isIndexingColumns 
-} = useSchemaLoader(
-  selectedConnectionId, 
-  selectedItem, 
-  selectedFilterType
-)
+const {
+  loading,
+  schemaData,
+  allResults,
+  loadSchema,
+  selectedDbLastUpdated,
+  columnIndex,
+  isIndexingColumns
+} = useSchemaLoader(selectedConnectionId, selectedItem, selectedFilterType)
 
-watch([selectedConnectionId, () => appStore.isInitialized], () => {
-  console.log('[GlobalSchemaView] Debug:', {
-    routeId: selectedConnectionId.value,
-    storeInitialized: appStore.isInitialized,
-    totalConnections: appStore.connections.length,
-    totalResolved: appStore.resolvedConnections.length,
-    foundInStore: !!appStore.getConnectionById(selectedConnectionId.value || '')
-  })
-}, { immediate: true })
+watch(
+  [selectedConnectionId, () => appStore.isInitialized],
+  () => {
+    console.log('[GlobalSchemaView] Debug:', {
+      routeId: selectedConnectionId.value,
+      storeInitialized: appStore.isInitialized,
+      totalConnections: appStore.connections.length,
+      totalResolved: appStore.resolvedConnections.length,
+      foundInStore: !!appStore.getConnectionById(selectedConnectionId.value || '')
+    })
+  },
+  { immediate: true }
+)
 
 // UI State
 const searchQuery = ref('')
@@ -227,13 +288,13 @@ const searchFlags = ref({
 const selectedSizeFilter = ref('all')
 const viewMode = ref<'visual' | 'code'>('visual')
 const resultsWidth = ref(300)
-const treeExpandCmd = ref({ action: '', ts: 0 })
+const treeExpandCmd = ref<{ action: 'expand' | 'collapse'; ts: number } | null>(null)
 const isSearchExpanded = ref(false)
 const toolbarSearchInput = ref<HTMLInputElement | null>(null)
 const debouncedSearchQuery = ref('')
 let searchDebounceTimeout: any = null
 
-watch(searchQuery, (newVal) => {
+watch(searchQuery, newVal => {
   if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
   searchDebounceTimeout = setTimeout(() => {
     debouncedSearchQuery.value = newVal
@@ -247,16 +308,6 @@ const activeTabId = ref<string | null>(null)
 const activeConnectionName = computed(() => {
   const conn = appStore.resolvedConnections.find(c => c.id === selectedConnectionId.value)
   return conn ? conn.name : 'Unknown'
-})
-
-const selectedEnv = computed(() => {
-  const conn = appStore.connections.find(c => c.id === selectedConnectionId.value)
-  return conn ? conn.environment : ''
-})
-
-const selectedDbName = computed(() => {
-  const conn = appStore.resolvedConnections.find(c => c.id === selectedConnectionId.value)
-  return conn ? conn.database || conn.name : ''
 })
 
 // Advanced Filtering Logic
@@ -279,7 +330,9 @@ const filteredResults = computed(() => {
       if (isRegex) {
         try {
           return new RegExp(q, isCase ? '' : 'i').test(text)
-        } catch { return false }
+        } catch {
+          return false
+        }
       }
       let t = isCase ? text : text.toLowerCase()
       let query = isCase ? q : q.toLowerCase()
@@ -288,14 +341,14 @@ const filteredResults = computed(() => {
     }
 
     if (searchFlags.value.columns) {
-        results = results.filter(r => {
-            const tableCols = columnIndex.value[r.name]
-            return tableCols?.columns.some(c => match(c.name))
-        })
+      results = results.filter(r => {
+        const tableCols = columnIndex.value[r.name]
+        return tableCols?.columns.some(c => match(c.name))
+      })
     } else if (searchFlags.value.content) {
-        results = results.filter(r => match(r.ddl || r.content || ''))
+      results = results.filter(r => match(r.ddl || r.content || ''))
     } else {
-        results = results.filter(r => match(r.name))
+      results = results.filter(r => match(r.name))
     }
   }
 
@@ -314,8 +367,12 @@ const detailedTableData = computed(() => {
 const tableStatsMap = ref({}) // Simplified for now
 
 // Instant Compare Integration
-const isSourceInInstant = computed(() => appStore.compareStack.source?.name === selectedItem.value?.name)
-const isTargetInInstant = computed(() => appStore.compareStack.target?.name === selectedItem.value?.name)
+const isSourceInInstant = computed(
+  () => appStore.compareStack.source?.name === selectedItem.value?.name
+)
+const isTargetInInstant = computed(
+  () => appStore.compareStack.target?.name === selectedItem.value?.name
+)
 
 const handlePickForInstant = (type: 'source' | 'target') => {
   if (!selectedItem.value) return
@@ -336,7 +393,7 @@ const openQueryConsole = (initialSql: string = '', customName?: string) => {
     connection: appStore.getConnectionById(selectedConnectionId.value),
     initialSql
   }
-  
+
   tabs.value.push(newTab)
   activeTabId.value = queryId
   selectedItem.value = newTab
@@ -349,14 +406,14 @@ const openNewObjectTemplate = (type: 'TABLE' | 'VIEW' | 'FUNCTION' | 'PROCEDURE'
     FUNCTION: `CREATE FUNCTION \`new_function\` ()\nRETURNS INTEGER\nBEGIN\n\nRETURN 1;\nEND`,
     PROCEDURE: `CREATE PROCEDURE \`new_procedure\` ()\nBEGIN\n\nEND`
   }
-  
+
   const displayNames = {
     TABLE: 'New Table',
     VIEW: 'New View',
     FUNCTION: 'New Function',
     PROCEDURE: 'New Procedure'
   }
-  
+
   openQueryConsole(templates[type], displayNames[type])
 }
 
@@ -426,11 +483,15 @@ const aiContext = computed(() => {
   }
 })
 
-watch(aiContext, (newCtx) => {
-  if (newCtx) {
-    appStore.aiContext = newCtx
-  }
-}, { immediate: true })
+watch(
+  aiContext,
+  newCtx => {
+    if (newCtx) {
+      appStore.aiContext = newCtx
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   if (appStore.isInitialized) {
@@ -439,11 +500,14 @@ onMounted(async () => {
 })
 
 // Auto-load when store is ready
-watch(() => appStore.isInitialized, (val) => {
-  if (val && selectedConnectionId.value) {
-    loadSchema()
+watch(
+  () => appStore.isInitialized,
+  val => {
+    if (val && selectedConnectionId.value) {
+      loadSchema()
+    }
   }
-})
+)
 
 watch(selectedConnectionId, () => {
   if (appStore.isInitialized) {
@@ -452,7 +516,7 @@ watch(selectedConnectionId, () => {
   }
 })
 
-watch(isSearchExpanded, async (val) => {
+watch(isSearchExpanded, async val => {
   if (val) {
     await nextTick()
     toolbarSearchInput.value?.focus()
@@ -461,5 +525,7 @@ watch(isSearchExpanded, async (val) => {
 </script>
 
 <style scoped>
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 </style>

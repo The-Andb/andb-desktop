@@ -14,26 +14,26 @@ const sourceName = ref('prod_db_cluster_01')
 const targetName = ref('staging_db_v4')
 
 const items = ref<ConflictItem[]>([
-  { 
-    id: 'users', 
-    name: 'users', 
-    type: 'table', 
-    status: 'conflict', 
-    conflictLineCount: 4 
+  {
+    id: 'users',
+    name: 'users',
+    type: 'table',
+    status: 'conflict',
+    conflictLineCount: 4
   },
-  { 
-    id: 'audit_log', 
-    name: 'audit_log', 
-    type: 'table', 
+  {
+    id: 'audit_log',
+    name: 'audit_log',
+    type: 'table',
     status: 'conflict', // New Object (Safe Addition) - masquerading as conflict for UI test
-    conflictLineCount: 0 
+    conflictLineCount: 0
   },
-  { 
-    id: 'update_ts', 
-    name: 'update_timestamp_trigger', 
-    type: 'trigger', 
-    status: 'resolved', 
-    conflictLineCount: 0 
+  {
+    id: 'update_ts',
+    name: 'update_timestamp_trigger',
+    type: 'trigger',
+    status: 'resolved',
+    conflictLineCount: 0
   }
 ])
 
@@ -70,13 +70,12 @@ const handleFinalize = () => {
 const handleSelect = (id: string) => {
   selectedId.value = id
 }
-
 </script>
 
 <template>
   <ResolveLayout>
     <template #header>
-      <ResolveHeader 
+      <ResolveHeader
         :sourceName="sourceName"
         :targetName="targetName"
         :conflictCount="conflictCount"
@@ -86,15 +85,11 @@ const handleSelect = (id: string) => {
     </template>
 
     <template #sidebar>
-      <ConflictList 
-        :items="items"
-        :selectedId="selectedId"
-        @select="handleSelect"
-      />
+      <ConflictList :items="items" :selectedId="selectedId" @select="handleSelect" />
     </template>
 
     <!-- Main Content -->
-    <ThreeWayDiff 
+    <ThreeWayDiff
       v-if="selectedId === 'users'"
       :sourceContent="sourceContent"
       :targetContent="targetContent"
@@ -104,10 +99,10 @@ const handleSelect = (id: string) => {
     </div>
 
     <template #footer>
-      <ResolveFooter 
-         :totalConflicts="items.length"
-         :resolvedCount="resolvedCount"
-         :cursorPosition="{ line: 1, col: 1 }"
+      <ResolveFooter
+        :totalConflicts="items.length"
+        :resolvedCount="resolvedCount"
+        :cursorPosition="{ line: 1, col: 1 }"
       />
     </template>
   </ResolveLayout>

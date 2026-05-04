@@ -31,7 +31,7 @@
               <Trash2 class="w-4 h-4" />
             </button>
           </div>
-          
+
           <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
             <div>{{ template.host }}:{{ template.port }}</div>
             <div v-if="template.database">{{ template.database }}</div>
@@ -44,12 +44,15 @@
               >
                 {{ $t(`environments.${template.environment.toLowerCase()}`) }}
               </span>
-              <span v-if="template.useSSL" class="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded">
+              <span
+                v-if="template.useSSL"
+                class="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 px-2 py-1 rounded"
+              >
                 SSL
               </span>
             </div>
           </div>
-          
+
           <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
             {{ $t('connections.created') }}: {{ formatDate(template.createdAt) }}
           </div>
@@ -69,13 +72,18 @@
     </div>
 
     <!-- Save Template Modal -->
-    <div v-if="showSaveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div
+      v-if="showSaveModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
       <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4">{{ $t('connections.saveTemplate') }}</h3>
-        
+
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-2">{{ $t('connections.templateName') }} *</label>
+            <label class="block text-sm font-medium mb-2"
+              >{{ $t('connections.templateName') }} *</label
+            >
             <input
               v-model="templateName"
               type="text"
@@ -83,9 +91,11 @@
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
-            <label class="block text-sm font-medium mb-2">{{ $t('connections.templateDescription') }}</label>
+            <label class="block text-sm font-medium mb-2">{{
+              $t('connections.templateDescription')
+            }}</label>
             <textarea
               v-model="templateDescription"
               :placeholder="$t('connections.templateDescriptionPlaceholder')"
@@ -93,7 +103,7 @@
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             ></textarea>
           </div>
-          
+
           <div>
             <label class="flex items-center">
               <input
@@ -105,12 +115,9 @@
             </label>
           </div>
         </div>
-        
+
         <div class="flex justify-end gap-3 mt-6">
-          <button
-            @click="showSaveModal = false"
-            class="btn btn-secondary"
-          >
+          <button @click="showSaveModal = false" class="btn btn-secondary">
             {{ $t('common.cancel') }}
           </button>
           <button
@@ -178,7 +185,7 @@ const confirmSaveTemplate = () => {
     timeout: props.form.timeout,
     type: props.form.type || 'mysql'
   })
-  
+
   showSaveModal.value = false
 }
 

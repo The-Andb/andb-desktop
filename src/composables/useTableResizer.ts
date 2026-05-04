@@ -15,20 +15,20 @@ export function useTableResizer(tableId: string, initialWidths: number[]) {
     activeColumnIndex.value = index
     startX.value = event.pageX
     startWidth.value = columnWidths.value[index]
-    
+
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
-    
+
     event.stopPropagation()
     event.preventDefault()
   }
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isResizing.value || activeColumnIndex.value === -1) return
-    
+
     const delta = event.pageX - startX.value
     // Minimum width of 50px to keep text readable
     const newWidth = Math.max(50, startWidth.value + delta)
@@ -40,15 +40,15 @@ export function useTableResizer(tableId: string, initialWidths: number[]) {
     activeColumnIndex.value = -1
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
-    
+
     window.removeEventListener('mousemove', handleMouseMove)
     window.removeEventListener('mouseup', handleMouseUp)
-    
+
     // Persist to local storage
     try {
-        localStorage.setItem(`table-widths-${tableId}`, JSON.stringify(columnWidths.value))
+      localStorage.setItem(`table-widths-${tableId}`, JSON.stringify(columnWidths.value))
     } catch (e) {
-        console.warn('Failed to save table widths to localStorage', e)
+      console.warn('Failed to save table widths to localStorage', e)
     }
   }
 

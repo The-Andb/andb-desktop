@@ -110,4 +110,3 @@ export function useResizablePanes(options: ResizablePanesOptions = {}) {
     adjustPaneWidth
   }
 }
-

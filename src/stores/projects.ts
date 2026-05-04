@@ -35,7 +35,9 @@ export const useProjectsStore = defineStore('projects', () => {
         }
 
         projects.value = savedProjects.map(p => {
-          let envs = Array.isArray(p.enabledEnvironmentIds) ? p.enabledEnvironmentIds.map(String) : ['DEV', 'STAGE', 'PROD']
+          let envs = Array.isArray(p.enabledEnvironmentIds)
+            ? p.enabledEnvironmentIds.map(String)
+            : ['DEV', 'STAGE', 'PROD']
 
           // Migrate numeric IDs to Named IDs
           envs = envs.map(id => envIdMap[id] || id)
@@ -49,17 +51,19 @@ export const useProjectsStore = defineStore('projects', () => {
         })
       } else {
         // Create default project if none exist
-        projects.value = [{
-          id: 'default',
-          name: 'Project One',
-          description: 'Default project',
-          connectionIds: ['1', '2', '3', '4'],
-          pairIds: ['1', '2', '3'],
-          enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD'],
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }]
+        projects.value = [
+          {
+            id: 'default',
+            name: 'Project One',
+            description: 'Default project',
+            connectionIds: ['1', '2', '3', '4'],
+            pairIds: ['1', '2', '3'],
+            enabledEnvironmentIds: ['DEV', 'STAGE', 'PROD'],
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ]
       }
 
       // 4. Set Selection
@@ -111,7 +115,7 @@ export const useProjectsStore = defineStore('projects', () => {
               const newId = appStore.generateId()
               const clone = { ...JSON.parse(JSON.stringify(original)), id: newId }
               appStore.connections.push(clone)
-              
+
               // Find and clone any pair in this project that uses the old connection ID
               p.pairIds.forEach(pairId => {
                 const pair = connectionPairsStore.connectionPairs.find(cp => cp.id === pairId)
@@ -196,7 +200,7 @@ export const useProjectsStore = defineStore('projects', () => {
     { deep: true }
   )
 
-  watch(selectedProjectId, async (newId) => {
+  watch(selectedProjectId, async newId => {
     if (newId) {
       console.log('[Projects] Selected Project Changed:', newId)
       try {
@@ -315,10 +319,10 @@ export const useProjectsStore = defineStore('projects', () => {
     source.connectionIds.forEach(oldId => {
       const oldConn = appStore.connections.find(c => c.id === oldId)
       if (oldConn) {
-        const newConnId = appStore.generateId() 
-        const newConn = { 
-          ...JSON.parse(JSON.stringify(oldConn)), 
-          id: newConnId 
+        const newConnId = appStore.generateId()
+        const newConn = {
+          ...JSON.parse(JSON.stringify(oldConn)),
+          id: newConnId
         }
         appStore.connections.push(newConn)
         connIdMap[oldId] = newConnId
@@ -330,15 +334,19 @@ export const useProjectsStore = defineStore('projects', () => {
     })
 
     // 3. Clone Pairs
-      source.pairIds.forEach(oldId => {
-        const oldPair = connectionPairsStore.connectionPairs.find(p => p.id === oldId)
-        if (oldPair) {
-          const newPairId = appStore.generateId()
+    source.pairIds.forEach(oldId => {
+      const oldPair = connectionPairsStore.connectionPairs.find(p => p.id === oldId)
+      if (oldPair) {
+        const newPairId = appStore.generateId()
         const newPair = {
           ...JSON.parse(JSON.stringify(oldPair)),
           id: newPairId,
-          sourceConnectionId: oldPair.sourceConnectionId ? (connIdMap[oldPair.sourceConnectionId] || oldPair.sourceConnectionId) : undefined,
-          targetConnectionId: oldPair.targetConnectionId ? (connIdMap[oldPair.targetConnectionId] || oldPair.targetConnectionId) : undefined
+          sourceConnectionId: oldPair.sourceConnectionId
+            ? connIdMap[oldPair.sourceConnectionId] || oldPair.sourceConnectionId
+            : undefined,
+          targetConnectionId: oldPair.targetConnectionId
+            ? connIdMap[oldPair.targetConnectionId] || oldPair.targetConnectionId
+            : undefined
         }
         connectionPairsStore.connectionPairs.push(newPair)
         newProject.pairIds.push(newPairId)
@@ -403,27 +411,33 @@ export const useProjectsStore = defineStore('projects', () => {
     })
 
     // 2. Create Demo Connections
-    const sourceConn = appStore.addConnection({
-      name: 'Demo Source (SQL)',
-      host: './ui/public/demo/demo-source.sql',
-      port: 3306,
-      database: 'demo_source',
-      username: 'demo',
-      environment: 'DEV',
-      status: 'idle',
-      type: 'dump'
-    }, demoProject.id)
+    const sourceConn = appStore.addConnection(
+      {
+        name: 'Demo Source (SQL)',
+        host: './ui/public/demo/demo-source.sql',
+        port: 3306,
+        database: 'demo_source',
+        username: 'demo',
+        environment: 'DEV',
+        status: 'idle',
+        type: 'dump'
+      },
+      demoProject.id
+    )
 
-    const targetConn = appStore.addConnection({
-      name: 'Demo Target (SQL)',
-      host: './ui/public/demo/demo-target.sql',
-      port: 3306,
-      database: 'demo_target',
-      username: 'demo',
-      environment: 'PROD',
-      status: 'idle',
-      type: 'dump'
-    }, demoProject.id)
+    const targetConn = appStore.addConnection(
+      {
+        name: 'Demo Target (SQL)',
+        host: './ui/public/demo/demo-target.sql',
+        port: 3306,
+        database: 'demo_target',
+        username: 'demo',
+        environment: 'PROD',
+        status: 'idle',
+        type: 'dump'
+      },
+      demoProject.id
+    )
 
     // Link connections to demo project
     demoProject.connectionIds = [sourceConn.id, targetConn.id]
@@ -459,15 +473,18 @@ export const useProjectsStore = defineStore('projects', () => {
     const targetFileName = targetPath.split(/[/\\]/).pop() || 'Target'
 
     // 1. Check if an identical project already exists
-    const existingProject = projects.value.find(p =>
-      p.name === projectName &&
-      p.description.includes(sourceFileName) &&
-      p.description.includes(targetFileName)
+    const existingProject = projects.value.find(
+      p =>
+        p.name === projectName &&
+        p.description.includes(sourceFileName) &&
+        p.description.includes(targetFileName)
     )
 
     if (existingProject) {
       selectProject(existingProject.id)
-      const pair = connectionPairsStore.connectionPairs.find(p => existingProject.pairIds.includes(p.id))
+      const pair = connectionPairsStore.connectionPairs.find(p =>
+        existingProject.pairIds.includes(p.id)
+      )
       if (pair) return pair
     }
 
@@ -481,31 +498,39 @@ export const useProjectsStore = defineStore('projects', () => {
     })
 
     // 2. Create Connections
-    const sourceConn = appStore.addConnection({
-      name: `Source: ${sourceFileName}`,
-      host: sourcePath,
-      port: 3306,
-      database: 'source',
-      username: 'dump',
-      environment: 'DEV',
-      status: 'idle',
-      type: 'dump'
-    }, quickProject.id)
+    const sourceConn = appStore.addConnection(
+      {
+        name: `Source: ${sourceFileName}`,
+        host: sourcePath,
+        port: 3306,
+        database: 'source',
+        username: 'dump',
+        environment: 'DEV',
+        status: 'idle',
+        type: 'dump'
+      },
+      quickProject.id
+    )
 
-    const targetConn = appStore.addConnection({
-      name: `Target: ${targetFileName}`,
-      host: targetPath,
-      port: 3306,
-      database: 'target',
-      username: 'dump',
-      environment: 'PROD',
-      status: 'idle',
-      type: 'dump'
-    }, quickProject.id)
+    const targetConn = appStore.addConnection(
+      {
+        name: `Target: ${targetFileName}`,
+        host: targetPath,
+        port: 3306,
+        database: 'target',
+        username: 'dump',
+        environment: 'PROD',
+        status: 'idle',
+        type: 'dump'
+      },
+      quickProject.id
+    )
 
     // Ensure they are linked (addConnection already does this, but being explicit)
-    if (!quickProject.connectionIds.includes(sourceConn.id)) quickProject.connectionIds.push(sourceConn.id)
-    if (!quickProject.connectionIds.includes(targetConn.id)) quickProject.connectionIds.push(targetConn.id)
+    if (!quickProject.connectionIds.includes(sourceConn.id))
+      quickProject.connectionIds.push(sourceConn.id)
+    if (!quickProject.connectionIds.includes(targetConn.id))
+      quickProject.connectionIds.push(targetConn.id)
 
     // 3. Create Pair
     const quickPair = connectionPairsStore.addPair({
@@ -557,10 +582,17 @@ export const useProjectsStore = defineStore('projects', () => {
     const originalPairCount = connectionPairsStore.connectionPairs.length
 
     appStore.connections = appStore.connections.filter(c => referencedConnectionIds.has(c.id))
-    connectionPairsStore.connectionPairs = connectionPairsStore.connectionPairs.filter(p => referencedPairIds.has(p.id))
+    connectionPairsStore.connectionPairs = connectionPairsStore.connectionPairs.filter(p =>
+      referencedPairIds.has(p.id)
+    )
 
-    if (appStore.connections.length !== originalConnCount || connectionPairsStore.connectionPairs.length !== originalPairCount) {
-      console.log(`[Projects] Cleaned orphans: Connections ${originalConnCount} -> ${appStore.connections.length}, Pairs ${originalPairCount} -> ${connectionPairsStore.connectionPairs.length}`)
+    if (
+      appStore.connections.length !== originalConnCount ||
+      connectionPairsStore.connectionPairs.length !== originalPairCount
+    ) {
+      console.log(
+        `[Projects] Cleaned orphans: Connections ${originalConnCount} -> ${appStore.connections.length}, Pairs ${originalPairCount} -> ${connectionPairsStore.connectionPairs.length}`
+      )
     }
 
     // 4. PERSIST CHANGES EXPLICITLY TO DISK

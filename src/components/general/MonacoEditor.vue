@@ -1,9 +1,12 @@
 <template>
-  <div ref="editorContainer" class="w-full h-full min-h-0 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all"></div>
+  <div
+    ref="editorContainer"
+    class="w-full h-full min-h-0 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all"
+  ></div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as monaco from 'monaco-editor'
 import { format } from 'sql-formatter'
 
@@ -77,7 +80,7 @@ const formatSql = () => {
   try {
     const formatted = format(val, {
       language: 'mysql', // Defaulting to mysql for general SQL
-      uppercase: true,
+      keywordCase: 'upper'
     })
     editor.setValue(formatted)
   } catch (e) {
@@ -86,17 +89,23 @@ const formatSql = () => {
 }
 
 // Watchers for external changes
-watch(() => props.modelValue, (newVal) => {
-  if (editor && newVal !== editor.getValue()) {
-    editor.setValue(newVal)
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (editor && newVal !== editor.getValue()) {
+      editor.setValue(newVal)
+    }
   }
-})
+)
 
-watch(() => props.readOnly, (newVal) => {
-  if (editor) {
-    editor.updateOptions({ readOnly: newVal })
+watch(
+  () => props.readOnly,
+  newVal => {
+    if (editor) {
+      editor.updateOptions({ readOnly: newVal })
+    }
   }
-})
+)
 
 // Sync Theme
 const observer = new MutationObserver(() => {

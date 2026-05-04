@@ -5,7 +5,6 @@ import { storage } from '../utils/storage-ipc'
 import { useProjectsStore, projectChangedBus } from './projects'
 import { useConnectionTemplatesStore } from './connectionTemplates'
 
-
 export interface SshConfig {
   enabled: boolean
   host: string
@@ -30,8 +29,8 @@ export interface DatabaseConnection {
   environment: string
   lastTested?: string
   domainMapping?: {
-    from: string  // e.g., '@dev.example.com'
-    to: string    // e.g., '@prod.example.com'
+    from: string // e.g., '@dev.example.com'
+    to: string // e.g., '@prod.example.com'
   }
   productSettings?: {
     domain?: string
@@ -125,7 +124,12 @@ export const useAppStore = defineStore('app', () => {
   const isSchemaFetching = ref(false)
   const schemaFetchMessage = ref('')
   const activeFetchConnectionId = ref<string | null>(null)
-  const schemaFetchProgresses = ref<Record<string, { current: number; total: number; type: string; objectName: string; connectionName?: string }>>({})
+  const schemaFetchProgresses = ref<
+    Record<
+      string,
+      { current: number; total: number; type: string; objectName: string; connectionName?: string }
+    >
+  >({})
 
   // Telemetry Identity
   const installationId = ref<string>('')
@@ -154,7 +158,7 @@ export const useAppStore = defineStore('app', () => {
       sidebarCollapsed.value = savedSettings.sidebarCollapsed
       buttonStyle.value = savedSettings.buttonStyle || 'full'
       navStyle.value = savedSettings.navStyle || 'vertical-list'
-      
+
       if (savedSettings.layoutSettings) {
         layoutSettings.value = { ...layoutSettings.value, ...savedSettings.layoutSettings }
       }
@@ -171,7 +175,10 @@ export const useAppStore = defineStore('app', () => {
         hiddenHorizontalTabs.value = savedSettings.hiddenHorizontalTabs
       }
       if (savedSettings.lastCustomFontSizes) {
-        lastCustomFontSizes.value = { ...lastCustomFontSizes.value, ...savedSettings.lastCustomFontSizes }
+        lastCustomFontSizes.value = {
+          ...lastCustomFontSizes.value,
+          ...savedSettings.lastCustomFontSizes
+        }
       }
 
       safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
@@ -280,9 +287,10 @@ export const useAppStore = defineStore('app', () => {
 
     // Filter by both IDs assigned to the project AND the environments enabled for this project
     if (!project) return []
-    return resolvedConnections.value.filter(conn =>
-      project.connectionIds.includes(conn.id) &&
-      project.enabledEnvironmentIds.includes(conn.environment)
+    return resolvedConnections.value.filter(
+      conn =>
+        project.connectionIds.includes(conn.id) &&
+        project.enabledEnvironmentIds.includes(conn.environment)
     )
   })
 
@@ -302,11 +310,13 @@ export const useAppStore = defineStore('app', () => {
 
       // 2. Legacy Fallback: Match by infrastructure details if no templateId
       if (!template && conn.host && conn.host !== 'localhost' && conn.host !== 'file') {
-        template = templatesStore.templates.find(t =>
-          t.host === conn.host &&
-          (t.port === conn.port || !conn.port) &&
-          t.username === conn.username
-        ) || null
+        template =
+          templatesStore.templates.find(
+            t =>
+              t.host === conn.host &&
+              (t.port === conn.port || !conn.port) &&
+              t.username === conn.username
+          ) || null
       }
 
       if (!template) return { ...conn }
@@ -336,8 +346,6 @@ export const useAppStore = defineStore('app', () => {
     return (env: string) => filteredConnections.value.filter(conn => conn.environment === env)
   })
 
-
-
   const isPairValid = computed(() => {
     return currentPair.value.source && currentPair.value.target
   })
@@ -352,21 +360,24 @@ export const useAppStore = defineStore('app', () => {
   )
 
   // Auto-select first connection if current one becomes invalid (e.g. project switch)
-  watch(() => filteredConnections.value, (newConns) => {
-    const projectsStore = useProjectsStore()
-    if (newConns.length > 0) {
-      if (!newConns.some(c => c.id === selectedConnectionId.value)) {
-        selectedConnectionId.value = newConns[0].id
+  watch(
+    () => filteredConnections.value,
+    newConns => {
+      const projectsStore = useProjectsStore()
+      if (newConns.length > 0) {
+        if (!newConns.some(c => c.id === selectedConnectionId.value)) {
+          selectedConnectionId.value = newConns[0].id
+        }
+      } else if (projectsStore.isLoaded) {
+        selectedConnectionId.value = ''
       }
-    } else if (projectsStore.isLoaded) {
-      selectedConnectionId.value = ''
-    }
-  }, { immediate: true })
+    },
+    { immediate: true }
+  )
 
   watch(sidebarCollapsed, newValue => {
     storage.updateSettings({ sidebarCollapsed: newValue })
   })
-
 
   watch(safeMode, newValue => {
     storage.updateSettings({ safeMode: newValue })
@@ -384,35 +395,51 @@ export const useAppStore = defineStore('app', () => {
     storage.updateSettings({ buttonStyle: newValue })
   })
 
-  watch(fontSizes, newValue => {
-    storage.updateSettings({ fontSizes: { ...newValue } })
+  watch(
+    fontSizes,
+    newValue => {
+      storage.updateSettings({ fontSizes: { ...newValue } })
 
-    // If we make Manual changes while in 'custom' mode, update our lastCustomFontSizes
-    if (fontSizeProfile.value === 'custom') {
-      lastCustomFontSizes.value = { ...newValue }
-      storage.updateSettings({ lastCustomFontSizes: { ...newValue } })
-    }
-  }, { deep: true })
+      // If we make Manual changes while in 'custom' mode, update our lastCustomFontSizes
+      if (fontSizeProfile.value === 'custom') {
+        lastCustomFontSizes.value = { ...newValue }
+        storage.updateSettings({ lastCustomFontSizes: { ...newValue } })
+      }
+    },
+    { deep: true }
+  )
 
   watch(fontSizeProfile, newValue => {
     storage.updateSettings({ fontSizeProfile: newValue })
   })
 
-  watch(fontFamilies, newValue => {
-    storage.updateSettings({ fontFamilies: { ...newValue } })
-  }, { deep: true })
+  watch(
+    fontFamilies,
+    newValue => {
+      storage.updateSettings({ fontFamilies: { ...newValue } })
+    },
+    { deep: true }
+  )
 
-  watch(hiddenHorizontalTabs, newValue => {
-    storage.updateSettings({ hiddenHorizontalTabs: newValue })
-  }, { deep: true })
+  watch(
+    hiddenHorizontalTabs,
+    newValue => {
+      storage.updateSettings({ hiddenHorizontalTabs: newValue })
+    },
+    { deep: true }
+  )
 
   watch(selectedConnectionId, newValue => {
     storage.updateSettings({ lastSelectedConnectionId: newValue })
   })
 
-  watch(layoutSettings, newValue => {
-    storage.updateSettings({ layoutSettings: { ...newValue } })
-  }, { deep: true })
+  watch(
+    layoutSettings,
+    newValue => {
+      storage.updateSettings({ layoutSettings: { ...newValue } })
+    },
+    { deep: true }
+  )
 
   const generateId = () => {
     try {
@@ -441,13 +468,14 @@ export const useAppStore = defineStore('app', () => {
 
   const addConnection = (connection: Omit<DatabaseConnection, 'id'>, projectId?: string) => {
     // Check for duplicates (same host, port, database, and name)
-    const existing = connections.value.find(c => 
-      c.host === connection.host && 
-      c.port === connection.port && 
-      c.database === connection.database &&
-      c.name === connection.name &&
-      c.environment === connection.environment &&
-      (c.type || 'mysql') === (connection.type || 'mysql')
+    const existing = connections.value.find(
+      c =>
+        c.host === connection.host &&
+        c.port === connection.port &&
+        c.database === connection.database &&
+        c.name === connection.name &&
+        c.environment === connection.environment &&
+        (c.type || 'mysql') === (connection.type || 'mysql')
     )
 
     if (existing) {
@@ -518,7 +546,9 @@ export const useAppStore = defineStore('app', () => {
     // Given the objective "Prevent connections from existing independently", we should remove it.
 
     // Check if this connection is used by ANY other project
-    const isUsed = projectsStore.projects.some(p => p.id !== currentProjectId && p.connectionIds.includes(id))
+    const isUsed = projectsStore.projects.some(
+      p => p.id !== currentProjectId && p.connectionIds.includes(id)
+    )
 
     if (isUsed) {
       console.log(`Connection ${id} is still used by other projects. Unlinking from current only.`)
@@ -543,7 +573,11 @@ export const useAppStore = defineStore('app', () => {
       return result.success
     } catch (error: any) {
       if (window.electronAPI) {
-        window.electronAPI.log.send('error', `Connection test error for connection ID: ${id}`, error.message)
+        window.electronAPI.log.send(
+          'error',
+          `Connection test error for connection ID: ${id}`,
+          error.message
+        )
       }
       updateConnection(id, { status: 'failed' })
       return false
@@ -599,7 +633,6 @@ export const useAppStore = defineStore('app', () => {
     ]
     await storage.saveConnections(connections.value)
   }
-
 
   const applyFontSizeProfile = (profileKey: 'small' | 'medium' | 'large' | 'custom') => {
     fontSizeProfile.value = profileKey
@@ -689,7 +722,7 @@ export const useAppStore = defineStore('app', () => {
       })
     },
     reloadData: init,
-    
+
     // AI Trigger signalling
     aiContext,
     aiReviewTrigger: ref(0),

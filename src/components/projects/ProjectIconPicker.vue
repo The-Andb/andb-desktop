@@ -1,16 +1,25 @@
 <template>
-  <div class="p-4 w-64 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200 z-[100]" @click.stop>
+  <div
+    class="p-4 w-64 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200 z-[100]"
+    @click.stop
+  >
     <div class="space-y-4">
       <!-- Icon Selection -->
       <div>
-        <label class="text-[10px] font-black text-gray-400 tracking-widest block mb-3">Select representative icon</label>
+        <label class="text-[10px] font-black text-gray-400 tracking-widest block mb-3"
+          >Select representative icon</label
+        >
         <div class="grid grid-cols-5 gap-2">
-          <button 
-            v-for="icon in availableIcons" 
+          <button
+            v-for="icon in availableIcons"
             :key="icon.name"
             @click.stop="selectIcon(icon.name)"
             class="p-2 rounded-xl transition-all flex items-center justify-center border hover:scale-110 active:scale-95"
-            :class="selectedIcon === icon.name ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400'"
+            :class="
+              selectedIcon === icon.name
+                ? 'bg-primary-500 border-primary-500 text-white shadow-lg shadow-primary-500/20'
+                : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400'
+            "
           >
             <component :is="icon.comp" class="w-4 h-4" />
           </button>
@@ -19,14 +28,19 @@
 
       <!-- Color Selection -->
       <div>
-        <label class="text-[10px] font-black text-gray-400 tracking-widest block mb-3">Accent color</label>
+        <label class="text-[10px] font-black text-gray-400 tracking-widest block mb-3"
+          >Accent color</label
+        >
         <div class="grid grid-cols-6 gap-2">
-          <button 
-            v-for="c in availableColors" 
+          <button
+            v-for="c in availableColors"
             :key="c.value"
             @click.stop="selectColor(c.value)"
             class="w-6 h-6 rounded-full border-2 transition-transform hover:scale-125 active:scale-90 flex items-center justify-center p-0.5"
-            :style="{ backgroundColor: c.value, borderColor: selectedColor === c.value ? 'white' : 'transparent' }"
+            :style="{
+              backgroundColor: c.value,
+              borderColor: selectedColor === c.value ? 'white' : 'transparent'
+            }"
             :title="c.name"
           >
             <Check v-if="selectedColor === c.value" class="w-3 h-3 text-white" />
@@ -38,15 +52,15 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  Database, 
-  Package, 
-  Cpu, 
-  Zap, 
-  Terminal, 
-  Cloud, 
-  Shield, 
-  Activity, 
+import {
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
   HardDrive,
   Globe,
   Rocket,
@@ -62,7 +76,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', data: { icon: string, color: string }): void
+  (e: 'select', data: { icon: string; color: string }): void
 }>()
 
 const availableIcons = [

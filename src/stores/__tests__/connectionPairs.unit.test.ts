@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock browser globals
 if (typeof window === 'undefined') {
-  (global as any).window = {
+  ;(global as any).window = {
     matchMedia: vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
@@ -11,20 +11,20 @@ if (typeof window === 'undefined') {
       removeListener: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      dispatchEvent: vi.fn()
     })),
     electronAPI: {
       storage: {
         get: vi.fn().mockResolvedValue({ success: true, data: null }),
         set: vi.fn().mockResolvedValue({ success: true }),
-        delete: vi.fn().mockResolvedValue({ success: true }),
+        delete: vi.fn().mockResolvedValue({ success: true })
       },
       log: {
         send: vi.fn()
       }
     }
-  };
-  (global as any).matchMedia = (global as any).window.matchMedia;
+  }
+  ;(global as any).matchMedia = (global as any).window.matchMedia
 }
 
 // Mock storage-ipc
@@ -47,7 +47,7 @@ vi.mock('@/utils/storage-ipc', () => ({
     saveConnections: vi.fn().mockResolvedValue({}),
     saveConnectionPairs: vi.fn().mockResolvedValue({}),
     saveEnvironments: vi.fn().mockResolvedValue({}),
-    saveConnectionTemplates: vi.fn().mockResolvedValue({}),
+    saveConnectionTemplates: vi.fn().mockResolvedValue({})
   }
 }))
 
@@ -151,12 +151,40 @@ describe('ConnectionPairs Store', () => {
     useProjectsStore().selectProject(testProject.id)
 
     appStore.connections = [
-      { id: 'c1', environment: 'DEV', name: 'Dev DB', host: '', port: 0, database: '', username: '', password: '', status: 'idle' },
-      { id: 'c2', environment: 'PROD', name: 'Prod DB', host: '', port: 0, database: '', username: '', password: '', status: 'idle' }
+      {
+        id: 'c1',
+        environment: 'DEV',
+        name: 'Dev DB',
+        host: '',
+        port: 0,
+        database: '',
+        username: '',
+        password: '',
+        status: 'idle'
+      },
+      {
+        id: 'c2',
+        environment: 'PROD',
+        name: 'Prod DB',
+        host: '',
+        port: 0,
+        database: '',
+        username: '',
+        password: '',
+        status: 'idle'
+      }
     ]
 
     store.connectionPairs = [
-      { id: 'custom-pair', name: 'My Custom Pair', sourceEnv: 'DEV', targetEnv: 'PROD', description: '', isDefault: false, status: 'idle' }
+      {
+        id: 'custom-pair',
+        name: 'My Custom Pair',
+        sourceEnv: 'DEV',
+        targetEnv: 'PROD',
+        description: '',
+        isDefault: false,
+        status: 'idle'
+      }
     ]
 
     await nextTick()

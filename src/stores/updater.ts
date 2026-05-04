@@ -15,7 +15,9 @@ export interface ProgressInfo {
 }
 
 export const useUpdaterStore = defineStore('updater', () => {
-  const status = ref<'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'>('idle')
+  const status = ref<
+    'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'
+  >('idle')
   const updateInfo = ref<UpdateInfo | null>(null)
   const progress = ref<ProgressInfo | null>(null)
   const error = ref<string | null>(null)
