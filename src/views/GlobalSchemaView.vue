@@ -9,59 +9,97 @@
         @refresh="loadSchema(true)"
       >
         <template #actions>
-          <div class="flex items-center gap-3.5 mr-4">
-            <!-- Primary Action: New Query with Glowing Gradient -->
-            <button
-              @click="openQueryConsole()"
-              class="group flex items-center gap-2.5 px-4 py-2 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 border border-emerald-400/30 transition-all duration-300 transform active:scale-[0.96] shrink-0"
-            >
-              <div class="relative flex items-center justify-center">
-                <Terminal class="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <div class="absolute -inset-1 bg-white rounded-full opacity-0 group-hover:opacity-20 blur-sm transition-opacity"></div>
-              </div>
-              <span class="hidden lg:inline text-[11px] font-black uppercase tracking-widest">New Query</span>
-            </button>
+          <div class="flex items-center relative">
+            <!-- Unified New Object Split Action Dropdown -->
+            <Menu as="div" class="relative inline-flex shadow-sm shadow-emerald-500/10 hover:shadow-md hover:shadow-emerald-500/20 transition-all duration-300 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 p-[1px]">
+              <!-- Left Side: Primary default action (New Query) -->
+              <button
+                @click="openQueryConsole()"
+                class="group flex items-center gap-2 px-3 py-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-l-[7px] transition-all duration-300 active:scale-[0.98] shrink-0"
+                title="New Query"
+              >
+                <Terminal class="w-3.5 h-3.5 group-hover:scale-110 transition-transform opacity-90" />
+                <span class="hidden lg:inline text-[10.5px] font-bold uppercase tracking-wider">New Query</span>
+              </button>
 
-            <!-- Modern Segmented Quick Object Actions -->
-            <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl border border-gray-200 dark:border-gray-700/50 backdrop-blur-sm">
-              <button
-                @click="openNewObjectTemplate('TABLE')"
-                title="New Table"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
-              >
-                <Table2 class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
-                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Table</span>
-              </button>
-              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
-              <button
-                @click="openNewObjectTemplate('VIEW')"
-                title="New View"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
-              >
-                <Eye class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
-                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">View</span>
-              </button>
-              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
-              <button
-                @click="openNewObjectTemplate('FUNCTION')"
-                title="New Function"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
-              >
-                <Sigma class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
-                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Func</span>
-              </button>
-              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
-              <button
-                @click="openNewObjectTemplate('PROCEDURE')"
-                title="New Procedure"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
-              >
-                <Cpu class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
-                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Proc</span>
-              </button>
-            </div>
+              <!-- Extremely subtle vertical divider -->
+              <div class="w-px bg-white/20 h-auto my-1"></div>
 
-            </div>
+              <!-- Right Side: Dropdown overlay trigger -->
+              <MenuButton
+                class="px-2 py-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-r-[7px] transition-all duration-300 active:scale-[0.98] flex items-center justify-center focus:outline-none"
+                title="More creation options"
+              >
+                <ChevronDown class="w-3.5 h-3.5 opacity-80 hover:opacity-100 transition-opacity" />
+              </MenuButton>
+
+              <!-- Glassmorphic Animated Dropdown Panel -->
+              <transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+                enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+              >
+                <MenuItems
+                  class="absolute right-0 top-full mt-2 w-48 origin-top-right rounded-xl bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 shadow-2xl shadow-gray-950/20 z-[100] p-1 focus:outline-none backdrop-blur-xl overflow-hidden ring-1 ring-black/5"
+                >
+                  <div class="px-3 py-2 border-b border-gray-100 dark:border-gray-800/80 mb-1 select-none">
+                    <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Create Object</p>
+                  </div>
+                  <MenuItem v-slot="{ active }">
+                    <button
+                      @click="openNewObjectTemplate('TABLE')"
+                      :class="[
+                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                      ]"
+                    >
+                      <Table2 class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                      New Table
+                    </button>
+                  </MenuItem>
+                  <MenuItem v-slot="{ active }">
+                    <button
+                      @click="openNewObjectTemplate('VIEW')"
+                      :class="[
+                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                      ]"
+                    >
+                      <Eye class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                      New View
+                    </button>
+                  </MenuItem>
+                  <MenuItem v-slot="{ active }">
+                    <button
+                      @click="openNewObjectTemplate('FUNCTION')"
+                      :class="[
+                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                      ]"
+                    >
+                      <Sigma class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                      New Function
+                    </button>
+                  </MenuItem>
+                  <MenuItem v-slot="{ active }">
+                    <button
+                      @click="openNewObjectTemplate('PROCEDURE')"
+                      :class="[
+                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                      ]"
+                    >
+                      <Cpu class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                      New Procedure
+                    </button>
+                  </MenuItem>
+                </MenuItems>
+              </transition>
+            </Menu>
+          </div>
         </template>
       </SchemaActionToolbar>
     </template>
@@ -176,6 +214,7 @@
             @pick-stack="handlePickForInstant"
             @snapshot="takeSnapshot"
             @download="downloadDDL"
+            @apply-table="handleApplyTable"
           />
         </main>
       </div>
@@ -199,7 +238,8 @@
 import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex, ChevronRight, Search, X } from 'lucide-vue-next'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex, ChevronRight, ChevronDown, Search, X } from 'lucide-vue-next'
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { useAppStore } from '@/stores/app'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
@@ -335,18 +375,25 @@ const formattedDDL = computed(() => selectedItem.value?.ddl || selectedItem.valu
 
 const detailedTableData = computed(() => {
   if (!selectedItem.value || selectedItem.value.type !== 'tables') return null
+  if (selectedItem.value.isNew) return selectedItem.value
   return columnIndex.value[selectedItem.value.name]
 })
 
 watch(
   () => selectedItem.value,
   async newVal => {
-    if (newVal && newVal.type === 'tables' && newVal.ddl) {
+    // Forcibly activate Visual mode if viewing a visual designer object
+    if (newVal && newVal.isNew) {
+      viewMode.value = 'visual'
+    }
+
+    const ddl = newVal?.ddl || newVal?.content
+    if (newVal && newVal.type === 'tables' && ddl) {
       const tableName = newVal.name
       if (!columnIndex.value[tableName]) {
         try {
           console.log('[OnDemandParse] Parsing table DDL:', tableName)
-          const parsed = await Andb.parseTable(newVal.ddl)
+          const parsed = await Andb.parseTable(ddl)
           console.log('[OnDemandParse] Parsed result:', parsed)
           if (parsed) {
             columnIndex.value = {
@@ -415,21 +462,45 @@ const openQueryConsole = (initialSql: string = '', customName?: string) => {
 }
 
 const openNewObjectTemplate = (type: 'TABLE' | 'VIEW' | 'FUNCTION' | 'PROCEDURE') => {
+  if (type === 'TABLE') {
+    const newTabId = `new-table-${Date.now()}`
+    const newTab = {
+      id: newTabId,
+      type: 'tables',
+      name: 'new_table',
+      isNew: true,
+      columns: [
+        { name: 'id', type: 'INT', pk: true, notNull: true, autoIncrement: true, comment: '', default: '' }
+      ],
+      indexes: [],
+      foreignKeys: [],
+      options: { engine: 'InnoDB', charset: 'utf8mb4' },
+      partitions: null
+    }
+    tabs.value.push(newTab)
+    activeTabId.value = newTabId
+    selectedItem.value = newTab
+    return
+  }
+
   const templates = {
-    TABLE: `CREATE TABLE \`new_table\` (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  name VARCHAR(255) NOT NULL,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);`,
     VIEW: `CREATE VIEW \`new_view\` AS\nSELECT * FROM some_table;`,
     FUNCTION: `CREATE FUNCTION \`new_function\` ()\nRETURNS INTEGER\nBEGIN\n\nRETURN 1;\nEND`,
     PROCEDURE: `CREATE PROCEDURE \`new_procedure\` ()\nBEGIN\n\nEND`
   }
 
   const displayNames = {
-    TABLE: 'New Table',
     VIEW: 'New View',
     FUNCTION: 'New Function',
     PROCEDURE: 'New Procedure'
   }
 
-  openQueryConsole(templates[type], displayNames[type])
+  const templateKey = type as keyof typeof templates
+  openQueryConsole(templates[templateKey], displayNames[templateKey])
+}
+
+const handleApplyTable = (sql: string) => {
+  openQueryConsole(sql, 'Create Table Preview')
 }
 
 const handleSelectItem = (item: any) => {

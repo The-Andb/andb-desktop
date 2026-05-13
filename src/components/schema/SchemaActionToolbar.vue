@@ -13,7 +13,7 @@
 
       <div class="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-1 opacity-50"></div>
 
-      <div class="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div class="flex-1 flex items-center justify-end gap-2">
         <slot name="actions"></slot>
       </div>
     </div>

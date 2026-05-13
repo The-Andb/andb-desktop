@@ -152,7 +152,7 @@
                     ]"
                     title="Set as Source Base"
                   >
-                    <Flame
+                    <Workflow
                       class="w-3.5 h-3.5 transition-colors"
                       :class="
                         appStore.compareStack?.source?.name === item.name
@@ -232,7 +232,7 @@
                       class="text-[9px] font-black tracking-widest uppercase pl-1"
                       >TGT</span
                     >
-                    <Flame
+                    <Workflow
                       class="w-3.5 h-3.5 transition-colors"
                       :class="
                         appStore.compareStack?.target?.name === item.name
@@ -283,7 +283,7 @@ import {
   Eye,
   Cpu,
   CalendarClock,
-  Flame,
+  Workflow,
   Ban
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'

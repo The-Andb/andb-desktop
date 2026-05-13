@@ -53,6 +53,8 @@ common:
     modified: 'Thay đổi'
     newSource: 'Mới'
     deprecatedTarget: 'Lỗi thời'
+    new: 'Mới'
+    deprecated: 'Lỗi thời'
   quickDump:
     title: 'So sánh nhanh SQL Dump'
     subtitle: 'So sánh schema offline tức thì'

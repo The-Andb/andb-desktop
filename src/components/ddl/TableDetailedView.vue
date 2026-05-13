@@ -5,55 +5,91 @@
       class="px-6 py-3 bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0"
     >
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2" v-if="options">
-          <span
-            v-if="options?.engine"
-            class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
-            >{{ options.engine }}</span
-          >
-          <span
-            v-if="options?.charset"
-            class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
-            >{{ options.charset }}</span
-          >
-          <p
-            v-if="options?.comment"
-            class="text-xs text-gray-400 italic hidden lg:block max-w-[200px] truncate"
-            :title="options.comment"
-          >
-            {{ options.comment }}
-          </p>
-        </div>
+        <!-- Visual Designer Header Mode -->
+        <template v-if="isNew">
+          <div class="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 shadow-sm">
+            <Table2 class="w-4 h-4 text-emerald-500" />
+            <input
+              v-model="localTableName"
+              placeholder="table_name"
+              class="bg-transparent font-bold text-sm outline-none w-48 text-gray-900 dark:text-white font-mono"
+            />
+          </div>
+          <div class="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+          <!-- Engine Select -->
+          <select v-model="localOptions.engine" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
+            <option>InnoDB</option>
+            <option>MyISAM</option>
+            <option>Memory</option>
+          </select>
+          <!-- Charset Select -->
+          <select v-model="localOptions.charset" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
+            <option>utf8mb4</option>
+            <option>utf8</option>
+            <option>latin1</option>
+          </select>
+        </template>
 
-        <!-- High-visibility Stats in Header -->
-        <div
-          v-if="stats"
-          class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-3"
-        >
-          <div class="flex flex-col">
-            <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
-              >Rows</span
+        <!-- Static View Header Mode -->
+        <template v-else>
+          <div class="flex items-center gap-2" v-if="options">
+            <span
+              v-if="options?.engine"
+              class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
+              >{{ options.engine }}</span
             >
-            <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">{{
-              formatNumber(stats.rowCount)
-            }}</span>
+            <span
+              v-if="options?.charset"
+              class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
+              >{{ options.charset }}</span
+            >
+            <p
+              v-if="options?.comment"
+              class="text-xs text-gray-400 italic hidden lg:block max-w-[200px] truncate"
+              :title="options.comment"
+            >
+              {{ options.comment }}
+            </p>
           </div>
-          <div class="flex flex-col">
-            <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
-              >Size</span
-            >
-            <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300"
-              >{{ Math.round((stats.dataLengthMB + stats.indexLengthMB) * 10) / 10 }}
-              <span class="text-[9px] opacity-60">MB</span></span
-            >
+
+          <!-- High-visibility Stats in Header -->
+          <div
+            v-if="stats"
+            class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-3"
+          >
+            <div class="flex flex-col">
+              <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
+                >Rows</span
+              >
+              <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">{{
+                formatNumber(stats.rowCount)
+              }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
+                >Size</span
+              >
+              <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300"
+                >{{ Math.round((stats.dataLengthMB + stats.indexLengthMB) * 10) / 10 }}
+                <span class="text-[9px] opacity-60">MB</span></span
+              >
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
-      <!-- Right Side: Secondary Actions -->
+      <!-- Right Side Actions -->
       <div class="flex items-center gap-2">
         <button
-          v-if="stats"
+          v-if="isNew"
+          @click="handleApply"
+          class="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-lg shadow-md hover:shadow-lg shadow-emerald-500/20 text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+        >
+          <Check class="w-3.5 h-3.5" />
+          Apply SQL
+        </button>
+        <button
+          v-else-if="stats"
           @click="$emit('refreshStats')"
           class="p-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-center gap-1.5 transition-colors group"
           title="Refresh Statistics"
@@ -107,17 +143,7 @@
             >
               <tr>
                 <th
-                  v-for="(header, i) in [
-                    '#',
-                    'Column',
-                    'Data Type',
-                    'PK',
-                    'NN',
-                    'UQ',
-                    'AI',
-                    'Default',
-                    'Comment'
-                  ]"
+                  v-for="(header, i) in (isNew ? ['#', 'Column', 'Data Type', 'PK', 'NN', 'UQ', 'AI', 'Default', 'Comment', ''] : ['#', 'Column', 'Data Type', 'PK', 'NN', 'UQ', 'AI', 'Default', 'Comment'])"
                   :key="header"
                   class="px-6 py-3 border-b border-gray-200 dark:border-gray-700 relative group overflow-hidden"
                   :title="
@@ -131,7 +157,7 @@
                             ? 'Auto Increment'
                             : ''
                   "
-                  :style="{ width: colResizer.columnWidths.value[i] + 'px' }"
+                  :style="{ width: (colResizer.columnWidths.value[i] || 60) + 'px' }"
                   :class="[['PK', 'NN', 'UQ', 'AI'].includes(header) ? 'text-center h-full' : '']"
                 >
                   <span class="truncate block">{{ header }}</span>
@@ -143,7 +169,107 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
+            <!-- Visual Designer Body -->
+            <tbody v-if="isNew" class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
+              <tr
+                v-for="(col, idx) in localColumns"
+                :key="idx"
+                class="hover:bg-emerald-50/10 dark:hover:bg-emerald-900/5 transition-colors"
+              >
+                <td class="px-6 py-3 text-gray-400 text-center">{{ idx + 1 }}</td>
+                <!-- Name Input -->
+                <td class="px-3 py-1.5 font-bold text-gray-900 dark:text-gray-100">
+                  <input
+                    v-model="col.name"
+                    class="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded font-mono outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all text-xs text-gray-900 dark:text-white"
+                    placeholder="column_name"
+                  />
+                </td>
+                <!-- Type Input with datalist -->
+                <td class="px-3 py-1.5 text-blue-600 dark:text-blue-400">
+                  <input
+                    v-model="col.type"
+                    list="data-types"
+                    class="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded font-mono uppercase outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all text-xs text-blue-600 dark:text-blue-400 font-black"
+                    placeholder="VARCHAR(255)"
+                  />
+                </td>
+                <!-- PK -->
+                <td class="px-3 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    v-model="col.pk"
+                    class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mx-auto block bg-transparent dark:bg-gray-800"
+                  />
+                </td>
+                <!-- NN -->
+                <td class="px-3 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    v-model="col.notNull"
+                    class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mx-auto block bg-transparent dark:bg-gray-800"
+                  />
+                </td>
+                <!-- UQ -->
+                <td class="px-3 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    v-model="col.unique"
+                    class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mx-auto block bg-transparent dark:bg-gray-800"
+                  />
+                </td>
+                <!-- AI -->
+                <td class="px-3 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    v-model="col.autoIncrement"
+                    class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mx-auto block bg-transparent dark:bg-gray-800"
+                  />
+                </td>
+                <!-- Default Input -->
+                <td class="px-3 py-1.5">
+                  <input
+                    v-model="col.default"
+                    class="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded font-mono outline-none focus:border-emerald-500 transition-all text-xs text-gray-600 dark:text-gray-400"
+                    placeholder="NULL"
+                  />
+                </td>
+                <!-- Comment Input -->
+                <td class="px-3 py-1.5">
+                  <input
+                    v-model="col.comment"
+                    class="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded font-mono outline-none focus:border-emerald-500 transition-all text-xs text-gray-500 dark:text-gray-500"
+                    placeholder="Comment..."
+                  />
+                </td>
+                <!-- Delete Action -->
+                <td class="px-3 py-1 text-center">
+                  <button
+                    @click="removeColumn(idx)"
+                    class="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded transition-all"
+                    title="Delete Column"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Footer Spacer/Add Row -->
+              <tr>
+                <td colspan="10" class="p-3 bg-gray-50/30 dark:bg-gray-900/30 border-t border-gray-200 dark:border-gray-800">
+                  <button
+                    @click="addColumn"
+                    class="flex items-center justify-center gap-2.5 w-full py-2.5 bg-white hover:bg-emerald-50/50 dark:bg-gray-800/50 dark:hover:bg-emerald-950/10 border border-dashed border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500/40 rounded-xl text-xs font-black tracking-widest text-gray-400 hover:text-emerald-500 uppercase transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/5 group"
+                  >
+                    <Plus class="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 animate-pulse" />
+                    Add New Column Row
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+
+            <!-- Static Visual View Body -->
+            <tbody v-else class="text-xs divide-y divide-gray-100 dark:divide-gray-800 font-mono">
               <tr
                 v-for="(col, idx) in columns"
                 :key="col.name"
@@ -730,6 +856,20 @@
       </div>
       <p class="text-[10px] font-bold text-gray-400">MySQL Workbench Mode</p>
     </div>
+
+    <!-- Global Datalist for Common Data Types -->
+    <datalist id="data-types">
+      <option value="INT"></option>
+      <option value="BIGINT"></option>
+      <option value="VARCHAR(255)"></option>
+      <option value="TEXT"></option>
+      <option value="TINYINT(1)"></option>
+      <option value="DATETIME"></option>
+      <option value="TIMESTAMP"></option>
+      <option value="DECIMAL(10,2)"></option>
+      <option value="JSON"></option>
+      <option value="BLOB"></option>
+    </datalist>
   </div>
 </template>
 
@@ -750,7 +890,10 @@ import {
   ShieldAlert,
   ShieldX,
   RotateCcw,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Check,
+  Table2
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useTableResizer } from '@/composables/useTableResizer'
@@ -810,9 +953,13 @@ const props = defineProps<{
   triggers: any[] // All triggers from schema for cross-referencing
   stats?: any // Table stats from Inspector (AI DBA Super Mode)
   highlightColumn?: string | null
+  isNew?: boolean
 }>()
 
-const emit = defineEmits(['refreshStats'])
+const emit = defineEmits<{
+  'refreshStats': []
+  'apply-table': [sql: string]
+}>()
 
 // Inspector helpers
 const formatNumber = (n: number) => {
@@ -857,6 +1004,83 @@ watch(
     selectedTriggerEvent.value = 'BEFORE INSERT'
   }
 )
+
+// Local states for editable designer mode (isNew)
+const localColumns = ref<any[]>([])
+const localTableName = ref('')
+const localOptions = ref<any>({ engine: 'InnoDB', charset: 'utf8mb4' })
+
+watch(
+  () => props.columns,
+  (newCols) => {
+    if (props.isNew) {
+      localColumns.value = JSON.parse(JSON.stringify(newCols || []))
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+watch(
+  () => props.tableName,
+  (newName) => {
+    if (props.isNew) {
+      localTableName.value = newName
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => props.options,
+  (newOpts) => {
+    if (props.isNew) {
+      localOptions.value = {
+        engine: newOpts?.engine || 'InnoDB',
+        charset: newOpts?.charset || 'utf8mb4'
+      }
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+const addColumn = () => {
+  localColumns.value.push({
+    name: `col_${localColumns.value.length + 1}`,
+    type: 'VARCHAR(255)',
+    pk: false,
+    notNull: false,
+    unique: false,
+    autoIncrement: false,
+    default: '',
+    comment: ''
+  })
+}
+
+const removeColumn = (index: number) => {
+  localColumns.value.splice(index, 1)
+}
+
+const handleApply = () => {
+  let sql = `CREATE TABLE \`${localTableName.value || 'new_table'}\` (\n`
+  const lines = localColumns.value.map((c) => {
+    let line = `  \`${c.name || 'col'}\` ${c.type || 'VARCHAR(255)'}`
+    if (c.pk) line += ' PRIMARY KEY'
+    if (c.autoIncrement) line += ' AUTO_INCREMENT'
+    if (c.notNull) line += ' NOT NULL'
+    if (c.unique) line += ' UNIQUE'
+    if (c.default) {
+      const defUpper = String(c.default).toUpperCase()
+      const isFunc = defUpper === 'CURRENT_TIMESTAMP' || defUpper.includes('(')
+      line += ` DEFAULT ${isFunc ? c.default : `'${c.default}'`}`
+    }
+    if (c.comment) line += ` COMMENT '${c.comment.replace(/'/g, "''")}'`
+    return line
+  })
+  sql += lines.join(',\n')
+  sql += `\n) ENGINE=${localOptions.value.engine || 'InnoDB'} DEFAULT CHARSET=${localOptions.value.charset || 'utf8mb4'};`
+  emit('apply-table', sql)
+}
+
 
 // Handle column highlighting and scrolling
 watch(

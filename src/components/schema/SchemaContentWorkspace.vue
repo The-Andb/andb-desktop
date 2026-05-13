@@ -32,9 +32,9 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- View Mode Toggle -->
+          <!-- View Mode Toggle (Hidden for visual new table builder) -->
           <div
-            v-if="['tables', 'table'].includes(selectedItem.type)"
+            v-if="['tables', 'table'].includes(selectedItem.type) && !selectedItem.isNew"
             class="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700 mx-2 shadow-inner"
           >
             <button
@@ -61,57 +61,80 @@
             </button>
           </div>
 
-          <!-- Flame Stack (Instant Compare) -->
-          <div
-            class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm"
-          >
-            <button
-              @click="emit('pick-stack', 'source')"
-              :class="[isSource ? 'bg-orange-500 text-white' : 'text-orange-400']"
-              class="p-1 rounded-full"
+          <!-- Actions only for existing persistence layers -->
+          <template v-if="!selectedItem.isNew">
+            <!-- Flame Stack (Instant Compare) -->
+            <div
+              class="flex items-center bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 px-1 py-0.5 shadow-sm"
             >
-              <Flame class="w-3.5 h-3.5" />
-            </button>
-            <span v-if="hasSource" class="text-[9px] font-black text-gray-400 mx-0.5 opacity-50"
-              >vs</span
-            >
-            <button
-              v-if="hasSource"
-              @click="emit('pick-stack', 'target')"
-              :class="[isTarget ? 'bg-blue-500 text-white' : 'text-blue-400']"
-              class="p-1 rounded-full"
-            >
-              <Flame class="w-3.5 h-3.5" />
-            </button>
-          </div>
+              <button
+                @click="emit('pick-stack', 'source')"
+                :class="[isSource ? 'bg-orange-500 text-white' : 'text-orange-400']"
+                class="p-1 rounded-full"
+              >
+                <Workflow class="w-3.5 h-3.5" />
+              </button>
+              <span v-if="hasSource" class="text-[9px] font-black text-gray-400 mx-0.5 opacity-50"
+                >vs</span
+              >
+              <button
+                v-if="hasSource"
+                @click="emit('pick-stack', 'target')"
+                :class="[isTarget ? 'bg-blue-500 text-white' : 'text-blue-400']"
+                class="p-1 rounded-full"
+              >
+                <Workflow class="w-3.5 h-3.5" />
+              </button>
+            </div>
 
-          <button @click="emit('snapshot')" class="p-1.5 text-gray-500 hover:text-primary-600">
-            <Camera class="w-4 h-4" />
-          </button>
-          <button @click="emit('download')" class="p-1.5 text-gray-500 hover:text-primary-600">
-            <Download class="w-4 h-4" />
-          </button>
+            <button @click="emit('snapshot')" class="p-1.5 text-gray-500 hover:text-primary-600">
+              <Camera class="w-4 h-4" />
+            </button>
+            <button @click="emit('download')" class="p-1.5 text-gray-500 hover:text-primary-600">
+              <Download class="w-4 h-4" />
+            </button>
+          </template>
         </div>
       </div>
 
       <!-- Content Renderer -->
       <div class="flex-1 relative overflow-hidden">
+        <!-- Diagram & Query Tabs -->
         <SchemaDiagram v-if="selectedItem.type === 'diagrams'" :tables="tables" />
         <QueryConsole
           v-else-if="selectedItem.type === 'query'"
           :connection="selectedItem.connection"
+          :initial-sql="selectedItem.initialSql"
         />
-        <DDLViewer v-else-if="viewMode === 'code'" :content="formattedDDL" />
-        <TableDetailedView
-          v-else-if="detailedData"
-          :table-name="selectedItem.name"
-          :columns="detailedData.columns"
-          :indexes="detailedData.indexes"
-          :foreign-keys="detailedData.foreignKeys"
-          :options="detailedData.options"
-          :partitions="detailedData.partitions"
-          :triggers="triggers"
-        />
+
+        <!-- Table Rendering Flow (Honors Visual/Code toggles) -->
+        <template v-else-if="['tables', 'table'].includes(selectedItem.type)">
+          <DDLViewer v-if="viewMode === 'code'" :content="formattedDDL" />
+          <TableDetailedView
+            v-else-if="detailedData"
+            :table-name="selectedItem.name"
+            :columns="detailedData.columns"
+            :indexes="detailedData.indexes"
+            :foreign-keys="detailedData.foreignKeys"
+            :options="detailedData.options"
+            :partitions="detailedData.partitions"
+            :triggers="triggers"
+            :is-new="selectedItem.isNew"
+            @apply-table="sql => emit('apply-table', sql)"
+          />
+          <!-- Analyzing/Parsing state fallback -->
+          <div
+            v-else
+            class="flex-1 flex flex-col items-center justify-center p-12 text-center h-full absolute inset-0 z-30 bg-white dark:bg-gray-950"
+          >
+            <Loader2 class="w-8 h-8 text-primary-500 animate-spin mb-4" />
+            <h3 class="text-sm font-black uppercase tracking-widest text-gray-800 dark:text-gray-200 mb-1">Analyzing Schema AST</h3>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Decoding Table Architecture...</p>
+          </div>
+        </template>
+
+        <!-- Non-Table Items (Views, Functions, Procedures, etc.) Always Fallback to Code View -->
+        <DDLViewer v-else :content="formattedDDL" />
       </div>
     </div>
 
@@ -130,7 +153,7 @@
 
 <script setup lang="ts">
 import {
-  Flame,
+  Workflow,
   Camera,
   Download,
   MousePointer2,
@@ -141,7 +164,8 @@ import {
   Zap,
   CalendarClock,
   Network,
-  Database
+  Database,
+  Loader2
 } from 'lucide-vue-next'
 import TabBar from '@/components/general/TabBar.vue'
 import DDLViewer from '@/components/ddl/DDLViewer.vue'
@@ -170,6 +194,7 @@ const emit = defineEmits<{
   'pick-stack': [type: 'source' | 'target']
   snapshot: []
   download: []
+  'apply-table': [sql: string]
 }>()
 
 const typeIcons = {

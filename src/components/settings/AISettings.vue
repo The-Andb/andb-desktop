@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { Sparkles, RefreshCw, Loader2, Check, ShieldAlert, ChevronDown } from 'lucide-vue-next'
 
@@ -10,18 +10,58 @@ const settings = computed(() => settingsStore.settings)
 const aiStatus = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
 const aiError = ref('')
 
-const modelOptions = [
-  { label: 'Gemini 2.5 Flash (Ultra-Fast)', value: 'gemini-2.5-flash' },
-  { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' },
-  { label: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
-  { label: 'Gemini Flash Latest', value: 'gemini-flash-latest' },
-  { label: 'Gemini 2.0 Flash Lite', value: 'gemini-2.0-flash-lite' },
-  { label: 'Gemini 2.5 Pro (Precision)', value: 'gemini-2.5-pro' }
+const providerOptions = [
+  { label: 'Google Gemini (Developer Key)', value: 'gemini' },
+  { label: 'Google Cloud Vertex AI (Enterprise)', value: 'vertex' },
+  { label: 'OpenAI (GPT-4o)', value: 'openai' },
+  { label: 'Anthropic (Claude 3.5)', value: 'anthropic' }
 ]
 
-const getModelLabel = (val?: string) => {
-  return modelOptions.find(o => o.value === val)?.label || val || 'Google Gemini'
+const getModelOptionsForProvider = (prov?: string) => {
+  switch (prov) {
+    case 'vertex':
+      return [
+        { label: 'gemini-1.5-flash-002', value: 'gemini-1.5-flash-002' },
+        { label: 'gemini-1.5-pro-002', value: 'gemini-1.5-pro-002' },
+        { label: 'gemini-2.0-flash-001', value: 'gemini-2.0-flash-001' },
+        { label: 'gemini-1.5-flash (Stable)', value: 'gemini-1.5-flash' },
+        { label: 'gemini-1.5-pro (Stable)', value: 'gemini-1.5-pro' }
+      ]
+    case 'openai':
+      return [
+        { label: 'GPT-4o (High Intelligence)', value: 'gpt-4o' },
+        { label: 'GPT-4o mini (Fast & Light)', value: 'gpt-4o-mini' }
+      ]
+    case 'anthropic':
+      return [
+        { label: 'Claude 3.5 Sonnet', value: 'claude-3-5-sonnet-20240620' },
+        { label: 'Claude 3.5 Haiku', value: 'claude-3-5-haiku-20241022' }
+      ]
+    default:
+      return [
+        { label: 'Gemini 2.5 Flash (Ultra-Fast)', value: 'gemini-2.5-flash' },
+        { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' },
+        { label: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
+        { label: 'Gemini 2.5 Pro (Precision)', value: 'gemini-2.5-pro' }
+      ]
+  }
 }
+
+const activeModelOptions = computed(() => getModelOptionsForProvider(settings.value.aiProvider))
+
+const getModelLabel = (val?: string) => {
+  return activeModelOptions.value.find(o => o.value === val)?.label || val || 'AI Model'
+}
+
+watch(
+  () => settings.value.aiProvider,
+  newProvider => {
+    const options = getModelOptionsForProvider(newProvider)
+    if (options.length > 0 && !options.some(o => o.value === settings.value.aiModelVersion)) {
+      settings.value.aiModelVersion = options[0].value
+    }
+  }
+)
 
 const testAIConnection = async () => {
   if (!settings.value.aiApiKey) {
@@ -36,8 +76,10 @@ const testAIConnection = async () => {
     // 1. Configure the core engine
     const configRes = await (window as any).electronAPI.invoke('andb-ai-configure', {
       apiKey: settings.value.aiApiKey,
-      provider: 'gemini',
-      modelVersion: settings.value.aiModelVersion
+      provider: settings.value.aiProvider || 'gemini',
+      modelVersion: settings.value.aiModelVersion,
+      vertexProjectId: settings.value.aiVertexProjectId,
+      vertexRegion: settings.value.aiVertexRegion
     })
 
     if (!configRes.success) {
@@ -107,27 +149,91 @@ const openExternal = (url: string) => {
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Gemini Config -->
       <div class="space-y-4">
-        <div class="flex items-center justify-between px-1">
-          <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{{
-            $t('settings.ai.apiKey') || 'Gemini API Key'
-          }}</label>
-          <a
-            href="#"
-            @click.prevent="openExternal('https://aistudio.google.com/app/apikey')"
-            class="text-[10px] font-bold text-primary-500 hover:underline"
-            >Get Free Key →</a
+        <!-- AI Provider Selection -->
+        <div class="space-y-4">
+          <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1"
+            >AI Provider</label
           >
+          <div class="relative group">
+            <select
+              v-model="settings.aiProvider"
+              class="w-full h-[52px] px-5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 appearance-none cursor-pointer"
+            >
+              <option v-for="opt in providerOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
+            <ChevronDown
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+            />
+          </div>
         </div>
-        <div class="relative group">
-          <input
-            v-model="settings.aiApiKey"
-            type="password"
-            placeholder="Enter your Google AI API Key..."
-            class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
-          />
-        </div>
+
+        <!-- Dynamic Credential Inputs Based on Provider -->
+        <!-- 1. Vertex AI Specific Inputs -->
+        <template v-if="settings.aiProvider === 'vertex'">
+          <div class="space-y-4 pt-2">
+            <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1"
+              >GCP Project ID</label
+            >
+            <input
+              v-model="settings.aiVertexProjectId"
+              type="text"
+              placeholder="e.g. my-gcp-project-123"
+              class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+            />
+          </div>
+          <div class="space-y-4 pt-2">
+            <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1"
+              >GCP Region / Location</label
+            >
+            <input
+              v-model="settings.aiVertexRegion"
+              type="text"
+              placeholder="e.g. us-central1"
+              class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+            />
+          </div>
+          <div class="space-y-4 pt-2">
+            <div class="flex items-center justify-between px-1">
+              <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em]"
+                >OAuth Access Token</label
+              >
+              <span class="text-[9px] text-gray-500 font-bold italic">Run `gcloud auth print-access-token`</span>
+            </div>
+            <input
+              v-model="settings.aiApiKey"
+              type="password"
+              placeholder="Enter Bearer Access Token..."
+              class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+            />
+          </div>
+        </template>
+
+        <!-- 2. Standard Providers (Gemini, OpenAI, Anthropic) -->
+        <template v-else>
+          <div class="space-y-4 pt-2">
+            <div class="flex items-center justify-between px-1">
+              <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
+                {{ settings.aiProvider === 'openai' ? 'OpenAI API Key' : settings.aiProvider === 'anthropic' ? 'Anthropic API Key' : 'Gemini API Key' }}
+              </label>
+              <a
+                v-if="settings.aiProvider === 'gemini'"
+                href="#"
+                @click.prevent="openExternal('https://aistudio.google.com/app/apikey')"
+                class="text-[10px] font-bold text-primary-500 hover:underline"
+                >Get Free Key →</a
+              >
+            </div>
+            <input
+              v-model="settings.aiApiKey"
+              type="password"
+              :placeholder="settings.aiProvider === 'openai' ? 'sk-...' : settings.aiProvider === 'anthropic' ? 'sk-ant-...' : 'Enter Gemini API Key...'"
+              class="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold font-mono outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+            />
+          </div>
+        </template>
 
         <div class="space-y-4 pt-2">
           <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1"
@@ -138,7 +244,7 @@ const openExternal = (url: string) => {
               v-model="settings.aiModelVersion"
               class="w-full h-[52px] px-5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 appearance-none cursor-pointer"
             >
-              <option v-for="opt in modelOptions" :key="opt.value" :value="opt.value">
+              <option v-for="opt in activeModelOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </option>
             </select>

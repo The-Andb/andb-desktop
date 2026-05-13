@@ -53,14 +53,16 @@
             class="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
           >
             <button
-              @click="downloadCsv(activeSession!)"
-              class="px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 border-r border-gray-200 dark:border-gray-700 transition-colors"
+              @click="downloadCsv(activeSession)"
+              :disabled="!activeSession || !activeSession.results"
+              class="px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-400 border-r border-gray-200 dark:border-gray-700 transition-colors"
             >
               CSV
             </button>
             <button
-              @click="copyResultsAsJson(activeSession!)"
-              class="px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              @click="copyResultsAsJson(activeSession)"
+              :disabled="!activeSession || !activeSession.results"
+              class="px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-400 transition-colors"
             >
               JSON
             </button>
@@ -336,8 +338,8 @@ const copySql = () => {
   // We could add a toast here
 }
 
-const downloadCsv = (session: ResultSession) => {
-  if (!session.results || session.results.length === 0) return
+const downloadCsv = (session?: ResultSession | null) => {
+  if (!session || !session.results || session.results.length === 0) return
 
   const headers = getColumnHeaders(session)
   const csvContent = [
@@ -365,8 +367,8 @@ const downloadCsv = (session: ResultSession) => {
   document.body.removeChild(link)
 }
 
-const copyResultsAsJson = (session: ResultSession) => {
-  if (!session.results) return
+const copyResultsAsJson = (session?: ResultSession | null) => {
+  if (!session || !session.results) return
   navigator.clipboard.writeText(JSON.stringify(session.results, null, 2))
 }
 

@@ -110,8 +110,10 @@ interface Settings {
   excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
-  aiProvider: 'gemini' | 'openai' | 'anthropic' | 'custom'
+  aiProvider: 'gemini' | 'openai' | 'anthropic' | 'vertex' | 'custom'
   aiApiKey?: string
+  aiVertexProjectId?: string
+  aiVertexRegion?: string
   aiModelVersion?: string
   aiLanguage?: Language
   aiPersona?: 'dba' | 'secretary' | 'coworker' | 'playful'
@@ -135,6 +137,8 @@ const defaultSettings: Settings = {
   setupCompleted: false,
   aiProvider: 'gemini',
   aiApiKey: '',
+  aiVertexProjectId: '',
+  aiVertexRegion: 'us-central1',
   aiModelVersion: 'gemini-1.5-flash',
   aiLanguage: 'en',
   aiPersona: 'coworker',

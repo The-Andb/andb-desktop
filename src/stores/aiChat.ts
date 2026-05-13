@@ -4,6 +4,7 @@ export interface ChatMessage {
   role: 'ai' | 'user' | 'error'
   content: string
   lastQuestion?: string
+  images?: string[]
   timestamp: number
 }
 
@@ -53,8 +54,13 @@ export const useAiChatStore = defineStore('aiChat', {
     newConversation() {
       this.currentConversationId = null
     },
-    async addMessage(role: 'ai' | 'user' | 'error', content: string, lastQuestion?: string) {
-      const msg: ChatMessage = { role, content, lastQuestion, timestamp: Date.now() }
+    async addMessage(
+      role: 'ai' | 'user' | 'error',
+      content: string,
+      lastQuestion?: string,
+      images?: string[]
+    ) {
+      const msg: ChatMessage = { role, content, lastQuestion, images, timestamp: Date.now() }
 
       if (!this.currentConversationId) {
         // Create new conversation

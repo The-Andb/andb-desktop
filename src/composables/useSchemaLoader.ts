@@ -327,7 +327,7 @@ export function useSchemaLoader(
         )
       )
 
-      const envData = allSchemas?.find((e: any) => e.name === conn.environment)
+      const envData = allSchemas?.find((e: any) => (e.name || '').toLowerCase() === (conn.environment || '').toLowerCase())
       if (!envData) {
         console.warn(
           '[useSchemaLoader] Environment not found in schemas:',
@@ -339,10 +339,11 @@ export function useSchemaLoader(
 
       const targetDbName = conn.database || conn.name
       const dbData = envData?.databases?.find((d: any) => {
-        const dName = d.name.toLowerCase()
-        const tName = targetDbName.toLowerCase()
-        const cName = conn.name?.toLowerCase()
-        return dName === tName || dName === cName
+        const dName = (d.name || '').toLowerCase()
+        const tName = (targetDbName || '').toLowerCase()
+        const cName = (conn.name || '').toLowerCase()
+        const connIdMatch = d.connectionId && conn.id && d.connectionId === conn.id
+        return dName === tName || dName === cName || connIdMatch
       })
 
       console.log('[useSchemaLoader] Sync Result:', {

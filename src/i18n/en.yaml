@@ -85,6 +85,8 @@ common:
     modified: 'Modified'
     newSource: 'New (Source Only)'
     deprecatedTarget: 'Deprecated (Target Only)'
+    new: 'New'
+    deprecated: 'Deprecated'
 
 console:
   title: 'Execution Log'

@@ -149,14 +149,14 @@
                           @click.stop="emit('send-to-instant', item.data, 'source')"
                           class="p-1 rounded-full bg-orange-500 text-white dark:bg-orange-600 transition-all shadow-sm"
                         >
-                          <Flame class="w-3 h-3 text-white" />
+                          <Workflow class="w-3 h-3 text-white" />
                         </button>
                         <button
                           v-else-if="appStore.compareStack?.target?.name === item.data?.name"
                           @click.stop="emit('send-to-instant', item.data, 'target')"
                           class="p-1 rounded-full bg-blue-500 text-white dark:bg-blue-600 transition-all shadow-sm"
                         >
-                          <Flame class="w-3 h-3 text-white" />
+                          <Workflow class="w-3 h-3 text-white" />
                         </button>
 
                         <template v-else>
@@ -165,14 +165,14 @@
                             @click.stop="emit('send-to-instant', item.data, 'source')"
                             class="p-1 rounded-full text-orange-400/60 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all animate-pulse"
                           >
-                            <Flame class="w-3 h-3" />
+                            <Workflow class="w-3 h-3" />
                           </button>
                           <button
                             v-if="!appStore.compareStack?.target"
                             @click.stop="emit('send-to-instant', item.data, 'target')"
                             class="p-1 rounded-full text-blue-400/60 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all animate-pulse"
                           >
-                            <Flame class="w-3 h-3" />
+                            <Workflow class="w-3 h-3" />
                           </button>
                         </template>
                       </div>
@@ -234,7 +234,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   Network,
-  Flame,
+  Workflow,
   Search,
   Grid3X3,
   Eye,

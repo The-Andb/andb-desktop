@@ -18,7 +18,9 @@ import {
   Clock,
   MessageSquare,
   RefreshCw,
-  Settings
+  Settings,
+  Paperclip,
+  Image as ImageIcon
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
@@ -113,6 +115,59 @@ onUnmounted(() => {
   window.removeEventListener('andb-ai-inject-selection', handleInjectSelectionEvent)
 })
 
+// Visual Attachments logic
+const attachedImages = ref<string[]>([])
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = error => reject(error)
+  })
+}
+
+const handlePaste = async (e: ClipboardEvent) => {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      const file = items[i].getAsFile()
+      if (file) {
+        try {
+          const base64 = await fileToBase64(file)
+          attachedImages.value.push(base64)
+        } catch (err) {
+          console.error('Failed to read pasted image', err)
+        }
+      }
+    }
+  }
+}
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
+
+const handleFileChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (!input.files) return
+  for (let i = 0; i < input.files.length; i++) {
+    try {
+      const base64 = await fileToBase64(input.files[i])
+      attachedImages.value.push(base64)
+    } catch (err) {
+      console.error('Failed to read selected file', err)
+    }
+  }
+  input.value = '' // Reset file input
+}
+
+const removeAttachedImage = (index: number) => {
+  attachedImages.value.splice(index, 1)
+}
+
 const messages = computed(() => chatStore.currentMessages)
 const conversations = computed(() => chatStore.sortedConversations)
 
@@ -203,10 +258,13 @@ const formatContent = (content: string) => {
 }
 
 const askQuestion = async () => {
-  if (!question.value.trim() || isLoading.value) return
+  if ((!question.value.trim() && attachedImages.value.length === 0) || isLoading.value) return
   const userQuestion = question.value
-  chatStore.addMessage('user', userQuestion)
+  const imagesToSend = [...attachedImages.value]
+
+  chatStore.addMessage('user', userQuestion, undefined, imagesToSend)
   question.value = ''
+  attachedImages.value = []
   isLoading.value = true
 
   try {
@@ -215,7 +273,8 @@ const askQuestion = async () => {
       context: {
         ...props.context,
         activeProjectId: projectsStore.currentProject?.id || '',
-        persona: currentPersona.value?.prompt
+        persona: currentPersona.value?.prompt,
+        images: imagesToSend
       },
       locale: settingsStore.settings.aiLanguage || props.locale
     })
@@ -225,7 +284,7 @@ const askQuestion = async () => {
       throw new Error(result.error || 'No response')
     }
   } catch (e: any) {
-    chatStore.addMessage('error', getFriendlyError(e.message), userQuestion)
+    chatStore.addMessage('error', getFriendlyError(e.message), userQuestion, imagesToSend)
   } finally {
     isLoading.value = false
     nextTick(() => {
@@ -241,9 +300,10 @@ const retryLast = async (msg: any) => {
   // Remove the error message
   chatStore.removeMessage(msg)
 
-  if (msg.lastQuestion) {
-    // Retry askQuestion with the saved text
-    question.value = msg.lastQuestion
+  if (msg.lastQuestion || (msg.images && msg.images.length > 0)) {
+    // Retry askQuestion with saved text and images
+    question.value = msg.lastQuestion || ''
+    attachedImages.value = msg.images ? [...msg.images] : []
     askQuestion()
   } else {
     // Retry triggerReview
@@ -583,6 +643,17 @@ defineExpose({ injectSelection })
                 ]"
               ></div>
 
+              <!-- Embedded visual attachments in user chat bubbles -->
+              <div v-if="msg.images && msg.images.length > 0" class="mt-3 flex flex-wrap gap-2">
+                <div
+                  v-for="(img, imgIdx) in msg.images"
+                  :key="imgIdx"
+                  class="relative group/img rounded-xl overflow-hidden bg-white/10 dark:bg-black/20 shadow-sm hover:scale-[1.02] transition-transform border border-white/10 max-w-[180px]"
+                >
+                  <img :src="img" class="w-full object-cover rounded-xl max-h-[140px] border-0 block cursor-zoom-in" />
+                </div>
+              </div>
+
               <div v-if="msg.role === 'error'" class="mt-4 flex items-center gap-2">
                 <button
                   @click="retryLast(msg)"
@@ -617,24 +688,54 @@ defineExpose({ injectSelection })
       <div
         class="p-3 pb-2 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shrink-0"
       >
-        <div class="relative group">
-          <textarea
-            ref="textareaRef"
-            v-model="question"
-            @keydown.enter.exact.prevent="askQuestion"
-            @keydown.enter.shift.exact="question += '\n'"
-            :placeholder="currentPersona?.placeholder || t('aiAssistant.askAnything')"
-            class="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl py-3 pl-5 pr-14 text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-inner resize-none min-h-[48px] max-h-[200px] custom-scrollbar"
-          ></textarea>
-          <button
-            @click="askQuestion"
-            :disabled="!question.trim() || isLoading"
-            class="absolute right-3 bottom-3.5 p-2 bg-primary-400 hover:bg-primary-500 disabled:opacity-30 text-white rounded-full transition-all shadow-md shadow-primary-500/20 active:scale-95 flex items-center justify-center"
-          >
-            <Send v-if="!isLoading" class="w-4 h-4" />
-            <Loader2 v-else class="w-4 h-4 animate-spin" />
-          </button>
+        <div class="relative flex flex-col bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-inner">
+          <!-- Attachment Previews -->
+          <div v-if="attachedImages.length > 0" class="flex flex-wrap gap-2 p-3 bg-white/50 dark:bg-gray-950/50 border-b border-gray-200/50 dark:border-gray-700/50 animate-in slide-in-from-bottom-2 duration-200">
+            <div
+              v-for="(img, i) in attachedImages"
+              :key="i"
+              class="relative w-14 h-14 rounded-xl overflow-hidden bg-black/5 shadow-sm group/thumb hover:ring-2 ring-primary-500 transition-all border border-black/5 dark:border-white/5"
+            >
+              <img :src="img" class="w-full h-full object-cover" />
+              <button
+                @click="removeAttachedImage(i)"
+                class="absolute top-1 right-1 p-0.5 bg-black/60 hover:bg-red-500 text-white rounded-full shadow opacity-100 md:opacity-0 md:group-hover/thumb:opacity-100 transition-all active:scale-90 backdrop-blur-md"
+              >
+                <X class="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          <div class="relative group">
+            <textarea
+              ref="textareaRef"
+              v-model="question"
+              @keydown.enter.exact.prevent="askQuestion"
+              @keydown.enter.shift.exact="question += '\n'"
+              @paste="handlePaste"
+              :placeholder="currentPersona?.placeholder || t('aiAssistant.askAnything')"
+              class="w-full bg-transparent border-0 rounded-b-2xl py-3 pl-5 pr-14 text-sm focus:ring-0 outline-none transition-all resize-none min-h-[48px] max-h-[200px] custom-scrollbar"
+            ></textarea>
+            <button
+              @click="askQuestion"
+              :disabled="(!question.trim() && attachedImages.length === 0) || isLoading"
+              class="absolute right-3 bottom-3 p-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:opacity-50 text-white rounded-full transition-all shadow-md shadow-primary-500/20 active:scale-95 flex items-center justify-center z-10"
+            >
+              <Send v-if="!isLoading" class="w-4 h-4" />
+              <Loader2 v-else class="w-4 h-4 animate-spin" />
+            </button>
+          </div>
         </div>
+
+        <!-- Hidden File Input Hooks -->
+        <input
+          type="file"
+          ref="fileInputRef"
+          multiple
+          accept="image/*"
+          class="hidden"
+          @change="handleFileChange"
+        />
         <div class="mt-2 flex items-center justify-between px-1.5">
           <div
             class="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-help"
@@ -645,6 +746,13 @@ defineExpose({ injectSelection })
             </span>
           </div>
           <div class="flex items-center gap-3">
+            <button
+              @click="triggerFileInput"
+              class="p-1 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-all"
+              title="Attach Images"
+            >
+              <Paperclip class="w-3.5 h-3.5" />
+            </button>
             <button
               @click="goToSettings"
               class="p-1 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-all"
