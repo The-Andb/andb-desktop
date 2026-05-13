@@ -1,7 +1,7 @@
 {
   "name": "@the-andb/desktop",
   "productName": "TheAndb",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "private": true,
   "description": "TheAndb - Keep Going. Keep Syncing.",
   "main": "dist-electron/main.cjs",
@@ -121,7 +121,7 @@
     ],
     "appId": "com.anph.andb.v3",
     "productName": "TheAndb",
-    "copyright": "Copyright © 2024 - 2026 TheAndb",
+    "copyright": "Copyright \u00a9 2024 - 2026 TheAndb",
     "directories": {
       "output": "dist",
       "buildResources": "public"
