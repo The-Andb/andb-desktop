@@ -9,168 +9,117 @@
         @refresh="loadSchema(true)"
       >
         <template #actions>
-          <div class="flex items-center gap-1 mr-4">
-            <!-- Primary Action: New Query -->
+          <div class="flex items-center gap-3.5 mr-4">
+            <!-- Primary Action: New Query with Glowing Gradient -->
             <button
               @click="openQueryConsole()"
-              class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-sm text-[10px] font-black uppercase tracking-widest transition-all transform active:scale-95 shrink-0"
+              class="group flex items-center gap-2.5 px-4 py-2 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 border border-emerald-400/30 transition-all duration-300 transform active:scale-[0.96] shrink-0"
             >
-              <Terminal class="w-3.5 h-3.5" />
-              <span class="hidden lg:inline">New Query</span>
+              <div class="relative flex items-center justify-center">
+                <Terminal class="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <div class="absolute -inset-1 bg-white rounded-full opacity-0 group-hover:opacity-20 blur-sm transition-opacity"></div>
+              </div>
+              <span class="hidden lg:inline text-[11px] font-black uppercase tracking-widest">New Query</span>
             </button>
 
-            <div class="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-1 opacity-50"></div>
-
-            <!-- Quick Object Templates -->
-            <div class="flex items-center gap-1">
+            <!-- Modern Segmented Quick Object Actions -->
+            <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl border border-gray-200 dark:border-gray-700/50 backdrop-blur-sm">
               <button
                 @click="openNewObjectTemplate('TABLE')"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                title="New Table"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
               >
-                <Table2 class="w-3.5 h-3.5" />
-                <span class="hidden xl:inline">Table</span>
+                <Table2 class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Table</span>
               </button>
+              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
               <button
                 @click="openNewObjectTemplate('VIEW')"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                title="New View"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
               >
-                <Eye class="w-3.5 h-3.5" />
-                <span class="hidden xl:inline">View</span>
+                <Eye class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">View</span>
               </button>
+              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
               <button
                 @click="openNewObjectTemplate('FUNCTION')"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                title="New Function"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
               >
-                <Sigma class="w-3.5 h-3.5" />
-                <span class="hidden xl:inline">Function</span>
+                <Sigma class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Func</span>
               </button>
+              <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-0.5 opacity-40"></div>
               <button
                 @click="openNewObjectTemplate('PROCEDURE')"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                title="New Procedure"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all duration-200 active:scale-95 group"
               >
-                <Cpu class="w-3.5 h-3.5" />
-                <span class="hidden xl:inline">Procedure</span>
+                <Cpu class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                <span class="hidden xl:inline text-[10px] font-black uppercase tracking-[0.15em]">Proc</span>
               </button>
             </div>
 
-            <div class="w-px h-6 bg-gray-200 dark:bg-gray-800 mx-2 opacity-50"></div>
-
-            <!-- Toggleable Advanced Search -->
-            <div class="flex items-center gap-2">
-              <button
-                v-if="!isSearchExpanded"
-                @click="isSearchExpanded = true"
-                class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg transition-all text-[10px] font-black uppercase tracking-widest"
-              >
-                <Search class="w-3.5 h-3.5" />
-                Advanced Search
-              </button>
-
-              <div
-                v-else
-                class="flex items-center gap-2 animate-in slide-in-from-right-4 duration-300"
-              >
-                <div class="relative group">
-                  <span
-                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                  >
-                    <Search class="w-3.5 h-3.5 text-primary-500" />
-                  </span>
-                  <input
-                    ref="toolbarSearchInput"
-                    v-model="searchQuery"
-                    type="text"
-                    placeholder="Search objects..."
-                    class="w-48 xl:w-80 pl-9 pr-8 py-1.5 bg-white dark:bg-gray-900 border-2 border-primary-500/20 rounded-full text-[11px] font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-lg"
-                  />
-                  <button
-                    @click="
-                      isSearchExpanded = false
-                      searchQuery = ''
-                    "
-                    class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-red-500"
-                  >
-                    <X class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <!-- Flag Controls (Only when expanded) -->
-                <div
-                  class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800/50 p-0.5 rounded-lg border border-gray-200 dark:border-gray-700"
-                >
-                  <button
-                    @click="searchFlags.columns = !searchFlags.columns"
-                    class="p-1.5 rounded-md transition-all"
-                    :class="
-                      searchFlags.columns
-                        ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm'
-                        : 'text-gray-400'
-                    "
-                  >
-                    <Columns class="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    @click="searchFlags.regex = !searchFlags.regex"
-                    class="p-1.5 rounded-md transition-all"
-                    :class="
-                      searchFlags.regex
-                        ? 'bg-white dark:bg-gray-700 text-primary-500 shadow-sm'
-                        : 'text-gray-400'
-                    "
-                  >
-                    <Regex class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
             </div>
-          </div>
         </template>
       </SchemaActionToolbar>
     </template>
 
     <template #breadcrumbs>
-      <div
-        class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-50 dark:bg-primary-900/20 rounded-md border border-primary-100 dark:border-primary-800/50"
-      >
-        <Database class="w-3 h-3 text-primary-500" />
-        <span
-          class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400"
-          >{{ activeConnectionName }}</span
+      <div class="flex items-center gap-2.5">
+        <!-- Status Pill -->
+        <div
+          class="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 rounded-full border border-emerald-200/50 dark:border-emerald-900/50 shadow-sm shadow-emerald-500/5 transition-all active:scale-[0.98] select-none"
         >
+          <div class="relative flex">
+            <Database class="w-3.5 h-3.5 text-emerald-500" />
+            <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-white dark:ring-gray-900 animate-pulse"></div>
+          </div>
+          <span
+            class="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 truncate max-w-[200px]"
+            :title="activeConnectionName"
+            >{{ activeConnectionName }}</span
+          >
+        </div>
+
+        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700 flex-shrink-0" />
+
+        <!-- Secondary Nav Chain -->
+        <div class="flex items-center gap-2 px-1.5">
+          <button
+            @click="resetNavigation"
+            class="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all active:scale-95"
+          >
+            {{ $t('schema.overview') }}
+          </button>
+
+          <template v-if="selectedFilterType && selectedFilterType !== 'all'">
+            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+            <span
+              class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] border border-gray-200/50 dark:border-gray-700/50"
+              >{{ $t(`navigation.ddl.${selectedFilterType.toLowerCase()}`) }}</span
+            >
+          </template>
+          
+          <template v-else-if="selectedFilterType === 'all'">
+            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+            <span
+              class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] border border-gray-200/50 dark:border-gray-700/50"
+              >{{ $t('navigation.ddl.all') }}</span
+            >
+          </template>
+
+          <template v-if="selectedItem">
+            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
+            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white dark:bg-gray-800/40 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
+               <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono tracking-tight selection:bg-emerald-200">{{
+                 selectedItem.name
+               }}</span>
+            </div>
+          </template>
+        </div>
       </div>
-
-      <div class="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1 opacity-50"></div>
-
-      <button
-        @click="resetNavigation"
-        class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-      >
-        {{ $t('schema.overview') }}
-      </button>
-
-      <div class="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1 opacity-50"></div>
-
-      <template v-if="selectedFilterType && selectedFilterType !== 'all'">
-        <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span
-          class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest"
-          >{{ $t(`navigation.ddl.${selectedFilterType.toLowerCase()}`) }}</span
-        >
-      </template>
-      <template v-else-if="selectedFilterType === 'all'">
-        <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span
-          class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest"
-          >{{ $t('navigation.ddl.all') }}</span
-        >
-      </template>
-
-      <template v-if="selectedItem">
-        <span class="text-gray-300 dark:text-gray-600 text-[10px]">/</span>
-        <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono">{{
-          selectedItem.name
-        }}</span>
-      </template>
     </template>
 
     <div class="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-950">
@@ -203,8 +152,10 @@
             "
             @select="handleSelectItem"
             @refresh="loadSchema(true)"
+            @hard-refresh="handleHardRefresh"
             @start-resize="startResultsResize"
             @new-query="openQueryConsole"
+            @send-to-instant="handleSendToInstant"
           />
 
           <SchemaContentWorkspace
@@ -229,13 +180,26 @@
         </main>
       </div>
     </div>
+
+    <!-- Tab Search Switcher Modal -->
+    <TabSearchModal
+      v-if="isTabSearchOpen"
+      :tabs="tabs"
+      :active-tab-id="activeTabId"
+      :recently-closed-tabs="recentlyClosedTabs"
+      @close="isTabSearchOpen = false"
+      @select="handleSelectTab"
+      @close-tab="handleCloseTab"
+      @reopen-tab="handleReopenTab"
+    />
   </MainLayout>
 </template>
 
 <script setup lang="ts">
 import MainLayout from '@/layouts/MainLayout.vue'
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex, ChevronRight, Search, X } from 'lucide-vue-next'
 
 import { useAppStore } from '@/stores/app'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
@@ -244,8 +208,11 @@ import { useSchemaLoader } from '@/composables/useSchemaLoader'
 import SchemaActionToolbar from '@/components/schema/SchemaActionToolbar.vue'
 import SchemaObjectSidebar from '@/components/schema/SchemaObjectSidebar.vue'
 import SchemaContentWorkspace from '@/components/schema/SchemaContentWorkspace.vue'
+import TabSearchModal from '@/components/general/TabSearchModal.vue'
+import Andb from '@/utils/andb'
 
 const appStore = useAppStore()
+const { t } = useI18n()
 
 // Composable integration
 const selectedConnectionId = computed(() => appStore.selectedConnectionId)
@@ -294,6 +261,11 @@ const toolbarSearchInput = ref<HTMLInputElement | null>(null)
 const debouncedSearchQuery = ref('')
 let searchDebounceTimeout: any = null
 
+const handleCloseSearch = () => {
+  isSearchExpanded.value = false
+  searchQuery.value = ''
+}
+
 watch(searchQuery, newVal => {
   if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
   searchDebounceTimeout = setTimeout(() => {
@@ -303,6 +275,8 @@ watch(searchQuery, newVal => {
 
 const tabs = ref<any[]>([])
 const activeTabId = ref<string | null>(null)
+const isTabSearchOpen = ref(false)
+const recentlyClosedTabs = ref<any[]>([])
 
 // Selection logic
 const activeConnectionName = computed(() => {
@@ -364,6 +338,37 @@ const detailedTableData = computed(() => {
   return columnIndex.value[selectedItem.value.name]
 })
 
+watch(
+  () => selectedItem.value,
+  async newVal => {
+    if (newVal && newVal.type === 'tables' && newVal.ddl) {
+      const tableName = newVal.name
+      if (!columnIndex.value[tableName]) {
+        try {
+          console.log('[OnDemandParse] Parsing table DDL:', tableName)
+          const parsed = await Andb.parseTable(newVal.ddl)
+          console.log('[OnDemandParse] Parsed result:', parsed)
+          if (parsed) {
+            columnIndex.value = {
+              ...columnIndex.value,
+              [tableName]: {
+                columns: parsed.columns || [],
+                indexes: parsed.indexes || [],
+                foreignKeys: parsed.foreignKeys || [],
+                options: parsed.options || {},
+                partitions: parsed.partitions || null
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[OnDemandParse] Failed to parse table DDL:', e)
+        }
+      }
+    }
+  },
+  { immediate: true }
+)
+
 const tableStatsMap = ref({}) // Simplified for now
 
 // Instant Compare Integration
@@ -381,6 +386,16 @@ const handlePickForInstant = (type: 'source' | 'target') => {
     ddl: formattedDDL.value,
     type: selectedItem.value.type
   }
+}
+
+const handleSendToInstant = (item: any, slot: 'source' | 'target') => {
+  if (!item) return
+  appStore.compareStack[slot] = {
+    name: item.name,
+    ddl: item.ddl || item.content || '',
+    type: item.type
+  }
+  appStore.isCompareStackVisible = true
 }
 
 // Tab Management
@@ -438,7 +453,14 @@ const handleSelectTab = (id: string) => {
 const handleCloseTab = (id: string) => {
   const idx = tabs.value.findIndex(t => t.id === id)
   if (idx !== -1) {
-    tabs.value.splice(idx, 1)
+    const [closedTab] = tabs.value.splice(idx, 1)
+    if (closedTab) {
+      // Keep only unique closed tabs, limit to last 10
+      recentlyClosedTabs.value = [
+        closedTab,
+        ...recentlyClosedTabs.value.filter(t => t.id !== closedTab.id)
+      ].slice(0, 10)
+    }
     if (activeTabId.value === id) {
       if (tabs.value.length > 0) {
         handleSelectTab(tabs.value[Math.max(0, idx - 1)].id)
@@ -448,6 +470,15 @@ const handleCloseTab = (id: string) => {
       }
     }
   }
+}
+
+const handleReopenTab = (tab: any) => {
+  const existing = tabs.value.find(t => t.id === tab.id)
+  if (!existing) {
+    tabs.value.push(tab)
+  }
+  recentlyClosedTabs.value = recentlyClosedTabs.value.filter(t => t.id !== tab.id)
+  handleSelectTab(tab.id)
 }
 
 const resetNavigation = () => {
@@ -469,6 +500,12 @@ const startResultsResize = (e: MouseEvent) => {
   }
   window.addEventListener('mousemove', doResize)
   window.addEventListener('mouseup', stopResize)
+}
+
+const handleHardRefresh = async () => {
+  if (confirm(t('schema.hardPurgeConfirm'))) {
+     await loadSchema(true, false, true)
+  }
 }
 
 const takeSnapshot = () => console.log('Snapshot...')
@@ -493,10 +530,19 @@ watch(
   { immediate: true }
 )
 
+const handleOpenTabSearchEvent = () => {
+  isTabSearchOpen.value = true
+}
+
 onMounted(async () => {
   if (appStore.isInitialized) {
     loadSchema()
   }
+  window.addEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
 })
 
 // Auto-load when store is ready
@@ -527,5 +573,15 @@ watch(isSearchExpanded, async val => {
 <style scoped>
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

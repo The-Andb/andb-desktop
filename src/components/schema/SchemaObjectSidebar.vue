@@ -14,13 +14,23 @@
           >Database Overview</span
         >
       </div>
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1">
+        <!-- Standard Refresh -->
         <button
           @click="emit('refresh')"
-          class="p-1 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-all"
-          :title="'Refresh (' + (lastUpdated ? lastUpdated : 'Never') + ')'"
+          class="p-1 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded transition-all"
+          :title="$t('schema.fetchTooltip') + ' (' + (lastUpdated ? lastUpdated : 'Never') + ')'"
         >
           <RotateCw class="w-3 h-3" :class="{ 'animate-spin': isFetching }" />
+        </button>
+
+        <!-- Hard Purge Refresh -->
+        <button
+          @click="emit('hard-refresh')"
+          class="p-1 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
+          :title="$t('schema.hardPurgeTooltip')"
+        >
+          <Flame class="w-3 h-3" :class="{ 'animate-pulse text-rose-500': isFetching }" />
         </button>
       </div>
     </div>
@@ -68,6 +78,18 @@
             title="Match Whole Word"
           >
             <WholeWord class="w-3.5 h-3.5" />
+          </button>
+          <button
+            @click="toggleFlag('columns')"
+            class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            :class="
+              searchFlags.columns
+                ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                : 'text-gray-400'
+            "
+            title="Search inside Columns"
+          >
+            <Columns class="w-3.5 h-3.5" />
           </button>
           <button
             @click="toggleFlag('regex')"
@@ -150,6 +172,7 @@
         :expand-cmd="expandCmd"
         :column-search-active="searchFlags.columns"
         @select="(item: any) => emit('select', item)"
+        @send-to-instant="(item: any, slot: 'source' | 'target') => emit('send-to-instant', item, slot)"
       />
     </div>
 
@@ -170,7 +193,10 @@ import {
   ScanSearch,
   Regex,
   CalendarClock,
-  SortAsc
+  SortAsc,
+  WholeWord,
+  Columns,
+  Flame
 } from 'lucide-vue-next'
 import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
 
@@ -208,7 +234,9 @@ const emit = defineEmits<{
   (e: 'select', item: any): void
   (e: 'start-resize', event: MouseEvent): void
   (e: 'refresh'): void
+  (e: 'hard-refresh'): void
   (e: 'new-query'): void
+  (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
 }>()
 
 const handleSearchInput = (e: Event) => {

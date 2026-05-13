@@ -4,8 +4,11 @@
 import { CoreBridge } from '@the-andb/core';
 import { DesktopStorageStrategy } from '../storage/strategy/desktop-storage.strategy';
 import { SafeLogger } from '../utils/logger';
+import * as fs from 'fs';
+import * as path from 'path';
 
 let globalProjectBaseDir = process.cwd();
+let globalUserDataPath = '';
 
 // Protect against EPIPE crashes in worker
 process.stdout.on('error', (err: any) => {
@@ -53,6 +56,75 @@ function sendEvent(method: string, params: any) {
   }
 }
 
+/**
+ * Critical Self-Healing Utility: Identifies legacy vault paths and automagically moves them
+ * into the newly standardized project canonical tree, resolving duplication gracefully.
+ */
+function healDirectoryLayout(vaultRoot: string, targetDir: string): string {
+  if (!vaultRoot || !targetDir || vaultRoot === targetDir) return targetDir;
+  
+  try {
+    if (!fs.existsSync(targetDir)) return targetDir;
+
+    const normRoot = path.normalize(vaultRoot).replace(/\\/g, '/').replace(/\/$/, '');
+    const normTarget = path.normalize(targetDir).replace(/\\/g, '/').replace(/\/$/, '');
+    const targetName = path.basename(normTarget);
+    
+    // Pattern matching the previous iteration ID-suffix format: project-slug-5fcc440f
+    const legacyPattern = /^[a-z0-9_-]+-[a-f0-9]{8}$/i;
+    
+    if (legacyPattern.test(targetName)) {
+        const lastHyphen = targetName.lastIndexOf('-');
+        const slug = targetName.substring(0, lastHyphen);
+        const canonicalName = slug.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_');
+        
+        const projectsDir = path.join(normRoot, 'projects');
+        const canonicalDir = path.join(projectsDir, canonicalName);
+        
+        // Prevent self-referential infinite recursion if normalization fails
+        if (normTarget === canonicalDir.replace(/\\/g, '/').replace(/\/$/, '')) return targetDir;
+
+        if (!fs.existsSync(projectsDir)) {
+            fs.mkdirSync(projectsDir, { recursive: true });
+        }
+
+        if (!fs.existsSync(canonicalDir)) {
+            // ATOMIC UPGRADE: Move entire older folder to correct sub-structure
+            fs.renameSync(normTarget, canonicalDir);
+            logger.info(`[SelfHealer] Atomic upgraded legacy vault: ${normTarget} -> ${canonicalDir}`);
+
+            // HOIST DUPLICATION FIX:
+            // If older logic nested projects/{canonical} inside legacy folder, extract it!
+            const nestedFolder = path.join(canonicalDir, 'projects', canonicalName);
+            if (fs.existsSync(nestedFolder)) {
+                logger.info(`[SelfHealer] Found nested duplication at ${nestedFolder}. Hoisting contents up...`);
+                const items = fs.readdirSync(nestedFolder);
+                for (const item of items) {
+                    const src = path.join(nestedFolder, item);
+                    const dest = path.join(canonicalDir, item);
+                    if (!fs.existsSync(dest)) {
+                        fs.renameSync(src, dest);
+                    }
+                }
+                // Teardown the residual nested artifacts
+                try {
+                   fs.rmSync(path.join(canonicalDir, 'projects'), { recursive: true, force: true });
+                } catch(e) {}
+            }
+            return canonicalDir;
+        } else {
+            // The new canonical folder already exists!
+            // Silent switch: Immediately fulfill the redirection to the proper path.
+            return canonicalDir;
+        }
+    }
+  } catch (e: any) {
+      logger.error(`[SelfHealer] Critical healing failure: ${e.message}`);
+  }
+  
+  return targetDir;
+}
+
 async function handleRpcRequest(request: any) {
   const { id, method, params } = request;
 
@@ -63,21 +135,54 @@ async function handleRpcRequest(request: any) {
 
   let result: any;
   try {
+    // 1. Determine the incoming raw target path from RPC parameters or process default
+    let rawTargetDir = params?.__projectBaseDir || params?.payload?.projectBaseDir || globalProjectBaseDir;
+    
+    // PATH RESCUE GUARD:
+    // Intercept corrupt configurations that leaked internal Electron Application Support pathing
+    // from legacy database records, forcing automatic restoration to the global Vault root.
+    if (rawTargetDir && (
+        (globalUserDataPath && rawTargetDir.startsWith(globalUserDataPath)) || 
+        rawTargetDir.includes('Application Support') || 
+        rawTargetDir.includes('AppData')
+    )) {
+        rawTargetDir = globalProjectBaseDir;
+    }
+
+    // 2. Run context self-healer to automatically reconcile legacy structure into /projects
+    const effectiveDir = healDirectoryLayout(globalProjectBaseDir, rawTargetDir);
+
+    // 3. Determine contextual scope state definitively
+    const isProjectScoped = effectiveDir !== globalProjectBaseDir;
+
+    const coreStorage = CoreBridge.getStorage();
+    if (coreStorage) {
+       if (coreStorage.getProjectBaseDir() !== effectiveDir) {
+          coreStorage.setProjectBaseDir(effectiveDir, isProjectScoped);
+       }
+       
+       // ISOLATION FIX: Force-sync project name to guarantee disk folder segregation (fixes cross-project mixing)
+       if (params?.__activeProjectName) {
+          coreStorage.setActiveProject(params.__activeProjectName);
+       }
+    }
+
+    // CONFIG SWITCH FIX: Align ProjectConfig context to dynamic project ID in long-running worker instance
+    const coreConfig = CoreBridge.getConfig();
+    if (coreConfig && params?.__activeProjectId) {
+       if (coreConfig.getActiveProjectId() !== params.__activeProjectId) {
+          // Pull fresh schema definitions from SQLite explicitly when context changes
+          await coreConfig.reload().catch(() => {});
+          coreConfig.setActiveProjectId(params.__activeProjectId);
+       }
+    }
+
     switch (method) {
       case 'execute':
         if (params && params.payload) {
           params.payload.onProgress = (data: any) => {
              sendEvent('progress', { ...data, operation: params.operation });
           };
-          
-          const targetDir = params.payload.projectBaseDir || globalProjectBaseDir;
-          const storageService = CoreBridge.getStorage();
-          if (storageService) {
-             (storageService as any).projectBaseDir = targetDir;
-             if ((storageService as any).strategy) {
-                (storageService as any).strategy.projectBaseDir = targetDir;
-             }
-          }
         }
         result = await CoreBridge.execute(params.operation, params.payload);
         break;
@@ -170,9 +275,51 @@ async function handleRpcRequest(request: any) {
         break;
       case 'clearConnectionData':
         result = await (CoreBridge.getStorage() as any).clearConnectionData(params.env, params.database, params.databaseType);
+        
+        // Physical Purge Extension: If requested, wipe the physical disk directories to eliminate stale/mixed data
+        if (params.purgeFiles === true) {
+           try {
+             const fs = require('fs');
+             const path = require('path');
+             const env = params.env;
+             const dbType = params.databaseType || 'mysql';
+             const dbName = params.database;
+             
+             if (env && dbName) {
+                // This exactly mirrors the scoped layout used by strategy engine
+                const targetFolder = path.join(effectiveDir, 'db', env, dbType, dbName);
+                
+                if (fs.existsSync(targetFolder)) {
+                   console.log(`💥 [CoreWorker] Force Clean: Deleting physical folder ${targetFolder}`);
+                   fs.rmSync(targetFolder, { recursive: true, force: true });
+                }
+             }
+           } catch (fileErr: any) {
+              console.warn(`[CoreWorker] Hard purge warning: Could not delete cache files - ${fileErr.message}`);
+           }
+        }
         break;
       case 'getLatestComparisons':
         result = await (CoreBridge.getStorage() as any).getLatestComparisons(params.limit);
+        break;
+      case 'purgeActiveProject':
+        try {
+           const fs = require('fs');
+           const path = require('path');
+           
+           // 'effectiveDir' is guaranteed scoped and context-isolated to the active project
+           const dbDir = path.join(effectiveDir, 'db');
+           
+           if (fs.existsSync(dbDir)) {
+              console.log(`💥 [CoreWorker] PROJECT HARD PURGE: Deleting entire db folder at ${dbDir}`);
+              fs.rmSync(dbDir, { recursive: true, force: true });
+              result = { success: true, message: `Folder ${dbDir} wiped.` };
+           } else {
+              result = { success: true, message: 'No db directory to wipe.' };
+           }
+        } catch (fileErr: any) {
+           throw new Error(`Failed to purge active project folder: ${fileErr.message}`);
+        }
         break;
       case 'ping':
         result = 'pong';
@@ -225,12 +372,18 @@ async function bootstrap() {
     if (process.argv[i] === '--secrets-path') {
       secretsPathArg = process.argv[i + 1];
     }
+    if (process.argv[i] === '--project-base-dir') {
+      const pBase = process.argv[i + 1];
+      if (pBase) globalProjectBaseDir = pBase;
+    }
   }
 
   if (!userDataPath) {
     logger.error('Missing --user-data-path arg.');
     process.exit(1);
   }
+  
+  globalUserDataPath = userDataPath;
 
   try {
      const fsSync = require('fs');

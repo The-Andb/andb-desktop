@@ -1,247 +1,24 @@
 <template>
   <MainLayout>
     <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full gap-4">
-        <!-- Left Side: Title -->
-        <div class="flex items-center gap-2">
-          <GitCompare class="w-4 h-4 text-primary-500" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{
-            $t('compare.title')
-          }}</span>
-        </div>
-
-        <!-- Right Side: Actions & Controls -->
-        <div class="flex items-center gap-4 flex-1 justify-end">
-          <!-- View Mode Switch -->
-          <div
-            v-if="appStore.layoutSettings.toolbar && appStore.compareMode === 'auto'"
-            class="flex items-center space-x-2 shrink-0 p-1.5"
-          >
-            <div
-              class="flex items-center p-1 border border-gray-100 dark:border-gray-700 rounded-xl"
-              :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''"
-            >
-              <button
-                @click="viewMode = 'list'"
-                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200"
-                :class="[
-                  viewMode === 'list'
-                    ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
-                  appStore.buttonStyle === 'full'
-                    ? 'px-3 py-1.5 text-[10px]'
-                    : 'px-2 py-1 text-[10px]'
-                ]"
-                :title="$t('compare.listViewTooltip')"
-              >
-                <List class="w-3.5 h-3.5" />
-                <span v-if="appStore.buttonStyle !== 'icons' && appStore.buttonStyle === 'full'">{{
-                  $t('compare.listView')
-                }}</span>
-              </button>
-              <button
-                @click="viewMode = 'tree'"
-                class="flex items-center gap-2 rounded-lg font-bold uppercase transition-all duration-200"
-                :class="[
-                  viewMode === 'tree'
-                    ? 'bg-white dark:bg-gray-700 shadow-sm text-primary-600 dark:text-primary-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
-                  appStore.buttonStyle === 'full'
-                    ? 'px-3 py-1.5 text-[10px]'
-                    : 'px-2 py-1 text-[10px]'
-                ]"
-                :title="$t('compare.treeViewTooltip')"
-              >
-                <GitMerge class="w-3.5 h-3.5 rotate-90" />
-                <span v-if="appStore.buttonStyle !== 'icons' && appStore.buttonStyle === 'full'">{{
-                  $t('compare.treeViewLabel')
-                }}</span>
-              </button>
-            </div>
-
-            <div
-              v-if="appStore.buttonStyle === 'full'"
-              class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
-            ></div>
-
-            <!-- Safe Mode Toggle -->
-            <div
-              class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none"
-            >
-              <ShieldCheck
-                class="w-4 h-4"
-                :class="appStore.safeMode ? 'text-green-500' : 'text-gray-400'"
-              />
-
-              <div class="flex items-center gap-1">
-                <span
-                  class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help"
-                  :title="
-                    $t(
-                      'common.tooltips.safeMode',
-                      'Safe Mode prevents potentially destructive actions during comparisons and migrations.'
-                    )
-                  "
-                  >{{ $t('schema.safeMode', 'Safe Mode') }}</span
-                >
-                <button
-                  @click="showSafeModeInfo = !showSafeModeInfo"
-                  class="text-gray-400 hover:text-primary-500 transition-colors p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  <Info class="w-3 h-3" />
-                </button>
-              </div>
-
-              <button
-                @click="appStore.safeMode = !appStore.safeMode"
-                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
-                :class="appStore.safeMode ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'"
-              >
-                <span
-                  class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                  :class="appStore.safeMode ? 'translate-x-4' : 'translate-x-0'"
-                ></span>
-              </button>
-
-              <!-- Info Popover -->
-              <div
-                v-if="showSafeModeInfo"
-                class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50"
-              >
-                <div
-                  class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2"
-                >
-                  <h3
-                    class="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-widest"
-                  >
-                    <ShieldCheck class="w-4 h-4 text-green-500" />
-                    {{ $t('schema.safeMode', 'Safe Mode') }} Info
-                  </h3>
-                  <button
-                    @click="showSafeModeInfo = false"
-                    class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <X class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div class="text-gray-600 dark:text-gray-300 space-y-3 text-xs leading-relaxed">
-                  <p>
-                    <span class="font-bold text-green-500 flex items-center gap-1 mb-0.5"
-                      ><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> ON (Dry
-                      Run)</span
-                    >
-                    Simulates changes without affecting your database. Generates SQL for preview
-                    only. <span class="text-gray-400 italic">Recommended.</span>
-                  </p>
-                  <p>
-                    <span class="font-bold text-red-500 flex items-center gap-1 mb-0.5"
-                      ><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> OFF (Execute)</span
-                    >
-                    Executes actual CREATE, ALTER, and DROP statements directly on the database.
-                    <span class="text-red-400 font-bold">Use with extreme caution!</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              v-if="appStore.buttonStyle === 'full'"
-              class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
-            ></div>
-
-            <button
-              v-if="appStore.compareMode === 'auto'"
-              @click="runComparison()"
-              :disabled="loading || !activePair"
-              class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale shrink-0"
-              :class="[
-                appStore.buttonStyle === 'full'
-                  ? 'px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs tracking-wide shadow-md active:scale-95 gap-2'
-                  : '',
-                appStore.buttonStyle === 'minimal'
-                  ? 'px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm gap-2'
-                  : '',
-                appStore.buttonStyle === 'icons'
-                  ? 'w-10 h-10 bg-primary-500 text-white rounded-full shadow-lg hover:scale-110 active:scale-95'
-                  : ''
-              ]"
-              :title="$t('compare.runCompareTooltip')"
-            >
-              <GitCompare v-if="!(loading && loadingAction === 'compare')" class="w-4 h-4" />
-              <RefreshCw v-else class="w-4 h-4 animate-spin" />
-              <span v-if="appStore.buttonStyle !== 'icons'">{{
-                loading && loadingAction === 'compare'
-                  ? $t('compare.comparing')
-                  : appStore.buttonStyle === 'full'
-                    ? $t('compare.compare')
-                    : $t('compare.compare')
-              }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <CompareToolbar
+        :appStore="appStore"
+        v-model:viewMode="viewMode"
+        v-model:showSafeModeInfo="showSafeModeInfo"
+        :loading="loading"
+        :loadingAction="loadingAction"
+        :activePair="activePair"
+        @runComparison="runComparison"
+      />
     </template>
 
     <template #breadcrumbs>
-      <div v-if="activePair" class="flex items-center gap-2">
-        <!-- Source Context -->
-        <div
-          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
-        >
-          <div class="flex items-center text-gray-500 dark:text-gray-400">
-            <Server class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{
-              activePair.source.environment
-            }}</span>
-          </div>
-          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
-          <div class="flex items-center text-primary-600 dark:text-primary-400">
-            <Database class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{
-              activePair.source.database || activePair.source.name
-            }}</span>
-          </div>
-        </div>
-
-        <div class="flex items-center px-1">
-          <ArrowRightLeft class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600" />
-        </div>
-
-        <!-- Target Context -->
-        <div
-          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
-        >
-          <div class="flex items-center text-gray-500 dark:text-gray-400">
-            <Server class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{
-              activePair.target.environment
-            }}</span>
-          </div>
-          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-600" />
-          <div class="flex items-center text-primary-600 dark:text-primary-400">
-            <Database class="w-3.5 h-3.5 mr-1.5" />
-            <span class="text-[10px] font-black uppercase tracking-[0.1em]">{{
-              activePair.target.database || activePair.target.name
-            }}</span>
-          </div>
-        </div>
-
-        <button
-          @click="runComparison()"
-          :disabled="loading || !activePair"
-          class="ml-3 p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl text-gray-400 hover:text-primary-500 transition-all active:scale-95 disabled:opacity-30 border border-transparent hover:border-primary-100 dark:hover:border-primary-800"
-        >
-          <RotateCcw
-            class="w-4 h-4"
-            :class="{ 'animate-spin': loading && loadingAction === 'compare' }"
-          />
-        </button>
-      </div>
-      <span
-        v-else
-        class="text-[10px] font-black uppercase tracking-widest text-gray-400 opacity-30"
-        >{{ $t('compare.noPair') }}</span
-      >
+      <CompareBreadcrumbs
+        :activePair="activePair"
+        :loading="loading"
+        :loadingAction="loadingAction"
+        @runComparison="runComparison"
+      />
     </template>
 
     <!-- Comparison & Console Split -->
@@ -287,534 +64,56 @@
             :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }"
           >
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
-            <div
+            <CompareResultsList
               v-if="appStore.layoutSettings.sidebar"
-              :style="{ width: resultsWidth + 'px' }"
-              class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300"
-              :class="appStore.layoutSettings.sidebarPosition === 'right' ? 'border-l' : 'border-r'"
-            >
-              <!-- Results Header: Standardized Style -->
-              <div
-                class="px-4 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
-              >
-                <div class="flex items-center gap-2">
-                  <Database class="w-3.5 h-3.5 text-gray-400 opacity-50" />
-                  <span
-                    class="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500"
-                    >Database Overview</span
-                  >
-                </div>
-                <div
-                  v-if="selectedFilterType !== 'all'"
-                  @click="selectedFilterType = 'all'"
-                  class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500"
-                >
-                  <ChevronLeft class="w-3.5 h-3.5" />
-                </div>
-              </div>
-
-              <!-- Search Bar (Professional Redesign) -->
-              <div
-                v-if="hasResults"
-                class="px-3 pt-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 shadow-sm"
-              >
-                <div class="relative group">
-                  <span
-                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors duration-200"
-                  >
-                    <Search class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500" />
-                  </span>
-                  <input
-                    ref="searchInput"
-                    v-model="searchQuery"
-                    type="text"
-                    :placeholder="$t('history.searchPlaceholder')"
-                    class="w-full pl-9 pr-36 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-gray-900 dark:text-white transition-all shadow-inner"
-                  />
-
-                  <!-- Unified Search Icons (VS Code Style) -->
-                  <div class="absolute inset-y-0 right-0 flex items-center pr-2 space-x-0.5">
-                    <button
-                      @click="searchFlags.caseSensitive = !searchFlags.caseSensitive"
-                      class="p-1 rounded-md transition-all duration-200"
-                      :class="
-                        searchFlags.caseSensitive
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      "
-                      title="Match Case"
-                    >
-                      <CaseSensitive class="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      @click="searchFlags.wholeWord = !searchFlags.wholeWord"
-                      class="p-1 rounded-md transition-all duration-200"
-                      :class="
-                        searchFlags.wholeWord
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      "
-                      title="Match Whole Word"
-                    >
-                      <WholeWord class="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      @click="searchFlags.regex = !searchFlags.regex"
-                      class="p-1 rounded-md transition-all duration-200"
-                      :class="
-                        searchFlags.regex
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      "
-                      title="Use Regex"
-                    >
-                      <Regex class="w-3.5 h-3.5" />
-                    </button>
-
-                    <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
-
-                    <button
-                      @click="searchFlags.columns = !searchFlags.columns"
-                      class="p-1 rounded-md transition-all duration-200"
-                      :class="
-                        searchFlags.columns
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      "
-                      title="Content Search (Snippets)"
-                    >
-                      <Binary class="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      v-if="searchQuery"
-                      @click="searchQuery = ''"
-                      class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all"
-                    >
-                      <X class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Search Progress/Summary & Tree Controls (Synchronized) -->
-                <div class="flex items-center justify-between mt-2.5 px-0.5">
-                  <div class="flex items-center gap-2">
-                    <div class="text-[9px] text-gray-400 font-black uppercase tracking-widest">
-                      {{ filteredResults.length }} Objects Found
-                    </div>
-                    <div class="flex gap-0.5 ml-1">
-                      <button
-                        class="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-gray-600"
-                      >
-                        <CaseSensitive class="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-0.5 shrink-0">
-                    <!-- Sort Options -->
-                    <button
-                      @click="sortBy = sortBy === 'date' ? 'status' : 'date'"
-                      class="p-1 rounded-md transition-colors"
-                      :class="
-                        sortBy === 'date'
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      "
-                      title="Sort by Date (Last Updated)"
-                    >
-                      <CalendarClock class="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      @click="sortBy = sortBy === 'name' ? 'status' : 'name'"
-                      class="p-1 rounded-md transition-colors"
-                      :class="
-                        sortBy === 'name'
-                          ? 'bg-primary-500 text-white shadow-sm'
-                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                      "
-                      title="Sort Alphabetically (A-Z)"
-                    >
-                      <ArrowDownAZ class="w-3.5 h-3.5" />
-                    </button>
-
-                    <div class="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-1"></div>
-
-                    <button
-                      @click="
-                        treeExpandCmd = { action: 'expand', ts: Date.now() }
-                        collapsedCategories.clear()
-                      "
-                      class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                      title="Expand All"
-                    >
-                      <Plus class="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      @click="
-                        treeExpandCmd = { action: 'collapse', ts: Date.now() }
-                        ;['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c =>
-                          collapsedCategories.add(c)
-                        )
-                      "
-                      class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                      title="Collapse All"
-                    >
-                      <Minus class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Status Filters (Premium Pills) -->
-              <div
-                class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 px-1 mt-1 border-t border-gray-100 dark:border-gray-800/50"
-              >
-                <span class="text-[9px] font-black uppercase tracking-tighter text-gray-400 mr-1"
-                  >Filter:</span
-                >
-                <button
-                  v-for="filter in statusFilters"
-                  :key="filter.value"
-                  @click="selectedStatusFilter = filter.value"
-                  class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shrink-0"
-                  :class="
-                    selectedStatusFilter === filter.value
-                      ? 'bg-primary-500 border-primary-500 text-white shadow-sm shadow-primary-500/20'
-                      : 'bg-gray-100 dark:bg-gray-800 border-transparent text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
-                  "
-                >
-                  {{ filter.label }}
-                </button>
-              </div>
-
-              <div class="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-2">
-                <!-- No Results / Empty State -->
-                <div
-                  v-if="!hasResults && !loading"
-                  class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in zoom-in duration-500"
-                >
-                  <div class="relative">
-                    <ScanSearch class="w-16 h-16 text-gray-200 dark:text-gray-800" />
-                    <div
-                      class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border border-gray-100 dark:border-gray-800"
-                    >
-                      <Search class="w-3.5 h-3.5 text-gray-400" />
-                    </div>
-                  </div>
-                  <div class="max-w-xs space-y-1">
-                    <p
-                      class="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider"
-                    >
-                      {{ activePair ? t('compare.noData') : t('compare.noPair') }}
-                    </p>
-                    <p
-                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
-                    >
-                      {{ activePair ? t('compare.noDataDesc') : t('compare.noPairDesc') }}
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-3 mt-2">
-                    <button
-                      v-if="activePair"
-                      @click="runComparison"
-                      class="px-6 py-2.5 bg-primary-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all"
-                    >
-                      {{ t('compare.startCompare') }}
-                    </button>
-                    <button
-                      v-if="activePair"
-                      @click="runFetchAndCompare"
-                      class="px-6 py-2.5 border border-primary-500/30 text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center gap-2"
-                    >
-                      <RefreshCw
-                        class="w-3.5 h-3.5"
-                        :class="{ 'animate-spin': loading && loadingAction === 'fetch' }"
-                      />
-                      Fetch & Compare
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Identical / Everything Filtered Out -->
-                <div
-                  v-else-if="hasResults && filteredResults.length === 0 && !loading"
-                  class="p-12 text-center h-full flex flex-col justify-center items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                >
-                  <div
-                    class="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center relative"
-                  >
-                    <div
-                      class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-20"
-                    ></div>
-                    <CheckCircle2 class="w-10 h-10 text-emerald-500" />
-                  </div>
-                  <div class="max-w-xs space-y-1">
-                    <p
-                      class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest"
-                    >
-                      {{ t('compare.noChanges') }}
-                    </p>
-                    <p
-                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
-                      v-if="!searchQuery"
-                    >
-                      {{ t('compare.perfectlyInSync') }}
-                    </p>
-                    <p
-                      class="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed"
-                      v-else
-                    >
-                      {{ t('compare.noSearchMatches') }} "{{ searchQuery }}"
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <button
-                      v-if="selectedStatusFilter === 'all' && !searchQuery"
-                      @click="selectedStatusFilter = 'equal'"
-                      class="px-5 py-2 border border-gray-200 dark:border-gray-700 hover:border-emerald-500 text-gray-600 dark:text-gray-400 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all"
-                    >
-                      {{ t('compare.viewIdentical') }}
-                    </button>
-                    <button
-                      v-if="searchQuery"
-                      @click="searchQuery = ''"
-                      class="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 text-gray-700 rounded-xl font-bold uppercase text-[9px] tracking-widest transition-all"
-                    >
-                      {{ t('compare.clearSearch') }}
-                    </button>
-                  </div>
-                </div>
-
-                <div v-else class="space-y-1 pb-4">
-                  <div
-                    v-for="cat in resultsByCategory"
-                    :key="cat.type"
-                    class="flex flex-col group/cat relative"
-                  >
-                    <!-- Category Header (Synchronized Row Style) -->
-                    <div
-                      @click="
-                        collapsedCategories.has(cat.type)
-                          ? collapsedCategories.delete(cat.type)
-                          : collapsedCategories.add(cat.type)
-                      "
-                      class="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 transition-colors sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm group-hover/cat:bg-gray-50/50 dark:group-hover/cat:bg-gray-800/30 mb-px overflow-hidden select-none"
-                    >
-                      <ChevronRight
-                        class="w-3 h-3 mr-1.5 transition-transform text-gray-400 shrink-0"
-                        :class="{
-                          'rotate-90 text-primary-500': !collapsedCategories.has(cat.type)
-                        }"
-                      />
-                      <component
-                        :is="getIconForType(cat.type)"
-                        class="w-3.5 h-3.5 mr-2 shrink-0"
-                        :class="getCategoryColor(cat.type)"
-                      />
-                      <span
-                        class="font-extrabold text-[10px] uppercase tracking-widest text-gray-600 dark:text-gray-300 truncate"
-                        >{{ cat.type }}</span
-                      >
-
-                      <div class="ml-auto flex items-center gap-1">
-                        <span
-                          v-if="cat.changes > 0"
-                          class="px-1.5 py-0.5 bg-orange-500 text-white text-[8px] rounded-full font-mono font-black shadow-sm shrink-0"
-                        >
-                          {{ cat.changes }}
-                        </span>
-                        <span
-                          class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 text-[8px] rounded-full font-mono shrink-0"
-                        >
-                          {{ cat.total }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <!-- Items List (Expanded) -->
-                    <div
-                      v-if="!collapsedCategories.has(cat.type)"
-                      class="pl-4 border-l border-gray-100 dark:border-gray-800 ml-3.5 mt-0.5 space-y-0.5 pb-2"
-                    >
-                      <div
-                        v-for="item in cat.items"
-                        :key="item.name"
-                        @click="selectItem(item)"
-                        @contextmenu.prevent="handleItemContextMenu($event, item)"
-                        class="cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center group px-2 py-1.5 relative border border-transparent overflow-hidden"
-                        :class="[
-                          {
-                            'bg-primary-50 dark:bg-primary-900/20 border-primary-200/50 dark:border-primary-800/50 shadow-sm transition-all':
-                              selectedItem?.name === item.name
-                          }
-                        ]"
-                      >
-                        <div class="flex-1 min-w-0 pr-2">
-                          <div
-                            class="font-mono truncate text-[11px] text-gray-700 dark:text-gray-300"
-                            :class="{
-                              'font-bold text-primary-600 dark:text-primary-400':
-                                selectedItem?.name === item.name
-                            }"
-                            :title="item.name"
-                          >
-                            {{ item.name }}
-                          </div>
-                          <div
-                            class="text-[9px] text-gray-400 uppercase tracking-tighter flex items-center opacity-70 group-hover:opacity-100"
-                          >
-                            <component :is="getIconForType(item.type)" class="mr-1 w-2.5 h-2.5" />
-                            <span>{{ item.type }}</span>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center gap-1.5 shrink-0 ml-auto pr-1">
-                          <!-- Migration Trigger -->
-                          <div
-                            class="flex items-center justify-center w-6 h-6 rounded-full transition-all group/migrate bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-orange-500/30"
-                          >
-                            <component
-                              :is="getStatusIcon(item.status)"
-                              class="w-3.5 h-3.5 transition-all"
-                              :class="[
-                                getStatusClass(item.status),
-                                {
-                                  'group-hover/migrate:hidden':
-                                    item.status?.toLowerCase() !== 'equal' &&
-                                    item.status?.toLowerCase() !== 'same'
-                                }
-                              ]"
-                            />
-                            <template
-                              v-if="
-                                item.status?.toLowerCase() !== 'equal' &&
-                                item.status?.toLowerCase() !== 'same' &&
-                                !isTargetDump
-                              "
-                            >
-                              <Zap
-                                v-if="isMigratingItemId !== item.name"
-                                @click.stop="migrateSingleItem(item)"
-                                class="w-3.5 h-3.5 text-orange-500 hidden group-hover/migrate:block cursor-pointer hover:scale-110 active:scale-95 fill-current"
-                                title="Migrate"
-                              />
-                              <RefreshCw v-else class="w-3 h-3 text-orange-500 animate-spin" />
-                            </template>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Resize Handle -->
-              <div
-                @mousedown="startResultsResize"
-                class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20"
-              ></div>
-            </div>
+              :resultsWidth="resultsWidth"
+              v-model:activeType="selectedFilterType"
+              v-model:searchQuery="searchQuery"
+              v-model:searchFlags="searchFlags"
+              v-model:selectedStatusFilter="selectedStatusFilter"
+              v-model:sortBy="sortBy"
+              :selectedItem="selectedItem"
+              :collapsedCategories="collapsedCategories"
+              :activePair="activePair"
+              :loading="loading"
+              :loadingAction="loadingAction"
+              :isTargetDump="isTargetDump"
+              :isMigratingItemId="isMigratingItemId"
+              :filteredResults="filteredResults"
+              :hasResults="hasResults"
+              :statusFilters="statusFilters"
+              :resultsByCategory="resultsByCategory"
+              @expand-all="() => { treeExpandCmd = { action: 'expand', ts: Date.now() }; collapsedCategories.clear() }"
+              @collapse-all="() => { treeExpandCmd = { action: 'collapse', ts: Date.now() }; ['tables', 'views', 'procedures', 'functions', 'triggers'].forEach(c => collapsedCategories.add(c)) }"
+              @refresh-comparison="runComparison"
+              @fetch-and-compare="runFetchAndCompare"
+              @select-item="selectItem"
+              @contextmenu="handleItemContextMenu"
+              @migrate="migrateSingleItem"
+              @start-resize="startResultsResize"
+            />
 
             <!-- Right: Split DDL Detail -->
-            <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
-              <!-- Tab Bar -->
-              <TabBar
-                v-if="tabs.length > 0"
-                :tabs="tabs"
-                :active-tab-id="activeTabId"
-                @select="handleSelectTab"
-                @close="handleCloseTab"
-                @duplicate="handleDuplicateTab"
-                @close-others="handleCloseOthers"
-                @close-right="handleCloseRight"
-              />
-              <!-- Migration Overlay (Moved to global scope) -->
-
-              <div v-if="selectedItem" class="h-full flex flex-col">
-                <div
-                  class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0"
-                >
-                  <div class="flex items-center text-xs space-x-2 overflow-hidden">
-                    <div class="flex items-center text-gray-500 dark:text-gray-400">
-                      <Server class="w-3.5 h-3.5 mr-1" />
-                      <span class="truncate">{{ selectedPath.env }}</span>
-                    </div>
-                    <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-                    <div class="flex items-center text-gray-500 dark:text-gray-400">
-                      <Database class="w-3.5 h-3.5 mr-1" />
-                      <span class="truncate">{{ selectedPath.db }}</span>
-                    </div>
-                    <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-                    <div class="flex items-center text-gray-600 dark:text-gray-300 font-bold">
-                      <component
-                        :is="getIconForType(selectedItem.type)"
-                        class="w-3.5 h-3.5 mr-1 text-gray-400"
-                      />
-                      <span class="uppercase">{{ selectedItem.type }}</span>
-                    </div>
-                    <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-                    <div class="flex items-center">
-                      <span class="font-bold text-gray-900 dark:text-white truncate text-sm">{{
-                        selectedItem.name
-                      }}</span>
-                    </div>
-                    <span
-                      :class="getStatusClass(selectedItem.status)"
-                      class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-opacity-10 font-black border uppercase tracking-tighter"
-                      :style="{ borderColor: 'currentColor' }"
-                    >
-                      {{ getStatusText(selectedItem.status) }}
-                    </span>
-                  </div>
-                  <div class="flex space-x-2 items-center">
-                    <button
-                      v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
-                      @click="migrateSingleItem(selectedItem)"
-                      class="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-500 text-orange-600 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-orange-500/10 active:scale-95 group/migrate border border-orange-100 dark:border-orange-800/30"
-                      :disabled="isMigrating || isTargetDump"
-                      :title="
-                        isTargetDump
-                          ? 'Target is read-only (Static Dump)'
-                          : $t('compare.migrateTo', { name: targetName })
-                      "
-                    >
-                      <Loader2
-                        v-if="isMigratingItemId === selectedItem.name"
-                        class="w-4 h-4 animate-spin"
-                      />
-                      <Zap
-                        v-else
-                        class="w-4 h-4 fill-orange-500/20 group-hover/migrate:fill-white/20 group-hover/migrate:animate-pulse transition-transform duration-300 group-hover/migrate:scale-125"
-                      />
-                      <span class="font-bold">{{
-                        isMigratingItemId === selectedItem.name
-                          ? $t('common.processing')
-                          : 'Sync Now'
-                      }}</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="flex-1 flex flex-col min-h-0 min-w-0">
-                  <MirrorDiffView
-                    :source-ddl="selectedItem.diff?.source || null"
-                    :target-ddl="selectedItem.diff?.target || null"
-                    :source-label="sourceName"
-                    :target-label="targetName"
-                    :status="selectedItem.status || 'equal'"
-                    :diff-options="diffOptions"
-                    :navigatable-names="navigatableNames"
-                    @navigate-to-definition="handleNavigateToDefinition"
-                  />
-                </div>
-              </div>
-              <div v-else class="flex-1 flex items-center justify-center text-gray-400 italic">
-                <div class="text-center">
-                  <MousePointer2 class="w-12 h-12 mx-auto mb-2 opacity-10" />
-                  <p>{{ $t('schema.selectObject') }}</p>
-                </div>
-              </div>
-            </div>
+            <CompareDetailView
+              :tabs="tabs"
+              :activeTabId="activeTabId"
+              :selectedItem="selectedItem"
+              :selectedPath="selectedPath"
+              :sourceName="sourceName"
+              :targetName="targetName"
+              :isTargetDump="isTargetDump"
+              :isMigrating="isMigrating"
+              :isMigratingItemId="isMigratingItemId"
+              :diffOptions="diffOptions"
+              :navigatableNames="navigatableNames"
+              @select-tab="handleSelectTab"
+              @close-tab="handleCloseTab"
+              @duplicate-tab="handleDuplicateTab"
+              @close-others="handleCloseOthers"
+              @close-right="handleCloseRight"
+              @migrate="migrateSingleItem"
+              @navigate-to-definition="handleNavigateToDefinition"
+            />
           </div>
 
           <!-- Tree Mode View -->
@@ -882,7 +181,7 @@
           </button>
           <button
             @click="
-              runComparison()
+              runComparison();
               showErrorModal = false
             "
             class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95"
@@ -918,7 +217,6 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
-import MirrorDiffView from '@/components/compare/MirrorDiffView.vue'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
@@ -928,45 +226,22 @@ import { useI18n } from 'vue-i18n'
 import {
   Sigma,
   AlertCircle,
-  ScanSearch,
   Zap,
-  RefreshCw,
-  MousePointer2,
   Database,
-  Server,
   Table,
   Layers,
   Workflow,
-  List,
-  GitMerge,
-  CaseSensitive,
-  WholeWord,
-  Regex,
-  Binary,
-  ShieldCheck,
-  Info,
-  Search,
-  CheckCircle2,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  PlusCircle,
-  XCircle,
-  ArrowDownAZ,
-  CalendarClock,
-  Plus,
-  Minus,
-  Loader2,
-  Ban,
-  ArrowRightLeft,
-  RotateCcw
+  Ban
 } from 'lucide-vue-next'
 import { useOperationsStore } from '@/stores/operations'
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import CompareTreeMode from '@/components/compare/CompareTreeMode.vue'
 import MigrationConfirm from '@/components/compare/MigrationConfirm.vue'
-import TabBar from '@/components/general/TabBar.vue'
+import CompareResultsList from '@/components/compare/CompareResultsList.vue'
+import CompareDetailView from '@/components/compare/CompareDetailView.vue'
+import CompareToolbar from '@/components/compare/CompareToolbar.vue'
+import CompareBreadcrumbs from '@/components/compare/CompareBreadcrumbs.vue'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
@@ -1100,27 +375,6 @@ const getIconForType = (type: string) => {
       return Zap
     default:
       return Database
-  }
-}
-
-const getCategoryColor = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case 'tables':
-    case 'table':
-      return 'text-blue-500'
-    case 'views':
-    case 'view':
-      return 'text-indigo-500'
-    case 'procedures':
-    case 'procedure':
-    case 'functions':
-    case 'function':
-      return 'text-purple-500'
-    case 'triggers':
-    case 'trigger':
-      return 'text-amber-500'
-    default:
-      return 'text-gray-500'
   }
 }
 
@@ -1728,66 +982,6 @@ const handleCategorySelected = (event: any) => {
   if (type !== 'all' && !hasTypeResults) {
     consoleStore.addLog(`No results for ${type}. Auto-triggering comparison...`, 'info')
     runComparison()
-  }
-}
-
-const getStatusIcon = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'equal':
-    case 'same':
-      return CheckCircle2
-    case 'new':
-    case 'missing_in_target':
-      return PlusCircle
-    case 'deprecated':
-    case 'missing_in_source':
-      return XCircle
-    case 'modified':
-    case 'different':
-    case 'updated':
-      return AlertCircle
-    default:
-      return AlertCircle
-  }
-}
-
-const getStatusClass = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'equal':
-    case 'same':
-      return 'text-teal-600 dark:text-teal-400 font-bold'
-    case 'new':
-    case 'missing_in_target':
-      return 'text-emerald-500 dark:text-emerald-400 drop-shadow-sm font-bold'
-    case 'deprecated':
-    case 'missing_in_source':
-      return 'text-rose-500 dark:text-rose-400 drop-shadow-sm font-bold'
-    case 'modified':
-    case 'different':
-    case 'updated':
-      return 'text-amber-500 dark:text-amber-400 drop-shadow-sm font-bold'
-    default:
-      return 'text-gray-400'
-  }
-}
-
-const getStatusText = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'equal':
-    case 'same':
-      return t('common.status.identical')
-    case 'different':
-    case 'updated':
-    case 'modified':
-      return t('common.status.modified')
-    case 'missing_in_target':
-    case 'new':
-      return t('common.status.newSource')
-    case 'missing_in_source':
-    case 'deprecated':
-      return t('common.status.deprecatedTarget')
-    default:
-      return status
   }
 }
 

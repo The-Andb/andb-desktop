@@ -65,6 +65,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-parse-table', andb.handleAndbParseTable)
   ipcMain.handle('andb-compare-arbitrary', andb.handleAndbCompareArbitrary)
   ipcMain.handle('andb-clear-connection-data', andb.handleAndbClearData)
+  ipcMain.handle('andb-purge-active-project', andb.handleAndbPurgeActiveProject)
 
   ipcMain.handle('get-snapshots', andb.handleAndbGetSnapshots)
   ipcMain.handle('get-all-snapshots', andb.handleAndbGetAllSnapshots)
@@ -105,6 +106,9 @@ export function registerIpcHandlers() {
   ipcMain.handle('pick-workspace-dir', andb.handlePickWorkspaceDir)
   ipcMain.handle('reset-workspace-dir', andb.handleResetWorkspace)
   ipcMain.handle('get-workspace-status', andb.handleGetWorkspaceStatus)
+  ipcMain.handle('migrate-vault-data', andb.handleMigrateVaultData)
+  ipcMain.handle('rollback-vault-data', andb.handleRollbackVaultData)
+  ipcMain.handle('andb-set-active-project-dir', andb.handleSetActiveProjectDir)
 
   // --- Table Inspector (AI DBA Super Mode) ---
   ipcMain.handle('andb-get-table-stats', andb.handleAndbGetTableStats)

@@ -783,7 +783,6 @@ const projectsStore = useProjectsStore()
 const connectionPairsStore = useConnectionPairsStore()
 const operationsStore = useOperationsStore()
 
-const isRefreshing = ref(false)
 const showReportsModal = ref(false)
 
 // Database Intelligence Stats
@@ -1059,25 +1058,6 @@ const formatTimeAgo = (date: Date | string) => {
   return new Date(date).toLocaleDateString()
 }
 
-const refreshData = async () => {
-  if (isRefreshing.value) return
-  isRefreshing.value = true
-  try {
-    await Promise.all([
-      appStore.reloadData(),
-      connectionPairsStore.reloadData(),
-      operationsStore.loadOperations()
-    ])
-  } catch (error: any) {
-    if ((window as any).electronAPI) {
-      ;(window as any).electronAPI.log.send('error', 'Refresh failed in dashboard', error.message)
-    }
-  } finally {
-    setTimeout(() => {
-      isRefreshing.value = false
-    }, 500)
-  }
-}
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -1144,10 +1124,7 @@ watch(
 )
 
 onMounted(async () => {
-  // Load data from store (which loads from storage)
-  if ((window as any).electronAPI) {
-    await refreshData()
-    // stats fetch handled by watcher
-  }
+  // Stores are already initialized at app startup.
+  // Avoid re-fetching background tasks automatically when mounting the dashboard.
 })
 </script>

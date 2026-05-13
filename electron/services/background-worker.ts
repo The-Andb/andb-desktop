@@ -13,6 +13,9 @@ export class BackgroundWorker extends EventEmitter {
   private cliPath: string = ''
   private userDataPath: string = ''
   private sqlitePath: string = ''
+  private activeProjectBaseDir: string = ''
+  private activeProjectId: string = ''
+  private activeProjectName: string = ''
 
   private constructor() {
     super()
@@ -25,9 +28,12 @@ export class BackgroundWorker extends EventEmitter {
     return this.instance
   }
 
-  public async init(userDataPath: string, sqlitePath: string = '') {
+  public async init(userDataPath: string, sqlitePath: string = '', projectBaseDir: string = '') {
     this.userDataPath = userDataPath
     this.sqlitePath = sqlitePath
+    if (projectBaseDir) {
+      this.activeProjectBaseDir = projectBaseDir
+    }
 
     // Core worker is bundled into dist-electron inside the app (both dev & prod)
     this.cliPath = path.join(app.getAppPath(), 'dist-electron', 'core-worker.cjs')
@@ -45,6 +51,9 @@ export class BackgroundWorker extends EventEmitter {
     const args = ['--user-data-path', this.userDataPath]
     if (this.sqlitePath) {
       args.push('--sqlite-path', this.sqlitePath)
+    }
+    if (this.activeProjectBaseDir) {
+      args.push('--project-base-dir', this.activeProjectBaseDir)
     }
 
     // Pass internal secrets path if reachable from Main
@@ -147,6 +156,17 @@ export class BackgroundWorker extends EventEmitter {
     }
   }
 
+  public setActiveProjectBaseDir(path: string) {
+    this.activeProjectBaseDir = path;
+  }
+
+  public setActiveProjectContext(path: string, id: string, name: string) {
+    this.activeProjectBaseDir = path;
+    this.activeProjectId = id;
+    this.activeProjectName = name;
+    SafeLogger.log(`[BackgroundWorker] Context updated - ID: ${id}, Name: ${name}, Base: ${path || 'default'}`);
+  }
+
   public async call(method: string, params: any = {}): Promise<any> {
     if (!this.process) await this.startProcess()
 
@@ -156,7 +176,12 @@ export class BackgroundWorker extends EventEmitter {
         jsonrpc: '2.0',
         id,
         method,
-        params
+        params: {
+          ...params,
+          __projectBaseDir: this.activeProjectBaseDir,
+          __activeProjectId: this.activeProjectId,
+          __activeProjectName: this.activeProjectName
+        }
       }
 
       this.pendingRequests.set(id, { resolve, reject })
@@ -262,8 +287,12 @@ export class BackgroundWorker extends EventEmitter {
     return this.call('getMigrationHistory', { limit })
   }
 
-  public async clearConnectionData(env: string, database: string, databaseType: string = 'mysql'): Promise<any> {
-    return this.call('clearConnectionData', { env, database, databaseType })
+  public async clearConnectionData(env: string, database: string, databaseType: string = 'mysql', purgeFiles: boolean = false): Promise<any> {
+    return this.call('clearConnectionData', { env, database, databaseType, purgeFiles })
+  }
+
+  public async purgeActiveProject(): Promise<any> {
+    return this.call('purgeActiveProject', {})
   }
 
   public async addMigration(migration: any): Promise<any> {

@@ -15,13 +15,16 @@ import {
 import { useNotificationStore } from '@/stores/notification'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useProjectsStore } from '@/stores/projects'
+import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { generatePrUrl } from '@/utils/pr-helper'
 
 const notificationStore = useNotificationStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
+const connectionPairsStore = useConnectionPairsStore()
 
 const currentProjectId = computed(() => projectsStore.selectedProjectId)
+const activePair = computed(() => connectionPairsStore.activePair)
 
 const cliStatus = ref<'checking' | 'detected' | 'not_found'>('checking')
 const internalBinaryPath = ref('')
@@ -98,6 +101,21 @@ const loadGitConfig = async () => {
       }
     }
 
+    const wsStatus = await window.electronAPI?.getWorkspaceStatus?.()
+    let wsPath = wsStatus?.success && wsStatus.path ? wsStatus.path : ''
+    if (wsPath && currentProjectId.value) {
+      const pName = projectsStore.currentProject?.name || ''
+      const slug = pName
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      const shortId = (currentProjectId.value || '').split('-')[0] || ''
+      const subFolder = slug ? `${slug}-${shortId}` : shortId
+      wsPath = `${wsPath}/${subFolder}`
+    }
+
     if (data) {
       // Decrypt token if present and secure
       if (data.token && (data.token.startsWith('SEC:') || data.token.startsWith('ENC:'))) {
@@ -116,7 +134,8 @@ const loadGitConfig = async () => {
         ...data,
         // Heuristic: If workBranch is missing but branch is present, migrate it
         workBranch: data.workBranch || data.branch || gitConfig.value.workBranch,
-        baseBranch: data.baseBranch || 'main'
+        baseBranch: data.baseBranch || 'main',
+        storagePath: wsPath || data.storagePath || ''
       }
     } else {
       // Reset if no config for this project
@@ -127,7 +146,7 @@ const loadGitConfig = async () => {
         baseBranch: 'main',
         username: '',
         token: '',
-        storagePath: '',
+        storagePath: wsPath || '',
         autoSync: false,
         autoCommit: true
       }
@@ -177,6 +196,9 @@ const checkGitStatus = async () => {
 
 const gitPull = async () => {
   try {
+    const sEnv = activePair.value?.source?.environment || 'DEV'
+    const dbName = activePair.value?.source?.database || activePair.value?.source?.name || 'default'
+
     notificationStore.add({
       type: 'info',
       title: 'Pulling Changes',
@@ -189,8 +211,8 @@ const gitPull = async () => {
       operation: 'git-pull' as any,
       options: {
         config: gitConfig.value,
-        env: 'DEV', // Context irrelevant for pull but needed for bridge
-        db: 'default'
+        env: sEnv,
+        db: dbName
       }
     })
 
@@ -230,6 +252,9 @@ const proposePr = () => {
 
 const gitSync = async () => {
   try {
+    const sEnv = activePair.value?.source?.environment || 'DEV'
+    const dbName = activePair.value?.source?.database || activePair.value?.source?.name || 'default'
+
     notificationStore.add({
       type: 'info',
       title: 'Status Check',
@@ -237,13 +262,13 @@ const gitSync = async () => {
     })
 
     const res = (await window.electronAPI?.andbExecute({
-      sourceConnection: {} as any,
-      targetConnection: {} as any,
+      sourceConnection: activePair.value?.source || {} as any,
+      targetConnection: activePair.value?.target || {} as any,
       operation: 'git-status' as any,
       options: {
         config: gitConfig.value,
-        env: 'DEV',
-        db: 'preflow_41'
+        env: sEnv,
+        db: dbName
       }
     })) as any
 
@@ -269,6 +294,9 @@ const gitSync = async () => {
 const confirmGitSync = async () => {
   isPreviewing.value = false
   try {
+    const sEnv = activePair.value?.source?.environment || 'DEV'
+    const dbName = activePair.value?.source?.database || activePair.value?.source?.name || 'default'
+
     notificationStore.add({
       type: 'info',
       title: 'Sync Started',
@@ -276,13 +304,13 @@ const confirmGitSync = async () => {
     })
 
     const res = await window.electronAPI?.andbExecute({
-      sourceConnection: {} as any,
-      targetConnection: {} as any,
+      sourceConnection: activePair.value?.source || {} as any,
+      targetConnection: activePair.value?.target || {} as any,
       operation: 'git-sync' as any,
       options: {
         config: gitConfig.value,
-        env: 'DEV',
-        db: 'preflow_41',
+        env: sEnv,
+        db: dbName,
         message: commitMessage.value
       }
     })

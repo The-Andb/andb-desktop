@@ -20,7 +20,8 @@ vi.mock('lucide-vue-next', () => ({
   Grid3X3: { template: '<svg data-testid="icon-grid"></svg>' },
   Search: { template: '<svg data-testid="icon-search"></svg>' },
   Download: { template: '<svg data-testid="icon-download"></svg>' },
-  RefreshCw: { template: '<svg data-testid="icon-refresh"></svg>' }
+  RefreshCw: { template: '<svg data-testid="icon-refresh"></svg>' },
+  Zap: { template: '<svg data-testid="icon-zap"></svg>' }
 }))
 
 vi.mock('@/utils/andb', () => ({
@@ -59,7 +60,11 @@ describe('SchemaDiagram.vue', () => {
           id INT PRIMARY KEY,
           email VARCHAR(255)
         )
-      `
+      `,
+      columns: [
+        { name: 'id', type: 'INT', pk: true },
+        { name: 'email', type: 'VARCHAR(255)', pk: false }
+      ]
     },
     {
       name: 'posts',
@@ -69,7 +74,12 @@ describe('SchemaDiagram.vue', () => {
           user_id INT,
           title VARCHAR(100)
         )
-      `
+      `,
+      columns: [
+        { name: 'id', type: 'INT', pk: true },
+        { name: 'user_id', type: 'INT', pk: false },
+        { name: 'title', type: 'VARCHAR(100)', pk: false }
+      ]
     }
   ]
 

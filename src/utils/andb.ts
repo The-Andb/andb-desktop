@@ -343,11 +343,27 @@ export class Andb {
   /**
    * Clear connection data (force reload)
    */
-  static async clearConnectionData(connection: DatabaseConnection): Promise<any> {
+  static async clearConnectionData(connection: DatabaseConnection, purgeFiles: boolean = false): Promise<any> {
     if (!isElectron) return false
     try {
-      const result = await window.electronAPI.andbClearConnectionData(this.sanitize(connection))
+      const result = await window.electronAPI.andbClearConnectionData({
+        connection: this.sanitize(connection),
+        purgeFiles
+      })
       return (result as any).success ? (result as any).data : false
+    } catch (error) {
+      return false
+    }
+  }
+
+  /**
+   * Physically purge the active project's stored schema cache folders
+   */
+  static async purgeActiveProject(): Promise<any> {
+    if (!isElectron) return false
+    try {
+      const result = await window.electronAPI.andbPurgeActiveProject()
+      return (result as any).success
     } catch (error) {
       return false
     }

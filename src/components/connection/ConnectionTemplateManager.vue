@@ -84,7 +84,7 @@
                   </button>
                   <button
                     @click="
-                      confirmingBulkDelete = false
+                      confirmingBulkDelete = false;
                       bulkDeleteTemplates(true)
                     "
                     class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20"
@@ -134,7 +134,7 @@
                   </button>
                   <button
                     @click="
-                      confirmingClean = false
+                      confirmingClean = false;
                       cleanEmptyConnections(true)
                     "
                     class="text-[11px] font-black uppercase bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-amber-500/20"

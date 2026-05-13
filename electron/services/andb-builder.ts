@@ -67,13 +67,13 @@ export class AndbBuilder {
   public static appPath: string = ''
   public static sqlitePath: string = ''
 
-  public static initialize(userDataPath: string, appPath: string, sqlitePath: string = '') {
+  public static initialize(userDataPath: string, appPath: string, sqlitePath: string = '', projectBaseDir: string = '') {
     this.userDataPath = userDataPath
     this.appPath = appPath
     this.sqlitePath = sqlitePath
     
     // Initialize the background worker early with resolved paths
-    BackgroundWorker.getInstance().init(userDataPath, sqlitePath).catch(e => {
+    BackgroundWorker.getInstance().init(userDataPath, sqlitePath, projectBaseDir).catch(e => {
        if ((global as any).logger) (global as any).logger.error('Failed to init BackgroundWorker:', e)
     })
   }
@@ -453,10 +453,10 @@ export class AndbBuilder {
     }))
   }
 
-  static async clearConnectionData(connection: DatabaseConnection) {
+  static async clearConnectionData(connection: DatabaseConnection, purgeFiles: boolean = false) {
     const worker = BackgroundWorker.getInstance()
     const databaseType = connection.type || 'mysql'
-    return await worker.clearConnectionData(connection.environment, connection.database, databaseType)
+    return await worker.clearConnectionData(connection.environment, connection.database, databaseType, purgeFiles)
   }
  
   static async getSnapshots(environment: string, database: string, type: string, name: string, databaseType: string = 'mysql') {

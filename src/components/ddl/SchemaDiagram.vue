@@ -444,7 +444,7 @@ const autoLayout = async () => {
   const verticalMargin = 24
 
   const containerRect = container.value?.getBoundingClientRect()
-  const containerAspect = containerRect ? containerRect.width / containerRect.height : 1.5
+  const containerAspect = containerRect && containerRect.height > 0 ? containerRect.width / containerRect.height : 1.5
 
   // Calculate dynamic columns based on table count and container aspect ratio
   const cols = Math.max(2, Math.ceil(Math.sqrt(props.tables.length * containerAspect)))

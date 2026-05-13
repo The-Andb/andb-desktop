@@ -158,6 +158,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-clear-connection-data', connection)
   },
 
+  andbPurgeActiveProject: () => {
+    return ipcRenderer.invoke('andb-purge-active-project')
+  },
+
   andbGetSchemas: (args?: any) => {
     return ipcRenderer.invoke('andb-get-schemas', args)
   },

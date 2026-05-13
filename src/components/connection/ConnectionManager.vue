@@ -21,7 +21,7 @@
               <button
                 type="button"
                 @click="
-                  viewMode = 'all'
+                  viewMode = 'all';
                   selectedEnvironment = ''
                 "
                 class="px-2.5 h-full flex items-center justify-center text-[9px] font-black uppercase tracking-widest rounded transition-all whitespace-nowrap select-none"
@@ -38,7 +38,7 @@
                 :key="env.name"
                 type="button"
                 @click="
-                  selectedEnvironment = env.name
+                  selectedEnvironment = env.name;
                   viewMode = 'tabs'
                 "
                 class="px-2.5 h-full flex items-center justify-center text-[9px] font-black uppercase tracking-widest rounded transition-all whitespace-nowrap select-none"
@@ -103,7 +103,7 @@
                 </button>
                 <button
                   @click="
-                    confirmingBulkDelete = false
+                    confirmingBulkDelete = false;
                     bulkDeleteConnections(true)
                   "
                   class="text-[11px] font-black uppercase bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg transition-all shadow-sm shadow-rose-500/20 active:scale-95"

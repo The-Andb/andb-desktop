@@ -110,9 +110,29 @@ export async function handleAndbGetStats() {
  */
 export async function handleAndbClearData(_event: any, args: any) {
   try {
-    const { connection } = args || {}
-    await AndbBuilder.clearConnectionData(connection)
+    // Support BOTH modern object wrapper AND legacy direct connection passing styles robustly
+    const connection = args?.connection || args
+    const purgeFiles = args?.purgeFiles === true
+    
+    if (!connection) {
+       throw new Error('Missing database connection parameter');
+    }
+    
+    await AndbBuilder.clearConnectionData(connection, purgeFiles)
     return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Physical Purge of the Active Project
+ */
+export async function handleAndbPurgeActiveProject(_event: any) {
+  try {
+    const { BackgroundWorker } = require('../services/background-worker')
+    const result = await BackgroundWorker.getInstance().purgeActiveProject()
+    return { success: true, result }
   } catch (error: any) {
     return { success: false, error: error.message }
   }
@@ -602,6 +622,49 @@ export async function handleResetWorkspace() {
 }
 
 /**
+ * Internal helper to scan vault directories recursively and return a flat array for visual rendering
+ */
+function getFlatDirectoryTree(dirPath: string, depth = 0, results: any[] = []) {
+  if (depth > 3) return results;
+  try {
+    if (!fs.existsSync(dirPath)) return results;
+    const stats = fs.statSync(dirPath);
+    if (!stats.isDirectory()) return results;
+
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    const sorted = entries
+      .filter(e => !e.name.startsWith('.') || e.name === '.snapshots')
+      .filter(e => !['node_modules', 'dist', '.git'].includes(e.name))
+      .sort((a, b) => {
+        if (a.isDirectory() && !b.isDirectory()) return -1;
+        if (!a.isDirectory() && b.isDirectory()) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+    for (const entry of sorted) {
+      const full = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        results.push({
+          name: entry.name,
+          type: 'directory',
+          depth: depth
+        });
+        getFlatDirectoryTree(full, depth + 1, results);
+      } else {
+        const st = fs.statSync(full);
+        results.push({
+          name: entry.name,
+          type: 'file',
+          depth: depth,
+          size: st.size
+        });
+      }
+    }
+  } catch (e) {}
+  return results;
+}
+
+/**
  * Handle Get Workspace Status
  */
 export async function handleGetWorkspaceStatus() {
@@ -617,7 +680,136 @@ export async function handleGetWorkspaceStatus() {
       console.warn('Failed to parse db-config', e)
     }
   }
-  return { success: true, path: pathVal, dbPath: CoreBridge.getDbPath() }
+
+  // Determine actual resolved path to prevent silent fallbacks
+  let actualPath = pathVal;
+  let isFallback = false;
+  let fallbackReason = '';
+  
+  if (!actualPath) {
+    actualPath = path.join(userDataPath, 'db');
+    isFallback = true;
+    fallbackReason = 'No custom workspace configured. Standard application cache fallback in effect.';
+  } else if (!fs.existsSync(actualPath)) {
+    // Critical: Path configured but does not exist on disk! Fallback to active process.cwd()
+    actualPath = process.cwd(); 
+    isFallback = true;
+    fallbackReason = 'Configured Workspace location not found! Emergency fallback to Current Working Directory (CWD) is ACTIVE.';
+  }
+
+  // Generate flat directory tree map
+  const tree = getFlatDirectoryTree(actualPath);
+
+  return { 
+    success: true, 
+    path: pathVal, 
+    actualPath: actualPath,
+    isFallback: isFallback,
+    fallbackReason: fallbackReason,
+    dbPath: CoreBridge.getDbPath(),
+    tree: tree
+  }
+}
+
+export async function handleMigrateVaultData(_event: any, args: { projectId: string, projectName?: string, projectSlug: string }) {
+  const { projectId, projectName, projectSlug } = args || {}
+  if (!projectId) {
+    return { success: false, error: 'Project ID is required' }
+  }
+
+  const userDataPath = app.getPath('userData')
+  const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
+  let vaultPath = ''
+
+  if (fs.existsSync(dbConfigPath)) {
+    const yaml = require('js-yaml')
+    try { 
+      const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
+      vaultPath = config.projectBaseDir || ''
+    } catch (e: any) {
+      console.warn('Failed to parse db-config', e)
+    }
+  }
+
+  if (!vaultPath) {
+    // Default system fallback
+    vaultPath = path.join(userDataPath, 'db')
+  }
+
+  try {
+    const fsPromises = require('fs/promises')
+    
+    // Unified standardization strategy: matches @the-andb/core logic 100%
+    const rawName = projectName || projectSlug || 'default'
+    const sanitizedName = rawName.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_')
+    
+    // Align both Vault Migration AND Strategy to same output directory structure: projects/<name>
+    const targetDir = path.join(vaultPath, 'projects', sanitizedName)
+
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true })
+    }
+
+    const foldersToMove = ['db', 'map-migrate']
+    let movedAny = false
+
+    for (const folder of foldersToMove) {
+      const sourcePath = path.join(vaultPath, folder)
+      const destPath = path.join(targetDir, folder)
+
+      if (fs.existsSync(sourcePath) && sourcePath !== destPath) {
+        // Copy to project subfolder recursively
+        await fsPromises.cp(sourcePath, destPath, { recursive: true, force: true })
+        // Mark that we moved something
+        movedAny = true
+      }
+    }
+
+    return { success: true, moved: movedAny, targetDir }
+  } catch (e: any) {
+    return { success: false, error: e.message }
+  }
+}
+
+export async function handleRollbackVaultData(_event: any, args: { projectId: string, projectName?: string, projectSlug: string }) {
+  const { projectId, projectName, projectSlug } = args || {}
+  if (!projectId) {
+    return { success: false, error: 'Project ID is required' }
+  }
+
+  const userDataPath = app.getPath('userData')
+  const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
+  let vaultPath = ''
+
+  if (fs.existsSync(dbConfigPath)) {
+    const yaml = require('js-yaml')
+    try { 
+      const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
+      vaultPath = config.projectBaseDir || ''
+    } catch (e: any) {
+      console.warn('Failed to parse db-config', e)
+    }
+  }
+
+  if (!vaultPath) {
+    vaultPath = path.join(userDataPath, 'db')
+  }
+
+  try {
+    // Unified standardization strategy
+    const rawName = projectName || projectSlug || 'default'
+    const sanitizedName = rawName.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_')
+    
+    const targetDir = path.join(vaultPath, 'projects', sanitizedName)
+
+    if (fs.existsSync(targetDir)) {
+      fs.rmSync(targetDir, { recursive: true, force: true })
+    }
+
+    return { success: true, rolledBack: true, targetDir }
+  } catch (e: any) {
+    return { success: false, error: e.message }
+  }
 }
 
 // Internal Mock Helper (Keep it here as Utility if needed)
@@ -742,4 +934,17 @@ export async function handleAndbTestAIConnection(_event: any, args: any) {
  */
 export async function handleAndbSyncSecretRepo(_event: any, url: string) {
   return await AndbBuilder.syncSecretRepo(url)
+}
+
+/**
+ * Update the global active project directory for continuous container isolation
+ */
+export async function handleSetActiveProjectDir(_event: any, args: { projectBaseDir: string, projectId?: string, projectName?: string }) {
+  try {
+    const { BackgroundWorker } = require('../services/background-worker')
+    BackgroundWorker.getInstance().setActiveProjectContext(args.projectBaseDir || '', args.projectId || '', args.projectName || '')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
 }

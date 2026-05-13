@@ -333,19 +333,23 @@ const runCompare = async () => {
   if (!srcDDL.value && !destDDL.value) return
   loading.value = true
   try {
-    const data = await (window as any).electronAPI.invoke('andb-compare-arbitrary', {
+    const res = await (window as any).electronAPI.invoke('andb-compare-arbitrary', {
       srcDDL: srcDDL.value,
       destDDL: destDDL.value
     })
-    result.value = data
-    step.value = 'compare'
+    if (res.success && res.data) {
+      result.value = res.data
+      step.value = 'compare'
 
-    if (data.status === 'equal') {
-      notification.add({
-        type: 'success',
-        title: 'Perfect Match',
-        message: 'The SQL definitions are identical.'
-      })
+      if (res.data.status === 'equal') {
+        notification.add({
+          type: 'success',
+          title: 'Perfect Match',
+          message: 'The SQL definitions are identical.'
+        })
+      }
+    } else {
+      throw new Error(res.error || 'Compare failed')
     }
   } catch (e: any) {
     notification.add({ type: 'error', title: 'Compare Failed', message: e.message })

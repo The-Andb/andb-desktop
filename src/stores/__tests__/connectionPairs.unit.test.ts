@@ -73,7 +73,7 @@ describe('ConnectionPairs Store', () => {
     await nextTick()
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    expect(store.environments.length).toBe(4) // DEV, STAGE, UAT, PROD
+    expect(store.environments.length).toBe(3) // DEV, STAGE, PROD
     expect(store.connectionPairs.length).toBe(3) // Default pairs
     expect(store.selectedPairId).toBe('1')
   })

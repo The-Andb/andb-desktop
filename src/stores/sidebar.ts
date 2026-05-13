@@ -124,11 +124,23 @@ export const useSidebarStore = defineStore('sidebar', () => {
         return
       }
 
+      const connectionPairsStore = (await import('./connectionPairs')).useConnectionPairsStore()
+      const activePair = connectionPairsStore.activePair
+      const sEnv = activePair?.source?.environment || 'DEV'
+      const dbName = activePair?.source?.database || activePair?.source?.name || 'default'
+
+      const cleanSource = activePair?.source ? JSON.parse(JSON.stringify(activePair.source)) : {}
+      const cleanTarget = activePair?.target ? JSON.parse(JSON.stringify(activePair.target)) : {}
+
       const res = await (window as any).electronAPI?.andbExecute({
-        sourceConnection: {} as any,
-        targetConnection: {} as any,
+        sourceConnection: cleanSource,
+        targetConnection: cleanTarget,
         operation: 'git-status' as any,
-        options: { config: gitConfigRes.data }
+        options: {
+          config: gitConfigRes.data,
+          env: sEnv,
+          db: dbName
+        }
       })
 
       if (res?.success) {

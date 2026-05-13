@@ -150,6 +150,26 @@ const openExternal = (url: string) => {
 
         <div class="space-y-4 pt-2">
           <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1">{{
+            $t('settings.ai.persona.label') || 'AI Assistant Style'
+          }}</label>
+          <div class="relative group">
+            <select
+              v-model="settings.aiPersona"
+              class="w-full h-[52px] px-5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 appearance-none cursor-pointer"
+            >
+              <option value="coworker">{{ $t('settings.ai.persona.coworker') || 'Co-worker 🤝' }}</option>
+              <option value="dba">{{ $t('settings.ai.persona.dba') || 'Expert DBA 👴' }}</option>
+              <option value="secretary">{{ $t('settings.ai.persona.secretary') || 'Executive Secretary 👩‍💼' }}</option>
+              <option value="playful">{{ $t('settings.ai.persona.playful') || 'Playful 🎮' }}</option>
+            </select>
+            <ChevronDown
+              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-4 pt-2">
+          <label class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] px-1">{{
             $t('settings.ai.responseLanguage.label') || 'Response Language'
           }}</label>
           <div class="relative group">

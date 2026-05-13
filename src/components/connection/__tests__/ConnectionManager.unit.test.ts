@@ -60,6 +60,7 @@ vi.mock('@/stores/connectionTemplates', () => ({
 // Mock Icons
 vi.mock('lucide-vue-next', () => ({
   Plus: { template: '<svg data-testid="icon-plus"></svg>' },
+  Check: { template: '<svg data-testid="icon-check"></svg>' },
   Database: { template: '<svg data-testid="icon-database"></svg>' },
   ShieldQuestion: { template: '<svg data-testid="icon-shield"></svg>' },
   Edit2: { template: '<svg data-testid="icon-edit"></svg>' },
@@ -103,7 +104,7 @@ describe('ConnectionManager.vue', () => {
     mockAppStore.filteredConnections = []
     renderComponent()
 
-    expect(screen.getByText('PROJECT CONNECTIONS')).toBeTruthy()
+    expect(screen.getByText(/Project Connections/i)).toBeTruthy()
     expect(screen.getByText('connections.noConnections')).toBeTruthy()
   })
 
@@ -171,7 +172,7 @@ describe('ConnectionManager.vue', () => {
     await fireEvent.click(byEnvButton)
 
     // The header remains PROJECT CONNECTIONS
-    expect(screen.getByText('PROJECT CONNECTIONS')).toBeTruthy()
+    expect(screen.getByText(/Project Connections/i)).toBeTruthy()
 
     // Environment tabs like DEV and PROD should be visible
     expect(screen.getAllByText('DEV').length).toBeGreaterThan(0)

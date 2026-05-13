@@ -118,7 +118,7 @@ export function useSchemaLoader(
   })
   */
 
-  const loadSchema = async (forceRefresh = false, keepSelection = false) => {
+  const loadSchema = async (forceRefresh = false, keepSelection = false, hardPurge = false) => {
     if (!selectedConnectionId.value) return
 
     const conn = appStore.getConnectionById(selectedConnectionId.value)
@@ -234,8 +234,13 @@ export function useSchemaLoader(
           }
         } else {
           // 3. FULL REFRESH
-          consoleStore.addLog(t('schema.cleaningCache'), 'warn')
-          const clearResult = await Andb.clearConnectionData(conn)
+          if (hardPurge) {
+             consoleStore.addLog('🔥 EXECUTING HARD FORCE-FETCH (Physically purging local folder structure & database caches...)', 'error')
+          } else {
+             consoleStore.addLog(t('schema.cleaningCache'), 'warn')
+          }
+          
+          const clearResult = await Andb.clearConnectionData(conn, hardPurge)
 
           if (clearResult) {
             consoleStore.addLog(`Cleared ${clearResult.ddlCount || 0} DDL records`, 'info')
@@ -243,6 +248,9 @@ export function useSchemaLoader(
               `Cleared ${clearResult.comparisonCount || 0} Comparison records`,
               'info'
             )
+            if (hardPurge) {
+               consoleStore.addLog('✅ Hard Purge Completed Successfully: Local physical folders cleared.', 'success')
+            }
           }
 
           consoleStore.addLog(t('schema.refreshed'), 'info')

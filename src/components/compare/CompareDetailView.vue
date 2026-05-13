@@ -1,0 +1,189 @@
+<template>
+  <div class="flex-1 flex flex-col bg-white dark:bg-gray-950 relative min-w-0">
+    <!-- Tab Bar -->
+    <TabBar
+      v-if="tabs.length > 0"
+      :tabs="tabs"
+      :active-tab-id="activeTabId"
+      @select="$emit('select-tab', $event)"
+      @close="$emit('close-tab', $event)"
+      @duplicate="$emit('duplicate-tab', $event)"
+      @close-others="$emit('close-others', $event)"
+      @close-right="$emit('close-right', $event)"
+    />
+
+    <div v-if="selectedItem" class="h-full flex flex-col">
+      <div
+        class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0"
+      >
+        <div class="flex items-center text-xs space-x-2 overflow-hidden">
+          <div class="flex items-center text-gray-500 dark:text-gray-400">
+            <Server class="w-3.5 h-3.5 mr-1" />
+            <span class="truncate">{{ selectedPath.env }}</span>
+          </div>
+          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+          <div class="flex items-center text-gray-500 dark:text-gray-400">
+            <Database class="w-3.5 h-3.5 mr-1" />
+            <span class="truncate">{{ selectedPath.db }}</span>
+          </div>
+          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+          <div class="flex items-center text-gray-600 dark:text-gray-300 font-bold">
+            <component :is="getIconForType(selectedItem.type)" class="w-3.5 h-3.5 mr-1 text-gray-400" />
+            <span class="uppercase">{{ selectedItem.type }}</span>
+          </div>
+          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
+          <div class="flex items-center">
+            <span class="font-bold text-gray-900 dark:text-white truncate text-sm">{{ selectedItem.name }}</span>
+          </div>
+          <span
+            :class="getStatusClass(selectedItem.status)"
+            class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-opacity-10 font-black border uppercase tracking-tighter"
+            :style="{ borderColor: 'currentColor' }"
+          >
+            {{ getStatusText(selectedItem.status) }}
+          </span>
+        </div>
+        <div class="flex space-x-2 items-center">
+          <button
+            v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
+            @click="$emit('migrate', selectedItem)"
+            class="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-500 text-orange-600 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-orange-500/10 active:scale-95 group/migrate border border-orange-100 dark:border-orange-800/30"
+            :disabled="isMigrating || isTargetDump"
+            :title="isTargetDump ? 'Target is read-only (Static Dump)' : t('compare.migrateTo', { name: targetName })"
+          >
+            <Loader2 v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
+            <Zap
+              v-else
+              class="w-4 h-4 fill-orange-500/20 group-hover/migrate:fill-white/20 group-hover/migrate:animate-pulse transition-transform duration-300 group-hover/migrate:scale-125"
+            />
+            <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? t('common.processing') : 'Sync Now' }}</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col min-h-0 min-w-0">
+        <MirrorDiffView
+          :source-ddl="selectedItem.diff?.source || null"
+          :target-ddl="selectedItem.diff?.target || null"
+          :source-label="sourceName"
+          :target-label="targetName"
+          :status="selectedItem.status || 'equal'"
+          :diff-options="diffOptions"
+          :navigatable-names="navigatableNames"
+          @navigate-to-definition="$emit('navigate-to-definition', $event)"
+        />
+      </div>
+    </div>
+    <div v-else class="flex-1 flex items-center justify-center text-gray-400 italic">
+      <div class="text-center">
+        <MousePointer2 class="w-12 h-12 mx-auto mb-2 opacity-10" />
+        <p>{{ t('schema.selectObject') }}</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import {
+  Server,
+  Database,
+  ChevronRight,
+  Loader2,
+  Zap,
+  MousePointer2,
+  Table,
+  Layers,
+  Workflow,
+  Sigma
+} from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import TabBar from '@/components/general/TabBar.vue'
+import MirrorDiffView from '@/components/compare/MirrorDiffView.vue'
+
+const { t } = useI18n()
+
+defineProps<{
+  tabs: any[]
+  activeTabId: string | null
+  selectedItem: any | null
+  selectedPath: { env: string; db: string; type: string }
+  sourceName: string
+  targetName: string
+  isTargetDump: boolean
+  isMigrating: boolean
+  isMigratingItemId: string | null
+  diffOptions: any
+  navigatableNames: string[]
+}>()
+
+defineEmits([
+  'select-tab',
+  'close-tab',
+  'duplicate-tab',
+  'close-others',
+  'close-right',
+  'migrate',
+  'navigate-to-definition'
+])
+
+const getIconForType = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'tables':
+    case 'table':
+      return Table
+    case 'views':
+    case 'view':
+      return Layers
+    case 'procedures':
+    case 'procedure':
+      return Workflow
+    case 'functions':
+    case 'function':
+      return Sigma
+    case 'triggers':
+    case 'trigger':
+      return Zap
+    default:
+      return Database
+  }
+}
+
+const getStatusClass = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'equal':
+    case 'same':
+      return 'text-teal-600 dark:text-teal-400 font-bold'
+    case 'new':
+    case 'missing_in_target':
+      return 'text-emerald-500 dark:text-emerald-400 drop-shadow-sm font-bold'
+    case 'deprecated':
+    case 'missing_in_source':
+      return 'text-rose-500 dark:text-rose-400 drop-shadow-sm font-bold'
+    case 'modified':
+    case 'different':
+    case 'updated':
+      return 'text-amber-500 dark:text-amber-400 drop-shadow-sm font-bold'
+    default:
+      return 'text-gray-400'
+  }
+}
+
+const getStatusText = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'equal':
+    case 'same':
+      return t('common.status.identical')
+    case 'different':
+    case 'updated':
+    case 'modified':
+      return t('common.status.modified')
+    case 'new':
+    case 'missing_in_target':
+      return t('common.status.new')
+    case 'deprecated':
+    case 'missing_in_source':
+      return t('common.status.deprecated')
+    default:
+      return status
+  }
+}
+</script>

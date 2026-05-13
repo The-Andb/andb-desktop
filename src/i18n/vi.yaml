@@ -222,6 +222,11 @@ history:
 
 schema:
   title: 'Khám phá Schema'
+  hardPurge: 'Buộc tải mới và Dọn dẹp'
+  hardPurgeTooltip: '🔥 Buộc tải mới (Xóa SẠCH thư mục vật lý và SQLite)'
+  hardPurgeConfirm: "⚠️ CẢNH BÁO NGUY HIỂM:\n\nBạn có chắc chắn muốn xóa SẠCH HOÀN TOÀN thư mục lưu trữ vật lý và dữ liệu SQLite của Database này trên đĩa?\n\nHành động này sẽ xóa bỏ toàn bộ file SQL DDL cục bộ để tải lại mới 100%. Bạn có muốn tiếp tục?"
+  hardPurgeProjectTooltip: '🔥 Buộc dọn sạch Project hiện tại (Xóa SẠCH thư mục vật lý & SQLite)'
+  hardPurgeProjectConfirm: "⚠️ CẢNH BÁO NGUY HIỂM TỘT ĐỘ:\n\nBạn có chắc chắn muốn XÓA SẠCH HOÀN TOÀN thư mục lưu trữ vật lý `db/` và dữ liệu SQLite của TOÀN BỘ DỰ ÁN '{name}' hiện hành?\n\nHành động này sẽ xóa bỏ toàn bộ SQL DDL của TẤT CẢ cơ sở dữ liệu thuộc dự án này để tải mới lại 100%. Bạn có muốn tiếp tục?"
   reloadLocal: 'Tải lại từ cache nội bộ'
   lastSynced: 'Đồng bộ lần cuối'
   fetch: 'Tải'
@@ -483,6 +488,7 @@ settings:
   title: 'Cài đặt'
   subtitle: 'Cấu hình hệ thống'
   reset: 'Đặt lại toàn bộ dữ liệu'
+  resetData: 'Xóa sạch Dữ liệu'
   categories:
     interface: 'Giao diện'
     environments: 'Quản lý Môi trường'
@@ -625,6 +631,12 @@ settings:
     responseLanguage:
       label: 'Ngôn ngữ phản hồi'
       desc: 'Ngôn ngữ AI sử dụng để review code và trò chuyện'
+    persona:
+      label: 'Phong cách Trợ lý AI'
+      dba: 'Chuyên gia DBA Lão làng 👴'
+      secretary: 'Thư ký Chuyên nghiệp 👩‍💼'
+      coworker: 'Đồng nghiệp Thân thiện 🤝'
+      playful: 'Hài hước & Vui vẻ 🎮'
   environment:
     title: 'Ma trận môi trường CSDL'
     subtitle: 'Hệ thống phân cấp và vòng đời cơ sở hạ tầng'

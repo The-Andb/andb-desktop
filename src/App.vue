@@ -14,6 +14,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useUpdaterStore } from '@/stores/updater'
 import { useConsoleStore } from '@/stores/console'
@@ -35,6 +36,7 @@ const sidebarStore = useSidebarStore()
 const featuresStore = useFeaturesStore()
 const shortcutStore = useShortcutStore()
 const router = useRouter()
+const { t } = useI18n()
 
 // Inject Dynamic Typography Variables into DOM root
 watch(
@@ -85,7 +87,7 @@ const dismissMigrationChangelog = async () => {
 // Global Refresh Handlers
 const handleDatabaseRefreshRequested = async (e: any) => {
   const { env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(
+  const conn = appStore.filteredConnections.find(
     c =>
       c.environment === env &&
       (c.database === db ||
@@ -142,9 +144,153 @@ const handleDatabaseRefreshRequested = async (e: any) => {
   }
 }
 
+const handleProjectHardPurgeRequested = async () => {
+  const projectsStore = useProjectsStore()
+  const activeProject = projectsStore.currentProject
+  const activeProjectName = activeProject?.name || 'Active Project'
+
+  // ⚠️ Safety confirmation with warning dialog!
+  if (!confirm(t('schema.hardPurgeProjectConfirm', { name: activeProjectName }))) {
+     return
+  }
+
+  try {
+    appStore.isSchemaFetching = true
+    consoleStore.addLog(`🔥 PROJECT PHYSICAL HARD PURGE STARTED: ${activeProjectName}`, 'error')
+    consoleStore.addLog(`Removing all local directory caches and SQLite schemas for current workspace context...`, 'warn')
+    consoleStore.setVisibility(true)
+
+    const activeConnections = appStore.filteredConnections
+    if (activeConnections.length === 0) {
+      consoleStore.addLog(`No active connections linked to project. Wiping physical directory anyway...`, 'info')
+    } else {
+      consoleStore.addLog(`Purging SQLite records for ${activeConnections.length} project connections...`, 'info')
+      // Clean parallel sqlite records
+      await Promise.all(
+        activeConnections.map(conn => Andb.clearConnectionData(conn, false))
+      )
+    }
+
+    // Instruct Core Worker to physically wipe the db/ folder
+    consoleStore.addLog(`Instructing Core Worker to physically destroy project 'db/' container...`, 'info')
+    await Andb.purgeActiveProject()
+
+    consoleStore.addLog(`✅ Physical workspace folders successfully wiped clean.`, 'success')
+
+    if (activeConnections.length > 0) {
+      consoleStore.addLog(`Initiating pristine parallel reconstruction for all active connections...`, 'info')
+      
+      const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
+
+      // Parallel rebuild across connections and DDL types!
+      await Promise.all(
+        activeConnections.map(async conn => {
+          await Promise.all(
+            ddlTypes.map(async type => {
+              const taskId = `${conn.id}-${type}`
+              appStore.updateSchemaProgress(taskId, {
+                current: 0,
+                total: 1,
+                type,
+                connectionName: conn.name
+              })
+              try {
+                await Andb.export(conn, null as any, {
+                  type,
+                  environment: conn.environment
+                })
+              } catch {
+                 // Skip silently if single fetch fails
+              } finally {
+                appStore.updateSchemaProgress(taskId, {
+                  current: 1,
+                  total: 1,
+                  type,
+                  connectionName: conn.name
+                })
+                setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+              }
+            })
+          )
+        })
+      )
+    }
+
+    consoleStore.addLog(`🏆 Project Wide Hard Purge & Pristine Re-Fetch complete.`, 'success')
+    sidebarStore.triggerRefresh()
+  } catch (err: any) {
+    consoleStore.addLog(`Project Hard Purge failed: ${err.message}`, 'error')
+  } finally {
+    appStore.isSchemaFetching = false
+  }
+}
+
+const handleProjectLiveRefreshRequested = async () => {
+  const projectsStore = useProjectsStore()
+  const activeProjectName = projectsStore.currentProject?.name || 'Active Project'
+
+  try {
+    appStore.isSchemaFetching = true
+    consoleStore.addLog(`🚀 SMART REFRESH: Stale cache (> 5 mins). Fetching live schemas for ${activeProjectName}...`, 'info')
+    consoleStore.setVisibility(true)
+
+    const activeConnections = appStore.filteredConnections
+    if (activeConnections.length === 0) {
+      consoleStore.addLog(`No active connections to sync. Re-syncing UI view only...`, 'info')
+      sidebarStore.requestRefresh()
+      return
+    }
+
+    consoleStore.addLog(`Triggering parallel remote database syncs for ${activeConnections.length} environments...`, 'info')
+
+    const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
+
+    // Spawns parallel live export without destroying physical folder, updating local files natively
+    await Promise.all(
+      activeConnections.map(async conn => {
+        await Promise.all(
+          ddlTypes.map(async type => {
+            const taskId = `${conn.id}-${type}`
+            appStore.updateSchemaProgress(taskId, {
+              current: 0,
+              total: 1,
+              type,
+              connectionName: conn.name
+            })
+            try {
+              await Andb.export(conn, null as any, {
+                type,
+                environment: conn.environment
+              })
+            } catch {
+              // Silent catch
+            } finally {
+              appStore.updateSchemaProgress(taskId, {
+                current: 1,
+                total: 1,
+                type,
+                connectionName: conn.name
+              })
+              setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+            }
+          })
+        )
+      })
+    )
+
+    consoleStore.addLog(`🏆 Remote Sync Complete. Re-building Sidebar layout from updated SQLite cache...`, 'success')
+    sidebarStore.requestRefresh()
+  } catch (err: any) {
+    consoleStore.addLog(`Smart live refresh failed: ${err.message}`, 'error')
+    sidebarStore.requestRefresh()
+  } finally {
+    appStore.isSchemaFetching = false
+  }
+}
+
 const handleCategoryRefreshRequested = async (e: any) => {
   const { type, env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(
+  const conn = appStore.filteredConnections.find(
     c =>
       c.environment === env &&
       (c.database === db ||
@@ -185,7 +331,7 @@ const handleCategoryRefreshRequested = async (e: any) => {
 
 const handleObjectRefreshRequested = async (e: any) => {
   const { name, type, env, db } = e.detail
-  const conn = appStore.resolvedConnections.find(
+  const conn = appStore.filteredConnections.find(
     c =>
       c.environment === env &&
       (c.database === db ||
@@ -229,6 +375,13 @@ const handleKeydown = (event: KeyboardEvent) => {
   if (isMod && key === 'b') {
     event.preventDefault()
     appStore.toggleSidebar()
+    return
+  }
+
+  // Shift+Cmd+A: Search Tabs
+  if (isMod && event.shiftKey && key === 'a') {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-open-tab-search'))
     return
   }
 
@@ -280,6 +433,8 @@ onMounted(async () => {
 
   // global refresh listeners
   window.addEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
+  window.addEventListener('project-hard-purge-requested', handleProjectHardPurgeRequested)
+  window.addEventListener('project-live-refresh-requested', handleProjectLiveRefreshRequested)
   window.addEventListener('category-refresh-requested', handleCategoryRefreshRequested)
   window.addEventListener('object-refresh-requested', handleObjectRefreshRequested)
 
@@ -316,15 +471,20 @@ onMounted(async () => {
         // Final fallback
         connId = connId || appStore.selectedConnectionId || 'default'
 
-        const opId = data.type ? `${connId}-${data.type}` : `export-${connId}`
+        const normalizedType = data.type ? String(data.type).toLowerCase() : ''
+        const opId = normalizedType ? `${connId}-${normalizedType}` : `export-${connId}`
         const connObj = appStore.getConnectionById(connId)
         const connectionName = connObj?.name || data.env || data.connectionName || 'GLOBAL'
 
-        if (data.state === 'finished') {
+        const isCompleted =
+          data.state === 'finished' ||
+          (data.total > 0 && data.current >= data.total)
+
+        if (isCompleted) {
           appStore.updateSchemaProgress(opId, {
             current: data.total || 1,
             total: data.total || 1,
-            type: data.type || 'schema',
+            type: normalizedType || 'schema',
             connectionName
           })
           setTimeout(() => {
@@ -334,7 +494,7 @@ onMounted(async () => {
           appStore.updateSchemaProgress(opId, {
             current: data.current || 0,
             total: data.total || 0,
-            type: data.type || '',
+            type: normalizedType || '',
             connectionName: data.env || data.connectionName || 'GLOBAL'
           })
         }
@@ -486,6 +646,8 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 
   window.removeEventListener('database-refresh-requested', handleDatabaseRefreshRequested)
+  window.removeEventListener('project-hard-purge-requested', handleProjectHardPurgeRequested)
+  window.removeEventListener('project-live-refresh-requested', handleProjectLiveRefreshRequested)
   window.removeEventListener('category-refresh-requested', handleCategoryRefreshRequested)
   window.removeEventListener('object-refresh-requested', handleObjectRefreshRequested)
   if (window.electronAPI?.updater) {

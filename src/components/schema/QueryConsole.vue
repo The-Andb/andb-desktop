@@ -237,7 +237,9 @@
         <Database class="w-12 h-12 mb-4 opacity-20" />
         <p class="text-sm tracking-tight font-medium">
           Ready to execute SQL on
-          <span class="text-primary-500 font-bold">{{ connection.name }}</span>
+          <span class="text-primary-500 font-bold">{{
+            connection?.name || 'Unknown Connection'
+          }}</span>
         </p>
       </div>
     </div>
@@ -251,12 +253,15 @@
           <div
             class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
           ></div>
-          <span class="text-gray-400">{{ connection.name }}</span>
+          <span class="text-gray-400">{{ connection?.name || 'Unknown' }}</span>
         </div>
         <div class="flex items-center gap-4 text-gray-400/60">
-          <span>{{ connection.host }}:{{ connection.port }}</span>
+          <span
+            >{{ connection?.host || 'localhost'
+            }}{{ connection?.port ? `:${connection.port}` : '' }}</span
+          >
           <span>UTF-8</span>
-          <span class="text-primary-500">{{ connection.type }}Dialect</span>
+          <span class="text-primary-500">{{ connection?.type || 'SQL' }}Dialect</span>
         </div>
       </div>
 
@@ -295,7 +300,7 @@ interface ResultSession {
 }
 
 const props = defineProps<{
-  connection: DatabaseConnection
+  connection?: DatabaseConnection
   initialSql?: string
 }>()
 
@@ -368,6 +373,20 @@ const copyResultsAsJson = (session: ResultSession) => {
 const handleExecute = async (newTab: boolean = false) => {
   if (!sql.value.trim() || isLoading.value) return
 
+  if (!props.connection) {
+    addResultSession(
+      {
+        sql: sql.value.trim(),
+        results: null,
+        executionTime: 0,
+        isError: true,
+        error: 'No active connection selected.'
+      },
+      newTab
+    )
+    return
+  }
+
   isLoading.value = true
   const startTime = Date.now()
   const querySql = sql.value.trim()
@@ -403,6 +422,21 @@ const handleExecute = async (newTab: boolean = false) => {
 
 const handleExplain = async () => {
   if (!sql.value.trim() || isLoading.value) return
+
+  if (!props.connection) {
+    addResultSession(
+      {
+        sql: `EXPLAIN ${sql.value.trim()}`,
+        results: null,
+        executionTime: 0,
+        isError: true,
+        error: 'No active connection selected.'
+      },
+      true
+    )
+    return
+  }
+
   const explainSql = `EXPLAIN ${sql.value.trim()}`
 
   isLoading.value = true

@@ -52,7 +52,7 @@
         >
           <button
             @click="
-              $emit('duplicate', contextMenuTabId)
+              $emit('duplicate', contextMenuTabId);
               closeContextMenu()
             "
             class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 transition-colors"
@@ -65,7 +65,7 @@
 
           <button
             @click="
-              $emit('close', contextMenuTabId)
+              $emit('close', contextMenuTabId);
               closeContextMenu()
             "
             class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors"
@@ -76,7 +76,7 @@
 
           <button
             @click="
-              $emit('closeOthers', contextMenuTabId)
+              $emit('closeOthers', contextMenuTabId);
               closeContextMenu()
             "
             class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -87,7 +87,7 @@
 
           <button
             @click="
-              $emit('closeRight', contextMenuTabId)
+              $emit('closeRight', contextMenuTabId);
               closeContextMenu()
             "
             class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"

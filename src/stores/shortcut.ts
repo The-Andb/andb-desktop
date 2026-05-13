@@ -19,6 +19,14 @@ export const useShortcutStore = defineStore('shortcut', () => {
     { id: 'close-tab', keys: ['w'], meta: true, label: 'Close Active Tab', category: 'Tabs' },
     { id: 'prev-tab', keys: ['['], meta: true, label: 'Previous Tab', category: 'Tabs' },
     { id: 'next-tab', keys: [']'], meta: true, label: 'Next Tab', category: 'Tabs' },
+    {
+      id: 'search-tabs',
+      keys: ['a'],
+      meta: true,
+      shift: true,
+      label: 'Search Open Tabs',
+      category: 'Tabs'
+    },
     { id: 'refresh-schema', keys: ['r'], meta: true, label: 'Refresh Schema', category: 'Schema' },
     { id: 'focus-search', keys: ['f'], meta: true, label: 'Focus Search', category: 'Navigation' },
     {

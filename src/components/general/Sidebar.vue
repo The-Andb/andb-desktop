@@ -165,13 +165,22 @@
                 : $t('navigation.explorer.schema')
           }}</span>
         </div>
-        <div class="flex items-center space-x-1.5">
+        <div class="flex items-center space-x-1">
+          <!-- Project Hard Purge -->
           <button
-            @click="sidebarStore.requestRefresh()"
+            @click="hardPurgeActiveProject()"
+            class="p-1.5 rounded-lg transition-all duration-200 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-rose-500 active:scale-95"
+            :title="$t('schema.hardPurgeProjectTooltip') || 'Force Clean Active Project'"
+          >
+            <Flame class="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            @click="handleSmartRefresh()"
             class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-900"
             :title="$t('navigation.actions.refresh')"
           >
-            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading || appStore.isSchemaFetching }" />
           </button>
           <button
             @click="appStore.toggleSidebar()"
@@ -259,9 +268,13 @@
                     getDatabaseDisplayName(db)
                   }}</span>
 
+
+
+                  <!-- Standard Refresh -->
                   <button
                     @click.stop="refreshDatabase(env.name, db.name)"
                     class="p-1 opacity-0 group-hover/db:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm text-primary-500 mx-1"
+                    :title="$t('schema.fetchTooltip')"
                   >
                     <RefreshCw class="w-3 h-3" />
                   </button>
@@ -534,7 +547,8 @@ import {
   Settings2,
   Network,
   GitBranch,
-  MoreHorizontal
+  MoreHorizontal,
+  Flame
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -894,6 +908,29 @@ const selectCategory = async (env: string, db: string, type: string) => {
 
 const refreshDatabase = (env: string, db: string) => {
   window.dispatchEvent(new CustomEvent('database-refresh-requested', { detail: { env, db } }))
+}
+
+const hardPurgeActiveProject = () => {
+  window.dispatchEvent(new CustomEvent('project-hard-purge-requested'))
+}
+
+const handleSmartRefresh = () => {
+  const projectId = projectsStore.selectedProjectId || 'default'
+  const storageKey = `andb_last_live_fetch_${projectId}`
+  const lastLive = Number(localStorage.getItem(storageKey) || '0')
+  const now = Date.now()
+
+  // Smart Threshold: 5 minutes = 300,000 ms
+  const FIVE_MINUTES = 5 * 60 * 1000
+
+  if (now - lastLive >= FIVE_MINUTES) {
+    // 🚀 Cache is stale: Trigger background intelligent server LIVE pull!
+    localStorage.setItem(storageKey, now.toString())
+    window.dispatchEvent(new CustomEvent('project-live-refresh-requested'))
+  } else {
+    // ⚡ Cache is fresh: Light UI re-sync from local SQLite to prevent server spamming
+    sidebarStore.requestRefresh()
+  }
 }
 
 const refreshCategory = (env: string, db: string, type: string) => {

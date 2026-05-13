@@ -119,7 +119,7 @@
             v-if="appStore.isSchemaFetching && progressList.length > 0"
             class="shrink-0 flex flex-col bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 transition-all duration-500 overflow-hidden"
           >
-            <div class="flex flex-col">
+            <div class="flex flex-col max-h-[160px] overflow-y-auto custom-scrollbar">
               <!-- Progress Items List -->
               <div
                 v-for="(p, id) in visibleProgresses"

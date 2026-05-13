@@ -144,7 +144,7 @@ export async function initCoreServices() {
       SecurityService.getInstance().reinitialize(customDbPath)
     }
 
-    AndbBuilder.initialize(userDataPath, app.getAppPath(), CoreBridge.getDbPath())
+    AndbBuilder.initialize(userDataPath, app.getAppPath(), CoreBridge.getDbPath(), projectBaseDir)
 
     // Migration Changelog Capture
     await syncAppVersionAndChangelog(CoreBridge)

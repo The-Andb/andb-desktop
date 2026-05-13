@@ -7,13 +7,14 @@ import { WorkspaceTabEntity } from '../entities/gui/WorkspaceTabEntity';
 
 export class DesktopStorageStrategy extends BaseStorageStrategy {
 
-  async initialize(dbPath: string): Promise<void> {
+  async initialize(dbPath: string, extraEntities: any[] = [], projectBaseDir?: string): Promise<void> {
     // Inject desktop-specific GUI entities
     await super.initialize(dbPath, [
       GlobalConnectionEntity, 
       ProjectConnectionEntity,
       GuiPreferenceEntity, 
-      WorkspaceTabEntity
-    ]);
+      WorkspaceTabEntity,
+      ...extraEntities
+    ], projectBaseDir);
   }
 }

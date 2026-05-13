@@ -70,20 +70,7 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
         await projectsStore.reloadData()
       }
 
-      const allLinkedPairIds = new Set<string>()
-      projectsStore.projects.forEach(p => {
-        p.pairIds.forEach(id => allLinkedPairIds.add(id))
-      })
-
-      const orphanPairIds = connectionPairs.value
-        .filter(p => !allLinkedPairIds.has(p.id))
-        .map(p => p.id)
-
-      if (orphanPairIds.length > 0) {
-        console.warn(
-          `Found ${orphanPairIds.length} orphaned connection pairs. They are no longer automatically assigned to a default project.`
-        )
-      }
+      // Orphan pairs are intentionally ignored now since we rely on project isolation.
     } else {
       connectionPairs.value = [
         {

@@ -247,6 +247,11 @@ history:
 
 schema:
   title: 'Schema Explorer'
+  hardPurge: 'Force Hard Clean & Fetch'
+  hardPurgeTooltip: '🔥 Force Fetch (Physically WIPE disk folders & SQLite cache)'
+  hardPurgeConfirm: "⚠️ DANGER ZONE WARNING:\n\nAre you sure you want to physically WIPE the local disk folders and clear SQLite caches for this database?\n\nThis will delete all cached SQL DDL files locally to force a 100% fresh fetch. Do you wish to continue?"
+  hardPurgeProjectTooltip: '🔥 Force Clean Active Project (Wipe ALL local folders & SQLite)'
+  hardPurgeProjectConfirm: "⚠️ CRITICAL WARNING:\n\nAre you sure you want to physically WIPE the entire `db/` local cache folder and clear SQLite records for ALL databases inside project '{name}'?\n\nThis will completely reset all cached SQL DDL files for the active project. This cannot be undone. Do you wish to proceed?"
   reloadLocal: 'Reload view from local cache'
   lastSynced: 'Last synced'
   fetch: 'Fetch'
@@ -513,6 +518,7 @@ settings:
   title: 'Settings'
   subtitle: 'System Configuration'
   reset: 'Reset All Data'
+  resetData: 'Purge All Data'
   categories:
     interface: 'Interface'
     environments: 'Master Environments'
@@ -667,6 +673,12 @@ settings:
     responseLanguage:
       label: 'Response Language'
       desc: 'Language used by AI for code reviews and chats'
+    persona:
+      label: 'AI Assistant Style / Persona'
+      dba: 'Expert DBA 👴'
+      secretary: 'Executive Secretary 👩‍💼'
+      coworker: 'Co-worker 🤝'
+      playful: 'Playful & Humorous 🎮'
     capabilities:
       review: 'Schema Change Review'
       reviewDesc: 'Automated analysis of DDL changes with risk level assessment.'

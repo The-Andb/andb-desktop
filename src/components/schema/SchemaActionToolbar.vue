@@ -5,8 +5,9 @@
       class="flex items-center w-full h-14 px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950/50 backdrop-blur-md gap-4"
     >
       <div
-        class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black text-gray-400 shrink-0"
+        class="flex items-center gap-2 uppercase tracking-[0.25em] text-[10px] font-black text-gray-400 dark:text-gray-500 shrink-0 select-none"
       >
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></div>
         {{ $t('schema.title') }}
       </div>
 

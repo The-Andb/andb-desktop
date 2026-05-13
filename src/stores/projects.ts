@@ -207,6 +207,19 @@ export const useProjectsStore = defineStore('projects', () => {
         // @ts-ignore
         await storage.updateSettings({ lastSelectedProjectId: newId })
         console.log('[Projects] Persisted selection setting:', newId)
+
+        // Synchronize Electron Backend context isolation
+        const proj = projects.value.find(p => p.id === newId)
+        const baseDir = proj?.settings?.projectBaseDir || ''
+        
+        if (typeof window !== 'undefined' && (window as any).electronAPI?.invoke) {
+           console.log(`[Projects] Syncing project isolation path: ${baseDir || '[Default System Root]'} | ID: ${newId} | Name: ${proj?.name}`)
+           ;(window as any).electronAPI.invoke('andb-set-active-project-dir', { 
+             projectBaseDir: baseDir,
+             projectId: newId,
+             projectName: proj?.name || ''
+           }).catch((e: any) => console.warn('Failed to notify Electron of project context', e))
+        }
       } catch (err) {
         console.error('[Projects] Failed to persist selection:', err)
       }
