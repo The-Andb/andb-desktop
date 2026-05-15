@@ -362,7 +362,7 @@ export class Andb {
   static async purgeActiveProject(): Promise<any> {
     if (!isElectron) return false
     try {
-      const result = await window.electronAPI.andbPurgeActiveProject()
+      const result = await (window as any).electronAPI.andbPurgeActiveProject()
       return (result as any).success
     } catch (error) {
       return false

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Cloud, Database, FolderSearch, RefreshCw, Trash2, ArrowUpCircle, Folder, FileText, AlertTriangle, ChevronDown } from 'lucide-vue-next'
+import { Cloud, Database, FolderSearch, RefreshCw, Trash2, Folder, FileText, AlertTriangle, ChevronDown } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
-import { useProjectsStore } from '@/stores/projects'
+
 
 const currentWorkspaceDir = ref('')
 const currentDbPath = ref('')
@@ -13,7 +13,7 @@ const fallbackReason = ref('')
 const isTreeExpanded = ref(false)
 
 const notificationStore = useNotificationStore()
-const projectsStore = useProjectsStore()
+
 
 const loadWorkspacePaths = async (showToast = false) => {
   if ((window as any).electronAPI && (window as any).electronAPI.getWorkspaceStatus) {

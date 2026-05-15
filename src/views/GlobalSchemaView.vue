@@ -238,7 +238,7 @@
 import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, Columns, Regex, ChevronRight, ChevronDown, Search, X } from 'lucide-vue-next'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { useAppStore } from '@/stores/app'
@@ -301,10 +301,7 @@ const toolbarSearchInput = ref<HTMLInputElement | null>(null)
 const debouncedSearchQuery = ref('')
 let searchDebounceTimeout: any = null
 
-const handleCloseSearch = () => {
-  isSearchExpanded.value = false
-  searchQuery.value = ''
-}
+
 
 watch(searchQuery, newVal => {
   if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)

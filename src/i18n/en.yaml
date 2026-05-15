@@ -495,6 +495,7 @@ environments:
       default: 'Default environments (DEV, STAGE, UAT, PROD) cannot be deleted'
 
 projects:
+  management: 'Project Management'
   title: 'Project Manager'
   subtitle: 'Organize your database clusters'
   newProject: 'New Project'
@@ -929,7 +930,7 @@ restrictedUserSetup:
     clickVerify: 'Click the button below to verify'
 
 aiErrors:
-  quota: "Oops! It looks like you've reached your Gemini quota limit. You might need to wait a few minutes or check your billing settings in the Google AI Console. ☕️"
+  quota: "Oops! It looks like you've reached the quota limit of the active AI service. Please verify your billing or usage settings in the provider's console. ☕️"
   overloaded: "The AI service is currently overloaded or taking a break. Please try again in a few seconds! 🧘‍♂️"
   invalidKey: "There's a problem with your API Key. Please verify it in Settings > AI Assistant. 🔑"
   timeout: "Connection timed out. Please check your internet and try again. 🌐"

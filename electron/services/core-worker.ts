@@ -200,7 +200,7 @@ async function handleRpcRequest(request: any) {
           const rawProjects = await (CoreBridge.getStorage() as any).getProjects();
           const hydrated: any[] = [];
           for (const p of rawProjects) {
-              const settings = await (CoreBridge.getStorage() as any).getProjectSettings(p.id);
+              const settings = (await (CoreBridge.getStorage() as any).getProjectSettings(p.id)) || {};
               hydrated.push({
                   id: p.id,
                   name: p.name,

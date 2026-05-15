@@ -19,8 +19,7 @@ import {
   MessageSquare,
   RefreshCw,
   Settings,
-  Paperclip,
-  Image as ImageIcon
+  Paperclip
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'

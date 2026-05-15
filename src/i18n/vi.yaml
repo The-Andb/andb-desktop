@@ -227,7 +227,7 @@ schema:
   hardPurge: 'Buộc tải mới và Dọn dẹp'
   hardPurgeTooltip: '🔥 Buộc tải mới (Xóa SẠCH thư mục vật lý và SQLite)'
   hardPurgeConfirm: "⚠️ CẢNH BÁO NGUY HIỂM:\n\nBạn có chắc chắn muốn xóa SẠCH HOÀN TOÀN thư mục lưu trữ vật lý và dữ liệu SQLite của Database này trên đĩa?\n\nHành động này sẽ xóa bỏ toàn bộ file SQL DDL cục bộ để tải lại mới 100%. Bạn có muốn tiếp tục?"
-  hardPurgeProjectTooltip: '🔥 Buộc dọn sạch Project hiện tại (Xóa SẠCH thư mục vật lý & SQLite)'
+  hardPurgeProjectTooltip: '🔥 Buộc dọn sạch Dự án hiện tại (Xóa SẠCH thư mục vật lý & SQLite)'
   hardPurgeProjectConfirm: "⚠️ CẢNH BÁO NGUY HIỂM TỘT ĐỘ:\n\nBạn có chắc chắn muốn XÓA SẠCH HOÀN TOÀN thư mục lưu trữ vật lý `db/` và dữ liệu SQLite của TOÀN BỘ DỰ ÁN '{name}' hiện hành?\n\nHành động này sẽ xóa bỏ toàn bộ SQL DDL của TẤT CẢ cơ sở dữ liệu thuộc dự án này để tải mới lại 100%. Bạn có muốn tiếp tục?"
   reloadLocal: 'Tải lại từ cache nội bộ'
   lastSynced: 'Đồng bộ lần cuối'
@@ -465,11 +465,12 @@ environments:
       default: 'Các môi trường mặc định (DEV, STAGE, UAT, PROD) không thể xóa'
 
 projects:
-  title: 'Quản lý Project'
+  management: 'Quản lý Dự án'
+  title: 'Quản lý Dự án'
   subtitle: 'Tổ chức các cụm cơ sở dữ liệu của bạn'
   newProject: 'Dự án mới'
-  editTitle: 'Sửa Project'
-  createTitle: 'Tạo Project mới'
+  editTitle: 'Sửa Dự án'
+  createTitle: 'Tạo Dự án mới'
   connections: 'Kết nối'
   active: 'Đang dùng'
   select: 'Chọn'
@@ -865,28 +866,28 @@ restrictedUserSetup:
     clickVerify: 'Nhấn nút bên dưới để xác minh quyền hạn'
 
 aiErrors:
-  quota: "Rất tiếc! Có vẻ như bạn đã hết hạn mức (quota) của Gemini. Vui lòng đợi vài phút hoặc kiểm tra cài đặt thanh toán trong Google AI Console. ☕️"
-  overloaded: "Dịch vụ AI hiện đang quá tải hoặc đang nghỉ ngơi một chút. Vui lòng thử lại sau vài giây nhé! 🧘‍♂️"
-  invalidKey: "Có vấn đề với API Key của bạn. Vui lòng kiểm tra lại trong Cài đặt > Trợ lý AI. 🔑"
-  timeout: "Kết nối quá hạn. Vui lòng kiểm tra lại đường truyền internet của bạn. 🌐"
-  generic: "Trợ lý AI gặp một chút trục trặc nhỏ. Hãy thử gửi lại yêu cầu nhé? 🛠️"
+  quota: 'Rất tiếc! Có vẻ như bạn đã hết hạn mức (quota) của dịch vụ AI hiện hành. Vui lòng kiểm tra lại hạn mức hoặc cài đặt thanh toán của nhà cung cấp. ☕️'
+  overloaded: 'Dịch vụ AI hiện đang quá tải hoặc đang nghỉ ngơi một chút. Vui lòng thử lại sau vài giây nhé! 🧘‍♂️'
+  invalidKey: 'Có vấn đề với API Key của bạn. Vui lòng kiểm tra lại trong Cài đặt > Trợ lý AI. 🔑'
+  timeout: 'Kết nối quá hạn. Vui lòng kiểm tra lại đường truyền internet của bạn. 🌐'
+  generic: 'Trợ lý AI gặp một chút trục trặc nhỏ. Hãy thử gửi lại yêu cầu nhé? 🛠️'
 
 aiAssistant:
-  title: "Trợ lý AI"
-  history: "Lịch sử"
-  noPreviousChats: "Chưa có cuộc trò chuyện nào"
-  clearAllHistory: "Xóa toàn bộ lịch sử"
-  readyToHelp: "Sẵn sàng hỗ trợ"
-  new: "Mới"
-  close: "Đóng Trợ lý"
-  hello: "Xin chào"
-  xinChao: "Xin chào"
-  bonjour: "Bonjour"
-  tagline: "Sẵn sàng đánh giá schema và tối ưu hóa dữ liệu của bạn."
-  analyzeIndexSafety: "Phân tích an toàn Index"
-  optimizeDataTypes: "Tối ưu hóa kiểu dữ liệu"
-  analysisError: "Lỗi phân tích AI"
-  retryNow: "Thử lại ngay"
-  thinking: "Đang suy nghĩ..."
-  askAnything: "Hỏi AI bất cứ điều gì... (Enter để gửi, Shift+Enter để xuống dòng)"
-  tipSelectText: "✨ Mẹo: Bôi đen văn bản để đặt câu hỏi nhanh"
+  title: 'Trợ lý AI'
+  history: 'Lịch sử'
+  noPreviousChats: 'Chưa có cuộc trò chuyện nào'
+  clearAllHistory: 'Xóa toàn bộ lịch sử'
+  readyToHelp: 'Sẵn sàng hỗ trợ'
+  new: 'Mới'
+  close: 'Đóng Trợ lý'
+  hello: 'Hello'
+  xinChao: 'Xin chào'
+  bonjour: 'Bonjour'
+  tagline: 'Sẵn sàng đánh giá schema và tối ưu hóa dữ liệu của bạn.'
+  analyzeIndexSafety: 'Phân tích an toàn Index'
+  optimizeDataTypes: 'Tối ưu hóa kiểu dữ liệu'
+  analysisError: 'Lỗi phân tích AI'
+  retryNow: 'Thử lại ngay'
+  thinking: 'Đang suy nghĩ...'
+  askAnything: 'Hỏi AI bất cứ điều gì... (Enter để gửi, Shift+Enter để xuống dòng)'
+  tipSelectText: '✨ Mẹo: Bôi đen văn bản để đặt câu hỏi nhanh'

@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { app } from 'electron';
 
 export class SecurityService {
   private static instance: SecurityService;
@@ -10,11 +9,26 @@ export class SecurityService {
   private publicKeyPath: string;
 
   private constructor() {
-    // We assume app is ready or userData is available
-    this.keyDir = path.join(app.getPath('userData'), 'security');
+    // Safe lazy resolution for worker processes which cannot access standard Electron 'app' module APIs
+    let baseDir = process.cwd();
+    try {
+      const { app } = require('electron');
+      if (app && typeof app.getPath === 'function') {
+        baseDir = app.getPath('userData');
+      }
+    } catch (err) {
+      // Fallback gracefully for bare Node.js execution in background worker threads
+    }
+
+    this.keyDir = path.join(baseDir, 'security');
     this.privateKeyPath = path.join(this.keyDir, 'private.pem');
     this.publicKeyPath = path.join(this.keyDir, 'public.pem');
-    this.ensureKeysExist();
+    
+    try {
+      this.ensureKeysExist();
+    } catch (e) {
+      // Suppress startup failure in fallback environments; wait for explicit reinitialize() triggers
+    }
   }
 
   public static getInstance(): SecurityService {

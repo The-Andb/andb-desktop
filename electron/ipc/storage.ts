@@ -60,6 +60,14 @@ export async function handleStorageGet(_event: any, key: string) {
       }
     } catch { }
 
+    // Post-process decryption for sensitive settings
+    if (key === 'andb-ui-settings' && typeof result === 'object' && result !== null) {
+      const security = SecurityService.getInstance();
+      if (result.aiApiKey && result.aiApiKey.startsWith('ENC:')) {
+        result.aiApiKey = security.decrypt(result.aiApiKey);
+      }
+    }
+
     return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -117,7 +125,18 @@ export async function handleStorageSet(_event: any, key: string, value: any) {
 
     // Generic Preferences
     const repo = getRepository(GuiPreferenceEntity)
-    const serialized = typeof value === 'object' ? JSON.stringify(value) : String(value)
+    let dataToSave = value;
+    
+    if (key === 'andb-ui-settings' && typeof value === 'object' && value !== null) {
+      const security = SecurityService.getInstance();
+      // Clone configuration to avoid mutating current active renderer references
+      dataToSave = { ...value };
+      if (dataToSave.aiApiKey) {
+        dataToSave.aiApiKey = security.encrypt(dataToSave.aiApiKey);
+      }
+    }
+
+    const serialized = typeof dataToSave === 'object' ? JSON.stringify(dataToSave) : String(dataToSave)
     await repo.upsert({ key, value: serialized }, ['key'])
 
     return { success: true }

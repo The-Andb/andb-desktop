@@ -264,38 +264,40 @@ export function useSchemaLoader(
             'events'
           ]
           consoleStore.addLog(
-            `andb export --source ${conn.environment} (parallel execution)`,
+            `andb export --source ${conn.environment} (safe sequential execution)`,
             'cmd'
           )
 
-          await Promise.all(
-            ddlTypes.map(async type => {
-              const taskId = `${conn.id}-${type}`
+          // Execute sequentially to prevent SQLite write-contention and database connection pool lockups
+          for (const type of ddlTypes) {
+            const taskId = `${conn.id}-${type}`
+            appStore.updateSchemaProgress(taskId, {
+              current: 0,
+              total: 1,
+              type,
+              connectionName: conn.name
+            })
+
+            try {
+              await Andb.export(conn, null as any, {
+                type,
+                environment: conn.environment,
+                env: conn.environment // double check both formats
+              })
+            } catch (fetchErr: any) {
+              console.warn(`[useSchemaLoader] Failed fetching ${type}:`, fetchErr)
+              consoleStore.addLog(`⚠️ Warning: Skipping ${type} fetch due to error: ${fetchErr.message || fetchErr}`, 'warn')
+            } finally {
               appStore.updateSchemaProgress(taskId, {
-                current: 0,
+                current: 1,
                 total: 1,
                 type,
                 connectionName: conn.name
               })
-
-              try {
-                await Andb.export(conn, null as any, {
-                  type,
-                  environment: conn.environment,
-                  env: conn.environment // double check both formats
-                })
-              } finally {
-                appStore.updateSchemaProgress(taskId, {
-                  current: 1,
-                  total: 1,
-                  type,
-                  connectionName: conn.name
-                })
-                // Small delay to show completion before removing
-                setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
-              }
-            })
-          )
+              // Small delay to show completion before removing
+              setTimeout(() => appStore.removeSchemaProgress(taskId), 100)
+            }
+          }
         }
 
         notificationStore.add({
