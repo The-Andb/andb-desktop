@@ -120,6 +120,11 @@ export function useSchemaLoader(
 
   const loadSchema = async (forceRefresh = false, keepSelection = false, hardPurge = false) => {
     if (!selectedConnectionId.value) return
+    
+    if (loading.value) {
+      console.warn('[useSchemaLoader] loadSchema call blocked as process is already loading.')
+      return
+    }
 
     const conn = appStore.getConnectionById(selectedConnectionId.value)
     if (!conn) return
