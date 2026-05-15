@@ -597,6 +597,25 @@ export async function handlePickWorkspaceDir() {
       fs.mkdirSync(backupDir, { recursive: true })
     }
 
+    // Prompt user for immediate relaunch to hot-load the new vault DB
+    try {
+      const { response } = await dialog.showMessageBox({
+        type: 'question',
+        title: 'Workspace Updated',
+        message: 'Workspace linked successfully!',
+        detail: 'A relaunch is required to initialize the new workspace databases, connections, and security credentials. Would you like to relaunch the application now?',
+        buttons: ['Relaunch Now', 'Relaunch Later'],
+        defaultId: 0,
+        cancelId: 1
+      })
+      if (response === 0) {
+        const { handleRelaunchApp } = require('./system')
+        await handleRelaunchApp()
+      }
+    } catch (relaunchErr) {
+       if ((global as any).logger) (global as any).logger.warn('Relaunch prompt failed', relaunchErr)
+    }
+
     return { success: true, path: targetDir, action }
   } catch (e: any) {
     return { success: false, error: e.message }
@@ -617,6 +636,25 @@ export async function handleResetWorkspace() {
     delete config.projectBaseDir
     config.lastUpdated = new Date().toISOString()
     fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
+    
+    // Prompt for relaunch to switch back to local storage
+    try {
+      const { response } = await dialog.showMessageBox({
+        type: 'question',
+        title: 'Workspace Reset',
+        message: 'Workspace reset to local default storage.',
+        detail: 'A relaunch is required to revert to local database stores. Would you like to relaunch now?',
+        buttons: ['Relaunch Now', 'Relaunch Later'],
+        defaultId: 0,
+        cancelId: 1
+      })
+      if (response === 0) {
+        const { handleRelaunchApp } = require('./system')
+        await handleRelaunchApp()
+      }
+    } catch (relaunchErr) {
+       if ((global as any).logger) (global as any).logger.warn('Reset relaunch prompt failed', relaunchErr)
+    }
   }
   return { success: true }
 }
