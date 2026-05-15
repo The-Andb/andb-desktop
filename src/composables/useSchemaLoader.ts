@@ -121,10 +121,8 @@ export function useSchemaLoader(
   const loadSchema = async (forceRefresh = false, keepSelection = false, hardPurge = false) => {
     if (!selectedConnectionId.value) return
     
-    if (loading.value) {
-      console.warn('[useSchemaLoader] loadSchema call blocked as process is already loading.')
-      return
-    }
+    const currentRunConnectionId = selectedConnectionId.value
+    const isStale = () => selectedConnectionId.value !== currentRunConnectionId
 
     const conn = appStore.getConnectionById(selectedConnectionId.value)
     if (!conn) return
@@ -152,9 +150,10 @@ export function useSchemaLoader(
       preservedName = selectedItem.value?.name
       preservedType = selectedItem.value?.type
     } else {
-      // Reset selection if changing DBs normally
+      // Reset selection and clear schema cache instantly to avoid showing stale tables from old connections
       selectedItem.value = null
       selectedFilterType.value = 'all'
+      clearSchemaData()
     }
 
     try {
@@ -193,6 +192,7 @@ export function useSchemaLoader(
               env: conn.environment,
               name: exportName
             })
+            if (isStale()) return
             const summary = res?.data || {}
             Object.entries(summary).forEach(([type, count]) => {
               consoleStore.addLog(`Fetched ${count} ${type}`, 'success')
@@ -224,6 +224,7 @@ export function useSchemaLoader(
               type,
               env: conn.environment
             })
+            if (isStale()) return
             const summary = res?.data || {}
             Object.entries(summary).forEach(([t, count]) => {
               consoleStore.addLog(`Fetched ${count} ${t}`, 'success')
@@ -245,7 +246,9 @@ export function useSchemaLoader(
              consoleStore.addLog(t('schema.cleaningCache'), 'warn')
           }
           
+          if (isStale()) return
           const clearResult = await Andb.clearConnectionData(conn, hardPurge)
+          if (isStale()) return
 
           if (clearResult) {
             consoleStore.addLog(`Cleared ${clearResult.ddlCount || 0} DDL records`, 'info')
@@ -275,6 +278,7 @@ export function useSchemaLoader(
 
           // Execute sequentially to prevent SQLite write-contention and database connection pool lockups
           for (const type of ddlTypes) {
+            if (isStale()) return
             const taskId = `${conn.id}-${type}`
             appStore.updateSchemaProgress(taskId, {
               current: 0,
@@ -289,6 +293,7 @@ export function useSchemaLoader(
                 environment: conn.environment,
                 env: conn.environment // double check both formats
               })
+              if (isStale()) return
             } catch (fetchErr: any) {
               console.warn(`[useSchemaLoader] Failed fetching ${type}:`, fetchErr)
               consoleStore.addLog(`⚠️ Warning: Skipping ${type} fetch due to error: ${fetchErr.message || fetchErr}`, 'warn')
@@ -323,7 +328,9 @@ export function useSchemaLoader(
         selectedFilterType.value
       )
 
+      if (isStale()) return
       const allSchemasRes = await Andb.getSchemas()
+      if (isStale()) return
       const allSchemas = allSchemasRes.data || []
       console.log(
         '[useSchemaLoader] All Schemas from Backend:',
@@ -384,6 +391,8 @@ export function useSchemaLoader(
         message: err.message
       })
     } finally {
+      if (isStale()) return
+      
       loading.value = false
       appStore.isSchemaFetching = false
       appStore.activeFetchConnectionId = null
