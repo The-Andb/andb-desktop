@@ -43,22 +43,6 @@
             {{ getStatusText(selectedItem.status) }}
           </span>
         </div>
-        <div class="flex space-x-2 items-center">
-          <button
-            v-if="selectedItem.status !== 'equal' && selectedItem.status !== 'same'"
-            @click="$emit('migrate', selectedItem)"
-            class="flex items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-500 text-orange-600 hover:text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-orange-500/10 active:scale-95 group/migrate border border-orange-100 dark:border-orange-800/30"
-            :disabled="isMigrating || isTargetDump"
-            :title="isTargetDump ? 'Target is read-only (Static Dump)' : t('compare.migrateTo', { name: targetName })"
-          >
-            <Loader2 v-if="isMigratingItemId === selectedItem.name" class="w-4 h-4 animate-spin" />
-            <Zap
-              v-else
-              class="w-4 h-4 fill-orange-500/20 group-hover/migrate:fill-white/20 group-hover/migrate:animate-pulse transition-transform duration-300 group-hover/migrate:scale-125"
-            />
-            <span class="font-bold">{{ isMigratingItemId === selectedItem.name ? t('common.processing') : 'Sync Now' }}</span>
-          </button>
-        </div>
       </div>
       <div class="flex-1 flex flex-col min-h-0 min-w-0">
         <MirrorDiffView
@@ -87,7 +71,6 @@ import {
   Server,
   Database,
   ChevronRight,
-  Loader2,
   Zap,
   MousePointer2,
   Table,

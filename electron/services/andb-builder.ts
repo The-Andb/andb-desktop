@@ -25,6 +25,7 @@ interface DatabaseConnection {
   username: string
   password?: string
   environment: string
+  type?: string
   domainMapping?: {
     from: string
     to: string
@@ -424,8 +425,8 @@ export class AndbBuilder {
   ): Promise<any> {
     const ddlType = type.toLowerCase()
     const worker = BackgroundWorker.getInstance()
-    const srcEnv = sourceConn.environment
-    const destEnv = targetConn.environment
+    const srcEnv = sourceConn.environment?.toUpperCase() || sourceConn.name?.toUpperCase() || sourceConn.id?.toUpperCase() || 'DEFAULT'
+    const destEnv = targetConn.environment?.toUpperCase() || targetConn.name?.toUpperCase() || targetConn.id?.toUpperCase() || 'DEFAULT'
     const dbName = sourceConn.database || sourceConn.name
     const destDbName = targetConn.database || targetConn.name
     const databaseType = sourceConn.type || 'mysql'
@@ -456,7 +457,8 @@ export class AndbBuilder {
   static async clearConnectionData(connection: DatabaseConnection, purgeFiles: boolean = false) {
     const worker = BackgroundWorker.getInstance()
     const databaseType = connection.type || 'mysql'
-    return await worker.clearConnectionData(connection.environment, connection.database, databaseType, purgeFiles)
+    const env = connection.environment?.toUpperCase() || connection.name?.toUpperCase() || connection.id?.toUpperCase() || 'DEFAULT'
+    return await worker.clearConnectionData(env, connection.database, databaseType, purgeFiles)
   }
  
   static async getSnapshots(environment: string, database: string, type: string, name: string, databaseType: string = 'mysql') {

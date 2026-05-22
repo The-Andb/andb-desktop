@@ -1,21 +1,16 @@
 <template>
   <div class="flex items-center justify-between w-full h-full gap-4">
-    <!-- Left Side: Title -->
-    <div class="flex items-center gap-2">
-      <GitCompare class="w-4 h-4 text-primary-500" />
-      <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{
-        t('compare.title')
-      }}</span>
-    </div>
+
 
     <!-- Right Side: Actions & Controls -->
     <div class="flex items-center gap-4 flex-1 justify-end">
-      <!-- View Mode Switch -->
+      <!-- View Mode Switch & Safe Mode Toggle -->
       <div
-        v-if="appStore.layoutSettings.toolbar && appStore.compareMode === 'auto'"
+        v-if="appStore.layoutSettings.toolbar"
         class="flex items-center space-x-2 shrink-0 p-1.5"
       >
         <div
+          v-if="appStore.compareMode === 'auto'"
           class="flex items-center p-1 border border-gray-100 dark:border-gray-700 rounded-xl"
           :class="appStore.buttonStyle === 'minimal' ? 'scale-90' : ''"
         >
@@ -58,7 +53,7 @@
         </div>
 
         <div
-          v-if="appStore.buttonStyle === 'full'"
+          v-if="appStore.compareMode === 'auto' && appStore.buttonStyle === 'full'"
           class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
         ></div>
 
@@ -142,39 +137,7 @@
           </div>
         </div>
 
-        <div
-          v-if="appStore.buttonStyle === 'full'"
-          class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
-        ></div>
 
-        <button
-          v-if="appStore.compareMode === 'auto'"
-          @click="$emit('runComparison')"
-          :disabled="loading || !activePair"
-          class="flex items-center justify-center font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale shrink-0"
-          :class="[
-            appStore.buttonStyle === 'full'
-              ? 'px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg text-xs tracking-wide shadow-md active:scale-95 gap-2'
-              : '',
-            appStore.buttonStyle === 'minimal'
-              ? 'px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm gap-2'
-              : '',
-            appStore.buttonStyle === 'icons'
-              ? 'w-10 h-10 bg-primary-500 text-white rounded-full shadow-lg hover:scale-110 active:scale-95'
-              : ''
-          ]"
-          :title="t('compare.runCompareTooltip')"
-        >
-          <GitCompare v-if="!(loading && loadingAction === 'compare')" class="w-4 h-4" />
-          <RefreshCw v-else class="w-4 h-4 animate-spin" />
-          <span v-if="appStore.buttonStyle !== 'icons'">{{
-            loading && loadingAction === 'compare'
-              ? t('compare.comparing')
-              : appStore.buttonStyle === 'full'
-                ? t('compare.compare')
-                : t('compare.compare')
-          }}</span>
-        </button>
       </div>
     </div>
   </div>
@@ -182,13 +145,11 @@
 
 <script setup lang="ts">
 import {
-  GitCompare,
   List,
   GitMerge,
   ShieldCheck,
   Info,
-  X,
-  RefreshCw
+  X
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 

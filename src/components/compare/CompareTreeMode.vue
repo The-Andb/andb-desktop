@@ -175,7 +175,7 @@
                   class="p-1 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 group/icon transition-all duration-200"
                   :class="
                     canMigrate(item)
-                      ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:border-orange-500/50 dark:hover:border-orange-500/50'
+                      ? 'cursor-pointer hover:scale-110 hover:shadow-md hover:border-primary-500/50 dark:hover:border-primary-500/50'
                       : ''
                   "
                   @click.stop="handleMigrateClick(item)"
@@ -183,7 +183,7 @@
                   <component
                     v-if="canMigrate(item)"
                     :is="Zap"
-                    class="w-3.5 h-3.5 text-orange-500 fill-orange-500/20 hidden group-hover/icon:block animate-in zoom-in spin-in-12 duration-300"
+                    class="w-3.5 h-3.5 text-primary-500 fill-primary-500/20 hidden group-hover/icon:block animate-in zoom-in spin-in-12 duration-300"
                   />
                   <component
                     :is="getStatusIcon(item.status)"
@@ -233,7 +233,7 @@
                       >TGT</span
                     >
                     <Workflow
-                      class="w-3.5 h-3.5 transition-colors"
+                      class="w-3.5 h-3.5 transition-colors rotate-180"
                       :class="
                         appStore.compareStack?.target?.name === item.name
                           ? 'text-white fill-white/20'
@@ -576,7 +576,7 @@ const getStatusClass = (status: string) => {
       return 'text-teal-500 dark:text-teal-400'
     case 'new':
     case 'missing_in_target':
-      return 'text-orange-500 dark:text-orange-400'
+      return 'text-emerald-500 dark:text-emerald-400 font-bold'
     case 'deprecated':
     case 'missing_in_source':
       return 'text-rose-500 dark:text-rose-400'

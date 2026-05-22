@@ -4,6 +4,7 @@ import { GlobalConnectionEntity } from '../entities/gui/GlobalConnectionEntity';
 import { ProjectConnectionEntity } from '../entities/gui/ProjectConnectionEntity';
 import { GuiPreferenceEntity } from '../entities/gui/GuiPreferenceEntity';
 import { WorkspaceTabEntity } from '../entities/gui/WorkspaceTabEntity';
+import { InstantCompareEntity } from '../entities/gui/InstantCompareEntity';
 import { SecurityService } from '../../services/security';
 
 export class DesktopStorageStrategy extends BaseStorageStrategy {
@@ -15,6 +16,7 @@ export class DesktopStorageStrategy extends BaseStorageStrategy {
       ProjectConnectionEntity,
       GuiPreferenceEntity, 
       WorkspaceTabEntity,
+      InstantCompareEntity,
       ...extraEntities
     ], projectBaseDir);
     

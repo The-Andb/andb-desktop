@@ -21,6 +21,29 @@
         </div>
 
         <div class="flex items-center gap-3">
+          <!-- History Toggle -->
+          <button
+            @click="isHistorySidebarOpen = !isHistorySidebarOpen"
+            class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 relative"
+            title="Comparison History"
+          >
+            <History class="w-4 h-4" />
+            <span v-if="historyList.length > 0" class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
+              {{ historyList.length }}
+            </span>
+          </button>
+
+          <!-- Save to History -->
+          <button
+            v-if="srcDDL || destDDL"
+            @click="openSaveModal"
+            class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-xl text-[10px] font-black uppercase transition-all"
+            title="Save current comparison session to history"
+          >
+            <Save class="w-3.5 h-3.5" />
+            Save History
+          </button>
+
           <button
             v-if="step === 'compare'"
             @click="step = 'input'"
@@ -61,6 +84,99 @@
     >
       <!-- Main Workspace -->
       <div class="flex-1 flex overflow-hidden relative min-w-0">
+        <!-- HISTORY SIDEBAR (Slide-out) -->
+        <transition
+          enter-active-class="transition-all duration-300 ease-in-out"
+          leave-active-class="transition-all duration-200 ease-in-out"
+          enter-from-class="-translate-x-full opacity-0"
+          leave-to-class="-translate-x-full opacity-0"
+        >
+          <div
+            v-if="isHistorySidebarOpen"
+            class="absolute inset-y-0 left-0 w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-30 flex flex-col shadow-2xl"
+          >
+            <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/40">
+              <h3 class="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white flex items-center gap-2">
+                <History class="w-3.5 h-3.5 text-primary-500" />
+                Compare History
+              </h3>
+              <button
+                @click="isHistorySidebarOpen = false"
+                class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-all"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+
+            <!-- Search inside History -->
+            <div class="p-3 border-b border-gray-200 dark:border-gray-800">
+              <div class="relative">
+                <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input
+                  v-model="historySearchQuery"
+                  type="text"
+                  placeholder="Search history..."
+                  class="w-full pl-8 pr-3 py-1.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-900 rounded-lg text-xs font-medium placeholder:text-gray-400 transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- History List -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 bg-gray-50/50 dark:bg-gray-950/20">
+              <div v-if="filteredHistoryList.length === 0" class="p-8 text-center text-gray-400">
+                <Clock class="w-8 h-8 mx-auto mb-2 opacity-20" />
+                <p class="text-[10px] font-black uppercase tracking-widest">No History Found</p>
+              </div>
+
+              <div
+                v-for="item in filteredHistoryList"
+                :key="item.id"
+                @click="selectHistoryItem(item)"
+                class="flex items-center justify-between p-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer hover:border-primary-500/50 hover:shadow-sm transition-all group relative border-l-4"
+                :style="{ borderLeftColor: selectedHistoryId === item.id ? '#3b82f6' : 'transparent' }"
+              >
+                <div class="flex flex-col min-w-0 flex-1 pr-2">
+                  <span class="font-bold text-xs text-gray-900 dark:text-white truncate">
+                    {{ item.name }}
+                  </span>
+                  
+                  <div class="flex items-center gap-2 mt-1.5">
+                    <span
+                      class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                      :class="
+                        item.status === 'equal'
+                          ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30'
+                          : 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30'
+                      "
+                    >
+                      {{ item.status || 'modified' }}
+                    </span>
+                    <span class="text-[9px] font-bold text-gray-400">
+                      {{ formatDate(item.createdAt) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Delete Button -->
+                <button
+                  @click.stop="deleteHistoryItem(item.id, item.name)"
+                  class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all animate-in fade-in"
+                  title="Delete from history"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </transition>
+
+        <!-- Dark backdrop when history is open -->
+        <div
+          v-if="isHistorySidebarOpen"
+          @click="isHistorySidebarOpen = false"
+          class="absolute inset-0 bg-black/10 dark:bg-black/35 z-20 transition-opacity backdrop-blur-sm"
+        ></div>
+
         <!-- INPUT STEP -->
         <div
           v-show="step === 'input'"
@@ -180,7 +296,7 @@
           <!-- Results Header -->
           <div
             v-if="result"
-            class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shrink-0 shadow-sm z-10 w-full"
+            class="flex items-center justify-between px-4 h-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shrink-0 shadow-sm z-10 w-full"
           >
             <div class="flex items-center gap-4">
               <div class="flex items-center gap-2">
@@ -248,6 +364,52 @@
         </div>
       </div>
     </div>
+
+    <!-- SAVE COMPARISON MODAL -->
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      leave-active-class="transition duration-150 ease-in"
+      enter-from-class="opacity-0 scale-95"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div
+        v-if="isSaveModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      >
+        <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+          <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white mb-2">
+            Save Comparison History
+          </h3>
+          <p class="text-[10px] text-gray-400 uppercase tracking-tighter leading-relaxed mb-4">
+            Enter a name to save this comparison session. You can reload this SQL snippet set anytime from the history list.
+          </p>
+
+          <input
+            v-model="saveComparisonName"
+            type="text"
+            class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 focus:border-primary-500 rounded-xl text-xs font-bold transition-all outline-none mb-6"
+            placeholder="e.g. User Table Modification Snippet"
+            @keyup.enter="saveComparison"
+          />
+
+          <div class="flex items-center justify-end gap-3">
+            <button
+              @click="isSaveModalOpen = false"
+              class="px-4 py-2 text-[10px] font-black uppercase bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              @click="saveComparison"
+              :disabled="!saveComparisonName.trim()"
+              class="px-4 py-2 text-[10px] font-black uppercase bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-sm transition-all disabled:opacity-50"
+            >
+              Save Record
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </MainLayout>
 </template>
 
@@ -260,7 +422,12 @@ import {
   X,
   CheckCircle,
   ClipboardPaste,
-  ArrowLeft
+  ArrowLeft,
+  History,
+  Save,
+  Trash2,
+  Search,
+  Clock
 } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import { useAppStore } from '@/stores/app'
@@ -288,6 +455,158 @@ const destPre = ref<HTMLPreElement | null>(null)
 
 const notification = useNotificationStore()
 const appStore = useAppStore()
+
+// State for History
+const isHistorySidebarOpen = ref(false)
+const historyList = ref<any[]>([])
+const historySearchQuery = ref('')
+const selectedHistoryId = ref<string | null>(null)
+
+// State for Save Modal
+const isSaveModalOpen = ref(false)
+const saveComparisonName = ref('')
+
+// Load history list from SQLite
+const loadHistory = async () => {
+  try {
+    const res = await (window as any).electronAPI.invoke('andb-get-instant-compare-history')
+    if (res.success && res.data) {
+      historyList.value = res.data
+    }
+  } catch (e: any) {
+    console.error('Failed to load comparison history:', e)
+  }
+}
+
+// Fetch detail and load into comparison
+const selectHistoryItem = async (item: any) => {
+  try {
+    loading.value = true
+    const res = await (window as any).electronAPI.invoke('andb-load-instant-compare-detail', { id: item.id })
+    if (res.success && res.data) {
+      srcDDL.value = res.data.srcDDL || ''
+      destDDL.value = res.data.destDDL || ''
+      selectedHistoryId.value = item.id
+      
+      // Auto run comparison
+      await runCompare()
+      isHistorySidebarOpen.value = false // close sidebar on selection for clean workspace
+      notification.add({
+        type: 'success',
+        title: 'Loaded comparison',
+        message: `Loaded "${item.name}" from history`
+      })
+    } else {
+      throw new Error(res.error || 'Failed to load details')
+    }
+  } catch (e: any) {
+    notification.add({
+      type: 'error',
+      title: 'Load Failed',
+      message: e.message
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Delete history item
+const deleteHistoryItem = async (id: string, name: string) => {
+  if (!confirm(`Are you sure you want to delete "${name}" from history?`)) return
+  try {
+    const res = await (window as any).electronAPI.invoke('andb-delete-instant-compare', { id })
+    if (res.success) {
+      if (selectedHistoryId.value === id) {
+        selectedHistoryId.value = null
+      }
+      await loadHistory()
+      notification.add({
+        type: 'success',
+        title: 'Deleted history',
+        message: 'Successfully removed item.'
+      })
+    } else {
+      throw new Error(res.error)
+    }
+  } catch (e: any) {
+    notification.add({
+      type: 'error',
+      title: 'Delete Failed',
+      message: e.message
+    })
+  }
+}
+
+// Open save modal
+const openSaveModal = () => {
+  const dateStr = new Date().toLocaleString()
+  saveComparisonName.value = saveComparisonName.value || `Comparison ${dateStr}`
+  isSaveModalOpen.value = true
+}
+
+// Save current comparison
+const saveComparison = async () => {
+  if (!saveComparisonName.value.trim()) return
+  try {
+    loading.value = true
+    const currentStatus = result.value ? result.value.status : 'unknown'
+    const res = await (window as any).electronAPI.invoke('andb-save-instant-compare', {
+      id: selectedHistoryId.value || undefined,
+      name: saveComparisonName.value.trim(),
+      srcDDL: srcDDL.value,
+      destDDL: destDDL.value,
+      status: currentStatus,
+      type: 'SQL'
+    })
+    
+    if (res.success && res.data) {
+      selectedHistoryId.value = res.data.id
+      isSaveModalOpen.value = false
+      await loadHistory()
+      notification.add({
+        type: 'success',
+        title: 'History Saved',
+        message: `Successfully saved "${saveComparisonName.value.trim()}"`
+      })
+    } else {
+      throw new Error(res.error || 'Failed to save history')
+    }
+  } catch (e: any) {
+    notification.add({
+      type: 'error',
+      title: 'Save Failed',
+      message: e.message
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Filter history list
+const filteredHistoryList = computed(() => {
+  const query = historySearchQuery.value.trim().toLowerCase()
+  if (!query) return historyList.value
+  return historyList.value.filter(h => 
+    h.name.toLowerCase().includes(query) || 
+    (h.status && h.status.toLowerCase().includes(query))
+  )
+})
+
+// Format dates nicely
+const formatDate = (dateStr: string) => {
+  try {
+    const d = new Date(dateStr)
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return dateStr
+  }
+}
+
 
 const highlightedSrc = computed(() => {
   if (!srcDDL.value) return ''
@@ -318,7 +637,9 @@ const syncScrollDest = () => {
 
 const isOverlay = computed(() => !!props.initialSource || !!props.initialTarget)
 
-onMounted(() => {
+onMounted(async () => {
+  await loadHistory()
+
   // If opened via Compare Stack route but as a page, we should populate from stack
   if (!isOverlay.value && appStore.compareStack.source?.ddl && appStore.compareStack.target?.ddl) {
     srcDDL.value = appStore.compareStack.source.ddl

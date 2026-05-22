@@ -8,6 +8,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
   const comparisonResults = ref<any[]>([])
   const environments = ref<any[]>([])
   const loading = ref(false)
+  const isComparing = ref(false)
   const lastFetchTime = ref(0)
   const CACHE_TTL = 30000 // 30 seconds
 
@@ -32,7 +33,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
     comparisonResults.value = []
   }
 
-  async function loadSchemas(force = false) {
+  async function loadSchemas(force = false, connections?: any[]) {
     const now = Date.now()
     if (!force && environments.value.length > 0 && now - lastFetchTime.value < CACHE_TTL) {
       return environments.value
@@ -42,7 +43,9 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
     loading.value = true
     try {
-      const result = await Andb.getSchemas()
+      // Pass connections for backend project isolation — backend only returns data for these
+      const cleanConnections = connections ? JSON.parse(JSON.stringify(connections)) : undefined
+      const result = await Andb.getSchemas(cleanConnections)
       if (result) {
         lastFetchTime.value = Date.now()
       }
@@ -59,13 +62,25 @@ export const useSidebarStore = defineStore('sidebar', () => {
     environments.value = data
   }
 
-  // Persistence Logic
-  const STORAGE_KEY = 'andb-sidebar-cache'
+  // Persistence Logic — cache is SCOPED to the active project to prevent cross-project bleed
+  const STORAGE_KEY_PREFIX = 'andb-sidebar-cache'
+  let _currentCacheProjectId: string | null = null
 
-  function loadFromStorage() {
+  function getCacheKey(projectId?: string): string {
+    return projectId ? `${STORAGE_KEY_PREFIX}-${projectId}` : STORAGE_KEY_PREFIX
+  }
+
+  function loadFromStorage(projectId?: string) {
     try {
       if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
-        ;(window as any).electronAPI.storage.get(STORAGE_KEY).then((result: any) => {
+        const key = getCacheKey(projectId)
+        // If project changed, clear stale in-memory data immediately
+        if (projectId && projectId !== _currentCacheProjectId) {
+          environments.value = []
+          lastFetchTime.value = 0
+          _currentCacheProjectId = projectId
+        }
+        ;(window as any).electronAPI.storage.get(key).then((result: any) => {
           if (result && result.success && result.data) {
             const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data
             if (data.environments) {
@@ -80,10 +95,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
   }
 
-  function saveToStorage() {
+  function saveToStorage(projectId?: string) {
     try {
       if (typeof window !== 'undefined' && (window as any).electronAPI?.storage) {
-        ;(window as any).electronAPI.storage.set(STORAGE_KEY, {
+        const key = getCacheKey(projectId)
+        ;(window as any).electronAPI.storage.set(key, {
           environments: JSON.parse(JSON.stringify(environments.value)),
           lastFetchTime: lastFetchTime.value
         })
@@ -93,17 +109,22 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
   }
 
+  function saveCurrentToStorage() {
+    saveToStorage(_currentCacheProjectId || undefined)
+  }
+
   // Watch to save
   watch(
     environments,
     () => {
-      saveToStorage()
+      saveCurrentToStorage()
     },
     { deep: true }
   )
 
-  // Initial load
-  loadFromStorage()
+  // Initial load — no project ID yet, will re-load when project is selected
+  // (Called from Sidebar.vue after project is known)
+
 
   const gitStatus = ref<any>(null)
   const gitLoading = ref(false)
@@ -167,6 +188,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
     comparisonResults,
     environments,
     loading,
+    isComparing,
     gitStatus,
     gitLoading,
     triggerRefresh,
@@ -175,6 +197,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
     clearComparisonResults,
     loadSchemas,
     setEnvironments,
+    loadFromStorage,
     checkGitStatus,
     expandedEnvironments,
     expandedDatabases,

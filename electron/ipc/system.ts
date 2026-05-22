@@ -133,6 +133,15 @@ export async function handleSaveDumpFile(_event: any, sourcePath: string) {
  */
 export function handleAppLog(_event: any, args: any) {
   const { level, message, data } = args || {}
+  
+  if (message && message.includes('[Diagnostic]')) {
+    try {
+      fs.appendFileSync('/Volumes/FlexibleWorkplace/The-Andb/frontend-diagnostics.log', `${new Date().toISOString()} ${message}\n`, 'utf8');
+    } catch (e) {
+      // Ignore write errors
+    }
+  }
+
   const logger = (global as any).logger;
   if (!logger) {
     if (isDev) SafeLogger.log(`[Renderer-${level}] ${message}`, data || '');

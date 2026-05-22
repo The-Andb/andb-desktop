@@ -44,9 +44,13 @@ export class ProjectConnectionEntity {
   @Column('text', { nullable: true })
   product_settings_json!: string | null;
 
+  @Column('text', { nullable: true })
+  project_id!: string | null;
+
   @CreateDateColumn({ type: 'datetime' })
   created_at!: Date;
 
   @UpdateDateColumn({ type: 'datetime' })
   updated_at!: Date;
 }
+

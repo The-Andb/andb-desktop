@@ -129,6 +129,35 @@ export class StorageMigrator {
       }
       // --- END V7 CLEANUP ---
 
+      // --- START V8 PROJECT ISOLATION BACKFILL ---
+      if (userSettings['backfill_project_connections_v8'] !== 'true') {
+        console.log('🔄 [StorageMigrator] Running V8 Project Connections Backfill...');
+        const projectsPref = await prefRepo.findOne({ where: { key: 'projects' } });
+        if (projectsPref && projectsPref.value) {
+          try {
+            const projects = JSON.parse(projectsPref.value);
+            if (Array.isArray(projects)) {
+              for (const proj of projects) {
+                if (proj && proj.id && Array.isArray(proj.connectionIds) && proj.connectionIds.length > 0) {
+                  console.log(`🔗 [StorageMigrator] Mapping ${proj.connectionIds.length} connections to project: ${proj.name || proj.id}`);
+                  await connectionRepo.createQueryBuilder()
+                    .update()
+                    .set({ project_id: proj.id })
+                    .where('id IN (:...ids)', { ids: proj.connectionIds })
+                    .execute();
+                }
+              }
+            }
+          } catch (err) {
+            console.error('⚠️ [StorageMigrator] Failed to parse projects json during backfill:', err);
+          }
+        }
+        await desktopStorageStrategy.saveUserSetting('backfill_project_connections_v8', 'true');
+        console.log('✅ [StorageMigrator] V8 Backfill done.');
+      }
+      // --- END V8 PROJECT ISOLATION BACKFILL ---
+
+
     } catch (e) {
       console.error('⚠️ [StorageMigrator] Failed to migrate/cleanup storage:', e);
     }

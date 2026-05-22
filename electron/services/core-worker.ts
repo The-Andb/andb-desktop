@@ -141,12 +141,28 @@ async function handleRpcRequest(request: any) {
     // PATH RESCUE GUARD:
     // Intercept corrupt configurations that leaked internal Electron Application Support pathing
     // from legacy database records, forcing automatic restoration to the global Vault root.
-    if (rawTargetDir && (
+    if (rawTargetDir && !fs.existsSync(rawTargetDir) && (
         (globalUserDataPath && rawTargetDir.startsWith(globalUserDataPath)) || 
         rawTargetDir.includes('Application Support') || 
         rawTargetDir.includes('AppData')
     )) {
-        rawTargetDir = globalProjectBaseDir;
+        // Try to recover correct path from DB project record
+        const activeProjectId = params?.__activeProjectId;
+        let recoveredDir = '';
+        if (activeProjectId) {
+          try {
+            const storage = CoreBridge.getStorage();
+            if (storage) {
+              const projects = await (storage as any).queryRaw(
+                'SELECT project_base_dir FROM projects WHERE id = ? LIMIT 1', [activeProjectId]
+              );
+              if (projects && projects[0]?.project_base_dir) {
+                recoveredDir = projects[0].project_base_dir;
+              }
+            }
+          } catch { /* non-fatal */ }
+        }
+        rawTargetDir = recoveredDir || globalProjectBaseDir;
     }
 
     // 2. Run context self-healer to automatically reconcile legacy structure into /projects
@@ -167,12 +183,11 @@ async function handleRpcRequest(request: any) {
        }
     }
 
-    // CONFIG SWITCH FIX: Align ProjectConfig context to dynamic project ID in long-running worker instance
     const coreConfig = CoreBridge.getConfig();
     if (coreConfig && params?.__activeProjectId) {
        if (coreConfig.getActiveProjectId() !== params.__activeProjectId) {
           // Pull fresh schema definitions from SQLite explicitly when context changes
-          await coreConfig.reload().catch(() => {});
+          await coreConfig.reload(params.__activeProjectId).catch(() => {});
           coreConfig.setActiveProjectId(params.__activeProjectId);
        }
     }
@@ -205,6 +220,7 @@ async function handleRpcRequest(request: any) {
                   id: p.id,
                   name: p.name,
                   description: p.description,
+                  projectBaseDir: p.project_base_dir || null,
                   connectionIds: settings.connectionIds ? JSON.parse(settings.connectionIds) : [],
                   pairIds: settings.pairIds ? JSON.parse(settings.pairIds) : [],
                   enabledEnvironmentIds: settings.enabledEnvironmentIds ? JSON.parse(settings.enabledEnvironmentIds) : ['DEV', 'STAGE', 'PROD'],
@@ -224,7 +240,8 @@ async function handleRpcRequest(request: any) {
               name: projectData.name,
               description: projectData.description || '',
               is_favorite: 0,
-              order_index: 0
+              order_index: 0,
+              project_base_dir: projectData.projectBaseDir || null
           });
           
           if (projectData.connectionIds) {

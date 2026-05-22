@@ -25,6 +25,17 @@ export const useProjectsStore = defineStore('projects', () => {
       const savedProjects = await storage.getProjects()
       console.log('[Projects] Init - Loaded projects:', savedProjects?.length, savedProjects)
 
+      // Query all connections globally once to build a project_id mapping (single source of truth)
+      const allConns = await storage.getConnections()
+      const connMap = new Map<string, string[]>()
+      for (const c of allConns) {
+        if (c.projectId) {
+          const list = connMap.get(c.projectId) || []
+          list.push(c.id)
+          connMap.set(c.projectId, list)
+        }
+      }
+
       // 1. Load existing projects
       if (savedProjects && savedProjects.length > 0) {
         const envIdMap: Record<string, string> = {
@@ -44,12 +55,13 @@ export const useProjectsStore = defineStore('projects', () => {
 
           return {
             ...p,
-            connectionIds: Array.isArray(p.connectionIds) ? p.connectionIds : [],
+            connectionIds: connMap.get(p.id) || [], // database-driven single source of truth
             pairIds: Array.isArray(p.pairIds) ? p.pairIds : [],
             enabledEnvironmentIds: envs
           }
         })
       } else {
+
         // Create default project if none exist
         projects.value = [
           {
@@ -105,16 +117,18 @@ export const useProjectsStore = defineStore('projects', () => {
       })
 
       // Fix shared IDs by cloning
+      let needsSave = false
       projects.value.forEach(p => {
         // 1. Isolate Connections
         p.connectionIds = (p.connectionIds || []).map(id => {
           const usage = connUsageMap.get(id)
           if (usage && usage.length > 1 && usage[0] !== p.id) {
-            const original = appStore.connections.find(c => c.id === id)
+            const original = allConns.find(c => c.id === id)
             if (original) {
               const newId = appStore.generateId()
-              const clone = { ...JSON.parse(JSON.stringify(original)), id: newId }
-              appStore.connections.push(clone)
+              const clone = { ...JSON.parse(JSON.stringify(original)), id: newId, projectId: p.id }
+              allConns.push(clone)
+              needsSave = true
 
               // Find and clone any pair in this project that uses the old connection ID
               p.pairIds.forEach(pairId => {
@@ -146,6 +160,10 @@ export const useProjectsStore = defineStore('projects', () => {
         })
       })
 
+      if (needsSave) {
+        await storage.saveConnections(allConns)
+      }
+
       // Robust Selection Logic
       let found = false
 
@@ -175,10 +193,26 @@ export const useProjectsStore = defineStore('projects', () => {
       projects.value.forEach(p => {
         p.isActive = p.id === selectedProjectId.value
       })
-      // 7. Auto-Cleanup: Deduplicate connections and pairs on startup
-      await cleanGarbageConnections()
+      // DISABLED: Auto-cleanup of garbage connections is too dangerous to run automatically during init.
+      // Project data may not have loaded correctly (race condition, failed migration, etc.),
+      // causing ALL connections to be deleted. Only run this via explicit user action.
+      // await cleanGarbageConnections()
 
       isLoaded.value = true
+
+      // Immediately sync active project context to backend so BackgroundWorker has
+      // the correct projectBaseDir before the first getSchemas / getDDLObjects call.
+      // Without this, cold-start loads result in an empty projectBaseDir in the worker,
+      // causing file_path resolution to fail and DDL content to be blank.
+      if (typeof window !== 'undefined' && (window as any).electronAPI?.invoke) {
+        const activeProj = projects.value.find(p => p.id === selectedProjectId.value)
+        const baseDir = (activeProj as any)?.projectBaseDir || (activeProj as any)?.settings?.projectBaseDir || ''
+        ;(window as any).electronAPI.invoke('andb-set-active-project-dir', {
+          projectBaseDir: baseDir,
+          projectId: selectedProjectId.value || '',
+          projectName: activeProj?.name || ''
+        }).catch((e: any) => console.warn('[Projects] Failed to pre-sync project context on init:', e))
+      }
     })()
 
     try {
@@ -191,10 +225,11 @@ export const useProjectsStore = defineStore('projects', () => {
   // Call init
   init()
 
-  // Watchers
+  // Watchers — MUST check isLoaded first to avoid saving empty [] on store creation
   watch(
     projects,
     newProjects => {
+      if (!isLoaded.value) return // Guard: never save before init() completes
       storage.saveProjects(newProjects)
     },
     { deep: true }
@@ -210,7 +245,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
         // Synchronize Electron Backend context isolation
         const proj = projects.value.find(p => p.id === newId)
-        const baseDir = proj?.settings?.projectBaseDir || ''
+        const baseDir = (proj as any)?.projectBaseDir || proj?.settings?.projectBaseDir || ''
         
         if (typeof window !== 'undefined' && (window as any).electronAPI?.invoke) {
            console.log(`[Projects] Syncing project isolation path: ${baseDir || '[Default System Root]'} | ID: ${newId} | Name: ${proj?.name}`)
@@ -590,6 +625,15 @@ export const useProjectsStore = defineStore('projects', () => {
       }
     })
 
+    // SAFETY GUARD: If zero connections are referenced across all projects but we have
+    // actual connections in the store, this is almost certainly a data loading failure
+    // (migration race condition, empty project from failed backend call, etc.).
+    // Never run a destructive garbage-collect in this scenario.
+    if (referencedConnectionIds.size === 0 && appStore.connections.length > 0) {
+      console.warn('[Projects] cleanGarbageConnections: skipping — 0 referenced connections with non-empty store. Likely a load failure.')
+      return
+    }
+
     // 3. Filter out Orphans (KEEP ONLY REFERENCED)
     const originalConnCount = appStore.connections.length
     const originalPairCount = connectionPairsStore.connectionPairs.length
@@ -598,6 +642,7 @@ export const useProjectsStore = defineStore('projects', () => {
     connectionPairsStore.connectionPairs = connectionPairsStore.connectionPairs.filter(p =>
       referencedPairIds.has(p.id)
     )
+
 
     if (
       appStore.connections.length !== originalConnCount ||
@@ -610,7 +655,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     // 4. PERSIST CHANGES EXPLICITLY TO DISK
     await Promise.all([
-      storage.saveConnections(appStore.connections),
+      storage.saveConnections(appStore.connections, selectedProjectId.value || undefined),
       storage.saveConnectionPairs(connectionPairsStore.connectionPairs),
       storage.saveProjects(projects.value),
       storage.updateSettings({ lastSelectedProjectId: selectedProjectId.value || undefined })

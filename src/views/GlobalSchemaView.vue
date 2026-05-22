@@ -105,58 +105,125 @@
     </template>
 
     <template #breadcrumbs>
-      <div class="flex items-center gap-2.5">
-        <!-- Status Pill -->
-        <div
-          class="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 rounded-full border border-emerald-200/50 dark:border-emerald-900/50 shadow-sm shadow-emerald-500/5 transition-all active:scale-[0.98] select-none"
-        >
-          <div class="relative flex">
-            <Database class="w-3.5 h-3.5 text-emerald-500" />
-            <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-white dark:ring-gray-900 animate-pulse"></div>
-          </div>
-          <span
-            class="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 truncate max-w-[200px]"
-            :title="activeConnectionName"
-            >{{ activeConnectionName }}</span
+      <div class="flex items-center gap-2">
+        <!-- Connection Dropdown -->
+        <Menu as="div" class="relative inline-block text-left">
+          <MenuButton
+            class="group inline-flex items-center gap-2 px-3 py-1 bg-emerald-50/80 dark:bg-emerald-950/20 hover:bg-emerald-100/65 dark:hover:bg-emerald-900/30 rounded-full border border-emerald-200/50 dark:border-emerald-900/50 shadow-sm shadow-emerald-500/5 transition-all select-none focus:outline-none"
           >
-        </div>
+            <div class="relative flex">
+              <Database class="w-3.5 h-3.5 text-emerald-500" />
+              <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-white dark:ring-gray-900 animate-pulse"></div>
+            </div>
+            <span
+              class="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 truncate max-w-[200px]"
+              :title="activeConnectionName"
+            >
+              {{ activeConnectionName }}
+            </span>
+            <ChevronDown class="w-3 h-3 text-emerald-600 dark:text-emerald-400 opacity-80 group-hover:opacity-100 transition-opacity" />
+          </MenuButton>
+
+          <transition
+            enter-active-class="transition duration-100 ease-out"
+            enter-from-class="transform scale-95 opacity-0 -translate-y-1"
+            enter-to-class="transform scale-100 opacity-100 translate-y-0"
+            leave-active-class="transition duration-75 ease-in"
+            leave-from-class="transform scale-100 opacity-100 translate-y-0"
+            leave-to-class="transform scale-95 opacity-0 -translate-y-1"
+          >
+            <MenuItems
+              class="absolute left-0 mt-1.5 w-56 origin-top-left rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl z-[100] p-1 focus:outline-none backdrop-blur-xl ring-1 ring-black/5"
+            >
+              <div class="px-2.5 py-1.5 border-b border-gray-100 dark:border-gray-800/80 mb-1 select-none">
+                <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Select Connection</p>
+              </div>
+              <div class="max-h-60 overflow-y-auto no-scrollbar">
+                <MenuItem
+                  v-for="conn in appStore.filteredConnections"
+                  :key="conn.id"
+                  v-slot="{ active }"
+                >
+                  <button
+                    @click="appStore.selectedConnectionId = conn.id"
+                    :class="[
+                      conn.id === selectedConnectionId
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
+                        : active
+                        ? 'bg-gray-50 dark:bg-gray-800/80 text-gray-900 dark:text-white'
+                        : 'text-gray-600 dark:text-gray-400',
+                      'group flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                    ]"
+                  >
+                    <span class="truncate">{{ conn.name }}</span>
+                    <Check v-if="conn.id === selectedConnectionId" class="w-3.5 h-3.5 text-emerald-500" />
+                  </button>
+                </MenuItem>
+              </div>
+            </MenuItems>
+          </transition>
+        </Menu>
 
         <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700 flex-shrink-0" />
 
-        <!-- Secondary Nav Chain -->
-        <div class="flex items-center gap-2 px-1.5">
-          <button
-            @click="resetNavigation"
-            class="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.15em] text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 transition-all active:scale-95"
+        <!-- DDL Type Dropdown -->
+        <Menu as="div" class="relative inline-block text-left">
+          <MenuButton
+            class="group inline-flex items-center gap-2 px-2.5 py-1 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-800/80 rounded-lg border border-gray-200/50 dark:border-gray-700/50 text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] transition-all select-none focus:outline-none"
           >
-            {{ $t('schema.overview') }}
-          </button>
+            <component :is="selectedDdlTypeObj.icon" class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+            <span>{{ $t(selectedDdlTypeObj.translationKey) }}</span>
+            <ChevronDown class="w-3 h-3 text-gray-500 dark:text-gray-400 opacity-80 group-hover:opacity-100 transition-opacity" />
+          </MenuButton>
 
-          <template v-if="selectedFilterType && selectedFilterType !== 'all'">
-            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
-            <span
-              class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] border border-gray-200/50 dark:border-gray-700/50"
-              >{{ $t(`navigation.ddl.${selectedFilterType.toLowerCase()}`) }}</span
+          <transition
+            enter-active-class="transition duration-100 ease-out"
+            enter-from-class="transform scale-95 opacity-0 -translate-y-1"
+            enter-to-class="transform scale-100 opacity-100 translate-y-0"
+            leave-active-class="transition duration-75 ease-in"
+            leave-from-class="transform scale-100 opacity-100 translate-y-0"
+            leave-to-class="transform scale-95 opacity-0 -translate-y-1"
+          >
+            <MenuItems
+              class="absolute left-0 mt-1.5 w-48 origin-top-left rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl z-[100] p-1 focus:outline-none backdrop-blur-xl ring-1 ring-black/5"
             >
-          </template>
-          
-          <template v-else-if="selectedFilterType === 'all'">
-            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
-            <span
-              class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] border border-gray-200/50 dark:border-gray-700/50"
-              >{{ $t('navigation.ddl.all') }}</span
-            >
-          </template>
+              <div class="px-2.5 py-1.5 border-b border-gray-100 dark:border-gray-800/80 mb-1 select-none">
+                <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Filter DDL Type</p>
+              </div>
+              <MenuItem
+                v-for="type in ddlTypesList"
+                :key="type.key"
+                v-slot="{ active }"
+              >
+                <button
+                  @click="selectDdlType(type.key)"
+                  :class="[
+                    type.key === selectedFilterType
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'
+                      : active
+                      ? 'bg-gray-50 dark:bg-gray-800/80 text-gray-900 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-400',
+                    'group flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <component :is="type.icon" class="w-3.5 h-3.5 text-emerald-500" />
+                  <span class="truncate flex-1 text-left">{{ $t(type.translationKey) }}</span>
+                  <Check v-if="type.key === selectedFilterType" class="w-3.5 h-3.5 text-emerald-500 ml-auto" />
+                </button>
+              </MenuItem>
+            </MenuItems>
+          </transition>
+        </Menu>
 
-          <template v-if="selectedItem">
-            <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
-            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white dark:bg-gray-800/40 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
-               <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono tracking-tight selection:bg-emerald-200">{{
-                 selectedItem.name
-               }}</span>
-            </div>
-          </template>
-        </div>
+        <!-- Selected Item -->
+        <template v-if="selectedItem">
+          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700 flex-shrink-0" />
+          <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white dark:bg-gray-800/40 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
+             <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono tracking-tight selection:bg-emerald-200">{{
+               selectedItem.name
+             }}</span>
+          </div>
+        </template>
       </div>
     </template>
 
@@ -173,7 +240,6 @@
             :filtered-results="filteredResults"
             :filtered-results-count="filteredResults.length"
             :selected-item-name="selectedItem?.name"
-            v-model:search-query="searchQuery"
             v-model:search-flags="searchFlags"
             :is-indexing-columns="isIndexingColumns"
             :selected-size-filter="selectedSizeFilter"
@@ -190,7 +256,6 @@
             "
             @select="handleSelectItem"
             @refresh="loadSchema(true)"
-            @hard-refresh="handleHardRefresh"
             @start-resize="startResultsResize"
             @new-query="openQueryConsole"
             @send-to-instant="handleSendToInstant"
@@ -202,19 +267,21 @@
             :active-tab-id="activeTabId"
             :selected-item="selectedItem"
             v-model:view-mode="viewMode"
-            :formatted-ddl="formattedDDL"
+            :formatted-ddl="formattedDdl"
             :detailed-data="detailedTableData"
             :tables="schemaData.tables"
             :is-source="isSourceInInstant"
             :is-target="isTargetInInstant"
             :has-source="!!appStore.compareStack.source"
             :triggers="schemaData.triggers"
+            :navigatable-names="navigatableNames"
             @select-tab="handleSelectTab"
             @close-tab="handleCloseTab"
             @pick-stack="handlePickForInstant"
             @snapshot="takeSnapshot"
             @download="downloadDDL"
             @apply-table="handleApplyTable"
+            @navigate-to-definition="handleNavigateToDefinition"
           />
         </main>
       </div>
@@ -237,8 +304,7 @@
 <script setup lang="ts">
 import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronRight, ChevronDown, Zap, CalendarClock, Check } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { useAppStore } from '@/stores/app'
@@ -252,12 +318,31 @@ import TabSearchModal from '@/components/general/TabSearchModal.vue'
 import Andb from '@/utils/andb'
 
 const appStore = useAppStore()
-const { t } = useI18n()
 
 // Composable integration
 const selectedConnectionId = computed(() => appStore.selectedConnectionId)
 const selectedItem = ref<any>(null)
 const selectedFilterType = ref('all')
+
+const ddlTypesList = [
+  { key: 'all', translationKey: 'navigation.ddl.all', icon: Database },
+  { key: 'tables', translationKey: 'navigation.ddl.tables', icon: Table2 },
+  { key: 'views', translationKey: 'navigation.ddl.views', icon: Eye },
+  { key: 'procedures', translationKey: 'navigation.ddl.procedures', icon: Cpu },
+  { key: 'functions', translationKey: 'navigation.ddl.functions', icon: Sigma },
+  { key: 'triggers', translationKey: 'navigation.ddl.triggers', icon: Zap },
+  { key: 'events', translationKey: 'navigation.ddl.events', icon: CalendarClock }
+]
+
+const selectedDdlTypeObj = computed(() => {
+  return ddlTypesList.find(t => t.key === selectedFilterType.value) || ddlTypesList[0]
+})
+
+const selectDdlType = (typeKey: string) => {
+  selectedFilterType.value = typeKey
+  selectedItem.value = null
+  activeTabId.value = null
+}
 
 const {
   loading,
@@ -284,14 +369,7 @@ watch(
 )
 
 // UI State
-const searchQuery = ref('')
-const searchFlags = ref({
-  caseSensitive: false,
-  wholeWord: false,
-  regex: false,
-  content: false,
-  columns: false
-})
+const searchFlags = appStore.globalSearchFlags
 const selectedSizeFilter = ref('all')
 const viewMode = ref<'visual' | 'code'>('visual')
 const resultsWidth = ref(300)
@@ -303,7 +381,7 @@ let searchDebounceTimeout: any = null
 
 
 
-watch(searchQuery, newVal => {
+watch(() => appStore.globalSearchQuery, newVal => {
   if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
   searchDebounceTimeout = setTimeout(() => {
     debouncedSearchQuery.value = newVal
@@ -332,9 +410,9 @@ const filteredResults = computed(() => {
   const query = debouncedSearchQuery.value.trim()
   if (query) {
     const q = query
-    const isRegex = searchFlags.value.regex
-    const isCase = searchFlags.value.caseSensitive
-    const isWhole = searchFlags.value.wholeWord
+    const isRegex = searchFlags.regex
+    const isCase = searchFlags.caseSensitive
+    const isWhole = searchFlags.wholeWord
 
     const match = (text: string) => {
       if (!text) return false
@@ -346,19 +424,45 @@ const filteredResults = computed(() => {
         }
       }
       let t = isCase ? text : text.toLowerCase()
-      let query = isCase ? q : q.toLowerCase()
-      if (isWhole) return t === query
-      return t.includes(query)
+      let queryStr = isCase ? q : q.toLowerCase()
+      if (isWhole) return t === queryStr
+      return t.includes(queryStr)
     }
 
-    if (searchFlags.value.columns) {
-      results = results.filter(r => {
-        const tableCols = columnIndex.value[r.name]
-        return tableCols?.columns.some(c => match(c.name))
-      })
-    } else if (searchFlags.value.content) {
-      results = results.filter(r => match(r.ddl || r.content || ''))
+    if (searchFlags.columns) {
+      results = results.filter(r => r.type === 'tables')
+    }
+
+    if (searchFlags.columns || searchFlags.content) {
+      results = results.map(r => {
+        let matchedCols: string[] = []
+        if (searchFlags.columns && r.type === 'tables') {
+          const cached = columnIndex.value[r.name]
+          const colNames = cached
+            ? cached.columns.map(c => c.name)
+            : Andb.parseColumnNamesFromDdl(r.ddl || r.content || '')
+          matchedCols = colNames.filter(cName => match(cName))
+        }
+
+        let matches: { line: number; text: string }[] = []
+        if (searchFlags.content) {
+          const ddlText = r.ddl || r.content || ''
+          const lines = ddlText.split('\n')
+          lines.forEach((lineText: string, idx: number) => {
+            if (match(lineText)) {
+              matches.push({ line: idx + 1, text: lineText })
+            }
+          })
+        }
+
+        return {
+          ...r,
+          matchedColumns: matchedCols,
+          matches
+        }
+      }).filter(r => (searchFlags.columns && r.matchedColumns.length > 0) || (searchFlags.content && r.matches.length > 0))
     } else {
+      // Default: match query against name only
       results = results.filter(r => match(r.name))
     }
   }
@@ -366,9 +470,21 @@ const filteredResults = computed(() => {
   return results
 })
 
+const navigatableNames = computed(() => {
+  return allResults.value.map(r => r.name)
+})
+
+const handleNavigateToDefinition = (name: string) => {
+  if (!name) return
+  const target = allResults.value.find(r => r.name.toLowerCase() === name.toLowerCase())
+  if (target) {
+    handleSelectItem(target)
+  }
+}
+
 const hasResults = computed(() => allResults.value.length > 0)
 
-const formattedDDL = computed(() => selectedItem.value?.ddl || selectedItem.value?.content || '')
+const formattedDdl = computed(() => selectedItem.value?.ddl || selectedItem.value?.content || '')
 
 const detailedTableData = computed(() => {
   if (!selectedItem.value || selectedItem.value.type !== 'tables') return null
@@ -427,7 +543,7 @@ const handlePickForInstant = (type: 'source' | 'target') => {
   if (!selectedItem.value) return
   appStore.compareStack[type] = {
     name: selectedItem.value.name,
-    ddl: formattedDDL.value,
+    ddl: formattedDdl.value,
     type: selectedItem.value.type
   }
 }
@@ -570,11 +686,6 @@ const startResultsResize = (e: MouseEvent) => {
   window.addEventListener('mouseup', stopResize)
 }
 
-const handleHardRefresh = async () => {
-  if (confirm(t('schema.hardPurgeConfirm'))) {
-     await loadSchema(true, false, true)
-  }
-}
 
 const takeSnapshot = () => console.log('Snapshot...')
 const downloadDDL = () => console.log('Download...')
@@ -584,7 +695,7 @@ const aiContext = computed(() => {
   return {
     objectName: selectedItem.value.name,
     objectType: selectedItem.value.type,
-    target: { name: selectedItem.value.name, ddl: formattedDDL.value }
+    target: { name: selectedItem.value.name, ddl: formattedDdl.value }
   }
 })
 
@@ -602,15 +713,66 @@ const handleOpenTabSearchEvent = () => {
   isTabSearchOpen.value = true
 }
 
+const handleCategorySelectedEvent = (e: CustomEvent) => {
+  const { type } = e.detail
+  if (type) {
+    selectedFilterType.value = type
+    // Clear stale selected item + active tab so right panel reflects the new category
+    selectedItem.value = null
+    activeTabId.value = null
+  }
+}
+
+const handleObjectSelectedEvent = (e: CustomEvent) => {
+  const { name, type } = e.detail
+  if (type) {
+    selectedFilterType.value = type
+  }
+
+  const trySelect = (results: any[]) => {
+    const target = results.find(
+      (r: any) => r.name === name && r.type === type
+    )
+    if (target) {
+      handleSelectItem(target)
+      return true
+    }
+    return false
+  }
+
+  // 1. Try immediate select
+  if (trySelect(allResults.value)) return
+
+  // 2. Watch for results populating (e.g. when switching connections)
+  const unwatch = watch(
+    () => allResults.value,
+    (newResults) => {
+      if (newResults && newResults.length > 0) {
+        if (trySelect(newResults)) {
+          unwatch()
+        }
+      }
+    },
+    { deep: true }
+  )
+
+  // Safeguard timeout
+  setTimeout(unwatch, 5000)
+}
+
 onMounted(async () => {
   if (appStore.isInitialized) {
     loadSchema()
   }
   window.addEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
+  window.addEventListener('category-selected', handleCategorySelectedEvent as any)
+  window.addEventListener('object-selected', handleObjectSelectedEvent as any)
 })
 
 onUnmounted(() => {
   window.removeEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
+  window.removeEventListener('category-selected', handleCategorySelectedEvent as any)
+  window.removeEventListener('object-selected', handleObjectSelectedEvent as any)
 })
 
 // Auto-load when store is ready

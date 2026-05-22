@@ -5,7 +5,7 @@
   >
     <!-- Header: Match Compare Sidebar Style -->
     <div
-      class="px-4 py-2.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
+      class="px-4 h-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
     >
       <div class="flex items-center gap-2">
         <Database class="w-3.5 h-3.5 text-gray-400 opacity-50" />
@@ -24,14 +24,7 @@
           <RotateCw class="w-3 h-3" :class="{ 'animate-spin': isFetching }" />
         </button>
 
-        <!-- Hard Purge Refresh -->
-        <button
-          @click="emit('hard-refresh')"
-          class="p-1 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all"
-          :title="$t('schema.hardPurgeTooltip')"
-        >
-          <Flame class="w-3 h-3" :class="{ 'animate-pulse text-rose-500': isFetching }" />
-        </button>
+
       </div>
     </div>
 
@@ -39,81 +32,6 @@
     <div
       class="px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0 space-y-3"
     >
-      <div class="relative group">
-        <span
-          class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200"
-        >
-          <Search class="w-3.5 h-3.5 text-gray-400 group-focus-within:text-emerald-500" />
-        </span>
-        <input
-          :value="searchQuery"
-          @input="handleSearchInput"
-          type="text"
-          placeholder="Filter objects..."
-          class="w-full pl-10 pr-32 py-2 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg text-[11px] focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-gray-900 dark:text-white transition-all placeholder:text-gray-400 font-medium"
-        />
-
-        <!-- Integrated Control Icons (Sleek Inline Style) -->
-        <div class="absolute inset-y-0 right-0 flex items-center pr-2 space-x-0.5">
-          <button
-            @click="toggleFlag('caseSensitive')"
-            class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="
-              searchFlags.caseSensitive
-                ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                : 'text-gray-400'
-            "
-            title="Match Case"
-          >
-            <span class="text-[10px] font-bold">Aa</span>
-          </button>
-          <button
-            @click="toggleFlag('wholeWord')"
-            class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="
-              searchFlags.wholeWord
-                ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                : 'text-gray-400'
-            "
-            title="Match Whole Word"
-          >
-            <WholeWord class="w-3.5 h-3.5" />
-          </button>
-          <button
-            @click="toggleFlag('columns')"
-            class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="
-              searchFlags.columns
-                ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                : 'text-gray-400'
-            "
-            title="Search inside Columns"
-          >
-            <Columns class="w-3.5 h-3.5" />
-          </button>
-          <button
-            @click="toggleFlag('regex')"
-            class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            :class="
-              searchFlags.regex
-                ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                : 'text-gray-400'
-            "
-            title="Use Regex"
-          >
-            <Regex class="w-3.5 h-3.5" />
-          </button>
-
-          <div
-            v-if="searchQuery"
-            class="flex items-center gap-1 pl-2 pr-1 border-l border-gray-200 dark:border-gray-700 ml-1"
-          >
-            <span class="text-[9px] font-mono font-bold text-emerald-500">{{
-              filteredResultsCount
-            }}</span>
-          </div>
-        </div>
-      </div>
 
       <!-- Action & Summary Row (Exactly like Screenshot) -->
       <div class="flex items-center justify-between px-1">
@@ -167,7 +85,7 @@
         v-else
         :results="filteredResults"
         :selected-item-name="selectedItemName"
-        :search-term="searchQuery"
+        :search-term="appStore.globalSearchQuery"
         :stats="tableStats"
         :expand-cmd="expandCmd"
         :column-search-active="searchFlags.columns"
@@ -184,19 +102,15 @@
 </template>
 
 <script setup lang="ts">
+import { useAppStore } from '@/stores/app'
 import {
-  Search,
   RotateCw,
   Database,
   Plus,
   Minus,
-  ScanSearch,
-  Regex,
-  CalendarClock,
   SortAsc,
-  WholeWord,
-  Columns,
-  Flame
+  CalendarClock,
+  ScanSearch
 } from 'lucide-vue-next'
 import SchemaTreeMode from '@/components/ddl/SchemaTreeMode.vue'
 
@@ -206,14 +120,14 @@ const formatSmartNumber = (num: number) => {
   return num.toString()
 }
 
+const appStore = useAppStore()
 const props = defineProps<{
   width: number
   hasResults: boolean
   filteredResults: any[]
   filteredResultsCount: number
   selectedItemName?: string
-  searchQuery: string
-  searchFlags: any
+    searchFlags: any
   isIndexingColumns: boolean
   selectedSizeFilter: string
   tableStats: any
@@ -224,7 +138,6 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits<{
-  (e: 'update:searchQuery', value: string): void
   (e: 'update:searchFlags', value: any): void
   (e: 'toggle-content-search'): void
   (e: 'toggle-column-search'): void
@@ -234,18 +147,9 @@ const emit = defineEmits<{
   (e: 'select', item: any): void
   (e: 'start-resize', event: MouseEvent): void
   (e: 'refresh'): void
-  (e: 'hard-refresh'): void
   (e: 'new-query'): void
   (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
 }>()
 
-const handleSearchInput = (e: Event) => {
-  const val = (e.target as HTMLInputElement).value
-  emit('update:searchQuery', val)
-}
 
-const toggleFlag = (flag: string) => {
-  const newFlags = { ...props.searchFlags, [flag]: !props.searchFlags[flag] }
-  emit('update:searchFlags', newFlags)
-}
 </script>

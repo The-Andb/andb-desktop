@@ -137,8 +137,6 @@ export function useCompareCore() {
 
       // Step 1: Export (Backend Fetch)
       if (refresh) {
-        consoleStore.setVisibility(true)
-
         // Full Fetch -> Cache Clear
         if (!filterName && (!filterType || filterType === 'all')) {
           statusMessage.value = t('compare.cleaning')

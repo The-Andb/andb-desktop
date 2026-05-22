@@ -363,13 +363,7 @@ const openExternal = (url: string) => {
 
 <template>
   <MainLayout>
-    <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
-        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
-          Integrations
-        </div>
-      </div>
-    </template>
+
 
     <template #breadcrumbs>
       <div class="flex items-center gap-2">

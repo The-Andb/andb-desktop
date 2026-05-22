@@ -37,6 +37,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('storage-has', storage.handleStorageHas)
   ipcMain.handle('storage-clear', storage.handleStorageClear)
   ipcMain.handle('andb-clear-storage', storage.handleAndbClearStorage)
+  ipcMain.handle('andb-clear-project-storage', storage.handleAndbClearProjectStorage)
   ipcMain.handle('update-feature-flag', storage.handleUpdateFeatureFlag)
   ipcMain.handle('get-user-settings', storage.handleGetUserSettings)
   ipcMain.handle('save-user-setting', storage.handleSaveUserSetting)
@@ -127,6 +128,12 @@ export function registerIpcHandlers() {
   // Strategic AI & Secrets
   ipcMain.handle('testAIConnection', andb.handleAndbTestAIConnection)
   ipcMain.handle('syncSecretRepo', andb.handleAndbSyncSecretRepo)
+
+  // Instant Compare History
+  ipcMain.handle('andb-save-instant-compare', andb.handleSaveInstantCompare)
+  ipcMain.handle('andb-get-instant-compare-history', andb.handleGetInstantCompareHistory)
+  ipcMain.handle('andb-load-instant-compare-detail', andb.handleLoadInstantCompareDetail)
+  ipcMain.handle('andb-delete-instant-compare', andb.handleDeleteInstantCompare)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

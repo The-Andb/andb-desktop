@@ -100,7 +100,6 @@ const handleDatabaseRefreshRequested = async (e: any) => {
   try {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`Database Refresh: ${db}`, 'info')
-    consoleStore.setVisibility(true)
 
     // Clear data first for full refresh
     await Andb.clearConnectionData(conn)
@@ -232,7 +231,6 @@ const handleProjectLiveRefreshRequested = async () => {
   try {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`🚀 SMART REFRESH: Stale cache (> 5 mins). Fetching live schemas for ${activeProjectName}...`, 'info')
-    consoleStore.setVisibility(true)
 
     const activeConnections = appStore.filteredConnections
     if (activeConnections.length === 0) {
@@ -303,7 +301,6 @@ const handleCategoryRefreshRequested = async (e: any) => {
   try {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`Category Refresh: ${type} in ${db}`, 'info')
-    consoleStore.setVisibility(true)
 
     const taskId = `${conn.id}-${type}`
     appStore.updateSchemaProgress(taskId, { current: 0, total: 1, type, connectionName: conn.name })
@@ -343,7 +340,6 @@ const handleObjectRefreshRequested = async (e: any) => {
 
   try {
     consoleStore.addLog(`Object Refresh: ${name} (${type})`, 'info')
-    consoleStore.setVisibility(true)
 
     await Andb.export(conn, null as any, {
       type: type as any,

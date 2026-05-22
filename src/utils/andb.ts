@@ -3,6 +3,8 @@ import { useSettingsStore } from '@/stores/settings'
 import { useProjectsStore } from '@/stores/projects'
 import type { Result } from '@the-andb/core'
 
+export type DDL_TYPE = 'tables' | 'procedures' | 'functions' | 'triggers' | 'views';
+export type DDL_STATUS = 'NEW' | 'UPDATED' | 'DEPRECATED';
 /**
  * Andb Service - Programmatic API Wrapper
  *
@@ -13,8 +15,9 @@ import type { Result } from '@the-andb/core'
 // Check if running in Electron
 const isElectron = typeof window !== 'undefined' && window.electronAPI !== undefined
 
+
 export interface ExportOptions {
-  type: 'tables' | 'procedures' | 'functions' | 'triggers' | 'views'
+  type: DDL_TYPE
   environment?: string
   env?: string
   outputPath?: string
@@ -22,18 +25,18 @@ export interface ExportOptions {
 }
 
 export interface CompareOptions {
-  type: 'tables' | 'procedures' | 'functions' | 'triggers' | 'views'
+  type: DDL_TYPE
   sourceEnv: string
   targetEnv: string
   name?: string // Specific object name
 }
 
 export interface MigrateOptions {
-  type: 'tables' | 'procedures' | 'functions' | 'triggers' | 'views'
+  type: DDL_TYPE
   sourceEnv: string
   targetEnv: string
   name?: string
-  status?: 'NEW' | 'UPDATED' | 'DEPRECATED'
+  status?: DDL_STATUS
   dryRun?: boolean
 }
 
@@ -324,12 +327,16 @@ export class Andb {
   }
 
   /**
-   * Get all registered schemas from core
+   * Get all registered schemas from core.
+   * Pass `connections` (resolved connections from app store) so the backend
+   * can attach connectionId to each database entry for reliable matching.
    */
-  static async getSchemas(): Promise<Result<any[]>> {
+  static async getSchemas(connections?: any[]): Promise<Result<any[]>> {
     if (!isElectron) return { success: false, error: 'Not in Electron' }
     try {
-      const result = await window.electronAPI.andbGetSchemas()
+      const result = await window.electronAPI.andbGetSchemas(
+        connections ? { connections } : undefined
+      )
       if (result.success) return { success: true, data: result.data }
 
       // FATAL error if core returns success: false
@@ -573,6 +580,78 @@ export class Andb {
       return null
     } catch (error) {
       return null
+    }
+  }
+
+  /**
+   * Extract column names from a table's CREATE TABLE DDL statement synchronously using regex.
+   * Useful for frontend filtering without IPC overhead.
+   */
+  static parseColumnNamesFromDdl(ddl: string): string[] {
+    if (!ddl || !ddl.toUpperCase().includes('CREATE TABLE')) return []
+    try {
+      const firstParen = ddl.indexOf('(')
+      const lastParen = ddl.lastIndexOf(')')
+      if (firstParen === -1 || lastParen === -1) return []
+      const body = ddl.substring(firstParen + 1, lastParen)
+
+      const lines: string[] = []
+      let current = ''
+      let parenLevel = 0
+      let inQuote = false
+      let quoteChar = ''
+
+      for (let i = 0; i < body.length; i++) {
+        const char = body[i]
+        if (inQuote) {
+          current += char
+          if (char === quoteChar && body[i - 1] !== '\\') inQuote = false
+        } else {
+          if (char === "'" || char === '"' || char === '`') {
+            inQuote = true
+            quoteChar = char
+            current += char
+          } else if (char === '(') {
+            parenLevel++
+            current += char
+          } else if (char === ')') {
+            parenLevel--
+            current += char
+          } else if (char === ',' && parenLevel === 0) {
+            lines.push(current.trim())
+            current = ''
+          } else {
+            current += char
+          }
+        }
+      }
+      if (current.trim()) lines.push(current.trim())
+
+      const colNames: string[] = []
+      for (const line of lines) {
+        if (!line) continue
+        const up = line.toUpperCase().trim()
+        if (
+          up.startsWith('PRIMARY KEY') ||
+          up.startsWith('CONSTRAINT') ||
+          up.startsWith('KEY') ||
+          up.startsWith('INDEX') ||
+          up.startsWith('UNIQUE KEY') ||
+          up.startsWith('UNIQUE') ||
+          up.startsWith('FOREIGN KEY')
+        ) {
+          continue
+        }
+        // Column name match: handle optional quotes/brackets and capture the name
+        const colNameMatch = line.match(/^(?:[`"\[])?([^`"\]\s]+)(?:[`"\]])?\s+/i)
+        if (colNameMatch) {
+          colNames.push(colNameMatch[1])
+        }
+      }
+      return colNames
+    } catch (e) {
+      console.warn('Failed to parse columns from DDL:', e)
+      return []
     }
   }
 

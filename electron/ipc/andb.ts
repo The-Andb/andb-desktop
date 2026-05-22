@@ -3,6 +3,8 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { AndbBuilder } from '../services/andb-builder'
 import { CoreBridge } from '@the-andb/core'
+import { getDb, schema } from '../storage/drizzle/db'
+import { eq } from 'drizzle-orm'
 
 /**
  * Handle Execute andb-core operation
@@ -214,42 +216,83 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
       return { success: true, data: result }
     }
 
-    // No connection provided means the UI wants ALL cached schemas from SQLite
+    // ISOLATION: Only return schemas for the current project's connections.
+    // The caller MUST pass `connections` (the active project's resolved connections).
+    // Without connections, we cannot determine which project owns which data — return empty.
+    const knownConnections: any[] = args?.connections || []
+    console.log('[handleAndbGetSchemas] Received knownConnections count:', knownConnections.length)
+    if (knownConnections.length > 0) {
+      console.log('[handleAndbGetSchemas] knownConnections details:', knownConnections.map(c => ({ id: c.id, name: c.name, env: c.environment, db: c.database })))
+    }
+    if (knownConnections.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    // Group the active project's connections by environment to construct the structure
+    const envGroups = new Map<string, any[]>()
+    for (const c of knownConnections) {
+      if (!c.environment || !c.database) continue
+      const envKey = c.environment.toLowerCase()
+      if (!envGroups.has(envKey)) {
+        envGroups.set(envKey, [])
+      }
+      envGroups.get(envKey)!.push(c)
+    }
+
     const { BackgroundWorker } = require('../services/background-worker')
     const worker = BackgroundWorker.getInstance()
-    
-    const envs = await worker.getEnvironments() || []
     const result: any[] = []
 
-    for (const env of envs) {
-      const dbs = await worker.getDatabases(env) || []
-      if (dbs.length === 0) continue
+    for (const [envKey, conns] of envGroups.entries()) {
+      const envName = conns[0].environment
+      const envData: any = { name: envName, databases: [] }
 
-      const envData: any = { name: env, databases: [] }
-      for (const db of dbs) {
-        const dbName = typeof db === 'string' ? db : db.name
-        const dbType = typeof db === 'string' ? 'mysql' : db.database_type || 'mysql'
+      for (const conn of conns) {
+        const dbName = conn.database
+        const dbType = conn.source_type || conn.type || 'mysql'
+
+        console.log(`[handleAndbGetSchemas] Fetching DDL objects for project connection: ${envName} / ${dbName} (${dbType})`)
+
+        const tables = await worker.getDDLObjects(envName, dbName, 'TABLES', dbType) || []
+        const views = await worker.getDDLObjects(envName, dbName, 'VIEWS', dbType) || []
+        const procedures = await worker.getDDLObjects(envName, dbName, 'PROCEDURES', dbType) || []
+        const functions = await worker.getDDLObjects(envName, dbName, 'FUNCTIONS', dbType) || []
+        const triggers = await worker.getDDLObjects(envName, dbName, 'TRIGGERS', dbType) || []
+
+        console.log(`[handleAndbGetSchemas] DDL counts for ${envName} / ${dbName}:`, {
+          tables: tables.length,
+          views: views.length,
+          procedures: procedures.length,
+          functions: functions.length,
+          triggers: triggers.length
+        })
 
         const dbData = {
           name: dbName,
           type: dbType,
-          tables: await worker.getDDLObjects(env, dbName, 'TABLES', dbType) || [],
-          views: await worker.getDDLObjects(env, dbName, 'VIEWS', dbType) || [],
-          procedures: await worker.getDDLObjects(env, dbName, 'PROCEDURES', dbType) || [],
-          functions: await worker.getDDLObjects(env, dbName, 'FUNCTIONS', dbType) || [],
-          triggers: await worker.getDDLObjects(env, dbName, 'TRIGGERS', dbType) || [],
+          connectionId: conn.id || null,
+          tables,
+          views,
+          procedures,
+          functions,
+          triggers,
           lastUpdated: new Date().toISOString()
         }
         envData.databases.push(dbData)
       }
-      result.push(envData)
+
+      if (envData.databases.length > 0) {
+        result.push(envData)
+      }
     }
 
+    console.log('[handleAndbGetSchemas] Final schemas returned count:', result.length)
     return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }
   }
 }
+
 
 /**
  * Handle Add Migration
@@ -980,7 +1023,226 @@ export async function handleAndbSyncSecretRepo(_event: any, url: string) {
 export async function handleSetActiveProjectDir(_event: any, args: { projectBaseDir: string, projectId?: string, projectName?: string }) {
   try {
     const { BackgroundWorker } = require('../services/background-worker')
-    BackgroundWorker.getInstance().setActiveProjectContext(args.projectBaseDir || '', args.projectId || '', args.projectName || '')
+    const worker = BackgroundWorker.getInstance()
+    worker.setActiveProjectContext(args.projectBaseDir || '', args.projectId || '', args.projectName || '')
+
+    // Persist projectBaseDir to the projects table so it survives restarts
+    if (args.projectId && args.projectBaseDir) {
+      try {
+        await worker.saveProject({
+          id: args.projectId,
+          name: args.projectName || '',
+          description: '',
+          projectBaseDir: args.projectBaseDir
+        })
+      } catch (persistErr: any) {
+        // Non-fatal — in-memory context is already set above
+        console.warn('[handleSetActiveProjectDir] Could not persist projectBaseDir to DB:', persistErr.message)
+      }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Save Instant Compare Session
+ */
+export async function handleSaveInstantCompare(_event: any, args: any) {
+  try {
+    const { id, name, srcDDL, destDDL, status, type } = args || {}
+    if (!name) {
+      throw new Error('Name is required to save instant comparison')
+    }
+
+    const { BackgroundWorker } = require('../services/background-worker')
+    const worker = BackgroundWorker.getInstance()
+    
+    // Resolve project details
+    const projectId = worker.getActiveProjectId() || 'default'
+    const baseDir = worker.getActiveProjectBaseDir() || app.getPath('userData')
+    const rawProjectName = worker.getActiveProjectName() || 'default'
+    const projectName = rawProjectName.replace(/[^a-z0-9_-]/gi, '_').toLowerCase()
+
+    // Determine the directory in the vault to save files
+    const instantCompareDir = path.join(baseDir, 'projects', projectName, 'instant_compare')
+    if (!fs.existsSync(instantCompareDir)) {
+      fs.mkdirSync(instantCompareDir, { recursive: true })
+    }
+
+    // Generate custom unique ID if not provided
+    const recordId = id || 'ic-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)
+
+    // Save actual DDL files inside vault
+    const sourceRelativePath = `projects/${projectName}/instant_compare/${recordId}_source.sql`
+    const targetRelativePath = `projects/${projectName}/instant_compare/${recordId}_target.sql`
+
+    const sourceFileFullPath = path.join(baseDir, sourceRelativePath)
+    const targetFileFullPath = path.join(baseDir, targetRelativePath)
+
+    fs.writeFileSync(sourceFileFullPath, srcDDL || '', 'utf8')
+    fs.writeFileSync(targetFileFullPath, destDDL || '', 'utf8')
+
+    // Save or update SQLite record using Drizzle
+    const db = getDb()
+    db.insert(schema.instantCompares)
+      .values({
+        id: recordId,
+        projectId,
+        name,
+        sourcePath: sourceRelativePath,
+        targetPath: targetRelativePath,
+        status: status || null,
+        type: type || 'SQL',
+        updatedAt: new Date().toISOString()
+      })
+      .onConflictDoUpdate({
+        target: schema.instantCompares.id,
+        set: {
+          name,
+          sourcePath: sourceRelativePath,
+          targetPath: targetRelativePath,
+          status: status || null,
+          type: type || 'SQL',
+          updatedAt: new Date().toISOString()
+        }
+      })
+      .run()
+
+    return { success: true, data: { id: recordId } }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Get Instant Compare History
+ */
+export async function handleGetInstantCompareHistory(_event: any, args: any) {
+  try {
+    const { BackgroundWorker } = require('../services/background-worker')
+    const worker = BackgroundWorker.getInstance()
+    const projectId = worker.getActiveProjectId() || 'default'
+
+    const db = getDb()
+    const rows = db.select()
+      .from(schema.instantCompares)
+      .where(eq(schema.instantCompares.projectId, projectId))
+      .orderBy(schema.instantCompares.createdAt)
+      .all()
+
+    return { success: true, data: rows }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Load Instant Compare Detail
+ */
+export async function handleLoadInstantCompareDetail(_event: any, args: any) {
+  try {
+    const { id } = args || {}
+    if (!id) {
+      throw new Error('ID is required to load instant comparison details')
+    }
+
+    const db = getDb()
+    const record = db.select()
+      .from(schema.instantCompares)
+      .where(eq(schema.instantCompares.id, id))
+      .get()
+
+    if (!record) {
+      throw new Error(`Comparison history record not found for ID: ${id}`)
+    }
+
+    const { BackgroundWorker } = require('../services/background-worker')
+    const worker = BackgroundWorker.getInstance()
+    const baseDir = worker.getActiveProjectBaseDir() || app.getPath('userData')
+
+    let srcDDL = ''
+    let destDDL = ''
+
+    if (record.sourcePath) {
+      const sourceFileFullPath = path.join(baseDir, record.sourcePath)
+      if (fs.existsSync(sourceFileFullPath)) {
+        srcDDL = fs.readFileSync(sourceFileFullPath, 'utf8')
+      }
+    }
+
+    if (record.targetPath) {
+      const targetFileFullPath = path.join(baseDir, record.targetPath)
+      if (fs.existsSync(targetFileFullPath)) {
+        destDDL = fs.readFileSync(targetFileFullPath, 'utf8')
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        ...record,
+        srcDDL,
+        destDDL
+      }
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Delete Instant Compare Session
+ */
+export async function handleDeleteInstantCompare(_event: any, args: any) {
+  try {
+    const { id } = args || {}
+    if (!id) {
+      throw new Error('ID is required to delete comparison history')
+    }
+
+    const db = getDb()
+    const record = db.select()
+      .from(schema.instantCompares)
+      .where(eq(schema.instantCompares.id, id))
+      .get()
+
+    if (record) {
+      const { BackgroundWorker } = require('../services/background-worker')
+      const worker = BackgroundWorker.getInstance()
+      const baseDir = worker.getActiveProjectBaseDir() || app.getPath('userData')
+
+      // Wipe physical files from vault
+      if (record.sourcePath) {
+        const sourceFileFullPath = path.join(baseDir, record.sourcePath)
+        if (fs.existsSync(sourceFileFullPath)) {
+          try {
+            fs.unlinkSync(sourceFileFullPath)
+          } catch (e) {
+            // Ignore missing files
+          }
+        }
+      }
+
+      if (record.targetPath) {
+        const targetFileFullPath = path.join(baseDir, record.targetPath)
+        if (fs.existsSync(targetFileFullPath)) {
+          try {
+            fs.unlinkSync(targetFileFullPath)
+          } catch (e) {
+            // Ignore missing files
+          }
+        }
+      }
+
+      // Delete SQLite record
+      db.delete(schema.instantCompares)
+        .where(eq(schema.instantCompares.id, id))
+        .run()
+    }
+
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }

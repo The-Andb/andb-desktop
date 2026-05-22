@@ -1,15 +1,8 @@
 <template>
   <MainLayout>
     <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{{
-            $t('dashboard.title')
-          }}</span>
-        </div>
-
-        <!-- Project Quick Actions (Unified) -->
-        <div class="flex items-center gap-3">
+      <!-- Project Quick Actions (Unified) -->
+      <div class="flex items-center gap-3">
           <!-- Vertical Divider -->
           <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
 
@@ -62,9 +55,8 @@
             </div>
           </button>
 
-          <!-- Vertical Divider -->
-          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
-        </div>
+        <!-- Vertical Divider -->
+        <div class="h-6 w-px bg-gray-200 dark:bg-gray-700/50 hidden sm:block mx-1"></div>
       </div>
     </template>
 

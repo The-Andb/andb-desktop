@@ -6,6 +6,7 @@ export interface DatabaseConnection {
   database: string
   username: string
   password?: string
+  projectId?: string
 }
 
 export interface CommandResult {

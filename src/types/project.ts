@@ -10,6 +10,7 @@ export interface Project {
   isProtected?: boolean
   enabledEnvironmentIds: string[]
   pinnedColumnTypes?: string[]
+  projectBaseDir?: string
   settings?: {
     domainNormalization?: {
       pattern: string
@@ -29,3 +30,4 @@ export interface Project {
   updatedAt: string
   lastOpenedAt?: string
 }
+

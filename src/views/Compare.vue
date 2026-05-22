@@ -39,7 +39,7 @@
               :inline="true"
               :loading="isMigrating"
               :item="
-                migrationTerminal.type === 'batch'
+                migrationTerminal.type === 'batch' || migrationTerminal.type === 'custom-batch'
                   ? { isBatch: true, items: migrationTerminal.items }
                   : migrationTerminal.items[0]
               "
@@ -68,9 +68,6 @@
               v-if="appStore.layoutSettings.sidebar"
               :resultsWidth="resultsWidth"
               v-model:activeType="selectedFilterType"
-              v-model:searchQuery="searchQuery"
-              v-model:searchFlags="searchFlags"
-              v-model:selectedStatusFilter="selectedStatusFilter"
               v-model:sortBy="sortBy"
               :selectedItem="selectedItem"
               :collapsedCategories="collapsedCategories"
@@ -90,6 +87,8 @@
               @select-item="selectItem"
               @contextmenu="handleItemContextMenu"
               @migrate="migrateSingleItem"
+              @migrate-batch="migrateBatchInline"
+              @migrate-custom-batch="migrateCustomItems"
               @start-resize="startResultsResize"
             />
 
@@ -350,6 +349,19 @@ onMounted(async () => {
     // Clean URL
     router.replace({ query: { ...route.query, action: undefined } })
   }
+
+  // Check for action=fetch-compare (Auto Run Fetch & Compare)
+  if (route.query.action === 'fetch-compare') {
+    await nextTick()
+    if (activePair.value) {
+      runFetchAndCompare()
+    } else {
+      await nextTick()
+      if (activePair.value) runFetchAndCompare()
+    }
+    // Clean URL
+    router.replace({ query: { ...route.query, action: undefined } })
+  }
 })
 
 const viewMode = ref<'list' | 'tree'>('list')
@@ -392,24 +404,36 @@ const viewResults = ref<any[]>([])
 const triggerResults = ref<any[]>([])
 const selectedItem = ref<any>(null)
 const selectedFilterType = ref<string>('all')
-const searchQuery = ref('')
-const searchFlags = ref({
-  caseSensitive: false,
-  wholeWord: false,
-  regex: false,
-  columns: false
-})
+const searchFlags = appStore.globalSearchFlags
 const diffOptions = ref({
   hideWhitespace: false,
   wrapLines: false,
   mode: 'unified' as 'unified' | 'split',
   showChangesOnly: true // default to true
 })
-const selectedStatusFilter = ref('all')
 const lastCompareTime = ref(0)
 const showErrorModal = ref(false)
 const treeExpandCmd = ref<{ action: 'expand' | 'collapse'; ts: number } | null>(null)
 const collapsedCategories = ref(new Set<string>())
+watch(selectedFilterType, (newType) => {
+  if (newType && newType !== 'all') {
+    // Expand the selected category
+    collapsedCategories.value.delete(newType)
+    // Collapse all other categories
+    const allTypes = ['tables', 'views', 'procedures', 'functions', 'triggers']
+    allTypes.forEach(t => {
+      if (t !== newType) {
+        collapsedCategories.value.add(t)
+      }
+    })
+    // Force reactivity of Set
+    collapsedCategories.value = new Set(collapsedCategories.value)
+  } else if (newType === 'all') {
+    // Expand all categories when 'all' is selected
+    collapsedCategories.value.clear()
+    collapsedCategories.value = new Set(collapsedCategories.value)
+  }
+}, { immediate: true })
 const sortBy = ref<'status' | 'name' | 'date'>('status')
 
 // Tabs State
@@ -607,13 +631,10 @@ const allResults = computed(() => {
 const filteredResults = computed(() => {
   let filtered = allResults.value
 
-  // Filter by category
-  if (selectedFilterType.value !== 'all') {
-    filtered = filtered.filter(i => i.type === selectedFilterType.value)
-  }
+
 
   // Filter by status
-  const filter = selectedStatusFilter.value
+  const filter = appStore.globalSearchFilter
   filtered = filtered.filter(i => {
     const status = i.status.toLowerCase()
     if (filter === 'modified')
@@ -627,17 +648,44 @@ const filteredResults = computed(() => {
   })
 
   // Filter by search query
-  // Filter by search query
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.trim()
-    const { caseSensitive, wholeWord, regex } = searchFlags.value
+  if (appStore.globalSearchQuery.trim()) {
+    const query = appStore.globalSearchQuery.trim()
+    const { caseSensitive, wholeWord, regex } = searchFlags
+
+    const buildMatches = (item: any, testFunc: (text: string) => boolean) => {
+      const matches: any[] = []
+      const findInContent = (content: string) => {
+        if (!content) return
+        const lines = content.split('\n')
+        lines.forEach((lineText, idx) => {
+          if (testFunc(lineText)) {
+            matches.push({
+              line: idx + 1,
+              text: lineText.trim()
+            })
+          }
+        })
+      }
+      findInContent(item.diff?.source || '')
+      findInContent(item.diff?.target || '')
+      
+      const uniqueMatches: any[] = []
+      const seen = new Set<string>()
+      matches.forEach(m => {
+        const key = `${m.line}:${m.text}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          uniqueMatches.push(m)
+        }
+      })
+      return uniqueMatches
+    }
 
     try {
       let re: RegExp
       if (regex) {
         re = new RegExp(query, caseSensitive ? '' : 'i')
       } else {
-        // Escape regex chars if not regex mode
         const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         if (wholeWord) {
           re = new RegExp(`\\b${escaped}\\b`, caseSensitive ? '' : 'i')
@@ -646,36 +694,27 @@ const filteredResults = computed(() => {
         }
       }
 
-      filtered = filtered.filter(i => {
-        const nameMatch = re.test(i.name)
-        if (nameMatch) return true
-
-        if (searchFlags.value.columns) {
-          const sourceMatch = i.diff?.source ? re.test(i.diff.source) : false
-          const targetMatch = i.diff?.target ? re.test(i.diff.target) : false
-          return sourceMatch || targetMatch
-        }
-        return false
-      })
+      filtered = filtered
+        .map(i => {
+          const matches = buildMatches(i, (text) => re.test(text))
+          const nameMatches = re.test(i.name)
+          return { ...i, matches, nameMatches }
+        })
+        .filter(i => i.nameMatches || i.matches.length > 0)
     } catch (e) {
       // Invalid regex fallback to simple include
-      filtered = filtered.filter(i => {
-        const lowerQuery = query.toLowerCase()
-        const nameMatch = i.name.toLowerCase().includes(lowerQuery)
-        if (nameMatch) return true
-
-        if (searchFlags.value.columns) {
-          const sourceMatch = i.diff?.source
-            ? i.diff.source.toLowerCase().includes(lowerQuery)
-            : false
-          const targetMatch = i.diff?.target
-            ? i.diff.target.toLowerCase().includes(lowerQuery)
-            : false
-          return sourceMatch || targetMatch
-        }
-        return false
-      })
+      filtered = filtered
+        .map(i => {
+          const lowerQuery = query.toLowerCase()
+          const matches = buildMatches(i, (text) => text.toLowerCase().includes(lowerQuery))
+          const nameMatches = i.name.toLowerCase().includes(lowerQuery)
+          return { ...i, matches, nameMatches }
+        })
+        .filter(i => i.nameMatches || i.matches.length > 0)
     }
+  } else {
+    // Clear matches if no search query
+    filtered = filtered.map(i => ({ ...i, matches: [] }))
   }
 
   return filtered
@@ -727,6 +766,7 @@ const runComparison = async () => {
 
   loading.value = true
   loadingAction.value = 'compare'
+  sidebarStore.isComparing = true
 
   statusMessage.value = t('compare.initializing')
   consoleStore.clearLogs()
@@ -861,6 +901,7 @@ const runComparison = async () => {
     // 5. Update Sidebar to show new objects
     await sidebarStore.loadSchemas(true)
 
+    sidebarStore.isComparing = false
     loading.value = false
   }
 }
@@ -869,20 +910,32 @@ const runFetchAndCompare = async () => {
   if (!activePair.value) return
   loading.value = true
   loadingAction.value = 'fetch'
+  sidebarStore.isComparing = true
   statusMessage.value = 'Fetching fresh DDLs from databases...'
 
   try {
     const { source, target } = activePair.value
+    const types: ('tables' | 'views' | 'procedures' | 'functions' | 'triggers')[] = [
+      'tables',
+      'views',
+      'procedures',
+      'functions',
+      'triggers'
+    ]
 
     // 1. Export source
     consoleStore.addLog(`Fetching Source: ${source.name}`, 'info')
-    await Andb.export(source, target, { type: 'tables', environment: source.environment })
-    await Andb.export(source, target, { type: 'views', environment: source.environment })
+    for (const type of types) {
+      statusMessage.value = `Fetching ${type} from ${source.name}...`
+      await Andb.export(source, target, { type, environment: source.environment })
+    }
 
     // 2. Export target
     consoleStore.addLog(`Fetching Target: ${target.name}`, 'info')
-    await Andb.export(source, target, { type: 'tables', environment: target.environment })
-    await Andb.export(source, target, { type: 'views', environment: target.environment })
+    for (const type of types) {
+      statusMessage.value = `Fetching ${type} from ${target.name}...`
+      await Andb.export(source, target, { type, environment: target.environment })
+    }
 
     // 3. Run comparison
     statusMessage.value = 'Analyzing differences...'
@@ -898,6 +951,7 @@ const runFetchAndCompare = async () => {
     showErrorModal.value = true
     consoleStore.addLog(`Fetch error: ${e.message}`, 'error')
   } finally {
+    sidebarStore.isComparing = false
     loading.value = false
     loadingAction.value = null
   }
@@ -993,7 +1047,7 @@ const migrationTerminal = ref<{
   sqlScript: string
   sqlMap?: Record<string, string>
   fetching: boolean
-  type: 'single' | 'batch'
+  type: 'single' | 'batch' | 'custom-batch'
   batchType?: string
 }>({
   isOpen: false,
@@ -1005,7 +1059,11 @@ const migrationTerminal = ref<{
 })
 
 const fetchBatchItemSql = async (item: { type: string; name: string }) => {
-  if (!migrationTerminal.value.isOpen || migrationTerminal.value.type !== 'batch') return
+  if (
+    !migrationTerminal.value.isOpen ||
+    (migrationTerminal.value.type !== 'batch' && migrationTerminal.value.type !== 'custom-batch')
+  )
+    return
   if (!activePair.value) return
 
   const key = `${item.type}-${item.name}`
@@ -1048,6 +1106,8 @@ const executeConfirmedMigration = () => {
     migrateSingleItem(dialog.items[0], true)
   } else if (dialog.type === 'batch') {
     migrateBatchInline(dialog.batchType!, true)
+  } else if (dialog.type === 'custom-batch') {
+    migrateCustomItems(dialog.items, true)
   }
 }
 
@@ -1142,10 +1202,10 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
 
       notificationStore.add({
         type: appStore.safeMode ? 'info' : 'success',
-        title: appStore.safeMode ? t('compare.dryRunComplete') : 'Migration Successful',
+        title: appStore.safeMode ? t('compare.dryRunComplete') : 'Sync Successful',
         message: appStore.safeMode
           ? t('compare.dryRunDesc', { name: item.name })
-          : `${item.name} (${item.type}) has been migrated and verified.`
+          : `${item.name} (${item.type}) has been synced and verified.`
       })
 
       sidebarStore.setComparisonResults(allResults.value)
@@ -1237,7 +1297,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     if (pendingItems.length === 0) {
       notificationStore.add({
         type: 'info',
-        title: 'Nothing to migrate',
+        title: 'Nothing to sync',
         message: 'There are no pending changes in this category.'
       })
       return
@@ -1252,7 +1312,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
       isOpen: true,
       items: pendingItems,
       sqlScript:
-        '-- Note: Interactive preview is not available for batch mode migrations.\n-- All selected items will be executed consecutively.',
+        '-- Note: Interactive preview is not available for batch mode syncs.\n-- All selected items will be executed consecutively.',
       sqlMap: {},
       fetching: false,
       type: 'batch',
@@ -1337,8 +1397,8 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
 
       notificationStore.add({
         type: 'success',
-        title: 'Batch Migration Successful',
-        message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been migrated and verified.`
+        title: 'Batch Sync Successful',
+        message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been synced and verified.`
       })
 
       // Update Sidebar with new results
@@ -1383,6 +1443,145 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     if (window.electronAPI) {
       window.electronAPI.log.send('error', `Migration failed for ${type}`, e.message)
     }
+  } finally {
+    isMigratingBatch.value = null
+  }
+}
+
+const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) => {
+  if (isTargetDump.value) {
+    notificationStore.add({
+      type: 'warning',
+      title: t('compare.dumpReadOnly'),
+      message: t('compare.cannotMigrateToDump')
+    })
+    return
+  }
+
+  if (!activePair.value || isMigratingBatch.value || !items || items.length === 0) return
+
+  if (!skipConfirm) {
+    if (items.length === 1) {
+      return migrateSingleItem(items[0], false)
+    }
+    
+    migrationTerminal.value = {
+      isOpen: true,
+      items: items,
+      sqlScript:
+        '-- Note: Interactive preview is not available for custom selection migrations.\n-- All selected items will be executed consecutively.',
+      sqlMap: {},
+      fetching: false,
+      type: 'custom-batch'
+    }
+    return
+  }
+
+  isMigratingBatch.value = 'Selection'
+  let successCount = 0
+  let totalCount = items.length
+
+  try {
+    const { source, target } = activePair.value
+
+    const opId = operationsStore.addOperation({
+      type: 'migrate',
+      sourceEnv: source.environment,
+      targetEnv: target.environment,
+      status: 'pending',
+      startTime: new Date()
+    })
+
+    try {
+      const typeSet = new Set<string>()
+
+      for (const item of items) {
+        let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
+        if (item.status === 'modified' || item.status === 'different' || item.status === 'updated')
+          status = 'UPDATED'
+        
+        if (item.status === 'deprecated' || item.status === 'missing_in_source') continue
+
+        try {
+          await Andb.migrate(source, target, {
+            type: item.type as any,
+            sourceEnv: source.environment,
+            targetEnv: target.environment,
+            name: item.name,
+            status: status,
+            dryRun: appStore.safeMode
+          })
+          
+          if (!appStore.safeMode) {
+            try {
+              await Andb.createSnapshot(target, item.type, item.name)
+            } catch {}
+          }
+          
+          successCount++
+          typeSet.add(item.type)
+        } catch (err: any) {
+          console.error(`Failed to sync ${item.name}:`, err)
+          notificationStore.add({
+            type: 'error',
+            title: `Sync Failed: ${item.name}`,
+            message: err.message || 'An error occurred.'
+          })
+        }
+      }
+
+      for (const ddlType of Array.from(typeSet)) {
+        const resultsMap: Record<string, any> = {
+          tables: tableResults,
+          procedures: procedureResults,
+          functions: functionResults,
+          views: viewResults,
+          triggers: triggerResults
+        }
+
+        await Andb.export(source, target, {
+          type: ddlType as any,
+          environment: target.environment
+        })
+
+        const results = await Andb.compare(source, target, {
+          type: ddlType as any,
+          sourceEnv: source.environment,
+          targetEnv: target.environment
+        })
+
+        if (Array.isArray(results) && resultsMap[ddlType]) {
+          resultsMap[ddlType].value = results.map((r: any) => ({
+            ...r,
+            type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
+          }))
+        }
+      }
+
+      operationsStore.completeOperation(opId, true, {
+        log: `Successfully synced ${successCount} out of ${totalCount} items.`
+      })
+
+      notificationStore.add({
+        type: appStore.safeMode ? 'info' : 'success',
+        title: appStore.safeMode ? 'Batch Dry Run Complete' : 'Batch Sync Complete',
+        message: appStore.safeMode 
+           ? 'Dry run execution successfully simulated.' 
+           : `Successfully synced and verified ${successCount} items.`
+      })
+
+      sidebarStore.setComparisonResults(allResults.value)
+      sidebarStore.triggerRefresh()
+    } catch (innerErr: any) {
+      operationsStore.completeOperation(opId, false, { error: innerErr.message })
+      throw innerErr
+    }
+  } catch (e: any) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Migration Interrupted',
+      message: e.message || 'An unexpected error occurred during batch migration.'
+    })
   } finally {
     isMigratingBatch.value = null
   }
@@ -1499,6 +1698,12 @@ const handleObjectRefreshRequested = (e: any) => {
   }
 }
 
+const handlePairFetchCompareRequested = (e: any) => {
+  if (activePair.value && activePair.value.id === e.detail.pairId) {
+    runFetchAndCompare()
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   window.addEventListener('category-selected', handleCategorySelected as any)
@@ -1506,6 +1711,7 @@ onMounted(async () => {
   window.addEventListener('database-refresh-requested', handleDatabaseRefreshRequested as any)
   window.addEventListener('category-refresh-requested', handleCategoryRefreshRequested as any)
   window.addEventListener('object-refresh-requested', handleObjectRefreshRequested as any)
+  window.addEventListener('pair-fetch-compare-requested', handlePairFetchCompareRequested as any)
 
   // Trigger local comparison on init (fetch from DB is manual)
   if (activePair.value) {
@@ -1548,6 +1754,7 @@ onUnmounted(() => {
   window.removeEventListener('database-refresh-requested', handleDatabaseRefreshRequested as any)
   window.removeEventListener('category-refresh-requested', handleCategoryRefreshRequested as any)
   window.removeEventListener('object-refresh-requested', handleObjectRefreshRequested as any)
+  window.removeEventListener('pair-fetch-compare-requested', handlePairFetchCompareRequested as any)
 
   window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
   window.removeEventListener('andb-prev-tab', handlePrevTab)

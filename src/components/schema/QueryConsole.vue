@@ -2,7 +2,7 @@
   <div class="h-full w-full bg-white dark:bg-gray-950 flex flex-col overflow-hidden">
     <!-- Main Toolbar (Premium Style) -->
     <div
-      class="flex-none h-14 px-4 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800"
+      class="flex-none h-12 px-4 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800"
     >
       <div class="flex items-center gap-3">
         <button

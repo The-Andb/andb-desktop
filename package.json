@@ -190,6 +190,7 @@
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "bindings": "^1.5.0",
+    "drizzle-orm": "^0.44.1",
     "file-uri-to-path": "^2.0.0",
     "markdown-it": "^14.1.1",
     "marked": "17.0.6",
@@ -198,5 +199,6 @@
     "sql-formatter": "^15.7.3",
     "typeorm": "^0.3.28",
     "vue-virtual-scroller": "2.0.0-beta.8"
+
   }
 }

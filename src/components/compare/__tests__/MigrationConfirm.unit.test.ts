@@ -121,7 +121,7 @@ describe('MigrationConfirm.vue', () => {
     })
 
     // Confirm button should be disabled
-    const confirmBtn = screen.getByRole('button', { name: /migration\.actionSingle/ })
+    const confirmBtn = screen.getByRole('button', { name: /Sync/i })
     expect(confirmBtn.hasAttribute('disabled')).toBe(true)
 
     // Should show static warning label
@@ -131,11 +131,11 @@ describe('MigrationConfirm.vue', () => {
   it('emits close and confirm events correctly', async () => {
     const { emitted } = renderComponent()
 
-    const cancelBtn = screen.getByText('common.cancel')
+    const cancelBtn = screen.getByRole('button', { name: /Back/i })
     await fireEvent.click(cancelBtn)
     expect(emitted()).toHaveProperty('close')
 
-    const confirmBtn = screen.getByRole('button', { name: /migration\.actionSingle/ })
+    const confirmBtn = screen.getByRole('button', { name: /Sync/i })
     await fireEvent.click(confirmBtn)
     expect(emitted()).toHaveProperty('confirm')
   })

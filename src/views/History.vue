@@ -2,22 +2,14 @@
   <MainLayout>
     <template #toolbar>
       <div class="flex items-center justify-between w-full h-full gap-4 text-gray-400">
-        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
-          {{ $t('history.title') }}
-        </div>
-
         <!-- Action Group -->
         <div class="flex items-center gap-3">
-          <button
-            @click="loadSnapshots"
+          <button @click="loadSnapshots"
             class="flex items-center gap-2 font-bold uppercase transition-all duration-300 disabled:opacity-50 disabled:grayscale"
-            :class="
-              appStore.buttonStyle === 'full'
+            :class="appStore.buttonStyle === 'full'
                 ? 'px-5 py-2'
                 : 'px-4 py-1.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-[10px] tracking-wider active:scale-95 shadow-sm'
-            "
-            :disabled="loading"
-          >
+              " :disabled="loading">
             <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
             <span class="text-[10px] leading-none">{{ $t('common.refresh') }}</span>
           </button>
@@ -29,73 +21,43 @@
       <div class="flex items-center gap-3 w-full">
         <!-- Main Route -->
         <div
-          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm"
-        >
+          class="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
           <History class="w-3.5 h-3.5 text-primary-500 opacity-60" />
-          <span
-            class="text-[11px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400"
-            >{{ $t('history.title') }}</span
-          >
+          <span class="text-[11px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">{{
+            $t('history.title') }}</span>
         </div>
 
         <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700" />
 
         <!-- Pill Type Selectors (Premium Refinement) -->
         <div
-          class="flex items-center bg-gray-50 dark:bg-gray-900 px-1 py-1 rounded-xl border border-gray-100 dark:border-gray-800 shadow-inner"
-        >
-          <button
-            v-for="type in historyTypes"
-            :key="type"
-            @click="filters.type = type"
-            class="px-4 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all"
-            :class="
-              filters.type === type
+          class="flex items-center bg-gray-50 dark:bg-gray-900 px-1 py-1 rounded-xl border border-gray-100 dark:border-gray-800 shadow-inner">
+          <button v-for="type in historyTypes" :key="type" @click="filters.type = type"
+            class="px-4 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all" :class="filters.type === type
                 ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-md ring-1 ring-gray-100 dark:ring-gray-600'
                 : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-            "
-          >
+              ">
             {{ type ? $t(`navigation.ddl.${type.toLowerCase()}`) : $t('common.all') }}
           </button>
         </div>
       </div>
     </template>
 
-    <div
-      class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-950"
-      :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }"
-    >
+    <div class="flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-950"
+      :class="{ 'flex-row-reverse': appStore.layoutSettings.sidebarPosition === 'right' }">
       <!-- Snapshots List -->
-      <div
-        v-if="appStore.layoutSettings.sidebar"
-        class="w-1/3 flex flex-col bg-white dark:bg-gray-900 overflow-hidden"
-        :class="
-          appStore.layoutSettings.sidebarPosition === 'right'
+      <div v-if="appStore.layoutSettings.sidebar" class="w-1/3 flex flex-col bg-white dark:bg-gray-900 overflow-hidden"
+        :class="appStore.layoutSettings.sidebarPosition === 'right'
             ? 'border-l border-gray-200 dark:border-gray-800'
             : 'border-r border-gray-200 dark:border-gray-800'
-        "
-      >
+          ">
         <div
-          class="p-3 border-b border-gray-200 dark:border-gray-800 flex flex-col shrink-0 bg-gray-50 dark:bg-gray-800/50"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">
-              {{ $t('history.snapshotsList') }}
-            </h2>
-            <span class="text-[10px] text-gray-400 uppercase tracking-tighter"
-              >{{ filteredSnapshots.length }} {{ $t('history.records') }}</span
-            >
-          </div>
-          <div class="relative">
-            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              ref="searchInput"
-              v-model="filters.query"
-              type="text"
-              :placeholder="$t('history.searchPlaceholder')"
-              class="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white"
-            />
-          </div>
+          class="px-4 h-12 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 shrink-0">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">
+            {{ $t('history.snapshotsList') }}
+          </h2>
+          <span class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ filteredSnapshots.length }} {{
+            $t('history.records') }}</span>
         </div>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar">
@@ -110,34 +72,26 @@
           </div>
 
           <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
-            <div
-              v-for="snapshot in filteredSnapshots"
-              :key="snapshot.id"
-              @click="selectSnapshot(snapshot)"
+            <div v-for="snapshot in filteredSnapshots" :key="snapshot.id" @click="selectSnapshot(snapshot)"
               class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors relative group border-l-4 border-transparent"
               :class="{
                 'bg-primary-50 dark:bg-primary-900/20 border-primary-500':
                   selectedSnapshot?.id === snapshot.id
-              }"
-            >
+              }">
               <div class="flex items-start justify-between mb-1">
                 <div class="flex items-center min-w-0">
-                  <span
-                    class="p-1.5 rounded bg-gray-100 dark:bg-gray-800 mr-3 text-gray-500 dark:text-gray-400"
-                  >
+                  <span class="p-1.5 rounded bg-gray-100 dark:bg-gray-800 mr-3 text-gray-500 dark:text-gray-400">
                     <component :is="getIconForType(snapshot.ddl_type)" class="w-3.5 h-3.5" />
                   </span>
                   <div class="flex flex-col min-w-0">
                     <span class="font-bold text-gray-900 dark:text-white truncate text-title">{{
                       snapshot.ddl_name
-                    }}</span>
+                      }}</span>
                     <div
-                      class="flex items-center space-x-2 text-[10px] uppercase tracking-tighter text-gray-400 font-bold mt-0.5"
-                    >
+                      class="flex items-center space-x-2 text-[10px] uppercase tracking-tighter text-gray-400 font-bold mt-0.5">
                       <span
-                        class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                        >{{ snapshot.environment }}</span
-                      >
+                        class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{{
+                        snapshot.environment }}</span>
                       <span class="truncate">{{ snapshot.database_name }}</span>
                     </div>
                   </div>
@@ -149,10 +103,8 @@
                   <Clock class="w-3 h-3 mr-1" />
                   {{ formatDate(snapshot.created_at) }}
                 </div>
-                <div
-                  v-if="snapshot.version_tag"
-                  class="text-[9px] px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 rounded-full font-bold uppercase tracking-widest scale-90 origin-right"
-                >
+                <div v-if="snapshot.version_tag"
+                  class="text-[9px] px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 rounded-full font-bold uppercase tracking-widest scale-90 origin-right">
                   {{ snapshot.version_tag.replace('pre-migration-', '') }}
                 </div>
               </div>
@@ -164,28 +116,16 @@
       <!-- Detail View -->
       <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 relative overflow-hidden">
         <!-- Tab Bar -->
-        <TabBar
-          v-if="tabs.length > 0"
-          :tabs="tabs"
-          :active-tab-id="activeTabId"
-          @select="handleSelectTab"
-          @close="handleCloseTab"
-          @duplicate="handleDuplicateTab"
-          @close-others="handleCloseOthers"
-          @close-right="handleCloseRight"
-        />
-        <div
-          v-if="!selectedSnapshot"
-          class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8"
-        >
+        <TabBar v-if="tabs.length > 0" :tabs="tabs" :active-tab-id="activeTabId" @select="handleSelectTab"
+          @close="handleCloseTab" @duplicate="handleDuplicateTab" @close-others="handleCloseOthers"
+          @close-right="handleCloseRight" />
+        <div v-if="!selectedSnapshot"
+          class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 p-8">
           <div
-            class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-8 opacity-50"
-          >
+            class="w-48 h-48 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-8 opacity-50">
             <History class="w-24 h-24" />
           </div>
-          <h3
-            class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-2"
-          >
+          <h3 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-2">
             {{ $t('history.selectVersion') }}
           </h3>
           <p class="text-[10px] text-center max-w-xs uppercase tracking-tighter leading-relaxed">
@@ -196,8 +136,7 @@
         <template v-else>
           <!-- Header -->
           <div
-            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 shrink-0"
-          >
+            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 shrink-0">
             <div class="flex items-center min-w-0">
               <span class="p-2 rounded-lg bg-primary-500/10 text-primary-500 mr-4">
                 <component :is="getIconForType(selectedSnapshot.ddl_type)" class="w-5 h-5" />
@@ -208,13 +147,10 @@
                     {{ selectedSnapshot.ddl_name }}
                   </h2>
                   <span
-                    class="text-[9px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500 whitespace-nowrap"
-                    >{{ selectedSnapshot.ddl_type }}</span
-                  >
+                    class="text-[9px] font-extrabold uppercase bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500 whitespace-nowrap">{{
+                    selectedSnapshot.ddl_type }}</span>
                 </div>
-                <p
-                  class="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center"
-                >
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center">
                   <Server class="w-3 h-3 mr-1" /> {{ selectedSnapshot.environment }}
                   <span class="mx-2 opacity-30">|</span>
                   <Database class="w-3 h-3 mr-1" /> {{ selectedSnapshot.database_name }}
@@ -225,52 +161,39 @@
             </div>
 
             <div class="flex items-center gap-3">
-              <button
-                @click="copyDDL"
+              <button @click="copyDDL"
                 class="inline-flex items-center gap-2 font-bold uppercase transition-all active:scale-95 disabled:opacity-50"
-                :class="
-                  appStore.buttonStyle === 'full'
+                :class="appStore.buttonStyle === 'full'
                     ? 'px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-primary-500 text-gray-700 dark:text-gray-300 rounded-xl text-[11px] tracking-widest shadow-sm'
                     : 'px-3 py-1.5 text-primary-500 bg-primary-50 dark:bg-primary-900/10 rounded-lg text-[10px] tracking-wider'
-                "
-              >
+                  ">
                 <Copy class="w-3.5 h-3.5" />
                 <span>{{ $t('history.copyScript') }}</span>
               </button>
 
-              <button
-                @click="restoreVersion"
+              <button @click="restoreVersion"
                 :disabled="loading || selectedSnapshot.ddl_type.toUpperCase() === 'TABLES'"
                 class="inline-flex items-center gap-2 font-bold uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
-                :class="
-                  appStore.buttonStyle === 'full'
+                :class="appStore.buttonStyle === 'full'
                     ? 'px-5 py-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white rounded-xl text-[11px] tracking-widest shadow-lg shadow-red-500/20'
                     : 'px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-[10px] tracking-wider shadow-sm shadow-red-500/10'
-                "
-              >
+                  ">
                 <RotateCcw class="w-3.5 h-3.5" />
                 <span>{{ $t('history.restoreVersion') }}</span>
               </button>
 
-              <div
-                v-if="selectedSnapshot.ddl_type.toUpperCase() === 'TABLES'"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg"
-              >
+              <div v-if="selectedSnapshot.ddl_type.toUpperCase() === 'TABLES'"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg">
                 <AlertTriangle class="w-3 h-3 text-amber-500" />
-                <span
-                  class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter"
-                  >{{ $t('history.manualUpdateWarning') }}</span
-                >
+                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter">{{
+                  $t('history.manualUpdateWarning') }}</span>
               </div>
             </div>
           </div>
 
           <!-- Code Viewer -->
-          <DDLViewer
-            :content="selectedSnapshot.ddl_content"
-            :font-size="appStore.fontSizes.code"
-            :font-family="appStore.fontFamilies.code"
-          />
+          <DDLViewer :content="selectedSnapshot.ddl_content" :font-size="appStore.fontSizes.code"
+            :font-family="appStore.fontFamilies.code" />
         </template>
       </div>
     </div>
@@ -291,7 +214,6 @@ import TabBar from '@/components/general/TabBar.vue'
 import {
   History,
   RefreshCw,
-  Search,
   ScanSearch,
   Table,
   Zap,
@@ -316,8 +238,6 @@ const projectsStore = useProjectsStore()
 const notificationStore = useNotificationStore()
 const route = useRoute()
 const { t } = useI18n()
-
-const searchInput = ref<HTMLInputElement | null>(null)
 
 // Tabs State
 const tabs = ref<any[]>([])
@@ -373,7 +293,6 @@ const handleNextTab = () => {
 const handleCloseActiveTab = () => {
   if (activeTabId.value) handleCloseTab(activeTabId.value)
 }
-const handleFocusSearch = () => searchInput.value?.focus()
 
 const handleSelectTab = (id: string) => {
   const tab = tabs.value.find(t => t.id === id)
@@ -431,7 +350,7 @@ watch(
   () => projectsStore.selectedProjectId,
   () => {
     selectedSnapshot.value = null
-    filters.value.query = ''
+    appStore.globalSearchQuery = ''
     filters.value.type = ''
     filters.value.environment = ''
     tabs.value = []
@@ -441,8 +360,7 @@ watch(
 
 const filters = ref({
   environment: '',
-  type: '',
-  query: ''
+  type: ''
 })
 
 const historyTypes = ['', 'TABLES', 'VIEWS', 'PROCEDURES', 'FUNCTIONS', 'TRIGGERS']
@@ -477,8 +395,11 @@ const filteredSnapshots = computed(() => {
 
     // 3. Local UI Filters (Type & Query)
     const matchesType = !filters.value.type || s.ddl_type === filters.value.type
+    const query = appStore.globalSearchQuery.trim().toLowerCase()
     const matchesQuery =
-      !filters.value.query || s.ddl_name.toLowerCase().includes(filters.value.query.toLowerCase())
+      !query ||
+      s.ddl_name.toLowerCase().includes(query) ||
+      (s.ddl_content && s.ddl_content.toLowerCase().includes(query))
     return matchesType && matchesQuery
   })
 })
@@ -599,12 +520,7 @@ onMounted(async () => {
     filters.value.environment = route.query.env as string
   }
   if (route.query.name) {
-    filters.value.query = route.query.name as string
-
-    // Auto-select if there is exactly one match or first one matches name
-    // (Wait for reactivity or computed update?)
-    // Actually filteredSnapshots is computed from snapshots.value.
-    // So subsequent render/tick will have it.
+    appStore.globalSearchQuery = route.query.name as string
   }
 
   // Listen for sidebar selection events to filter history AND update Global Connection
@@ -633,7 +549,7 @@ onMounted(async () => {
       appStore.selectedConnectionId = conn.id
     }
 
-    filters.value.query = name
+    appStore.globalSearchQuery = name
     if (type) {
       filters.value.type = type.toUpperCase()
     }
@@ -643,14 +559,12 @@ onMounted(async () => {
   window.addEventListener('andb-close-active-tab', handleCloseActiveTab)
   window.addEventListener('andb-prev-tab', handlePrevTab)
   window.addEventListener('andb-next-tab', handleNextTab)
-  window.addEventListener('andb-focus-search', handleFocusSearch)
 })
 
 onUnmounted(() => {
   window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
   window.removeEventListener('andb-prev-tab', handlePrevTab)
   window.removeEventListener('andb-next-tab', handleNextTab)
-  window.removeEventListener('andb-focus-search', handleFocusSearch)
 })
 </script>
 
@@ -658,13 +572,16 @@ onUnmounted(() => {
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(156, 163, 175, 0.2);
   border-radius: 3px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.4);
 }

@@ -133,10 +133,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Storage (electron-store)
   storage: {
-    get: (key: string) => ipcRenderer.invoke('storage-get', key),
-    set: (key: string, value: any) => ipcRenderer.invoke('storage-set', key, value),
+    get: (key: string, opts?: any) => ipcRenderer.invoke('storage-get', key, opts),
+    set: (key: string, value: any, opts?: any) => ipcRenderer.invoke('storage-set', key, value, opts),
     delete: (key: string) => ipcRenderer.invoke('storage-delete', key),
     has: (key: string) => ipcRenderer.invoke('storage-has', key),
+
     clear: () => ipcRenderer.invoke('storage-clear'),
     getUserSettings: async () => {
       const res = await ipcRenderer.invoke('get-user-settings')
@@ -152,6 +153,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   andbClearStorage: () => {
     return ipcRenderer.invoke('andb-clear-storage')
+  },
+
+  andbClearProjectStorage: (args: { projectId: string }) => {
+    return ipcRenderer.invoke('andb-clear-project-storage', args)
   },
 
   andbClearConnectionData: (connection: any) => {

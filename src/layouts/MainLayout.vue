@@ -60,13 +60,21 @@
       <div
         class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-gray-950 relative order-2"
       >
-        <!-- Toolbar Row (Operational context) -->
+        <!-- Toolbar Row (Operational context & Breadcrumbs) -->
         <div
-          v-if="appStore.layoutSettings.toolbar && ($slots.toolbar || isGlobalLayer)"
+          v-if="appStore.layoutSettings.toolbar && ($slots.toolbar || $slots.breadcrumbs || isGlobalLayer)"
           class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950/50 backdrop-blur-md z-10 transition-all duration-300"
         >
-          <div v-if="$slots.toolbar" class="flex-1 flex items-center min-w-0">
-            <slot name="toolbar"></slot>
+          <div class="flex-1 flex items-center justify-between min-w-0 h-full">
+            <!-- Left Side: Breadcrumbs -->
+            <div v-if="$slots.breadcrumbs" class="flex items-center min-w-0 pr-4">
+              <slot name="breadcrumbs"></slot>
+            </div>
+            
+            <!-- Right Side: Toolbar Actions -->
+            <div v-if="$slots.toolbar" class="flex items-center shrink-0 ml-auto gap-2">
+              <slot name="toolbar"></slot>
+            </div>
           </div>
 
           <!-- Close Global Layer (Settings/Project Manager) -->
@@ -85,13 +93,7 @@
           </div>
         </div>
 
-        <!-- Breadcrumbs Row -->
-        <div
-          v-if="appStore.layoutSettings.breadcrumbs && $slots.breadcrumbs"
-          class="bg-gray-100/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-6 py-2 flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar"
-        >
-          <slot name="breadcrumbs"></slot>
-        </div>
+
 
         <!-- Content & Console Split -->
         <div class="flex-1 flex flex-col overflow-hidden relative">
@@ -130,13 +132,13 @@
                   <div class="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></div>
                   <!-- Aligned Label -->
                   <div
-                    class="flex items-center gap-1 px-1 text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter shrink-0 group-hover:text-primary-500 transition-colors w-[112px]"
+                    class="flex items-center gap-1 px-1 text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter shrink-0 group-hover:text-primary-500 transition-colors w-[160px]"
                   >
-                    <span class="w-[48px] text-right truncate">{{
+                    <span class="w-[80px] text-right truncate">{{
                       p.connectionName || 'GLOBAL'
                     }}</span>
                     <span class="text-gray-300 dark:text-gray-600 font-thin opacity-50">></span>
-                    <span class="w-[50px] truncate">{{
+                    <span class="w-[72px] truncate">{{
                       p.type?.toUpperCase()?.replace(/S$/, '')
                     }}</span>
                   </div>

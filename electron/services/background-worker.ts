@@ -160,6 +160,18 @@ export class BackgroundWorker extends EventEmitter {
     this.activeProjectBaseDir = path;
   }
 
+  public getActiveProjectBaseDir(): string {
+    return this.activeProjectBaseDir;
+  }
+
+  public getActiveProjectId(): string {
+    return this.activeProjectId;
+  }
+
+  public getActiveProjectName(): string {
+    return this.activeProjectName;
+  }
+
   public setActiveProjectContext(path: string, id: string, name: string) {
     this.activeProjectBaseDir = path;
     this.activeProjectId = id;

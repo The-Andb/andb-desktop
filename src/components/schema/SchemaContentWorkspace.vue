@@ -13,7 +13,7 @@
       <!-- Item Header / Local Actions -->
       <div
         v-if="selectedItem.type !== 'query'"
-        class="p-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-14"
+        class="px-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-12"
       >
         <div class="flex items-center overflow-hidden gap-3">
           <div
@@ -83,7 +83,7 @@
                 :class="[isTarget ? 'bg-blue-500 text-white' : 'text-blue-400']"
                 class="p-1 rounded-full"
               >
-                <Workflow class="w-3.5 h-3.5" />
+                <Workflow class="w-3.5 h-3.5 rotate-180" />
               </button>
             </div>
 
@@ -107,9 +107,8 @@
           :initial-sql="selectedItem.initialSql"
         />
 
-        <!-- Table Rendering Flow (Honors Visual/Code toggles) -->
         <template v-else-if="['tables', 'table'].includes(selectedItem.type)">
-          <DDLViewer v-if="viewMode === 'code'" :content="formattedDDL" />
+          <DDLViewer v-if="viewMode === 'code'" :content="formattedDdl" :navigatable-names="navigatableNames" @navigate-to-definition="word => emit('navigate-to-definition', word)" />
           <TableDetailedView
             v-else-if="detailedData"
             :table-name="selectedItem.name"
@@ -134,7 +133,7 @@
         </template>
 
         <!-- Non-Table Items (Views, Functions, Procedures, etc.) Always Fallback to Code View -->
-        <DDLViewer v-else :content="formattedDDL" />
+        <DDLViewer v-else :content="formattedDdl" :navigatable-names="navigatableNames" @navigate-to-definition="word => emit('navigate-to-definition', word)" />
       </div>
     </div>
 
@@ -178,13 +177,14 @@ const props = defineProps<{
   activeTabId: string | null
   selectedItem: any
   viewMode: 'visual' | 'code'
-  formattedDDL?: string
+  formattedDdl?: string
   detailedData?: any
   tables: any[]
   isSource: boolean
   isTarget: boolean
   hasSource: boolean
   triggers: any[]
+  navigatableNames?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -195,6 +195,7 @@ const emit = defineEmits<{
   snapshot: []
   download: []
   'apply-table': [sql: string]
+  'navigate-to-definition': [word: string]
 }>()
 
 const typeIcons = {

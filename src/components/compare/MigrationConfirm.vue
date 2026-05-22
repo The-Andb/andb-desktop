@@ -32,34 +32,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Actions -->
-      <div class="flex items-center gap-2 shrink-0 z-30">
-        <button
-          type="button"
-          class="flex items-center justify-center rounded-md bg-white dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700 shadow-sm"
-          :disabled="loading"
-          @click="$emit('close')"
-        >
-          {{ $t('common.cancel') }}
-        </button>
-        <button
-          type="button"
-          class="flex items-center justify-center rounded-md bg-primary-600 hover:bg-primary-500 text-white px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-all border border-primary-600 shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="loading || targetIsStatic"
-          @click="$emit('confirm')"
-          :title="targetIsStatic ? $t('migration.staticWarning') : ''"
-        >
-          <Zap class="w-3 h-3" :class="{ 'animate-spin': loading }" />
-          {{
-            loading
-              ? $t('common.processing')
-              : isBatchMode
-                ? $t('migration.actionBatch')
-                : $t('migration.actionSingle')
-          }}
-        </button>
-      </div>
     </div>
 
     <!-- Main Content (Split View) -->
@@ -164,6 +136,40 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Command Preview (Only shown when safeMode is enabled) -->
+        <div v-if="appStore.safeMode" class="p-3 bg-green-50 dark:bg-green-950/20 border-t border-green-100 dark:border-green-900/30 text-[10px] text-green-700 dark:text-green-400 font-mono shrink-0">
+          <div class="font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <ShieldCheck class="w-3.5 h-3.5 text-green-500" />
+            Dry Run Command Simulation:
+          </div>
+          <div class="bg-gray-900 text-green-400 p-2.5 rounded-lg border border-gray-800 break-all select-all font-semibold leading-normal flex items-start gap-2">
+            <span class="text-green-500 shrink-0 select-none">$</span>
+            <span class="flex-1">{{ commandPreview }}</span>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-between gap-2 shadow-sm">
+          <button
+            type="button"
+            class="flex-1 flex items-center justify-center rounded-xl bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-all border border-gray-200 dark:border-gray-700 shadow-sm active:scale-95"
+            :disabled="loading"
+            @click="$emit('close')"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            class="flex-1 flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-primary-600 shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="loading || targetIsStatic"
+            @click="$emit('confirm')"
+            :title="targetIsStatic ? $t('migration.staticWarning') : ''"
+          >
+            <Zap class="w-3.5 h-3.5 fill-current" :class="{ 'animate-spin': loading }" />
+            {{ loading ? $t('common.processing') : 'Sync' }}
+          </button>
         </div>
       </div>
 
@@ -270,7 +276,8 @@ import {
   Terminal,
   List,
   Workflow,
-  Sigma
+  Sigma,
+  ShieldCheck
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -444,4 +451,18 @@ watch(
   },
   { immediate: true }
 )
+
+const commandPreview = computed(() => {
+  const src = props.sourceName || 'src'
+  const dest = props.targetName || 'dest'
+  const dryRunFlag = appStore.safeMode ? ' --dry-run' : ''
+  
+  if (isBatchMode.value) {
+    return `andb migrate ${src} ${dest}${dryRunFlag}`
+  } else {
+    const typeStr = props.item?.type ? ` --type ${props.item.type}` : ''
+    const nameStr = props.item?.name ? ` --name ${props.item.name}` : ''
+    return `andb migrate ${src} ${dest}${typeStr}${nameStr}${dryRunFlag}`
+  }
+})
 </script>

@@ -130,37 +130,38 @@ export const storage = {
   },
 
   // ==================== Connections ====================
-  async getConnections(): Promise<DatabaseConnection[]> {
-    const result = await getStorage().get('connections')
+  async getConnections(projectId?: string): Promise<DatabaseConnection[]> {
+    const result = await getStorage().get('connections', { projectId })
     const raw = result.success ? result.data || [] : []
     return this._deduplicateConnections(raw)
   },
 
-  async saveConnections(connections: DatabaseConnection[]): Promise<void> {
+  async saveConnections(connections: DatabaseConnection[], projectId?: string): Promise<void> {
     const clean = this._deduplicateConnections(connections)
-    await getStorage().set('connections', JSON.parse(JSON.stringify(clean)))
+    await getStorage().set('connections', JSON.parse(JSON.stringify(clean)), { projectId })
   },
 
-  async addConnection(connection: DatabaseConnection): Promise<void> {
-    const connections = await this.getConnections()
+  async addConnection(connection: DatabaseConnection, projectId?: string): Promise<void> {
+    const connections = await this.getConnections(projectId)
     connections.push(connection)
-    await this.saveConnections(connections)
+    await this.saveConnections(connections, projectId)
   },
 
-  async updateConnection(id: string, updates: Partial<DatabaseConnection>): Promise<void> {
-    const connections = await this.getConnections()
+  async updateConnection(id: string, updates: Partial<DatabaseConnection>, projectId?: string): Promise<void> {
+    const connections = await this.getConnections(projectId)
     const index = connections.findIndex(c => c.id === id)
     if (index !== -1) {
       connections[index] = { ...connections[index], ...updates }
-      await this.saveConnections(connections)
+      await this.saveConnections(connections, projectId)
     }
   },
 
-  async removeConnection(id: string): Promise<void> {
-    const connections = await this.getConnections()
+  async removeConnection(id: string, projectId?: string): Promise<void> {
+    const connections = await this.getConnections(projectId)
     const filtered = connections.filter(c => c.id !== id)
-    await this.saveConnections(filtered)
+    await this.saveConnections(filtered, projectId)
   },
+
 
   // ==================== Connection Pairs ====================
   async getConnectionPairs(): Promise<ConnectionPair[]> {

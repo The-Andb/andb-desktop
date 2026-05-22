@@ -138,6 +138,11 @@ export async function initCoreServices() {
     await CoreBridge.init(userDataPath, customDbPath, desktopStorageStrategy, projectBaseDir, undefined, promptProvider)
     if ((global as any).logger) (global as any).logger.info(`Core Engine Initialized successfully. DB: ${CoreBridge.getDbPath()}`)
 
+    // Initialize Drizzle ORM on the same VAULT SQLite file (GUI layer)
+    const { initDrizzle } = require('./storage/drizzle/db')
+    initDrizzle(CoreBridge.getDbPath())
+    if ((global as any).logger) (global as any).logger.info(`[Drizzle] GUI layer initialized: ${CoreBridge.getDbPath()}`)
+
     // Sync RSA Keychain directory to DB path to ensure password decryptions survive cross-device syncing
     if (customDbPath && customDbPath !== 'default') {
       const { SecurityService } = require('./services/security')

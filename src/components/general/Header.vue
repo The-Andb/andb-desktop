@@ -140,7 +140,10 @@
           </div>
         </div>
 
-        <!-- Unified Connection / Sync Pair Selector removed per user request to use Sidebar -->
+        <!-- Global Search Center Block -->
+        <div class="flex-1 flex justify-center ml-4 mr-4 pointer-events-auto">
+          <GlobalSearch />
+        </div>
       </div>
 
       <!-- Right side: System Actions -->
@@ -210,6 +213,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useProjectsStore } from '@/stores/projects'
+import GlobalSearch from './GlobalSearch.vue'
 import ThemeToggle from './ThemeToggle.vue'
 
 import LanguageToggle from './LanguageToggle.vue'

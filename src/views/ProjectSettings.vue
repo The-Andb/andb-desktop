@@ -1,12 +1,6 @@
 <template>
   <MainLayout>
-    <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full px-2 text-gray-400">
-        <div class="flex items-center gap-2 uppercase tracking-widest text-[10px] font-black">
-          {{ $t('settings.project_settings') }}
-        </div>
-      </div>
-    </template>
+
 
     <template #breadcrumbs>
       <div class="flex items-center gap-2">
@@ -176,6 +170,37 @@
             </div>
 
             <div class="space-y-12">
+              <!-- Project Base Directory -->
+              <div class="relative overflow-hidden transition-all duration-300 pb-12 border-b border-gray-100 dark:border-gray-800/40">
+                <div class="flex items-start gap-4 relative z-10">
+                  <div class="flex-1 w-full">
+                    <div class="flex items-center gap-3 mb-1">
+                      <FolderOpen class="w-4 h-4 text-indigo-500" />
+                      <h3
+                        class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest"
+                      >
+                        {{ $t('settings.engine.projectBaseDir.title', 'Project Base Directory') }}
+                      </h3>
+                    </div>
+                    <p
+                      class="text-[11px] text-gray-400 dark:text-gray-500 mb-6 max-w-2xl leading-relaxed font-medium"
+                    >
+                      {{ $t('settings.engine.projectBaseDir.description', 'This folder acts as the workspace root. DDL exports and schema SQL files will be saved to and loaded from this directory. If not set, schema SQL is kept in the default application cache.') }}
+                    </p>
+
+                    <div class="flex items-center gap-3 max-w-3xl">
+                      <div class="flex-1 px-4 py-3 bg-gray-50/50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl flex items-center min-h-[46px] select-all overflow-x-auto custom-scrollbar">
+                        <span
+                          class="text-xs font-mono font-bold text-gray-700 dark:text-gray-300 break-all"
+                        >
+                          {{ formattedProjectBaseDir }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Text Normalization -->
               <div class="relative overflow-hidden transition-all duration-300">
                 <div class="flex items-start gap-4 relative z-10">
@@ -337,6 +362,37 @@
                         />
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Clean Project Cache (Hard Purge) -->
+              <div
+                class="relative overflow-hidden transition-all duration-300 mt-12 pt-12 border-t border-gray-100 dark:border-gray-800/40"
+              >
+                <div class="flex items-start gap-4 relative z-10">
+                  <div class="flex-1 w-full">
+                    <div class="flex items-center gap-3 mb-1">
+                      <Flame class="w-4 h-4 text-rose-500" />
+                      <h3
+                        class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest text-rose-500"
+                      >
+                        {{ $t('settings.engine.cleanCache.title', 'Clean Project Cache') }}
+                      </h3>
+                    </div>
+                    <p
+                      class="text-[11px] text-gray-400 dark:text-gray-500 mb-6 max-w-2xl leading-relaxed font-medium"
+                    >
+                      {{ $t('settings.engine.cleanCache.description', 'Forcibly purge cached SQL schemas, connection details, and structural comparison results for this project. The system will pull clean data on the next refresh.') }}
+                    </p>
+
+                    <button
+                      @click="hardPurgeActiveProject"
+                      class="px-4 py-3 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-200/50 dark:border-rose-900/50 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white transition-colors flex items-center gap-2 shrink-0 active:scale-95 duration-150"
+                    >
+                      <Flame class="w-3.5 h-3.5" />
+                      {{ $t('settings.engine.cleanCache.button', 'Force Clean Cache') }}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -599,7 +655,9 @@ import {
   Cpu,
   ArrowRightLeft,
   Sparkles,
-  Zap
+  Zap,
+  FolderOpen,
+  Flame
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
@@ -638,6 +696,19 @@ const categories = computed(() => {
 })
 
 const projectSettings = computed(() => categories.value)
+
+const formattedProjectBaseDir = computed(() => {
+  const dir = projectsStore.currentProject?.projectBaseDir || projectsStore.currentProject?.settings?.projectBaseDir
+  if (dir) {
+    const projectsIndex = dir.indexOf('/projects/')
+    if (projectsIndex !== -1) {
+      return '<VAULT>' + dir.substring(projectsIndex)
+    }
+    return dir
+  }
+  const projectName = projectsStore.currentProject?.name || 'default'
+  return `<VAULT>/projects/${projectName}`
+})
 const activeCategory = ref<string>('connections') // Default to connections
 
 // Handle deep linking from query params
@@ -681,8 +752,8 @@ const resetToDefaults = () => {
 const confirmResetData = async () => {
   isResetting.value = true
   try {
-    if ((window as any).electronAPI && (window as any).electronAPI.andbClearStorage) {
-      await (window as any).electronAPI.andbClearStorage()
+    if ((window as any).electronAPI && (window as any).electronAPI.andbClearProjectStorage && projectsStore.currentProject?.id) {
+      await (window as any).electronAPI.andbClearProjectStorage({ projectId: projectsStore.currentProject.id })
     } else {
       await new Promise(resolve => setTimeout(resolve, 800))
     }
@@ -765,6 +836,8 @@ const updateEnvReplacementValue = (index: number, envName: string, value: string
   projectsStore.updateProject(projectsStore.currentProject.id, { settings })
 }
 
+
+
 // AI Settings Implementation
 const projectAIEnabled = computed({
   get: () => projectsStore.currentProject?.settings?.aiEnabled ?? false,
@@ -822,6 +895,10 @@ const getActivityIcon = (type: string) => {
 
 // Suppress unused warning in script (actually used in template)
 void getActivityIcon
+
+const hardPurgeActiveProject = () => {
+  window.dispatchEvent(new CustomEvent('project-hard-purge-requested'))
+}
 </script>
 
 <style scoped>

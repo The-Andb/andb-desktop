@@ -44,6 +44,7 @@ export interface DatabaseConnection {
   allowSelfSigned?: boolean
   charset?: string
   timezone?: string
+  projectId?: string
 }
 
 export interface ConnectionPair {
@@ -147,116 +148,82 @@ export const useAppStore = defineStore('app', () => {
   // Global AI Context
   const aiContext = ref<AIContext | null>(null)
 
+  // Global Search State
+  const globalSearchQuery = ref('')
+  const globalSearchFilter = ref<'all' | 'new' | 'modified' | 'deprecated' | 'equal'>('all')
+  const globalSearchFlags = ref({
+    caseSensitive: false,
+    wholeWord: false,
+    regex: false,
+    content: false,
+    columns: false
+  })
+
   // Initialize state
+  let currentLoadedProjectId = 'default'
   let initPromise: Promise<void> | null = null
 
   const init = async () => {
     if (initPromise) return initPromise
 
     initPromise = (async () => {
-      const savedSettings = await storage.getSettings()
-      sidebarCollapsed.value = savedSettings.sidebarCollapsed
-      buttonStyle.value = savedSettings.buttonStyle || 'full'
-      navStyle.value = savedSettings.navStyle || 'vertical-list'
+      try {
+        const savedSettings = await storage.getSettings()
+        sidebarCollapsed.value = savedSettings.sidebarCollapsed
+        buttonStyle.value = savedSettings.buttonStyle || 'full'
+        navStyle.value = savedSettings.navStyle || 'vertical-list'
 
-      if (savedSettings.layoutSettings) {
-        layoutSettings.value = { ...layoutSettings.value, ...savedSettings.layoutSettings }
-      }
-      if (savedSettings.fontSizes) {
-        fontSizes.value = { ...fontSizes.value, ...savedSettings.fontSizes }
-      }
-      if (savedSettings.fontFamilies) {
-        fontFamilies.value = { ...fontFamilies.value, ...savedSettings.fontFamilies }
-      }
-      if (savedSettings.fontSizeProfile) {
-        fontSizeProfile.value = savedSettings.fontSizeProfile
-      }
-      if (savedSettings.hiddenHorizontalTabs) {
-        hiddenHorizontalTabs.value = savedSettings.hiddenHorizontalTabs
-      }
-      if (savedSettings.lastCustomFontSizes) {
-        lastCustomFontSizes.value = {
-          ...lastCustomFontSizes.value,
-          ...savedSettings.lastCustomFontSizes
+        if (savedSettings.layoutSettings) {
+          layoutSettings.value = { ...layoutSettings.value, ...savedSettings.layoutSettings }
         }
-      }
-
-      safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
-      aiEnabled.value = savedSettings.aiEnabled !== undefined ? savedSettings.aiEnabled : true
-
-      // If we loaded 'custom', we should ensure fontSizes reflects the loaded values (already done by fontSizes loading logic above)
-      // If we loaded a profile, apply it to ensure consistency.
-
-      // Manage Installation ID
-      if (savedSettings.installationId) {
-        installationId.value = savedSettings.installationId
-      } else {
-        installationId.value = generateId()
-        storage.updateSettings({ installationId: installationId.value })
-      }
-
-      selectedConnectionId.value = savedSettings.lastSelectedConnectionId || '1' // Fallback to DEV (id 1) if none
-
-      const savedConnections = await storage.getConnections()
-      // storage.getConnections() now handles deduplication internally via _deduplicateConnections
-      if (savedConnections.length > 0) {
-        connections.value = savedConnections
-      } else {
-        // Default demo connections
-        connections.value = [
-          {
-            id: '1',
-            name: 'DEV',
-            host: '127.0.0.1',
-            port: 3306,
-            database: 'dev_database',
-            username: 'root',
-            password: 'root123',
-            status: 'idle',
-            environment: 'DEV'
-          },
-          {
-            id: '2',
-            name: 'STAGE',
-            host: '127.0.0.1',
-            port: 3307,
-            database: 'stage_database',
-            username: 'root',
-            password: 'root123',
-            status: 'idle',
-            environment: 'STAGE'
-          },
-          {
-            id: '3',
-            name: 'UAT',
-            host: '127.0.0.1',
-            port: 3308,
-            database: 'uat_database',
-            username: 'root',
-            password: 'root123',
-            status: 'idle',
-            environment: 'UAT'
-          },
-          {
-            id: '4',
-            name: 'PROD',
-            host: '127.0.0.1',
-            port: 3309,
-            database: 'prod_database',
-            username: 'root',
-            password: 'root123',
-            status: 'idle',
-            environment: 'PROD'
+        if (savedSettings.fontSizes) {
+          fontSizes.value = { ...fontSizes.value, ...savedSettings.fontSizes }
+        }
+        if (savedSettings.fontFamilies) {
+          fontFamilies.value = { ...fontFamilies.value, ...savedSettings.fontFamilies }
+        }
+        if (savedSettings.fontSizeProfile) {
+          fontSizeProfile.value = savedSettings.fontSizeProfile
+        }
+        if (savedSettings.hiddenHorizontalTabs) {
+          hiddenHorizontalTabs.value = savedSettings.hiddenHorizontalTabs
+        }
+        if (savedSettings.lastCustomFontSizes) {
+          lastCustomFontSizes.value = {
+            ...lastCustomFontSizes.value,
+            ...savedSettings.lastCustomFontSizes
           }
-        ]
-
-        // Not automatically assigning demo connections anymore since there's no guaranteed default project
-        const projectsStore = useProjectsStore()
-        if (projectsStore.projects.length === 0) {
-          await projectsStore.reloadData()
         }
+
+        safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
+        aiEnabled.value = savedSettings.aiEnabled !== undefined ? savedSettings.aiEnabled : true
+
+        // Manage Installation ID
+        if (savedSettings.installationId) {
+          installationId.value = savedSettings.installationId
+        } else {
+          installationId.value = generateId()
+          storage.updateSettings({ installationId: installationId.value })
+        }
+
+        selectedConnectionId.value = savedSettings.lastSelectedConnectionId || '1' // Fallback to DEV (id 1) if none
+
+        const activeProjectId = savedSettings.lastSelectedProjectId || 'default'
+        currentLoadedProjectId = activeProjectId
+        const savedConnections = await storage.getConnections(activeProjectId)
+        // storage.getConnections() now handles deduplication internally via _deduplicateConnections
+        if (savedConnections.length > 0) {
+          connections.value = savedConnections
+        } else if (activeProjectId === 'default') {
+          // If the project connections are completely empty (first boot / new project)
+          // AND the project is 'default', populate the standard mock developer DB connection set.
+          await resetConnections()
+        }
+
+        isInitialized.value = true
+      } catch (e: any) {
+        console.error('[AppStore] Initialization failed:', e)
       }
-      isInitialized.value = true
     })()
 
     try {
@@ -277,8 +244,19 @@ export const useAppStore = defineStore('app', () => {
   // Global selected connection for exploration (Schema view, etc)
   const selectedConnectionId = ref<string>('')
 
-  projectChangedBus.on(() => {
+  projectChangedBus.on(async (newProjectId) => {
     selectedConnectionId.value = ''
+    if (newProjectId) {
+      if (!isInitialized.value) return
+      const projectsStore = useProjectsStore()
+      if (!projectsStore.isLoaded) return
+
+      if (newProjectId === currentLoadedProjectId) return
+
+      currentLoadedProjectId = newProjectId
+      const savedConnections = await storage.getConnections(newProjectId)
+      connections.value = savedConnections
+    }
   })
 
   const filteredConnections = computed(() => {
@@ -350,11 +328,17 @@ export const useAppStore = defineStore('app', () => {
     return currentPair.value.source && currentPair.value.target
   })
 
-  // Watch and auto-save to storage
+  // Watch and auto-save to storage — MUST check isInitialized and projectsStore.isLoaded to avoid saving [] on store creation or during project switching
   watch(
     connections,
     newConnections => {
-      storage.saveConnections(newConnections)
+      if (!isInitialized.value) return // Guard: never save before init() completes
+      const projectsStore = useProjectsStore()
+      if (!projectsStore.isLoaded || !projectsStore.selectedProjectId) {
+        console.warn('[AppStore] Watch connections skipped - projects store is not fully loaded or no project is selected yet.')
+        return
+      }
+      storage.saveConnections(newConnections, projectsStore.selectedProjectId)
     },
     { deep: true }
   )
@@ -478,24 +462,24 @@ export const useAppStore = defineStore('app', () => {
         (c.type || 'mysql') === (connection.type || 'mysql')
     )
 
+    const projectsStore = useProjectsStore()
+
     if (existing) {
       if (projectId) {
-        const projectsStore = useProjectsStore()
         projectsStore.addItemToProject('connection', existing.id, projectId)
       }
       return existing
     }
 
+    const targetProjectId = projectId || projectsStore.selectedProjectId
     const newConnection: DatabaseConnection = {
       ...connection,
-      id: generateId()
+      id: generateId(),
+      projectId: targetProjectId || undefined
     }
     connections.value.push(newConnection)
 
     // Register to specified or current project
-    const projectsStore = useProjectsStore()
-    const targetProjectId = projectId || projectsStore.selectedProjectId
-
     if (targetProjectId) {
       // Use a robust way to ensure we link to the right project even if it's new
       const project = projectsStore.projects.find(p => p.id === targetProjectId)
@@ -529,32 +513,15 @@ export const useAppStore = defineStore('app', () => {
     const projectsStore = useProjectsStore()
     const currentProjectId = projectsStore.selectedProjectId
 
-    // 1. Unlink from Current Project (Atomic Delete)
+    // Remove from in-memory list (deep watcher auto-saves the new filtered list)
+    connections.value = connections.value.filter(conn => conn.id !== id)
+
+    // Remove from project settings list to keep UI synchronized
     if (currentProjectId) {
       const currentProject = projectsStore.projects.find(p => p.id === currentProjectId)
       if (currentProject) {
         currentProject.connectionIds = currentProject.connectionIds.filter(cid => cid !== id)
-        // Trigger reactivity and save
-        // Note: projectsStore watcher watches 'projects', so mutation triggers save.
-        // But to be safe and explicit given the bug report:
-        // We rely on the watcher in projects.ts
       }
-    }
-
-    // 2. Prevent Orphaned Connections: Garbage Collect immediately
-    // If we are deleting explicitly, we should remove it from the system OR check usage.
-    // Given the objective "Prevent connections from existing independently", we should remove it.
-
-    // Check if this connection is used by ANY other project
-    const isUsed = projectsStore.projects.some(
-      p => p.id !== currentProjectId && p.connectionIds.includes(id)
-    )
-
-    if (isUsed) {
-      console.log(`Connection ${id} is still used by other projects. Unlinking from current only.`)
-    } else {
-      console.log(`Connection ${id} is now orphaned. Removing from global registry.`)
-      connections.value = connections.value.filter(conn => conn.id !== id)
     }
   }
 
@@ -631,7 +598,8 @@ export const useAppStore = defineStore('app', () => {
         environment: 'PROD'
       }
     ]
-    await storage.saveConnections(connections.value)
+    const projectsStore = useProjectsStore()
+    await storage.saveConnections(connections.value, projectsStore.selectedProjectId || undefined)
   }
 
   const applyFontSizeProfile = (profileKey: 'small' | 'medium' | 'large' | 'custom') => {
@@ -684,6 +652,10 @@ export const useAppStore = defineStore('app', () => {
     compareStack,
     isCompareStackVisible,
     clearCompareStack,
+
+    globalSearchQuery,
+    globalSearchFilter,
+    globalSearchFlags,
 
     // App-wide locks & progress
     isSchemaFetching,

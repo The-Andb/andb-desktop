@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useConsoleStore } from '@/stores/console'
@@ -35,6 +35,17 @@ export function useSchemaLoader(
   const consoleStore = useConsoleStore()
   const notificationStore = useNotificationStore()
   const sidebarStore = useSidebarStore()
+
+  const logDiag = (msg: string, type: 'info' | 'warn' | 'error' = 'info') => {
+    consoleStore.addLog(msg, type)
+    try {
+      if ((window as any).electronAPI?.log?.send) {
+        (window as any).electronAPI.log.send(type, msg)
+      } else if ((window as any).electronAPI?.log?.log) {
+        (window as any).electronAPI.log.log(type, msg)
+      }
+    } catch (e) { }
+  }
 
   const loading = ref(false)
   const statusMessage = ref('')
@@ -120,7 +131,7 @@ export function useSchemaLoader(
 
   const loadSchema = async (forceRefresh = false, keepSelection = false, hardPurge = false) => {
     if (!selectedConnectionId.value) return
-    
+
     const currentRunConnectionId = selectedConnectionId.value
     const isStale = () => selectedConnectionId.value !== currentRunConnectionId
 
@@ -133,7 +144,6 @@ export function useSchemaLoader(
     loading.value = true
     if (forceRefresh) {
       appStore.isSchemaFetching = true // Lock global fetch state
-      consoleStore.setVisibility(true) // Open console only on manual refresh
       statusMessage.value = t('schema.fetchingFromDb')
       consoleStore.clearLogs()
     } else {
@@ -241,11 +251,11 @@ export function useSchemaLoader(
         } else {
           // 3. FULL REFRESH
           if (hardPurge) {
-             consoleStore.addLog('🔥 EXECUTING HARD FORCE-FETCH (Physically purging local folder structure & database caches...)', 'error')
+            consoleStore.addLog('🔥 EXECUTING HARD FORCE-FETCH (Physically purging local folder structure & database caches...)', 'error')
           } else {
-             consoleStore.addLog(t('schema.cleaningCache'), 'warn')
+            consoleStore.addLog(t('schema.cleaningCache'), 'warn')
           }
-          
+
           if (isStale()) return
           const clearResult = await Andb.clearConnectionData(conn, hardPurge)
           if (isStale()) return
@@ -257,7 +267,7 @@ export function useSchemaLoader(
               'info'
             )
             if (hardPurge) {
-               consoleStore.addLog('✅ Hard Purge Completed Successfully: Local physical folders cleared.', 'success')
+              consoleStore.addLog('✅ Hard Purge Completed Successfully: Local physical folders cleared.', 'success')
             }
           }
 
@@ -321,35 +331,27 @@ export function useSchemaLoader(
       }
 
       // Always load from cache to update UI state
-      console.log(
-        '[useSchemaLoader] loadSchema called. ConnId:',
-        selectedConnectionId.value,
-        'Filter:',
-        selectedFilterType.value
-      )
+      logDiag(`[Diagnostic] loadSchema called. selectedConnectionId: ${selectedConnectionId.value}`)
 
       if (isStale()) return
-      const allSchemasRes = await Andb.getSchemas()
+      // Strip Vue reactive proxy — Electron IPC structured clone cannot serialize Proxy objects
+      const plainConnections = JSON.parse(JSON.stringify(appStore.resolvedConnections))
+      const allSchemasRes = await Andb.getSchemas(plainConnections)
       if (isStale()) return
-      const allSchemas = allSchemasRes.data || []
-      console.log(
-        '[useSchemaLoader] All Schemas from Backend:',
-        JSON.stringify(
-          allSchemas.map((e: any) => ({ name: e.name, dbCount: e.databases?.length })),
-          null,
-          2
-        )
-      )
+      let allSchemas = allSchemasRes.data || []
+
+      logDiag(`[Diagnostic] getSchemas returned environments: ${JSON.stringify(allSchemas.map((e: any) => ({ name: e.name, databases: e.databases?.map((d: any) => ({ name: d.name, connectionId: d.connectionId, tables: d.tables?.length })) })))}`)
+
+      // Fallback: if backend returned nothing, use sidebar store cache (avoids "NO SCHEMA LOADED" on cold start)
+      if (allSchemas.length === 0 && sidebarStore.environments.length > 0) {
+        logDiag('[Diagnostic] getSchemas returned empty, falling back to sidebarStore cache', 'warn')
+        allSchemas = sidebarStore.environments
+      }
+
+      logDiag(`[Diagnostic] conn found: ${conn ? JSON.stringify({ id: conn.id, name: conn.name, environment: conn.environment, database: conn.database }) : 'null'}`)
 
       const envData = allSchemas?.find((e: any) => (e.name || '').toLowerCase() === (conn.environment || '').toLowerCase())
-      if (!envData) {
-        console.warn(
-          '[useSchemaLoader] Environment not found in schemas:',
-          conn.environment,
-          'Available envs:',
-          allSchemas?.map((e: any) => e.name)
-        )
-      }
+      logDiag(`[Diagnostic] envData found: ${envData ? envData.name : 'null'}`)
 
       const targetDbName = conn.database || conn.name
       const dbData = envData?.databases?.find((d: any) => {
@@ -360,13 +362,7 @@ export function useSchemaLoader(
         return dName === tName || dName === cName || connIdMatch
       })
 
-      console.log('[useSchemaLoader] Sync Result:', {
-        connEnv: conn.environment,
-        targetDbName,
-        foundEnv: !!envData,
-        foundDb: !!dbData,
-        dbTableCount: dbData?.tables?.length || 0
-      })
+      logDiag(`[Diagnostic] dbData found: ${dbData ? JSON.stringify({ name: dbData.name, connectionId: dbData.connectionId, tablesCount: dbData.tables?.length }) : 'null'}`)
 
       if (dbData) {
         selectedDbLastUpdated.value = dbData.lastUpdated || null
@@ -379,9 +375,17 @@ export function useSchemaLoader(
           triggers: dbData.triggers || [],
           events: dbData.events || []
         }
+
+        // Update sidebar cache if we got fresh data from backend
+        if (allSchemasRes.data && allSchemasRes.data.length > 0) {
+          sidebarStore.setEnvironments(allSchemasRes.data)
+        }
+
       } else {
+        logDiag('[Diagnostic] dbData not found, clearing schema data', 'warn')
         clearSchemaData()
       }
+
     } catch (err: any) {
       error.value = err.message
       consoleStore.addLog(`Error loading schema: ${err.message}`, 'error')
@@ -392,7 +396,7 @@ export function useSchemaLoader(
       })
     } finally {
       if (isStale()) return
-      
+
       loading.value = false
       appStore.isSchemaFetching = false
       appStore.activeFetchConnectionId = null
@@ -407,6 +411,15 @@ export function useSchemaLoader(
       }
     }
   }
+
+  watch(
+    () => sidebarStore.refreshKey,
+    () => {
+      logDiag('[Diagnostic] refreshKey changed, reloading schema', 'info')
+      loadSchema()
+    }
+  )
+
 
   return {
     loading,

@@ -28,7 +28,10 @@
       <!-- Navigation Menu (Dynamic Style) -->
       <nav
         v-show="!isCollapsed"
-        class="flex-shrink-0 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700 p-2 z-10 relative"
+        :class="[
+          'flex-shrink-0 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700 z-10 relative',
+          appStore.navStyle === 'horizontal-tabs' ? 'h-16 flex items-center px-4 py-0' : 'p-2'
+        ]"
       >
         <div class="flex items-center justify-between w-full">
           <div
@@ -150,7 +153,7 @@
       <!-- Explorer Header -->
       <div
         v-if="!isCollapsed"
-        class="flex items-center justify-between px-4 h-16 shrink-0 transition-all duration-300 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800"
+        class="flex items-center justify-between px-4 h-12 shrink-0 transition-all duration-300 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800"
       >
         <div class="flex items-center gap-2">
           <div
@@ -166,21 +169,34 @@
           }}</span>
         </div>
         <div class="flex items-center space-x-1">
-          <!-- Project Hard Purge -->
           <button
-            @click="hardPurgeActiveProject()"
-            class="p-1.5 rounded-lg transition-all duration-200 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-rose-500 active:scale-95"
-            :title="$t('schema.hardPurgeProjectTooltip') || 'Force Clean Active Project'"
+            @click="showDdlDetails = !showDdlDetails"
+            class="p-1.5 rounded-lg transition-all duration-200 text-gray-400 hover:text-primary-500"
+            :class="showDdlDetails ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-500' : 'hover:bg-gray-100 dark:hover:bg-gray-800'"
+            title="Toggle Detailed DDL List"
           >
-            <Flame class="w-3.5 h-3.5" />
+            <ListTree class="w-3.5 h-3.5" />
           </button>
-
           <button
             @click="handleSmartRefresh()"
             class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-900"
             :title="$t('navigation.actions.refresh')"
           >
             <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading || appStore.isSchemaFetching }" />
+          </button>
+          <button
+            @click="expandAll"
+            class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary-500"
+            :title="$t('navigation.actions.expandAll')"
+          >
+            <Plus class="w-3.5 h-3.5" />
+          </button>
+          <button
+            @click="collapseAll"
+            class="p-1.5 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-primary-500"
+            :title="$t('navigation.actions.collapseAll')"
+          >
+            <Minus class="w-3.5 h-3.5" />
           </button>
           <button
             @click="appStore.toggleSidebar()"
@@ -207,8 +223,215 @@
           <div class="h-4 bg-gray-700/20 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
         </div>
 
-        <!-- Tree Content (Standard View) -->
-        <div v-else-if="!isCompareView" class="pb-4">
+        <template v-else>
+          <!-- Sync Pair Navigation (Compare View Only) -->
+          <div
+            v-if="isCompareView"
+          class="p-3 border-b border-gray-100 dark:border-gray-800 space-y-1.5 animate-in fade-in slide-in-from-left-4 duration-500"
+        >
+          <div v-for="pair in availablePairs" :key="pair.id" class="flex flex-col mb-1.5">
+            <div
+              @click="connectionPairsStore.selectPair(pair.id)"
+              class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
+              :class="
+                connectionPairsStore.selectedPairId === pair.id
+                  ? 'bg-primary-50 dark:bg-primary-900/15 border-primary-500/30 shadow-sm shadow-primary-500/5'
+                  : 'bg-transparent border-transparent hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'
+              "
+            >
+              <div
+                v-if="connectionPairsStore.selectedPairId === pair.id"
+                class="absolute left-0 top-3 bottom-3 w-1.5 bg-primary-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+              ></div>
+
+              <!-- Icon Container -->
+              <div
+                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
+                :class="[
+                  connectionPairsStore.selectedPairId === pair.id
+                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30 group-hover:scale-105'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700 group-hover:shadow-md'
+                ]"
+              >
+                <component
+                  :is="getPairIcon(pair)"
+                  class="w-5 h-5 transition-transform duration-300"
+                  :class="{ 'group-hover:rotate-6': true }"
+                />
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div
+                  class="text-[12px] font-black truncate tracking-tighter transition-colors"
+                  :class="
+                    connectionPairsStore.selectedPairId === pair.id
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'
+                  "
+                >
+                  {{ pair.name }}
+                </div>
+                <div
+                  class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1"
+                >
+                  <span class="text-primary-600 dark:text-primary-400 font-extrabold">{{
+                    pair.sourceEnv
+                  }}</span>
+                  <span class="mx-1 opacity-40">→</span>
+                  <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">{{
+                    pair.targetEnv
+                  }}</span>
+                </div>
+              </div>
+
+              <!-- Active Refresh Button -->
+              <button
+                v-if="connectionPairsStore.selectedPairId === pair.id"
+                @click.stop="refreshPair(pair.id)"
+                :disabled="sidebarStore.isComparing"
+                class="p-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-400 hover:text-primary-500 hover:scale-105 active:scale-95 transition-all shadow-sm shrink-0 z-10 disabled:opacity-50"
+                title="Refresh & Compare"
+              >
+                <RefreshCw
+                  class="w-3.5 h-3.5"
+                  :class="{ 'animate-spin': sidebarStore.isComparing }"
+                />
+              </button>
+            </div>
+            <div v-if="connectionPairsStore.selectedPairId === pair.id" class="pl-2 pr-2 py-2 animate-in slide-in-from-top-2 duration-300">
+
+              <div v-for="env in displayEnvironments" :key="env.name" class="space-y-0.5">
+                <div v-for="db in env.databases" :key="db.name" class="relative">
+                  <!-- Database Node -->
+                  <div
+                    class="group/db flex items-center h-8 px-2 cursor-pointer transition-colors border-l-2 rounded-lg"
+                    :class="[
+                      isActiveDatabase(db)
+                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-primary-500 font-bold'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'
+                    ]"
+                    @click="selectDatabase(env.name, db.name)"
+                  >
+                    <ChevronRight
+                      class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white"
+                      :class="{
+                        'rotate-90 text-gray-900 dark:text-white': expandedDatabases.has(
+                          `${env.name}-${db.name}`
+                        )
+                      }"
+                      @click.stop="toggleDatabase(env.name, db.name)"
+                    />
+                    <Database class="w-3.5 h-3.5 mr-2 text-amber-500" />
+                    <span class="text-[12px] font-bold truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
+                    <!-- Spinner shown only during background loading -->
+                    <div
+                      v-if="isDatabaseRefreshing(db)"
+                      class="p-1 text-primary-500 mx-1 pointer-events-none"
+                    >
+                      <RefreshCw class="w-3 h-3 animate-spin" />
+                    </div>
+                  </div>
+
+                  <!-- Categories -->
+                  <div v-if="expandedDatabases.has(`${env.name}-${db.name}`)" class="relative mt-0.5 mb-2">
+                    <div class="absolute left-[15px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
+                    <div v-for="type in ddlTypes" :key="type.key">
+                      <div
+                        class="group/cat flex items-center h-7 px-2 pl-[20px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg"
+                        :class="[
+                          (db[type.key]?.length || 0) === 0
+                            ? 'text-gray-400 dark:text-gray-500'
+                            : 'text-gray-700 dark:text-gray-300'
+                        ]"
+                        @click="selectCategory(env.name, db.name, type.key)"
+                      >
+                        <ChevronRight
+                          v-if="(showDdlDetails || isSearchActive) && (db[type.key]?.length || 0) > 0"
+                          class="w-3 h-3 mr-1 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
+                          :class="{
+                            'rotate-90 text-gray-900 dark:text-white': isCategoryExpanded(env.name, db.name, type.key)
+                          }"
+                          @click.stop="toggleCategory(env.name, db.name, type.key)"
+                        />
+                        <div
+                          v-else-if="showDdlDetails || isSearchActive"
+                          class="w-3 h-3 mr-1 shrink-0"
+                        ></div>
+                        <div class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800">
+                          <component
+                            :is="type.icon"
+                            class="w-3 h-3"
+                            :class="(db[type.key]?.length || 0) === 0 ? 'text-gray-400 grayscale' : type.colorClass"
+                          />
+                        </div>
+                        <span class="text-[10px] font-black truncate flex-1 uppercase tracking-tighter text-gray-500 dark:text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white transition-colors duration-200">{{ type.label }}</span>
+                        <div class="flex items-center gap-1.5 ml-auto">
+                          <span
+                            v-if="(db[type.key]?.length || 0) > 0"
+                            class="text-[9px] font-black leading-none px-1 py-[1.5px] rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums"
+                          >
+                            {{ db[type.key]?.length }}
+                          </span>
+                          <div
+                            class="w-1.5 h-1.5 rounded-full"
+                            :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
+                          ></div>
+                        </div>
+                        <!-- Spinner shown only during background loading -->
+                        <div
+                          v-if="isCategoryRefreshing(db, type.key)"
+                          class="p-0.5 text-primary-500 ml-1.5 pointer-events-none"
+                        >
+                          <RefreshCw class="w-3 h-3 animate-spin" />
+                        </div>
+                      </div>
+
+                      <!-- Sub-list of DDL items (Compare View) -->
+                      <div
+                        v-if="(showDdlDetails || isSearchActive) && isCategoryExpanded(env.name, db.name, type.key)"
+                        class="relative ml-[34px] mt-0.5 mb-1.5 space-y-0.5"
+                      >
+                        <div class="absolute left-[9px] top-0 bottom-0 w-px bg-gray-150 dark:bg-gray-800"></div>
+                        <div
+                          v-for="item in db[type.key]"
+                          :key="item.name"
+                          @click="selectObject(env.name, db.name, type.key, item.name)"
+                          class="group/item flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                        >
+                          <span
+                            class="text-[11px] font-medium truncate text-gray-600 dark:text-gray-450 group-hover/item:text-gray-900 dark:group-hover/item:text-white flex-1"
+                          >
+                            {{ item.name }}
+                          </span>
+                          <!-- Changed dot badge if compare view -->
+                          <div
+                            v-if="isCompareView && comparisonMap[`${type.key}-${item.name}`]"
+                            class="w-1.5 h-1.5 rounded-full mr-1 shrink-0"
+                            :class="[
+                              comparisonMap[`${type.key}-${item.name}`].status === 'added' ? 'bg-green-500' :
+                              comparisonMap[`${type.key}-${item.name}`].status === 'removed' ? 'bg-red-500' :
+                              comparisonMap[`${type.key}-${item.name}`].status === 'modified' ? 'bg-blue-500 animate-pulse' : 'bg-transparent'
+                            ]"
+                            :title="comparisonMap[`${type.key}-${item.name}`].status"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-if="availablePairs.length === 0"
+            class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]"
+          >
+            No sync pairs configured.
+          </div>
+        </div>
+
+          <!-- Tree Content (Standard View) -->
+          <div v-if="!isCompareView" class="pb-4 border-b border-gray-100 dark:border-gray-800">
           <div v-for="env in displayEnvironments" :key="env.name">
             <!-- Environment Node -->
             <div
@@ -267,17 +490,13 @@
                   <span class="text-[12px] font-bold truncate flex-1">{{
                     getDatabaseDisplayName(db)
                   }}</span>
-
-
-
-                  <!-- Standard Refresh -->
-                  <button
-                    @click.stop="refreshDatabase(env.name, db.name)"
-                    class="p-1 opacity-0 group-hover/db:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm text-primary-500 mx-1"
-                    :title="$t('schema.fetchTooltip')"
+                  <!-- Spinner shown only during background loading -->
+                  <div
+                    v-if="isDatabaseRefreshing(db)"
+                    class="p-1 text-primary-500 mx-1 pointer-events-none"
                   >
-                    <RefreshCw class="w-3 h-3" />
-                  </button>
+                    <RefreshCw class="w-3 h-3 animate-spin" />
+                  </div>
                 </div>
 
                 <!-- Categories -->
@@ -285,17 +504,11 @@
                   <div
                     class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
                   ></div>
-                  <div
-                    class="absolute left-[41px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
-                  ></div>
 
                   <div v-for="type in ddlTypes" :key="type.key">
                     <div
-                      class="group/cat flex items-center h-7 px-2 pl-[44px] cursor-pointer transition-colors border-l-2 border-transparent"
+                      class="group/cat flex items-center h-7 px-2 pl-[24px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       :class="[
-                        expandedTypes.has(`${env.name}-${db.name}-${type.key}`)
-                          ? 'bg-gray-100/50 dark:bg-gray-800/30'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
                         (db[type.key]?.length || 0) === 0
                           ? 'text-gray-400 dark:text-gray-500'
                           : 'text-gray-700 dark:text-gray-300'
@@ -303,16 +516,17 @@
                       @click="selectCategory(env.name, db.name, type.key)"
                     >
                       <ChevronRight
-                        v-if="(db[type.key]?.length || 0) > 0"
-                        class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white"
+                        v-if="(showDdlDetails || isSearchActive) && (db[type.key]?.length || 0) > 0"
+                        class="w-3 h-3 mr-1 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
                         :class="{
-                          'rotate-90 text-gray-900 dark:text-white': expandedTypes.has(
-                            `${env.name}-${db.name}-${type.key}`
-                          )
+                          'rotate-90 text-gray-900 dark:text-white': isCategoryExpanded(env.name, db.name, type.key)
                         }"
-                        @click.stop="toggleType(env.name, db.name, type.key)"
+                        @click.stop="toggleCategory(env.name, db.name, type.key)"
                       />
-                      <div v-else class="w-3 h-3 mr-1.5 shrink-0"></div>
+                      <div
+                        v-else-if="showDdlDetails || isSearchActive"
+                        class="w-3 h-3 mr-1 shrink-0"
+                      ></div>
                       <div
                         class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800"
                       >
@@ -333,47 +547,41 @@
                       <div class="flex items-center gap-1.5 ml-auto">
                         <span
                           v-if="(db[type.key]?.length || 0) > 0"
-                          class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums"
+                          class="text-[9px] font-black leading-none px-1 py-[1.5px] rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums"
                         >
                           {{ db[type.key]?.length }}
                         </span>
                         <div
-                          v-if="getCategoryChangeCount(db, type.key) > 0"
-                          class="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-sm shadow-primary-500/50"
+                          class="w-1.5 h-1.5 rounded-full"
+                          :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
                         ></div>
                       </div>
-
-                      <button
-                        @click.stop="refreshCategory(env.name, db.name, type.key)"
-                        class="p-0.5 opacity-0 group-hover/cat:opacity-100 hover:bg-white dark:hover:bg-gray-700 rounded shadow-sm text-primary-500 ml-1.5"
+                      <!-- Spinner shown only during background loading -->
+                      <div
+                        v-if="isCategoryRefreshing(db, type.key)"
+                        class="p-0.5 text-primary-500 ml-1.5 pointer-events-none"
                       >
-                        <RefreshCw class="w-3 h-3" />
-                      </button>
+                        <RefreshCw class="w-3 h-3 animate-spin" />
+                      </div>
                     </div>
 
-                    <!-- Objects -->
+                    <!-- Sub-list of DDL items (Standard View) -->
                     <div
-                      v-if="expandedTypes.has(`${env.name}-${db.name}-${type.key}`)"
-                      class="relative ml-[44px] border-l border-gray-100 dark:border-gray-800 pb-1"
+                      v-if="(showDdlDetails || isSearchActive) && isCategoryExpanded(env.name, db.name, type.key)"
+                      class="relative ml-[36px] mt-0.5 mb-1.5 space-y-0.5"
                     >
+                      <div class="absolute left-[9px] top-0 bottom-0 w-px bg-gray-150 dark:bg-gray-800"></div>
                       <div
                         v-for="item in db[type.key]"
                         :key="item.name"
-                        @click.stop="selectObject(env.name, db.name, type.key, item)"
-                        class="group/obj flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors border-l-2 border-transparent"
-                        :class="
-                          selectedItem?.name === item.name &&
-                          appStore.selectedConnectionId === db.connectionId
-                            ? 'text-primary-600 border-primary-500 bg-primary-50 font-bold'
-                            : 'text-gray-500 hover:text-primary-600 hover:bg-primary-50/50'
-                        "
+                        @click="selectObject(env.name, db.name, type.key, item.name)"
+                        class="group/item flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                       >
-                        <span class="truncate flex-1 font-mono text-[10px]">{{ item.name }}</span>
                         <span
-                          v-if="item.updated_at"
-                          class="ml-2 text-[8px] opacity-0 group-hover/obj:opacity-40 font-mono"
-                          >{{ formatTimeAgo(item.updated_at).replace(' ago', '') }}</span
+                          class="text-[11px] font-medium truncate text-gray-600 dark:text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white flex-1"
                         >
+                          {{ item.name }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -382,75 +590,7 @@
             </div>
           </div>
         </div>
-
-        <!-- Sync Pair Navigation (Compare View Only) -->
-        <div
-          v-if="isCompareView"
-          class="p-3 space-y-1.5 animate-in fade-in slide-in-from-left-4 duration-500"
-        >
-          <div
-            v-for="pair in availablePairs"
-            :key="pair.id"
-            @click="connectionPairsStore.selectPair(pair.id)"
-            class="group p-3 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex items-center gap-3"
-            :class="
-              connectionPairsStore.selectedPairId === pair.id
-                ? 'bg-primary-50 dark:bg-primary-900/15 border-primary-500/30 shadow-sm shadow-primary-500/5'
-                : 'bg-transparent border-transparent hover:bg-gray-100/50 dark:hover:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700'
-            "
-          >
-            <div
-              v-if="connectionPairsStore.selectedPairId === pair.id"
-              class="absolute left-0 top-3 bottom-3 w-1.5 bg-primary-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-            ></div>
-
-            <!-- Icon Container -->
-            <div
-              class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
-              :class="[
-                connectionPairsStore.selectedPairId === pair.id
-                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30 group-hover:scale-105'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700 group-hover:shadow-md'
-              ]"
-            >
-              <component
-                :is="getPairIcon(pair)"
-                class="w-5 h-5 transition-transform duration-300"
-                :class="{ 'group-hover:rotate-6': true }"
-              />
-            </div>
-
-            <div class="min-w-0 flex-1">
-              <div
-                class="text-[12px] font-black truncate tracking-tighter transition-colors"
-                :class="
-                  connectionPairsStore.selectedPairId === pair.id
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'
-                "
-              >
-                {{ pair.name }}
-              </div>
-              <div
-                class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1"
-              >
-                <span class="text-primary-600 dark:text-primary-400 font-extrabold">{{
-                  pair.sourceEnv
-                }}</span>
-                <span class="mx-1 opacity-40">→</span>
-                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">{{
-                  pair.targetEnv
-                }}</span>
-              </div>
-            </div>
-          </div>
-          <div
-            v-if="availablePairs.length === 0"
-            class="py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[9px]"
-          >
-            No sync pairs configured.
-          </div>
-        </div>
+        </template>
       </div>
 
       <!-- Git Sync Status Chip -->
@@ -522,6 +662,7 @@ import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useSidebarStore } from '@/stores/sidebar'
 import { useProjectsStore } from '@/stores/projects'
 import { useFeaturesStore } from '@/stores/features'
+import Andb from '@/utils/andb'
 
 import {
   Home,
@@ -548,7 +689,9 @@ import {
   Network,
   GitBranch,
   MoreHorizontal,
-  Flame
+  ListTree,
+  Plus,
+  Minus
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -561,9 +704,6 @@ const projectsStore = useProjectsStore()
 const featuresStore = useFeaturesStore()
 
 const isCollapsed = computed(() => appStore.sidebarCollapsed || isGlobalLayer.value)
-const selectedItem = computed(() =>
-  route.path === '/schema' || route.path === '/history' ? (window as any)._andbSelectedObject : null
-)
 
 const activePair = computed(() => connectionPairsStore.activePair)
 
@@ -619,13 +759,29 @@ const expandedDatabases = computed(() => sidebarStore.expandedDatabases)
 const expandedTypes = computed(() => sidebarStore.expandedTypes)
 
 // Search State
-const searchQuery = ref('')
-const searchFlags = ref({
-  caseSensitive: false,
-  wholeWord: false,
-  regex: false
-})
+const searchQuery = computed(() => appStore.globalSearchQuery)
+const searchFlags = computed(() => appStore.globalSearchFlags)
 const isSearchActive = computed(() => searchQuery.value.length > 0)
+
+// Persist sidebar DDL details visibility in localStorage
+const showDdlDetails = ref(localStorage.getItem('andb_show_ddl_details') === 'true')
+watch(showDdlDetails, (newVal) => {
+  localStorage.setItem('andb_show_ddl_details', String(newVal))
+})
+
+const isCategoryExpanded = (envName: string, dbName: string, typeKey: string) => {
+  const key = `${envName}-${dbName}-${typeKey}`
+  return expandedTypes.value.has(key)
+}
+
+const toggleCategory = (envName: string, dbName: string, typeKey: string) => {
+  const key = `${envName}-${dbName}-${typeKey}`
+  if (expandedTypes.value.has(key)) {
+    expandedTypes.value.delete(key)
+  } else {
+    expandedTypes.value.add(key)
+  }
+}
 
 const isCompareView = computed(() => route.path === '/compare')
 
@@ -642,7 +798,7 @@ const comparisonMap = computed(() => {
 
 const getCategoryChangeCount = (db: any, typeKey: string) => {
   if (!sidebarStore.comparisonResults) return 0
-  return db[typeKey].filter((item: any) => {
+  return (db[typeKey] || []).filter((item: any) => {
     const res = comparisonMap.value[`${typeKey}-${item.name}`]
     return res && res.status !== 'equal' && res.status !== 'same'
   }).length
@@ -716,7 +872,19 @@ const displayEnvironments = computed(() => {
 
       ddlTypes.value.forEach(type => {
         const items = db[type.key] || []
-        const filteredItems = items.filter((item: any) => filterFn(item.name))
+        const filteredItems = items.filter((item: any) => {
+          if (searchFlags.value.columns) {
+            if (type.key !== 'tables') return false
+            const ddl = item.ddl || item.content || ''
+            const colNames = Andb.parseColumnNamesFromDdl(ddl)
+            return colNames.some(cName => filterFn(cName))
+          }
+          if (searchFlags.value.content) {
+            const ddlText = item.ddl || item.content || ''
+            return filterFn(ddlText)
+          }
+          return filterFn(item.name)
+        })
         filteredDb[type.key] = filteredItems
         if (filteredItems.length > 0) {
           dbHasMatch = true
@@ -820,41 +988,22 @@ const toggleDatabase = (envName: string, dbName: string) => {
   }
 }
 
-const toggleType = (envName: string, dbName: string, type: string) => {
-  const key = `${envName}-${dbName}-${type}`
-  if (expandedTypes.value.has(key)) {
-    expandedTypes.value.delete(key)
-  } else {
-    expandedTypes.value.add(key)
-  }
+const expandAll = () => {
+  displayEnvironments.value.forEach((env: any) => {
+    expandedEnvironments.value.add(env.name)
+    env.databases.forEach((db: any) => {
+      expandedDatabases.value.add(`${env.name}-${db.name}`)
+      ddlTypes.value.forEach((type: any) => {
+        expandedTypes.value.add(`${env.name}-${db.name}-${type.key}`)
+      })
+    })
+  })
 }
 
-const selectObject = async (env: string, db: string, type: string, item: any) => {
-  // Update global selected connection first to ensure context is correct
-  const envData = displayEnvironments.value.find((e: any) => e.name === env)
-  if (envData) {
-    const dbData = envData.databases.find((d: any) => d.name === db)
-    if (dbData && dbData.connectionId) {
-      appStore.selectedConnectionId = dbData.connectionId
-    }
-  }
-
-  const isNavigationNeeded = !['/schema', '/history'].includes(route.path)
-  if (isNavigationNeeded) {
-    await router.push('/schema')
-  }
-
-  // Small delay to ensure component is mounted
-  setTimeout(
-    () => {
-      window.dispatchEvent(
-        new CustomEvent('object-selected', {
-          detail: { env, db, type, name: item.name }
-        })
-      )
-    },
-    isNavigationNeeded ? 200 : 0
-  )
+const collapseAll = () => {
+  expandedEnvironments.value.clear()
+  expandedDatabases.value.clear()
+  expandedTypes.value.clear()
 }
 
 const selectDatabase = async (env: string, db: string) => {
@@ -889,7 +1038,19 @@ const selectDatabase = async (env: string, db: string) => {
 }
 
 const selectCategory = async (env: string, db: string, type: string) => {
-  toggleType(env, db, type)
+  if (showDdlDetails.value || isSearchActive.value) {
+    toggleCategory(env, db, type)
+  }
+
+  // Update global selected connection
+  const envData = displayEnvironments.value.find((e: any) => e.name === env)
+  if (envData) {
+    const dbData = envData.databases.find((d: any) => d.name === db)
+    if (dbData && dbData.connectionId) {
+      appStore.selectedConnectionId = dbData.connectionId
+    }
+  }
+
   if (route.path === '/compare') {
     window.dispatchEvent(new CustomEvent('category-selected', { detail: { env, db, type } }))
   } else {
@@ -906,12 +1067,43 @@ const selectCategory = async (env: string, db: string, type: string) => {
   }
 }
 
-const refreshDatabase = (env: string, db: string) => {
-  window.dispatchEvent(new CustomEvent('database-refresh-requested', { detail: { env, db } }))
+const selectObject = async (env: string, db: string, type: string, name: string) => {
+  // Update global selected connection
+  const envData = displayEnvironments.value.find((e: any) => e.name === env)
+  if (envData) {
+    const dbData = envData.databases.find((d: any) => d.name === db)
+    if (dbData && dbData.connectionId) {
+      appStore.selectedConnectionId = dbData.connectionId
+    }
+  }
+
+  if (route.path === '/compare') {
+    window.dispatchEvent(
+      new CustomEvent('object-selected', { detail: { env, db, type, name } })
+    )
+  } else {
+    const isNavigationNeeded = !['/schema', '/history'].includes(route.path)
+    if (isNavigationNeeded) {
+      await router.push('/schema')
+    }
+    setTimeout(
+      () => {
+        window.dispatchEvent(
+          new CustomEvent('object-selected', { detail: { env, db, type, name } })
+        )
+      },
+      isNavigationNeeded ? 200 : 0
+    )
+  }
 }
 
-const hardPurgeActiveProject = () => {
-  window.dispatchEvent(new CustomEvent('project-hard-purge-requested'))
+const refreshPair = async (pairId: string) => {
+  connectionPairsStore.selectPair(pairId)
+  if (route.path !== '/compare') {
+    await router.push({ path: '/compare', query: { action: 'fetch-compare' } })
+  } else {
+    window.dispatchEvent(new CustomEvent('pair-fetch-compare-requested', { detail: { pairId } }))
+  }
 }
 
 const handleSmartRefresh = () => {
@@ -933,8 +1125,17 @@ const handleSmartRefresh = () => {
   }
 }
 
-const refreshCategory = (env: string, db: string, type: string) => {
-  window.dispatchEvent(new CustomEvent('category-refresh-requested', { detail: { env, db, type } }))
+const isDatabaseRefreshing = (db: any) => {
+  if (!db.connectionId) return false
+  return Object.keys(appStore.schemaFetchProgresses).some(key =>
+    key.startsWith(`${db.connectionId}-`)
+  )
+}
+
+const isCategoryRefreshing = (db: any, typeKey: string) => {
+  if (!db.connectionId) return false
+  const taskId = `${db.connectionId}-${typeKey.toLowerCase()}`
+  return !!appStore.schemaFetchProgresses[taskId]
 }
 
 const getDatabaseDisplayName = (db: any) => {
@@ -951,39 +1152,24 @@ const getPairIcon = (pair: any) => {
   return GitCompare
 }
 
-const formatTimeAgo = (dateString: string) => {
-  if (!dateString) return t('schema.never')
-  try {
-    let utcString = dateString
-    if (!dateString.endsWith('Z')) {
-      utcString = dateString.replace(' ', 'T') + 'Z'
-    }
-
-    const date = new Date(utcString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffSec = Math.floor(diffMs / 1000)
-
-    if (diffSec < 0) return t('common.timeAgo.justNow')
-    if (diffSec < 60) return t('common.timeAgo.justNow')
-    if (diffSec < 3600) return t('common.timeAgo.minAgo', { n: Math.floor(diffSec / 60) })
-    if (diffSec < 86400)
-      return t('common.timeAgo.hourAgo', {
-        n: Math.floor(diffSec / 3600),
-        s: Math.floor(diffSec / 3600) > 1 ? 's' : ''
-      })
-    return date.toLocaleDateString()
-  } catch (e) {
-    return dateString
-  }
-}
-
 const refreshSchemas = async (force = false) => {
   try {
-    const result = await sidebarStore.loadSchemas(force)
+    const conns = appStore.filteredConnections || [] // Connections for current project
+
+    // Pass connections to loadSchemas — backend uses them for strict project isolation.
+    // Do NOT call loadSchemas before we have connections (guards against loading global data).
+    const result = await sidebarStore.loadSchemas(force, conns.length > 0 ? conns : undefined)
     if (!result) return
 
-    const conns = appStore.filteredConnections || [] // Connections for current project
+    // If no connections for this project, clear sidebar — but only after both stores are fully
+    // initialized to avoid a race condition during cold-start where filteredConnections is
+    // transiently [] before app.init() and projects.init() complete.
+    if (conns.length === 0) {
+      if (appStore.isInitialized && projectsStore.isLoaded) {
+        sidebarStore.setEnvironments([])
+      }
+      return
+    }
 
     // Group by environment
     const envMap = new Map<string, any>()
@@ -1011,9 +1197,11 @@ const refreshSchemas = async (force = false) => {
     })
 
     // 2. Merge with results from SQLite - ONLY for connections in the current project
-    if (result && Array.isArray(result)) {
+    // loadSchemas returns a {success, data} object — extract the array from .data
+    const schemaArray = Array.isArray(result) ? result : (result?.data || result)
+    if (schemaArray && Array.isArray(schemaArray)) {
       console.log('[Sidebar] Processing Schema Result:', {
-        totalEnvs: result.length,
+        totalEnvs: schemaArray.length,
         connsCount: conns.length,
         conns: conns.map(c => ({
           id: c.id,
@@ -1024,7 +1212,7 @@ const refreshSchemas = async (force = false) => {
         }))
       })
 
-      result.forEach((remoteEnv: any) => {
+      schemaArray.forEach((remoteEnv: any) => {
         remoteEnv.databases.forEach((remoteDb: any) => {
           // Find matching connection in current project scope
           // Improved Logic:
@@ -1039,18 +1227,11 @@ const refreshSchemas = async (force = false) => {
             if (remoteDb.connectionId && c.id === remoteDb.connectionId) return true
 
             // 2. Dump File Logic:
-            // Dump connections can have empty database names or names like 'demo_source'.
-            // We relax the check: if connection is Dump type and environment matches, we assume it's the one (since we project-scope queries usually)
-
             if (c.type === 'dump' && envMatch) {
-              // If remoteDb key provided host/path, use it!
-              // Inspecting keys during dev to confirm availability
               if ((remoteDb as any).host && c.host) {
-                // Compare normalized paths
                 return (remoteDb as any).host.trim() === c.host.trim()
               }
 
-              // Fallback: If remoteDb.name is empty OR matches cached name OR matches connection name
               const cDbName = (c.database || '').toLowerCase()
               const cName = (c.name || '').toLowerCase()
               const rDbName = (remoteDb.name || '').toLowerCase()
@@ -1090,12 +1271,7 @@ const refreshSchemas = async (force = false) => {
                 (db.name || '').toLowerCase() === (remoteDb.name || '').toLowerCase()
             )
 
-            // Critical Fix: If localDb exists (created from config), merge data.
-            // If it doesn't exist (unexpected), create it.
-
             if (localDb) {
-              // Found configured connection, merge actual counts/data
-              // Use Object.assign to update reactive object in place
               Object.assign(localDb, {
                 tables: remoteDb.tables,
                 views: remoteDb.views,
@@ -1104,10 +1280,8 @@ const refreshSchemas = async (force = false) => {
                 triggers: remoteDb.triggers,
                 events: remoteDb.events,
                 totalCount: remoteDb.totalCount || 0
-                // Do NOT overwrite name or connectionId as local config is source of truth
               })
             } else {
-              // Should have been created in Step 1, but added here for safety
               localEnv.databases.push({ ...remoteDb, connectionId: projectConn.id })
             }
           }
@@ -1126,6 +1300,7 @@ const refreshSchemas = async (force = false) => {
     }
   }
 }
+
 
 // Watch for active pair changes to auto-expand
 watch(
@@ -1162,12 +1337,17 @@ watch(
 
 watch(
   () => projectsStore.selectedProjectId,
-  () => {
-    refreshSchemas(false) // Just regroup the connections
+  (newProjectId) => {
+    // Load the project-scoped sidebar cache — clears stale cross-project data immediately
+    if (newProjectId) sidebarStore.loadFromStorage(newProjectId)
+    refreshSchemas(false) // Regroup with correct connections
   }
 )
 
 onMounted(() => {
+  // Load project-scoped cache on mount to avoid cross-project bleed from global key
+  const projectId = projectsStore.selectedProjectId
+  if (projectId) sidebarStore.loadFromStorage(projectId)
   refreshSchemas(false)
   sidebarStore.checkGitStatus()
 })

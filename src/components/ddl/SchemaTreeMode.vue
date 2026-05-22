@@ -156,7 +156,7 @@
                           @click.stop="emit('send-to-instant', item.data, 'target')"
                           class="p-1 rounded-full bg-blue-500 text-white dark:bg-blue-600 transition-all shadow-sm"
                         >
-                          <Workflow class="w-3 h-3 text-white" />
+                          <Workflow class="w-3 h-3 text-white rotate-180" />
                         </button>
 
                         <template v-else>
@@ -172,7 +172,7 @@
                             @click.stop="emit('send-to-instant', item.data, 'target')"
                             class="p-1 rounded-full text-blue-400/60 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all animate-pulse"
                           >
-                            <Workflow class="w-3 h-3" />
+                            <Workflow class="w-3 h-3 rotate-180" />
                           </button>
                         </template>
                       </div>
