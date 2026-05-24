@@ -99,7 +99,7 @@
           <!-- Info Popover -->
           <div
             v-if="showSafeModeInfo"
-            class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50"
+            class="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-[100]"
           >
             <div
               class="flex items-start justify-between mb-3 border-b border-gray-100 dark:border-gray-700 pb-2"

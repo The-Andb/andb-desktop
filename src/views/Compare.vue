@@ -1099,15 +1099,17 @@ const closeMigrationTerminal = () => {
 
 const executeConfirmedMigration = () => {
   if (!migrationTerminal.value.isOpen) return
-  const dialog = { ...migrationTerminal.value }
+  const items = [...migrationTerminal.value.items]
+  const batchType = migrationTerminal.value.batchType
+  const dialogType = migrationTerminal.value.type
   closeMigrationTerminal()
 
-  if (dialog.type === 'single') {
-    migrateSingleItem(dialog.items[0], true)
-  } else if (dialog.type === 'batch') {
-    migrateBatchInline(dialog.batchType!, true)
-  } else if (dialog.type === 'custom-batch') {
-    migrateCustomItems(dialog.items, true)
+  if (dialogType === 'single') {
+    migrateSingleItem(items[0], true)
+  } else if (dialogType === 'batch') {
+    migrateBatchInline(batchType!, true)
+  } else if (dialogType === 'custom-batch') {
+    migrateCustomItems(items, true)
   }
 }
 
@@ -1202,10 +1204,10 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
 
       notificationStore.add({
         type: appStore.safeMode ? 'info' : 'success',
-        title: appStore.safeMode ? t('compare.dryRunComplete') : 'Sync Successful',
+        title: appStore.safeMode ? t('compare.dryRunComplete') : 'Migration Successful',
         message: appStore.safeMode
           ? t('compare.dryRunDesc', { name: item.name })
-          : `${item.name} (${item.type}) has been synced and verified.`
+          : `${item.name} (${item.type}) has been migrated and verified.`
       })
 
       sidebarStore.setComparisonResults(allResults.value)
@@ -1297,7 +1299,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     if (pendingItems.length === 0) {
       notificationStore.add({
         type: 'info',
-        title: 'Nothing to sync',
+        title: 'Nothing to migrate',
         message: 'There are no pending changes in this category.'
       })
       return
@@ -1312,7 +1314,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
       isOpen: true,
       items: pendingItems,
       sqlScript:
-        '-- Note: Interactive preview is not available for batch mode syncs.\n-- All selected items will be executed consecutively.',
+        '-- Note: Interactive preview is not available for batch mode migrations.\n-- All selected items will be executed consecutively.',
       sqlMap: {},
       fetching: false,
       type: 'batch',
@@ -1357,13 +1359,53 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
       for (const ddlType of ddlTypes) {
         // 1. Migrate all changes for this type
         for (const status of statuses) {
-          await Andb.migrate(source, target, {
-            type: ddlType as any,
-            sourceEnv: source.environment,
-            targetEnv: target.environment,
-            status: status,
-            dryRun: appStore.safeMode
+          const categoryItems = (resultsMap[ddlType]?.value || []).filter((i: any) => {
+            const s = i.status?.toLowerCase()
+            if (status === 'NEW') {
+              return s === 'new' || s === 'missing_in_target'
+            } else if (status === 'UPDATED') {
+              return s === 'updated' || s === 'different' || s === 'modified'
+            }
+            return false
           })
+
+          if (categoryItems.length === 0) continue
+
+          const objects = categoryItems.map((item: any) => ({
+            type: item.type || ddlType,
+            name: item.name,
+            status: status
+          }))
+
+          if (appStore.safeMode) {
+            // Run sequentially for visualization in safe mode
+            for (const item of categoryItems) {
+              isMigratingItemId.value = item.name
+              try {
+                await Andb.migrate(source, target, {
+                  type: (item.type || ddlType) as any,
+                  sourceEnv: source.environment,
+                  targetEnv: target.environment,
+                  name: item.name,
+                  status: status,
+                  dryRun: true
+                })
+              } catch (err: any) {
+                console.error(`Dry run failed for ${item.name}:`, err)
+              }
+            }
+            isMigratingItemId.value = null
+          } else {
+            // Run in bulk for live migration
+            await Andb.migrate(source, target, {
+              type: ddlType as any,
+              sourceEnv: source.environment,
+              targetEnv: target.environment,
+              status: status,
+              objects,
+              dryRun: false
+            })
+          }
         }
 
         // 2. Export Target (Atomic for Category)
@@ -1397,8 +1439,8 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
 
       notificationStore.add({
         type: 'success',
-        title: 'Batch Sync Successful',
-        message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been synced and verified.`
+        title: 'Batch Migration Successful',
+        message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been migrated and verified.`
       })
 
       // Update Sidebar with new results
@@ -1494,37 +1536,89 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
 
     try {
       const typeSet = new Set<string>()
+      const objects: any[] = []
 
       for (const item of items) {
-        let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
-        if (item.status === 'modified' || item.status === 'different' || item.status === 'updated')
-          status = 'UPDATED'
-        
-        if (item.status === 'deprecated' || item.status === 'missing_in_source') continue
+        const s = item.status?.toLowerCase()
+        if (s === 'deprecated' || s === 'missing_in_source') continue
 
+        let status: 'NEW' | 'UPDATED' = 'NEW'
+        if (s === 'modified' || s === 'different' || s === 'updated')
+          status = 'UPDATED'
+
+        objects.push({
+          type: item.type,
+          name: item.name,
+          status
+        })
+      }
+
+      if (objects.length > 0) {
         try {
-          await Andb.migrate(source, target, {
-            type: item.type as any,
-            sourceEnv: source.environment,
-            targetEnv: target.environment,
-            name: item.name,
-            status: status,
-            dryRun: appStore.safeMode
-          })
-          
-          if (!appStore.safeMode) {
-            try {
-              await Andb.createSnapshot(target, item.type, item.name)
-            } catch {}
+          if (appStore.safeMode) {
+            // Run sequentially for visualization in safe mode (dry run)
+            for (const obj of objects) {
+              isMigratingItemId.value = obj.name
+              try {
+                await Andb.migrate(source, target, {
+                  type: obj.type as any,
+                  sourceEnv: source.environment,
+                  targetEnv: target.environment,
+                  name: obj.name,
+                  status: obj.status,
+                  dryRun: true
+                })
+                successCount++
+                typeSet.add(obj.type)
+              } catch (err: any) {
+                console.error(`Dry run failed for ${obj.name}:`, err)
+                notificationStore.add({
+                  type: 'error',
+                  title: `Migration Failed: ${obj.name}`,
+                  message: err.message || 'An error occurred.'
+                })
+              }
+            }
+            isMigratingItemId.value = null
+          } else {
+            // Run in bulk for live migration
+            const result = await Andb.migrate(source, target, {
+              type: 'schema' as any,
+              sourceEnv: source.environment,
+              targetEnv: target.environment,
+              objects,
+              dryRun: false
+            })
+
+            if (result.successful && Array.isArray(result.successful)) {
+              for (const succObj of result.successful) {
+                successCount++
+                typeSet.add(succObj.type)
+
+                try {
+                  await Andb.createSnapshot(target, succObj.type, succObj.name)
+                } catch (snapshotErr) {
+                  console.warn(`[Compare] Failed to create snapshot for ${succObj.name}:`, snapshotErr)
+                }
+              }
+            }
+
+            if (result.failed && Array.isArray(result.failed)) {
+              for (const failObj of result.failed) {
+                console.error(`Failed to migrate ${failObj.name}:`, failObj.error)
+                notificationStore.add({
+                  type: 'error',
+                  title: `Migration Failed: ${failObj.name}`,
+                  message: failObj.error || 'An error occurred during migration.'
+                })
+              }
+            }
           }
-          
-          successCount++
-          typeSet.add(item.type)
         } catch (err: any) {
-          console.error(`Failed to sync ${item.name}:`, err)
+          console.error('Batch selection migration failed:', err)
           notificationStore.add({
             type: 'error',
-            title: `Sync Failed: ${item.name}`,
+            title: 'Batch Migration Failed',
             message: err.message || 'An error occurred.'
           })
         }
@@ -1559,15 +1653,15 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
       }
 
       operationsStore.completeOperation(opId, true, {
-        log: `Successfully synced ${successCount} out of ${totalCount} items.`
+        log: `Successfully migrated ${successCount} out of ${totalCount} items.`
       })
 
       notificationStore.add({
         type: appStore.safeMode ? 'info' : 'success',
-        title: appStore.safeMode ? 'Batch Dry Run Complete' : 'Batch Sync Complete',
+        title: appStore.safeMode ? 'Batch Dry Run Complete' : 'Batch Migration Complete',
         message: appStore.safeMode 
            ? 'Dry run execution successfully simulated.' 
-           : `Successfully synced and verified ${successCount} items.`
+           : `Successfully migrated and verified ${successCount} items.`
       })
 
       sidebarStore.setComparisonResults(allResults.value)

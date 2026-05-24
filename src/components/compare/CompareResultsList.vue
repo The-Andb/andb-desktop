@@ -204,7 +204,7 @@
                   v-if="!isTargetDump"
                   @click.stop="$emit('migrate-batch', cat.type)"
                   class="absolute inset-0 flex items-center justify-center bg-primary-500 hover:bg-primary-600 text-white rounded-full transition-all opacity-0 group-hover/catHeader:opacity-100 shadow-sm z-10"
-                  title="Sync all changes in category"
+                  title="Migrate all changes in category"
                 >
                   <Zap class="w-3 h-3 fill-current" />
                 </button>
@@ -300,7 +300,7 @@
                       <Zap
                         @click.stop="$emit('migrate', item)"
                         class="w-3.5 h-3.5 text-primary-500 hidden group-hover/migrate:block cursor-pointer hover:scale-110 active:scale-95 fill-current"
-                        title="Sync"
+                        title="Migrate"
                       />
                     </template>
                   </template>
@@ -339,7 +339,7 @@
           class="flex items-center gap-1.5 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-[10px] font-black tracking-[0.08em] uppercase hover:scale-[1.03] active:scale-95 transition-all shadow-lg shadow-primary-500/25 select-none"
         >
           <Zap class="w-3.5 h-3.5 fill-current" />
-          Sync
+          Migrate
         </button>
       </div>
     </transition>

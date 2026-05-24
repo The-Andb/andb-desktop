@@ -38,6 +38,7 @@ export interface MigrateOptions {
   name?: string
   status?: DDL_STATUS
   dryRun?: boolean
+  objects?: any[]
 }
 
 export interface ConnectionTestResult {

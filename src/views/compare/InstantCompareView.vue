@@ -1,81 +1,81 @@
 <template>
   <MainLayout>
+    <template #breadcrumbs>
+      <div class="flex items-center gap-3">
+        <div
+          class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl text-orange-600 dark:text-orange-400"
+        >
+          <Flame class="w-5 h-5" />
+        </div>
+        <div>
+          <h2
+            class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none"
+          >
+            Instant Compare
+          </h2>
+          <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+            Paste & Diff Arbitrary SQL Snippets
+          </p>
+        </div>
+      </div>
+    </template>
+
     <template #toolbar>
-      <div class="flex items-center justify-between w-full h-full px-2">
-        <div class="flex items-center gap-3">
-          <div
-            class="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl text-orange-600 dark:text-orange-400"
-          >
-            <Flame class="w-5 h-5" />
-          </div>
-          <div>
-            <h2
-              class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-none"
-            >
-              Instant Compare
-            </h2>
-            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-              Paste & Diff Arbitrary SQL Snippets
-            </p>
-          </div>
-        </div>
+      <div class="flex items-center gap-3">
+        <!-- History Toggle -->
+        <button
+          @click="isHistorySidebarOpen = !isHistorySidebarOpen"
+          class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 relative"
+          title="Comparison History"
+        >
+          <History class="w-4 h-4" />
+          <span v-if="historyList.length > 0" class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
+            {{ historyList.length }}
+          </span>
+        </button>
 
-        <div class="flex items-center gap-3">
-          <!-- History Toggle -->
-          <button
-            @click="isHistorySidebarOpen = !isHistorySidebarOpen"
-            class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700 relative"
-            title="Comparison History"
-          >
-            <History class="w-4 h-4" />
-            <span v-if="historyList.length > 0" class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
-              {{ historyList.length }}
-            </span>
-          </button>
+        <!-- Save to History -->
+        <button
+          v-if="srcDDL || destDDL"
+          @click="openSaveModal"
+          class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-xl text-[10px] font-black uppercase transition-all"
+          title="Save current comparison session to history"
+        >
+          <Save class="w-3.5 h-3.5" />
+          Save History
+        </button>
 
-          <!-- Save to History -->
-          <button
-            v-if="srcDDL || destDDL"
-            @click="openSaveModal"
-            class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-xl text-[10px] font-black uppercase transition-all"
-            title="Save current comparison session to history"
-          >
-            <Save class="w-3.5 h-3.5" />
-            Save History
-          </button>
+        <button
+          v-if="step === 'compare'"
+          @click="step = 'input'"
+          class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-[10px] font-black uppercase transition-all"
+        >
+          <ArrowLeft class="w-3.5 h-3.5" />
+          Back to Inputs
+        </button>
 
-          <button
-            v-if="step === 'compare'"
-            @click="step = 'input'"
-            class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-[10px] font-black uppercase transition-all"
-          >
-            <ArrowLeft class="w-3.5 h-3.5" />
-            Back to Inputs
-          </button>
+        <button
+          v-if="step === 'input'"
+          @click="runCompare"
+          :disabled="loading || (!srcDDL && !destDDL)"
+          class="flex items-center gap-2 px-4 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group/zbtn"
+        >
+          <GitCompare
+            class="w-3.5 h-3.5 transition-transform duration-300 group-hover/zbtn:scale-125"
+            v-if="!loading"
+          />
+          <RefreshCw class="w-3.5 h-3.5 animate-spin" v-else />
+          {{ loading ? 'Comparing...' : 'Analyze & Compare' }}
+        </button>
 
-          <button
-            v-if="step === 'input'"
-            @click="runCompare"
-            :disabled="loading || (!srcDDL && !destDDL)"
-            class="flex items-center gap-2 px-4 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group/zbtn"
-          >
-            <GitCompare
-              class="w-3.5 h-3.5 transition-transform duration-300 group-hover/zbtn:scale-125"
-              v-if="!loading"
-            />
-            <RefreshCw class="w-3.5 h-3.5 animate-spin" v-else />
-            {{ loading ? 'Comparing...' : 'Analyze & Compare' }}
-          </button>
-
-          <!-- Dismiss button (only if not standalone, e.g. overlay mode) -->
-          <button
-            v-if="isOverlay"
-            @click="$emit('close')"
-            class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
+        <!-- Dismiss button (only if not standalone, e.g. overlay mode) -->
+        <button
+          v-if="isOverlay"
+          @click="$emit('close')"
+          class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <X class="w-5 h-5" />
+        </button>
       </div>
     </template>
 

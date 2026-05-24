@@ -138,17 +138,7 @@
           </div>
         </div>
 
-        <!-- Command Preview (Only shown when safeMode is enabled) -->
-        <div v-if="appStore.safeMode" class="p-3 bg-green-50 dark:bg-green-950/20 border-t border-green-100 dark:border-green-900/30 text-[10px] text-green-700 dark:text-green-400 font-mono shrink-0">
-          <div class="font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <ShieldCheck class="w-3.5 h-3.5 text-green-500" />
-            Dry Run Command Simulation:
-          </div>
-          <div class="bg-gray-900 text-green-400 p-2.5 rounded-lg border border-gray-800 break-all select-all font-semibold leading-normal flex items-start gap-2">
-            <span class="text-green-500 shrink-0 select-none">$</span>
-            <span class="flex-1">{{ commandPreview }}</span>
-          </div>
-        </div>
+
 
         <!-- Action Footer -->
         <div class="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-between gap-2 shadow-sm">
@@ -168,7 +158,7 @@
             :title="targetIsStatic ? $t('migration.staticWarning') : ''"
           >
             <Zap class="w-3.5 h-3.5 fill-current" :class="{ 'animate-spin': loading }" />
-            {{ loading ? $t('common.processing') : 'Sync' }}
+            {{ loading ? $t('common.processing') : 'Migrate' }}
           </button>
         </div>
       </div>
@@ -276,8 +266,7 @@ import {
   Terminal,
   List,
   Workflow,
-  Sigma,
-  ShieldCheck
+  Sigma
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -452,17 +441,5 @@ watch(
   { immediate: true }
 )
 
-const commandPreview = computed(() => {
-  const src = props.sourceName || 'src'
-  const dest = props.targetName || 'dest'
-  const dryRunFlag = appStore.safeMode ? ' --dry-run' : ''
-  
-  if (isBatchMode.value) {
-    return `andb migrate ${src} ${dest}${dryRunFlag}`
-  } else {
-    const typeStr = props.item?.type ? ` --type ${props.item.type}` : ''
-    const nameStr = props.item?.name ? ` --name ${props.item.name}` : ''
-    return `andb migrate ${src} ${dest}${typeStr}${nameStr}${dryRunFlag}`
-  }
-})
+
 </script>
