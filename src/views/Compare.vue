@@ -1189,7 +1189,7 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
         targetEnv: target.environment,
         name: item.name,
         status: status,
-        dryRun: appStore.safeMode
+        dryRun: false
       })
 
       await applyAtomicVerify(item)
@@ -1388,10 +1388,10 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
                   targetEnv: target.environment,
                   name: item.name,
                   status: status,
-                  dryRun: true
+                  dryRun: false
                 })
               } catch (err: any) {
-                console.error(`Dry run failed for ${item.name}:`, err)
+                console.error(`Migration failed for ${item.name}:`, err)
               }
             }
             isMigratingItemId.value = null
@@ -1556,7 +1556,7 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
       if (objects.length > 0) {
         try {
           if (appStore.safeMode) {
-            // Run sequentially for visualization in safe mode (dry run)
+            // Run sequentially for visualization in safe mode
             for (const obj of objects) {
               isMigratingItemId.value = obj.name
               try {
@@ -1566,12 +1566,12 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
                   targetEnv: target.environment,
                   name: obj.name,
                   status: obj.status,
-                  dryRun: true
+                  dryRun: false
                 })
                 successCount++
                 typeSet.add(obj.type)
               } catch (err: any) {
-                console.error(`Dry run failed for ${obj.name}:`, err)
+                console.error(`Migration failed for ${obj.name}:`, err)
                 notificationStore.add({
                   type: 'error',
                   title: `Migration Failed: ${obj.name}`,
