@@ -117,7 +117,7 @@ export const useAppStore = defineStore('app', () => {
 
   // Store the last custom configuration to restore it when switching back to Custom
   const lastCustomFontSizes = ref({ ...FONT_SIZE_PROFILES.medium })
-  const hiddenHorizontalTabs = ref<string[]>([])
+  const hiddenHorizontalTabs = ref<string[]>(['/instant-compare', '/integrations'])
 
   const connections = ref<DatabaseConnection[]>([])
 

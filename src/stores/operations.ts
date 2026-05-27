@@ -145,6 +145,7 @@ export const useOperationsStore = defineStore('operations', () => {
       endTime: new Date(),
       metadata
     })
+    loadFromStorage()
   }
 
   const clearOperations = () => {
@@ -176,16 +177,61 @@ export const useOperationsStore = defineStore('operations', () => {
   }
 
   const loadFromStorage = async () => {
+    const tempOps: Operation[] = []
+
     if ((window as any).electronAPI?.storage) {
       const stored = await (window as any).electronAPI.storage.get('operations')
       if (stored && Array.isArray(stored)) {
-        operations.value = stored.map(op => ({
+        const nonMigrate = stored.filter(op => op.type !== 'migrate').map(op => ({
           ...op,
           startTime: new Date(op.startTime),
           endTime: op.endTime ? new Date(op.endTime) : undefined
         }))
+        tempOps.push(...nonMigrate)
       }
     }
+
+    if ((window as any).electronAPI?.getMigrationHistory) {
+      try {
+        const res = await (window as any).electronAPI.getMigrationHistory(200)
+        if (res.success && Array.isArray(res.data)) {
+          const projectsStore = useProjectsStore()
+          const projectId = projectsStore.selectedProjectId || 'default'
+
+          const mappedMigrations: Operation[] = res.data.map((r: any) => {
+            let ddlCount = 0
+            try {
+              const objs = JSON.parse(r.target_objects || '[]')
+              ddlCount = Array.isArray(objs) ? objs.length : 0
+            } catch {}
+
+            return {
+              id: `db-migrate-${r.id}`,
+              projectId: projectId,
+              type: 'migrate',
+              targetEnv: r.environment,
+              sourceEnv: 'DEV',
+              status: r.status?.toLowerCase() === 'success' ? 'success' : (r.status?.toLowerCase() === 'pending' ? 'pending' : 'failed'),
+              startTime: new Date(r.executed_at),
+              endTime: new Date(r.executed_at),
+              duration: r.status?.toLowerCase() === 'success' ? 500 : undefined,
+              ddlCount: ddlCount,
+              errorMessage: r.error_message || undefined,
+              metadata: {
+                filePath: r.file_path,
+                database: r.database_name,
+                targetObjects: r.target_objects
+              }
+            }
+          })
+          tempOps.push(...mappedMigrations)
+        }
+      } catch (e) {
+        console.warn('Failed to load migration history from SQLite:', e)
+      }
+    }
+
+    operations.value = tempOps
   }
 
   // Initialize

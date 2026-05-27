@@ -10,6 +10,8 @@ export interface Environment {
   description: string
   enabled: boolean
   order: number
+  icon?: string
+  color?: string
 }
 
 export const SUGGESTED_ENVIRONMENTS = [
@@ -54,9 +56,9 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
       }))
     } else {
       environments.value = [
-        { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1 },
-        { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 2 },
-        { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 3 }
+        { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1, icon: 'Package', color: '#10b981' },
+        { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 2, icon: 'Activity', color: '#f97316' },
+        { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 3, icon: 'ShieldAlert', color: '#f43f5e' }
       ]
     }
 
@@ -502,10 +504,10 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
 
   const resetEnvironments = async () => {
     environments.value = [
-      { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1 },
-      { id: 'TEST', name: 'TEST', description: 'Testing', enabled: true, order: 2 },
-      { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 3 },
-      { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 4 }
+      { id: 'DEV', name: 'DEV', description: 'Development', enabled: true, order: 1, icon: 'Package', color: '#10b981' },
+      { id: 'TEST', name: 'TEST', description: 'Testing', enabled: true, order: 2, icon: 'ShieldCheck', color: '#8b5cf6' },
+      { id: 'STAGE', name: 'STAGE', description: 'Staging', enabled: true, order: 3, icon: 'Activity', color: '#f97316' },
+      { id: 'PROD', name: 'PROD', description: 'Production', enabled: true, order: 4, icon: 'ShieldAlert', color: '#f43f5e' }
     ]
     await storage.saveEnvironments(environments.value)
   }
@@ -543,6 +545,132 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     await storage.saveConnectionPairs(connectionPairs.value)
   }
 
+  const getProjectSettings = () => {
+    const projectsStore = useProjectsStore()
+    return (projectsStore.currentProject?.settings || {}) as any
+  }
+
+  const getResolvedEnvIcon = (envName: string): string => {
+    const settings = getProjectSettings()
+    const name = envName.toUpperCase()
+    if (settings.envIcons?.[name]?.icon) {
+      return settings.envIcons[name].icon
+    }
+    const env = environments.value.find(e => e.name.toUpperCase() === name)
+    if (env?.icon) {
+      return env.icon
+    }
+    // Default name-based fallback
+    if (name.includes('PROD') || name.includes('LIVE')) return 'ShieldAlert'
+    if (name.includes('UAT')) return 'ShieldCheck'
+    if (name.includes('STAGE') || name.includes('PRE')) return 'Activity'
+    if (name.includes('DEV') || name.includes('LOCAL')) return 'Package'
+    return 'Database'
+  }
+
+  const getResolvedEnvColor = (envName: string): string => {
+    const settings = getProjectSettings()
+    const name = envName.toUpperCase()
+    if (settings.envIcons?.[name]?.color) {
+      return settings.envIcons[name].color
+    }
+    const env = environments.value.find(e => e.name.toUpperCase() === name)
+    if (env?.color) {
+      return env.color
+    }
+    // Default name-based fallback
+    if (name.includes('PROD') || name.includes('LIVE')) return '#f43f5e'
+    if (name.includes('STAGE') || name.includes('PRE')) return '#f97316'
+    if (name.includes('DEV') || name.includes('LOCAL')) return '#10b981'
+    if (name.includes('TEST') || name.includes('QA') || name.includes('UAT')) return '#8b5cf6'
+    if (name.includes('DEMO')) return '#14b8a6'
+    return '#64748b'
+  }
+
+  const getResolvedConnectionIcon = (conn: any): string => {
+    if (!conn) return 'Database'
+    const settings = getProjectSettings()
+    if (settings.connectionIcons?.[conn.id]?.icon) {
+      return settings.connectionIcons[conn.id].icon
+    }
+    if (conn.icon) {
+      return conn.icon
+    }
+    return getResolvedEnvIcon(conn.environment)
+  }
+
+  const getResolvedConnectionColor = (conn: any): string => {
+    if (!conn) return '#64748b'
+    const settings = getProjectSettings()
+    if (settings.connectionIcons?.[conn.id]?.color) {
+      return settings.connectionIcons[conn.id].color
+    }
+    if (conn.color) {
+      return conn.color
+    }
+    return getResolvedEnvColor(conn.environment)
+  }
+
+  const getResolvedPairIcon = (pair: any): string => {
+    if (!pair) return 'GitCompare'
+    const settings = getProjectSettings()
+    if (settings.pairIcons?.[pair.id]?.icon) {
+      return settings.pairIcons[pair.id].icon
+    }
+    if (pair.icon) {
+      return pair.icon
+    }
+    if (pair.targetEnv) {
+      return getResolvedEnvIcon(pair.targetEnv)
+    }
+    return 'GitCompare'
+  }
+
+  const getResolvedPairColor = (pair: any): string => {
+    if (!pair) return '#64748b'
+    const settings = getProjectSettings()
+    if (settings.pairIcons?.[pair.id]?.color) {
+      return settings.pairIcons[pair.id].color
+    }
+    if (pair.color) {
+      return pair.color
+    }
+    if (pair.targetEnv) {
+      return getResolvedEnvColor(pair.targetEnv)
+    }
+    return '#64748b'
+  }
+
+  const updateProjectEnvIcon = (envName: string, icon: string, color: string) => {
+    const projectsStore = useProjectsStore()
+    const project = projectsStore.currentProject
+    if (!project) return
+    const settings = JSON.parse(JSON.stringify(project.settings || {}))
+    if (!settings.envIcons) settings.envIcons = {}
+    settings.envIcons[envName.toUpperCase()] = { icon, color }
+    projectsStore.updateProject(project.id, { settings })
+  }
+
+  const updateProjectConnectionIcon = (connId: string, icon: string, color: string) => {
+    const projectsStore = useProjectsStore()
+    const project = projectsStore.currentProject
+    if (!project) return
+    const settings = JSON.parse(JSON.stringify(project.settings || {}))
+    if (!settings.connectionIcons) settings.connectionIcons = {}
+    settings.connectionIcons[connId] = { icon, color }
+    projectsStore.updateProject(project.id, { settings })
+  }
+
+  const updateProjectPairIcon = (pairId: string, icon: string, color: string) => {
+    const projectsStore = useProjectsStore()
+    const project = projectsStore.currentProject
+    if (!project) return
+    const settings = JSON.parse(JSON.stringify(project.settings || {}))
+    if (!settings.pairIcons) settings.pairIcons = {}
+    settings.pairIcons[pairId] = { icon, color }
+    projectsStore.updateProject(project.id, { settings })
+  }
+
   return {
     // State
     environments,
@@ -557,10 +685,19 @@ export const useConnectionPairsStore = defineStore('connectionPairs', () => {
     activePair,
     getPairsBySource,
     getPairsByTarget,
+    getResolvedEnvIcon,
+    getResolvedEnvColor,
+    getResolvedConnectionIcon,
+    getResolvedConnectionColor,
+    getResolvedPairIcon,
+    getResolvedPairColor,
 
     // Actions
     setSelectedPair,
     selectPair: setSelectedPair,
+    updateProjectEnvIcon,
+    updateProjectConnectionIcon,
+    updateProjectPairIcon,
     addEnvironment,
     updateEnvironment,
     removeEnvironment,

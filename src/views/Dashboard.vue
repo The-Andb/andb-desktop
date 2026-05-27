@@ -675,7 +675,9 @@
                 <div
                   v-for="activity in recentActivities"
                   :key="activity.id"
-                  class="flex items-start gap-4 relative group"
+                  class="flex items-start gap-4 relative group p-2 -mx-2 rounded-xl transition-all"
+                  :class="activity.type === 'migrate' ? 'cursor-pointer hover:bg-gray-50/80 dark:hover:bg-gray-800/35' : ''"
+                  @click="activity.type === 'migrate' ? viewMigrationDetail(activity) : null"
                 >
                   <div
                     class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110 duration-300"
@@ -701,17 +703,23 @@
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
-                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      <p class="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
                         {{ getActivityDescription(activity) }}
                       </p>
                       <span
                         v-if="activity.status === 'success'"
-                        class="w-1 h-1 rounded-full bg-green-500"
+                        class="w-1.5 h-1.5 rounded-full bg-green-500"
                       ></span>
                       <span
                         v-if="activity.status === 'failed'"
-                        class="w-1 h-1 rounded-full bg-red-500"
+                        class="w-1.5 h-1.5 rounded-full bg-red-500"
                       ></span>
+                      <span
+                        v-if="activity.type === 'migrate' && activity.metadata?.filePath"
+                        class="text-[9px] font-black text-primary-500 dark:text-primary-400 uppercase tracking-widest hover:underline ml-auto flex-shrink-0"
+                      >
+                        [View Script]
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -733,6 +741,11 @@
       </div>
     </main>
     <ReportsViewer :is-open="showReportsModal" @close="showReportsModal = false" />
+    <MigrationHistoryDetailModal
+      :is-open="showMigrationDetailModal"
+      :operation="selectedMigration"
+      @close="showMigrationDetailModal = false"
+    />
   </MainLayout>
 </template>
 
@@ -761,6 +774,7 @@ import {
 } from 'lucide-vue-next'
 import MainLayout from '@/layouts/MainLayout.vue'
 import ReportsViewer from '@/components/reports/ReportsViewer.vue'
+import MigrationHistoryDetailModal from '@/components/dashboard/MigrationHistoryDetailModal.vue'
 import DBStatsCard from '@/components/dashboard/DBStatsCard.vue'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
@@ -776,6 +790,15 @@ const connectionPairsStore = useConnectionPairsStore()
 const operationsStore = useOperationsStore()
 
 const showReportsModal = ref(false)
+const showMigrationDetailModal = ref(false)
+const selectedMigration = ref<any | null>(null)
+
+const viewMigrationDetail = (activity: any) => {
+  if (activity.type === 'migrate') {
+    selectedMigration.value = activity
+    showMigrationDetailModal.value = true
+  }
+}
 
 // Database Intelligence Stats
 const dbStats = ref<any[]>([])

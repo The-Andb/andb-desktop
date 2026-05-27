@@ -246,12 +246,17 @@
 
               <!-- Icon Container -->
               <div
-                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
+                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border border-gray-200/40 dark:border-gray-800"
                 :class="[
                   connectionPairsStore.selectedPairId === pair.id
-                    ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30 group-hover:scale-105'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:text-primary-500 group-hover:bg-white dark:group-hover:bg-gray-700 group-hover:shadow-md'
+                    ? 'text-white shadow-lg group-hover:scale-105'
+                    : 'bg-white dark:bg-gray-900 group-hover:shadow-md'
                 ]"
+                 :style="
+                   connectionPairsStore.selectedPairId === pair.id
+                     ? { backgroundColor: getPairDisplayColor(pair), boxShadow: `0 4px 12px ${getPairDisplayColor(pair)}40` }
+                     : { color: getPairDisplayColor(pair) }
+                 "
               >
                 <component
                   :is="getPairIcon(pair)"
@@ -321,15 +326,9 @@
                       }"
                       @click.stop="toggleDatabase(env.name, db.name)"
                     />
-                    <Database class="w-3.5 h-3.5 mr-2 text-amber-500" />
+                    <RefreshCw v-if="isDatabaseRefreshing(db)" class="w-3.5 h-3.5 mr-2 text-primary-500 animate-spin" />
+                    <Database v-else class="w-3.5 h-3.5 mr-2 text-amber-500" />
                     <span class="text-[12px] font-bold truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
-                    <!-- Spinner shown only during background loading -->
-                    <div
-                      v-if="isDatabaseRefreshing(db)"
-                      class="p-1 text-primary-500 mx-1 pointer-events-none"
-                    >
-                      <RefreshCw class="w-3 h-3 animate-spin" />
-                    </div>
                   </div>
 
                   <!-- Categories -->
@@ -358,7 +357,12 @@
                           class="w-3 h-3 mr-1 shrink-0"
                         ></div>
                         <div class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800">
+                          <RefreshCw
+                            v-if="isCategoryRefreshing(db, type.key)"
+                            class="w-3 h-3 text-primary-500 animate-spin"
+                          />
                           <component
+                            v-else
                             :is="type.icon"
                             class="w-3 h-3"
                             :class="(db[type.key]?.length || 0) === 0 ? 'text-gray-400 grayscale' : type.colorClass"
@@ -376,13 +380,6 @@
                             class="w-1.5 h-1.5 rounded-full"
                             :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
                           ></div>
-                        </div>
-                        <!-- Spinner shown only during background loading -->
-                        <div
-                          v-if="isCategoryRefreshing(db, type.key)"
-                          class="p-0.5 text-primary-500 ml-1.5 pointer-events-none"
-                        >
-                          <RefreshCw class="w-3 h-3 animate-spin" />
                         </div>
                       </div>
 
@@ -450,15 +447,14 @@
                   'rotate-90 text-gray-900 dark:text-white': expandedEnvironments.has(env.name)
                 }"
               />
-              <component :is="getEnvIcon(env.name)" class="w-3.5 h-3.5 mr-2 text-primary-500" />
+              <component
+                :is="getEnvIcon(env.name)"
+                class="w-3.5 h-3.5 mr-2"
+                :style="{ color: getEnvColor(env.name) }"
+              />
               <span class="text-[10px] font-black uppercase tracking-wider truncate flex-1">{{
                 env.name
               }}</span>
-              <span
-                v-if="isSourceEnvironment(env.name)"
-                class="ml-auto text-primary-600 dark:text-primary-400 font-mono bg-primary-100 dark:bg-primary-400/10 px-1 rounded uppercase font-bold text-[10px]"
-                >SRC</span
-              >
             </div>
 
             <!-- Databases -->
@@ -486,17 +482,11 @@
                     }"
                     @click.stop="toggleDatabase(env.name, db.name)"
                   />
-                  <Database class="w-3.5 h-3.5 mr-2 text-amber-500" />
+                  <RefreshCw v-if="isDatabaseRefreshing(db)" class="w-3.5 h-3.5 mr-2 text-primary-500 animate-spin" />
+                  <Database v-else class="w-3.5 h-3.5 mr-2 text-amber-500" />
                   <span class="text-[12px] font-bold truncate flex-1">{{
                     getDatabaseDisplayName(db)
                   }}</span>
-                  <!-- Spinner shown only during background loading -->
-                  <div
-                    v-if="isDatabaseRefreshing(db)"
-                    class="p-1 text-primary-500 mx-1 pointer-events-none"
-                  >
-                    <RefreshCw class="w-3 h-3 animate-spin" />
-                  </div>
                 </div>
 
                 <!-- Categories -->
@@ -530,7 +520,12 @@
                       <div
                         class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800"
                       >
+                        <RefreshCw
+                          v-if="isCategoryRefreshing(db, type.key)"
+                          class="w-3 h-3 text-primary-500 animate-spin"
+                        />
                         <component
+                          v-else
                           :is="type.icon"
                           class="w-3 h-3"
                           :class="
@@ -555,13 +550,6 @@
                           class="w-1.5 h-1.5 rounded-full"
                           :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
                         ></div>
-                      </div>
-                      <!-- Spinner shown only during background loading -->
-                      <div
-                        v-if="isCategoryRefreshing(db, type.key)"
-                        class="p-0.5 text-primary-500 ml-1.5 pointer-events-none"
-                      >
-                        <RefreshCw class="w-3 h-3 animate-spin" />
                       </div>
                     </div>
 
@@ -691,7 +679,17 @@ import {
   MoreHorizontal,
   ListTree,
   Plus,
-  Minus
+  Minus,
+  Package,
+  Terminal,
+  Cloud,
+  Shield,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component as ComponentIcon
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -702,6 +700,26 @@ const connectionPairsStore = useConnectionPairsStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
 const featuresStore = useFeaturesStore()
+
+const iconMap: Record<string, any> = {
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component: ComponentIcon,
+  ShieldCheck,
+  ShieldAlert,
+  Box
+}
 
 const isCollapsed = computed(() => appStore.sidebarCollapsed || isGlobalLayer.value)
 
@@ -960,11 +978,12 @@ const isSourceEnvironment = (envName: string) => {
 }
 
 const getEnvIcon = (envName: string) => {
-  const name = envName.toUpperCase()
-  if (name.includes('PROD')) return ShieldAlert
-  if (name.includes('UAT')) return ShieldCheck
-  if (name.includes('STAGE')) return Activity
-  return Box
+  const iconName = connectionPairsStore.getResolvedEnvIcon(envName)
+  return iconMap[iconName] || Box
+}
+
+const getEnvColor = (envName: string) => {
+  return connectionPairsStore.getResolvedEnvColor(envName)
 }
 
 const isActiveDatabase = (db: any) => {
@@ -1146,10 +1165,12 @@ const getDatabaseDisplayName = (db: any) => {
 }
 
 const getPairIcon = (pair: any) => {
-  if (pair.name.toLowerCase().includes('prod')) return ShieldAlert
-  if (pair.name.toLowerCase().includes('uat')) return ShieldCheck
-  if (pair.name.toLowerCase().includes('stage')) return Activity
-  return GitCompare
+  const iconName = connectionPairsStore.getResolvedPairIcon(pair)
+  return iconMap[iconName] || GitCompare
+}
+
+const getPairDisplayColor = (pair: any) => {
+  return connectionPairsStore.getResolvedPairColor(pair)
 }
 
 const refreshSchemas = async (force = false) => {

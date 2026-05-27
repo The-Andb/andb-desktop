@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-3">
+  <div class="space-y-3" @click="activePairIconPickerId = null">
     <div class="flex items-center justify-between">
       <h3 class="text-base font-semibold text-gray-900 dark:text-white">
         {{ $t('connectionPairs.title') }}
@@ -24,6 +24,34 @@
                 v-if="pair.isDefault"
                 class="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_var(--primary-500)] shrink-0"
               ></div>
+
+              <!-- Clickable Icon Picker for Pair -->
+              <div class="relative shrink-0 select-none mr-1">
+                <button
+                  @click.stop="togglePairIconPicker(pair.id)"
+                  class="w-7 h-7 rounded-lg flex items-center justify-center border transition-all duration-200 text-white cursor-pointer hover:scale-105 active:scale-95 hover:shadow-md"
+                  :style="{
+                    backgroundColor: getPairDisplayColor(pair),
+                    borderColor: 'rgba(255, 255, 255, 0.1)'
+                  }"
+                  title="Click to change icon"
+                >
+                  <component :is="iconMap[getPairDisplayIcon(pair)] || Box" class="w-3.5 h-3.5" />
+                </button>
+
+                <!-- Icon Picker Popover -->
+                <div
+                  v-if="activePairIconPickerId === pair.id"
+                  class="absolute left-0 top-full mt-2 z-[110]"
+                >
+                  <ProjectIconPicker
+                    :selected-icon="getPairDisplayIcon(pair)"
+                    :selected-color="getPairDisplayColor(pair)"
+                    @select="data => handlePairIconSelect(pair.id, data)"
+                  />
+                </div>
+              </div>
+
               <input
                 v-model="pair.name"
                 type="text"
@@ -166,17 +194,78 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Plus, ArrowRight, ShieldQuestion, Star, Copy, Trash2 } from 'lucide-vue-next'
+import {
+  Plus,
+  ArrowRight,
+  ShieldQuestion,
+  Star,
+  Copy,
+  Trash2,
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component as ComponentIcon,
+  Box,
+  GitCompare
+} from 'lucide-vue-next'
 import { useConnectionPairsStore, type ConnectionPair } from '@/stores/connectionPairs'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
+import ProjectIconPicker from '../projects/ProjectIconPicker.vue'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 const route = useRoute()
 const router = useRouter()
+
+const iconMap: Record<string, any> = {
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component: ComponentIcon,
+  Box,
+  GitCompare
+}
+
+const activePairIconPickerId = ref<string | null>(null)
+const togglePairIconPicker = (id: string) => {
+  activePairIconPickerId.value = activePairIconPickerId.value === id ? null : id
+}
+
+const getPairDisplayIcon = (pair: any) => {
+  return connectionPairsStore.getResolvedPairIcon(pair)
+}
+
+const getPairDisplayColor = (pair: any) => {
+  return connectionPairsStore.getResolvedPairColor(pair)
+}
+
+const handlePairIconSelect = (pairId: string, data: { icon: string; color: string }) => {
+  connectionPairsStore.updateProjectPairIcon(pairId, data.icon, data.color)
+  activePairIconPickerId.value = null
+}
 
 // Handle deep linking for actions
 onMounted(() => {

@@ -491,11 +491,6 @@ const selectHistoryItem = async (item: any) => {
       // Auto run comparison
       await runCompare()
       isHistorySidebarOpen.value = false // close sidebar on selection for clean workspace
-      notification.add({
-        type: 'success',
-        title: 'Loaded comparison',
-        message: `Loaded "${item.name}" from history`
-      })
     } else {
       throw new Error(res.error || 'Failed to load details')
     }

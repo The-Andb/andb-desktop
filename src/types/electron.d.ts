@@ -124,6 +124,9 @@ declare global {
       getReportContent: (
         filename: string
       ) => Promise<{ success: boolean; data?: string; error?: string }>
+      readMigrationFile: (
+        filePath: string
+      ) => Promise<{ success: boolean; data?: string; error?: string }>
 
       // Migration Changelog
       getMigrationChangelog: () => Promise<{ success: boolean; data?: any; error?: string }>

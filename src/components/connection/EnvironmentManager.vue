@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4" @click="closeIconPicker">
     <div class="flex items-center justify-between">
       <h3 class="text-base font-semibold text-gray-900 dark:text-white">
         {{
@@ -101,6 +101,33 @@
                 />
               </div>
 
+              <!-- Custom Icon Selector -->
+              <div class="relative shrink-0 select-none">
+                <button
+                  @click.stop="toggleIconPicker(env.id)"
+                  class="w-8 h-8 rounded-xl flex items-center justify-center border transition-all duration-200 text-white cursor-pointer hover:scale-105 active:scale-95 hover:shadow-md"
+                  :style="{
+                    backgroundColor: getEnvDisplayColor(env.name),
+                    borderColor: 'rgba(255, 255, 255, 0.1)'
+                  }"
+                  title="Click to change icon"
+                >
+                  <component :is="iconMap[getEnvDisplayIcon(env.name)] || Box" class="w-4.5 h-4.5" />
+                </button>
+
+                <!-- Icon Picker Popover -->
+                <div
+                  v-if="activeIconPickerId === env.id"
+                  class="absolute left-0 top-full mt-2 z-[110]"
+                >
+                  <ProjectIconPicker
+                    :selected-icon="getEnvDisplayIcon(env.name)"
+                    :selected-color="getEnvDisplayColor(env.name)"
+                    @select="data => handleIconSelect(env, data)"
+                  />
+                </div>
+              </div>
+
               <!-- Content Row -->
               <div class="flex-1 flex flex-col min-w-0">
                 <template v-if="mode === 'global'">
@@ -134,7 +161,8 @@
               <!-- Metadata Badges -->
               <div class="flex items-center gap-3 shrink-0">
                 <div
-                  :class="['w-2 h-2 rounded-full', getEnvironmentStatusDot(env.name)]"
+                  class="w-2 h-2 rounded-full"
+                  :style="{ backgroundColor: env.color || getEnvDefaultHexColor(env.name) }"
                   :title="env.name"
                 ></div>
                 <button
@@ -196,8 +224,24 @@ import {
   Database,
   ChevronDown,
   Zap,
-  Settings
+  Settings,
+  Package,
+  Cpu,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component as ComponentIcon,
+  ShieldCheck,
+  ShieldAlert,
+  Box
 } from 'lucide-vue-next'
+import ProjectIconPicker from '../projects/ProjectIconPicker.vue'
 import draggable from 'vuedraggable/src/vuedraggable'
 import {
   useConnectionPairsStore,
@@ -210,6 +254,72 @@ import { useProjectsStore } from '@/stores/projects'
 const { t: $t } = useI18n()
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
+
+const iconMap: Record<string, any> = {
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component: ComponentIcon,
+  ShieldCheck,
+  ShieldAlert,
+  Box
+}
+
+const getEnvDefaultIconName = (envName: string) => {
+  const name = envName.toUpperCase()
+  if (name.includes('PROD') || name.includes('LIVE')) return 'ShieldAlert'
+  if (name.includes('UAT')) return 'ShieldCheck'
+  if (name.includes('STAGE') || name.includes('PRE')) return 'Activity'
+  if (name.includes('DEV') || name.includes('LOCAL')) return 'Package'
+  return 'Database'
+}
+
+const getEnvDefaultHexColor = (envName: string) => {
+  const name = envName.toUpperCase()
+  if (name.includes('PROD') || name.includes('LIVE')) return '#f43f5e' // Rose
+  if (name.includes('STAGE') || name.includes('PRE')) return '#f97316' // Orange / Amber
+  if (name.includes('DEV') || name.includes('LOCAL')) return '#10b981' // Emerald / Green
+  if (name.includes('TEST') || name.includes('QA') || name.includes('UAT')) return '#8b5cf6' // Violet
+  if (name.includes('DEMO')) return '#14b8a6' // Teal
+  return '#64748b' // Slate
+}
+
+const activeIconPickerId = ref<string | null>(null)
+
+const toggleIconPicker = (id: string) => {
+  activeIconPickerId.value = activeIconPickerId.value === id ? null : id
+}
+
+const getEnvDisplayIcon = (envName: string) => {
+  return connectionPairsStore.getResolvedEnvIcon(envName)
+}
+
+const getEnvDisplayColor = (envName: string) => {
+  return connectionPairsStore.getResolvedEnvColor(envName)
+}
+
+const handleIconSelect = (env: any, data: { icon: string; color: string }) => {
+  if (props.mode === 'global') {
+    connectionPairsStore.updateEnvironment(env.id, { icon: data.icon, color: data.color })
+  } else {
+    connectionPairsStore.updateProjectEnvIcon(env.name, data.icon, data.color)
+  }
+  activeIconPickerId.value = null
+}
+
+const closeIconPicker = () => {
+  activeIconPickerId.value = null
+}
 
 const props = defineProps<{
   mode: 'global' | 'project'
@@ -255,22 +365,16 @@ const getConnectionCount = (environmentName: string) => {
   ).length
 }
 
-const getEnvironmentStatusDot = (name: string) => {
-  const n = name.toUpperCase()
-  if (n.includes('PROD') || n.includes('LIVE')) return 'bg-rose-500'
-  if (n.includes('STAGE') || n.includes('PRE')) return 'bg-amber-500'
-  if (n.includes('DEV') || n.includes('LOCAL')) return 'bg-blue-500'
-  if (n.includes('TEST') || n.includes('QA') || n.includes('UAT')) return 'bg-purple-500'
-  if (n.includes('DEMO')) return 'bg-primary-500'
-  return 'bg-gray-400'
-}
+// Removed getEnvironmentStatusDot as style color is used directly
 
 const addEnvironment = () => {
   connectionPairsStore.addEnvironment({
     name: 'CUSTOM',
     description: '',
     enabled: true,
-    order: environments.value.length + 1
+    order: environments.value.length + 1,
+    icon: 'Database',
+    color: '#6366f1' // Indigo
   })
   showSuggestions.value = false
 }
@@ -286,7 +390,9 @@ const addFromSuggestion = (suggestion: any) => {
     name: suggestion.name,
     description: suggestion.description,
     enabled: true,
-    order: environments.value.length + 1
+    order: environments.value.length + 1,
+    icon: getEnvDefaultIconName(suggestion.name),
+    color: getEnvDefaultHexColor(suggestion.name)
   })
   showSuggestions.value = false
 }
@@ -296,7 +402,9 @@ const duplicateEnvironment = (env: Environment) => {
     name: `${env.name}_COPY`,
     description: env.description,
     enabled: env.enabled,
-    order: environments.value.length + 1
+    order: environments.value.length + 1,
+    icon: env.icon || getEnvDefaultIconName(env.name),
+    color: env.color || getEnvDefaultHexColor(env.name)
   })
 }
 

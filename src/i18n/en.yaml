@@ -338,6 +338,8 @@ compare:
     whitespace: 'Whitespace'
     hideWhitespace: 'Hide Whitespace Changes'
     hideWhitespaceDesc: 'Interacting with individual lines or hunks will be disabled while hiding whitespace.'
+    ignoreCase: 'Ignore Case'
+    ignoreCaseDesc: 'Ignore case differences (e.g. UPPERCASE vs lowercase keywords)'
     display: 'Display'
     wrapLines: 'Wrap Long Lines'
     diffDisplay: 'Diff Display'
@@ -614,6 +616,8 @@ settings:
   interface:
     title: 'Interface & Aesthetics'
     subtitle: 'Personalize your workspace experience'
+    visibleConfig: 'Visible Navigation Items'
+    visibleConfigDesc: 'Select up to {max} tabs to display in the horizontal navigation bar'
     theme:
       label: 'Theme selection'
       sync: 'Sync with system'
@@ -780,6 +784,7 @@ migration:
   warning: 'This action may involve destructive changes (Updates/Deletes). Review SQL carefully.'
   sqlSelected: 'Selected: {name}'
   staticWarning: 'Migration to Static Dump is not supported. Use SQL Preview to copy script manually.'
+  semanticDiffNote: 'Note: DDL Diff compares raw text line-by-line (which may show column position/shifting differences). The migration script (SQL Preview) is generated using semantic logic and only applies real structural modifications.'
 reports:
   viewer: 'Reports Viewer'
   available: 'Available Reports'

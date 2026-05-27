@@ -38,6 +38,7 @@
               :is-open="true"
               :inline="true"
               :loading="isMigrating"
+              :is-migrating-item-id="isMigratingItemId"
               :item="
                 migrationTerminal.type === 'batch' || migrationTerminal.type === 'custom-batch'
                   ? { isBatch: true, items: migrationTerminal.items }
@@ -1097,19 +1098,22 @@ const closeMigrationTerminal = () => {
   migrationTerminal.value.sqlMap = {}
 }
 
-const executeConfirmedMigration = () => {
+const executeConfirmedMigration = async () => {
   if (!migrationTerminal.value.isOpen) return
   const items = [...migrationTerminal.value.items]
   const batchType = migrationTerminal.value.batchType
   const dialogType = migrationTerminal.value.type
-  closeMigrationTerminal()
 
-  if (dialogType === 'single') {
-    migrateSingleItem(items[0], true)
-  } else if (dialogType === 'batch') {
-    migrateBatchInline(batchType!, true)
-  } else if (dialogType === 'custom-batch') {
-    migrateCustomItems(items, true)
+  try {
+    if (dialogType === 'single') {
+      await migrateSingleItem(items[0], true)
+    } else if (dialogType === 'batch') {
+      await migrateBatchInline(batchType!, true)
+    } else if (dialogType === 'custom-batch') {
+      await migrateCustomItems(items, true)
+    }
+  } finally {
+    closeMigrationTerminal()
   }
 }
 
@@ -1161,17 +1165,10 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
     const { source, target } = activePair.value
 
     let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
-    if (item.status === 'modified' || item.status === 'different' || item.status === 'updated')
+    if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') {
       status = 'UPDATED'
-    if (item.status === 'deprecated' || item.status === 'missing_in_source') {
-      notificationStore.add({
-        type: 'warning',
-        title: 'Migration Skipped',
-        message: `"${item.name}" is deprecated. DROP operations are not allowed by default.`
-      })
-      isMigrating.value = false
-      isMigratingItemId.value = null
-      return
+    } else if (item.status === 'deprecated' || item.status === 'missing_in_source') {
+      status = 'DEPRECATED'
     }
 
     const opId = operationsStore.addOperation({
@@ -1183,18 +1180,20 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
     })
 
     try {
+      if (appStore.safeMode) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
       await Andb.migrate(source, target, {
         type: item.type as any,
         sourceEnv: source.environment,
         targetEnv: target.environment,
         name: item.name,
         status: status,
-        dryRun: false
+        dryRun: appStore.safeMode
       })
 
-      await applyAtomicVerify(item)
-
       if (!appStore.safeMode) {
+        await applyAtomicVerify(item)
         try {
           await Andb.createSnapshot(target, item.type, item.name)
         } catch (snapshotErr: any) {
@@ -1215,26 +1214,28 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
 
       operationsStore.completeOperation(opId, true)
 
-      try {
-        const projectId = projectsStore.selectedProjectId
-        if (projectId) {
-          const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
-          if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
-            window.electronAPI?.andbExecute({
-              sourceConnection: {} as any,
-              targetConnection: {} as any,
-              operation: 'git-sync' as any,
-              options: {
-                config: gitConfRes.data,
-                env: target.environment,
-                db: target.database || target.name,
-                message: `chore(schema): auto-sync after migration of ${item.name}`
-              }
-            })
+      if (!appStore.safeMode) {
+        try {
+          const projectId = projectsStore.selectedProjectId
+          if (projectId) {
+            const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
+            if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
+              window.electronAPI?.andbExecute({
+                sourceConnection: {} as any,
+                targetConnection: {} as any,
+                operation: 'git-sync' as any,
+                options: {
+                  config: gitConfRes.data,
+                  env: target.environment,
+                  db: target.database || target.name,
+                  message: `chore(schema): auto-sync after migration of ${item.name}`
+                }
+              })
+            }
           }
+        } catch (gitErr) {
+          console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
         }
-      } catch (gitErr) {
-        console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
       }
     } catch (e: any) {
       operationsStore.completeOperation(opId, false, { error: e.message })
@@ -1290,7 +1291,9 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
             s === 'updated' ||
             s === 'different' ||
             s === 'modified' ||
-            s === 'missing_in_target'
+            s === 'missing_in_target' ||
+            s === 'deprecated' ||
+            s === 'missing_in_source'
           )
         })
       )
@@ -1324,6 +1327,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
   }
 
   isMigratingBatch.value = type
+  isMigrating.value = true
 
   try {
     const { source, target } = activePair.value
@@ -1345,8 +1349,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
           ? ['tables', 'views', 'procedures', 'functions', 'triggers']
           : [batchTypeLower]
 
-      // Rule: Never migrate DROP. Only NEW and UPDATED.
-      const statuses: ('NEW' | 'UPDATED')[] = ['NEW', 'UPDATED']
+      const statuses: ('NEW' | 'UPDATED' | 'DEPRECATED')[] = ['NEW', 'UPDATED', 'DEPRECATED']
 
       const resultsMap: Record<string, any> = {
         tables: tableResults,
@@ -1365,6 +1368,8 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
               return s === 'new' || s === 'missing_in_target'
             } else if (status === 'UPDATED') {
               return s === 'updated' || s === 'different' || s === 'modified'
+            } else if (status === 'DEPRECATED') {
+              return s === 'deprecated' || s === 'missing_in_source'
             }
             return false
           })
@@ -1382,16 +1387,17 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
             for (const item of categoryItems) {
               isMigratingItemId.value = item.name
               try {
+                await new Promise(resolve => setTimeout(resolve, 500))
                 await Andb.migrate(source, target, {
                   type: (item.type || ddlType) as any,
                   sourceEnv: source.environment,
                   targetEnv: target.environment,
                   name: item.name,
                   status: status,
-                  dryRun: false
+                  dryRun: true
                 })
               } catch (err: any) {
-                console.error(`Migration failed for ${item.name}:`, err)
+                console.error(`Dry run failed for ${item.name}:`, err)
               }
             }
             isMigratingItemId.value = null
@@ -1403,44 +1409,48 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
               targetEnv: target.environment,
               status: status,
               objects,
-              dryRun: false
+              dryRun: appStore.safeMode
             })
           }
         }
 
-        // 2. Export Target (Atomic for Category)
-        await Andb.export(source, target, {
-          type: ddlType as any,
-          environment: target.environment
-        })
+        if (!appStore.safeMode) {
+          // 2. Export Target (Atomic for Category)
+          await Andb.export(source, target, {
+            type: ddlType as any,
+            environment: target.environment
+          })
 
-        // 3. Compare (Atomic for Category)
-        const results = await Andb.compare(source, target, {
-          type: ddlType as any,
-          sourceEnv: source.environment,
-          targetEnv: target.environment
-        })
+          // 3. Compare (Atomic for Category)
+          const results = await Andb.compare(source, target, {
+            type: ddlType as any,
+            sourceEnv: source.environment,
+            targetEnv: target.environment
+          })
 
-        // 4. Update UI State immediately
-        if (Array.isArray(results) && resultsMap[ddlType]) {
-          resultsMap[ddlType].value = results.map((r: any) => ({
-            ...r,
-            type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
-          }))
+          // 4. Update UI State immediately
+          if (Array.isArray(results) && resultsMap[ddlType]) {
+            resultsMap[ddlType].value = results.map((r: any) => ({
+              ...r,
+              type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
+            }))
 
-          if (selectedItem.value && selectedItem.value.type === ddlType) {
-            const found = results.find((r: any) => r.name === selectedItem.value.name)
-            if (found) {
-              selectedItem.value = { ...found, type: ddlType }
+            if (selectedItem.value && selectedItem.value.type === ddlType) {
+              const found = results.find((r: any) => r.name === selectedItem.value.name)
+              if (found) {
+                selectedItem.value = { ...found, type: ddlType }
+              }
             }
           }
         }
       }
 
       notificationStore.add({
-        type: 'success',
-        title: 'Batch Migration Successful',
-        message: `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been migrated and verified.`
+        type: appStore.safeMode ? 'info' : 'success',
+        title: appStore.safeMode ? 'Batch Dry Run Complete' : 'Batch Migration Successful',
+        message: appStore.safeMode
+          ? 'Dry run execution successfully simulated.'
+          : `${type === 'Schema' ? 'Entire schema' : 'All ' + type} has been migrated and verified.`
       })
 
       // Update Sidebar with new results
@@ -1448,29 +1458,33 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
       sidebarStore.triggerRefresh()
 
       // Complete operation record
-      operationsStore.completeOperation(opId, true)
+      operationsStore.completeOperation(opId, true, {
+        log: appStore.safeMode ? 'Dry run execution successfully simulated.' : undefined
+      })
 
       // Hybrid Model: Auto-sync to Git if configured
-      try {
-        const projectId = projectsStore.selectedProjectId
-        if (projectId) {
-          const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
-          if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
-            window.electronAPI?.andbExecute({
-              sourceConnection: {} as any,
-              targetConnection: {} as any,
-              operation: 'git-sync' as any,
-              options: {
-                config: gitConfRes.data,
-                env: target.environment,
-                db: target.database || target.name,
-                message: `chore(schema): auto-sync after migration of ${type}`
-              }
-            })
+      if (!appStore.safeMode) {
+        try {
+          const projectId = projectsStore.selectedProjectId
+          if (projectId) {
+            const gitConfRes = await window.electronAPI?.storage?.get(`git_config_${projectId}`)
+            if (gitConfRes?.success && gitConfRes.data?.remoteUrl) {
+              window.electronAPI?.andbExecute({
+                sourceConnection: {} as any,
+                targetConnection: {} as any,
+                operation: 'git-sync' as any,
+                options: {
+                  config: gitConfRes.data,
+                  env: target.environment,
+                  db: target.database || target.name,
+                  message: `chore(schema): auto-sync after migration of ${type}`
+                }
+              })
+            }
           }
+        } catch (gitErr) {
+          console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
         }
-      } catch (gitErr) {
-        console.warn('[Compare] Git auto-sync failed (optional):', gitErr)
       }
     } catch (e: any) {
       operationsStore.completeOperation(opId, false, { error: e.message })
@@ -1487,6 +1501,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
     }
   } finally {
     isMigratingBatch.value = null
+    isMigrating.value = false
   }
 }
 
@@ -1520,6 +1535,7 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
   }
 
   isMigratingBatch.value = 'Selection'
+  isMigrating.value = true
   let successCount = 0
   let totalCount = items.length
 
@@ -1540,11 +1556,13 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
 
       for (const item of items) {
         const s = item.status?.toLowerCase()
-        if (s === 'deprecated' || s === 'missing_in_source') continue
 
-        let status: 'NEW' | 'UPDATED' = 'NEW'
-        if (s === 'modified' || s === 'different' || s === 'updated')
+        let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
+        if (s === 'modified' || s === 'different' || s === 'updated') {
           status = 'UPDATED'
+        } else if (s === 'deprecated' || s === 'missing_in_source') {
+          status = 'DEPRECATED'
+        }
 
         objects.push({
           type: item.type,
@@ -1560,18 +1578,19 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
             for (const obj of objects) {
               isMigratingItemId.value = obj.name
               try {
+                await new Promise(resolve => setTimeout(resolve, 500))
                 await Andb.migrate(source, target, {
                   type: obj.type as any,
                   sourceEnv: source.environment,
                   targetEnv: target.environment,
                   name: obj.name,
                   status: obj.status,
-                  dryRun: false
+                  dryRun: true
                 })
                 successCount++
                 typeSet.add(obj.type)
               } catch (err: any) {
-                console.error(`Migration failed for ${obj.name}:`, err)
+                console.error(`Dry run failed for ${obj.name}:`, err)
                 notificationStore.add({
                   type: 'error',
                   title: `Migration Failed: ${obj.name}`,
@@ -1587,7 +1606,7 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
               sourceEnv: source.environment,
               targetEnv: target.environment,
               objects,
-              dryRun: false
+              dryRun: appStore.safeMode
             })
 
             if (result.successful && Array.isArray(result.successful)) {
@@ -1624,36 +1643,40 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
         }
       }
 
-      for (const ddlType of Array.from(typeSet)) {
-        const resultsMap: Record<string, any> = {
-          tables: tableResults,
-          procedures: procedureResults,
-          functions: functionResults,
-          views: viewResults,
-          triggers: triggerResults
-        }
+      if (!appStore.safeMode) {
+        for (const ddlType of Array.from(typeSet)) {
+          const resultsMap: Record<string, any> = {
+            tables: tableResults,
+            procedures: procedureResults,
+            functions: functionResults,
+            views: viewResults,
+            triggers: triggerResults
+          }
 
-        await Andb.export(source, target, {
-          type: ddlType as any,
-          environment: target.environment
-        })
+          await Andb.export(source, target, {
+            type: ddlType as any,
+            environment: target.environment
+          })
 
-        const results = await Andb.compare(source, target, {
-          type: ddlType as any,
-          sourceEnv: source.environment,
-          targetEnv: target.environment
-        })
+          const results = await Andb.compare(source, target, {
+            type: ddlType as any,
+            sourceEnv: source.environment,
+            targetEnv: target.environment
+          })
 
-        if (Array.isArray(results) && resultsMap[ddlType]) {
-          resultsMap[ddlType].value = results.map((r: any) => ({
-            ...r,
-            type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
-          }))
+          if (Array.isArray(results) && resultsMap[ddlType]) {
+            resultsMap[ddlType].value = results.map((r: any) => ({
+              ...r,
+              type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
+            }))
+          }
         }
       }
 
       operationsStore.completeOperation(opId, true, {
-        log: `Successfully migrated ${successCount} out of ${totalCount} items.`
+        log: appStore.safeMode
+          ? 'Dry run execution successfully simulated.'
+          : `Successfully migrated ${successCount} out of ${totalCount} items.`
       })
 
       notificationStore.add({
@@ -1678,6 +1701,7 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
     })
   } finally {
     isMigratingBatch.value = null
+    isMigrating.value = false
   }
 }
 

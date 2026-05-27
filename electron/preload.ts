@@ -77,6 +77,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getReportList: () => ipcRenderer.invoke('andb-get-report-list'),
   getReportContent: (filename: string) => ipcRenderer.invoke('andb-get-report-content', filename),
+  readMigrationFile: (filePath: string) => ipcRenderer.invoke('andb-read-migration-file', filePath),
   deleteAllReports: () => ipcRenderer.invoke('andb-delete-all-reports'),
 
   // andb-core operations (new programmatic approach)

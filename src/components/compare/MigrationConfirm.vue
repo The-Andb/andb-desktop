@@ -126,6 +126,14 @@
                     >
                   </span>
                   <span
+                    v-if="isMigratingItemId === obj.name"
+                    class="shrink-0 text-[9px] uppercase font-bold tracking-tighter flex items-center text-primary-500 animate-pulse"
+                  >
+                    <RefreshCw class="w-3 h-3 mr-1 animate-spin" />
+                    {{ $t('common.processing') || 'RUNNING...' }}
+                  </span>
+                  <span
+                    v-else
                     :class="getStatusClass(obj.status)"
                     class="shrink-0 text-[9px] uppercase font-bold tracking-tighter flex items-center"
                   >
@@ -223,6 +231,13 @@
           </div>
 
           <div v-else-if="previewSql" class="flex-1 flex flex-col min-h-0 relative">
+            <!-- Info tip explaining diff alignment / Semantic diff -->
+            <div class="px-6 py-2.5 bg-blue-50/50 dark:bg-blue-950/20 border-b border-blue-100/50 dark:border-blue-900/30 text-[10px] text-blue-600 dark:text-blue-400 flex items-start gap-2 select-none leading-normal">
+              <Info class="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
+              <div>
+                {{ $t('migration.semanticDiffNote') }}
+              </div>
+            </div>
             <DDLViewer
               :content="previewSql"
               :font-size="appStore.fontSizes.code + 1"
@@ -266,7 +281,9 @@ import {
   Terminal,
   List,
   Workflow,
-  Sigma
+  Sigma,
+  RefreshCw,
+  Info
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -275,6 +292,7 @@ const appStore = useAppStore()
 const props = defineProps<{
   isOpen: boolean
   loading: boolean
+  isMigratingItemId?: string | null
   item: any
   sourceName: string
   targetName: string

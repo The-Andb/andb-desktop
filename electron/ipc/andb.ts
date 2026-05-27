@@ -1248,3 +1248,25 @@ export async function handleDeleteInstantCompare(_event: any, args: any) {
     return { success: false, error: error.message }
   }
 }
+
+/**
+ * Handle Reading a migration SQL file from the vault
+ */
+export async function handleAndbReadMigrationFile(_event: any, filePath: string) {
+  try {
+    const { BackgroundWorker } = require('../services/background-worker')
+    const worker = BackgroundWorker.getInstance()
+    const baseDir = worker.getActiveProjectBaseDir() || app.getPath('userData')
+    const fullPath = path.isAbsolute(filePath) ? filePath : path.join(baseDir, filePath)
+
+    if (!fs.existsSync(fullPath)) {
+      return { success: false, error: `File not found: ${filePath}` }
+    }
+
+    const content = fs.readFileSync(fullPath, 'utf8')
+    return { success: true, data: content }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+

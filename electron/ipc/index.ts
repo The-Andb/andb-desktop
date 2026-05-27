@@ -134,6 +134,9 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-get-instant-compare-history', andb.handleGetInstantCompareHistory)
   ipcMain.handle('andb-load-instant-compare-detail', andb.handleLoadInstantCompareDetail)
   ipcMain.handle('andb-delete-instant-compare', andb.handleDeleteInstantCompare)
+
+  // Read migration SQL file from vault
+  ipcMain.handle('andb-read-migration-file', andb.handleAndbReadMigrationFile)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

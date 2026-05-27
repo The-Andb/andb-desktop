@@ -313,6 +313,8 @@ compare:
     whitespace: 'Khoảng trắng'
     hideWhitespace: 'Ẩn thay đổi khoảng trắng'
     hideWhitespaceDesc: 'Tương tác với từng dòng sẽ bị tắt khi ẩn khoảng trắng.'
+    ignoreCase: 'Bỏ qua chữ hoa/thường'
+    ignoreCaseDesc: 'Bỏ qua sự khác biệt giữa chữ hoa và chữ thường (ví dụ: từ khóa viết hoa/thường)'
     display: 'Hiển thị'
     wrapLines: 'Ngắt dòng dài'
     diffDisplay: 'Kiểu hiển thị'
@@ -573,6 +575,8 @@ settings:
   interface:
     title: 'Giao diện & Thẩm mỹ'
     subtitle: 'Cá nhân hóa trải nghiệm làm việc của bạn'
+    visibleConfig: 'Cấu hình hiển thị menu'
+    visibleConfigDesc: 'Chọn tối đa {max} mục để hiển thị trên thanh điều hướng ngang'
     theme:
       label: 'Lựa chọn chủ đề'
       sync: 'Đồng bộ với hệ thống'
@@ -716,6 +720,7 @@ migration:
   warning: 'Hành động này có rủi ro thay đổi dữ liệu (Cập nhật/Xóa). Hãy kiểm tra kỹ SQL.'
   sqlSelected: 'Đang chọn: {name}'
   staticWarning: 'Không hỗ trợ migrate vào tệp dump tĩnh. Hãy sao chép script thủ công.'
+  semanticDiffNote: 'Lưu ý: DDL Diff so sánh văn bản thuần dòng-qua-dòng (có thể bị hiển thị lệch do thứ tự cột thay đổi). Script đồng bộ (SQL Preview) được sinh tự động theo logic cấu trúc ngữ nghĩa và chỉ thực hiện các thay đổi thực tế.'
 reports:
   viewer: 'Trình xem báo cáo'
   available: 'Báo cáo hiện có'

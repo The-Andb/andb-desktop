@@ -77,12 +77,19 @@ const navItems = computed(() => {
   return items.filter(i => i.visible)
 })
 
+const enabledTabsCount = computed(() => {
+  return navItems.value.length - appStore.hiddenHorizontalTabs.length
+})
+
 const toggleHorizontalTab = (path: string) => {
   const hidden = [...appStore.hiddenHorizontalTabs]
   const index = hidden.indexOf(path)
   if (index === -1) {
     hidden.push(path)
   } else {
+    if (enabledTabsCount.value >= 4) {
+      return
+    }
     hidden.splice(index, 1)
   }
   appStore.hiddenHorizontalTabs = hidden
@@ -386,21 +393,30 @@ const buttonStyles = computed<
           v-if="appStore.navStyle === 'horizontal-tabs'"
           class="mt-4 p-5 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-2"
         >
-          <label
-            class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4"
-            >{{ $t('settings.interface.visibleConfig') }}</label
-          >
+          <div class="mb-4">
+            <label
+              class="block text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1"
+              >{{ $t('settings.interface.visibleConfig') }}</label
+            >
+            <div class="text-[10px] text-gray-400 uppercase tracking-tighter">
+              {{ $t('settings.interface.visibleConfigDesc', { max: 4 }) }}
+            </div>
+          </div>
           <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <label
               v-for="item in navItems"
               :key="item.path"
               class="flex items-center px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-xl cursor-pointer gap-3 transition-colors shadow-sm group"
+              :class="{
+                'opacity-50 cursor-not-allowed pointer-events-none': appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4
+              }"
             >
               <input
                 type="checkbox"
                 :checked="!appStore.hiddenHorizontalTabs.includes(item.path)"
+                :disabled="appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4"
                 @change="toggleHorizontalTab(item.path)"
-                class="w-4 h-4 rounded text-primary-500 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:ring-primary-500 focus:ring-offset-0"
+                class="w-4 h-4 rounded text-primary-500 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:ring-primary-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <component
                 :is="item.icon"

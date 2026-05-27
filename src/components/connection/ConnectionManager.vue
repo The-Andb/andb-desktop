@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-2.5 animate-in fade-in duration-500 relative">
+  <div class="space-y-2.5 animate-in fade-in duration-500 relative" @click="activeConnIconPickerId = null">
     <!-- View: Connection List -->
     <div
       v-if="!showAddForm && !editingConnection"
@@ -251,32 +251,29 @@
                   </td>
                   <td class="px-4 py-2 whitespace-nowrap">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-8 w-8">
-                        <div
-                          class="h-8 w-8 rounded-lg flex items-center justify-center transition-colors shadow-sm"
-                          :class="{
-                            'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400':
-                              !connection.type || connection.type === 'mysql',
-                            'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400':
-                              connection.type === 'postgres',
-                            'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400':
-                              connection.type === 'sqlite',
-                            'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400':
-                              connection.type === 'dump'
+                      <div class="flex-shrink-0 h-8 w-8 relative">
+                        <button
+                          @click.stop="toggleConnIconPicker(connection.id)"
+                          class="h-8 w-8 rounded-xl flex items-center justify-center transition-all duration-200 text-white cursor-pointer hover:scale-105 active:scale-95 hover:shadow-md border"
+                          :style="{
+                            backgroundColor: getConnDisplayColor(connection),
+                            borderColor: 'rgba(255, 255, 255, 0.1)'
                           }"
+                          title="Click to change icon"
                         >
-                          <span v-if="connection.type === 'postgres'" class="text-[8px] font-black"
-                            >PG</span
-                          >
-                          <span
-                            v-else-if="connection.type === 'sqlite'"
-                            class="text-[8px] font-black"
-                            >SL</span
-                          >
-                          <span v-else-if="connection.type === 'dump'" class="text-[8px] font-black"
-                            >DP</span
-                          >
-                          <span v-else class="text-[8px] font-black">MY</span>
+                          <component :is="iconMap[getConnDisplayIcon(connection)] || Box" class="w-4 h-4" />
+                        </button>
+
+                        <!-- Icon Picker Popover -->
+                        <div
+                          v-if="activeConnIconPickerId === connection.id"
+                          class="absolute left-0 top-full mt-2 z-[110]"
+                        >
+                          <ProjectIconPicker
+                            :selected-icon="getConnDisplayIcon(connection)"
+                            :selected-color="getConnDisplayColor(connection)"
+                            @select="data => handleConnIconSelect(connection.id, data)"
+                          />
                         </div>
                       </div>
                       <div class="ml-3">
@@ -603,6 +600,26 @@
               </select>
             </div>
 
+            <!-- Panel Search -->
+            <div class="px-6 py-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
+              <div class="relative flex items-center">
+                <Search class="w-3.5 h-3.5 text-gray-400 absolute left-3 pointer-events-none" />
+                <input
+                  v-model="pickerSearchQuery"
+                  type="text"
+                  placeholder="Search templates by name, host, database..."
+                  class="w-full pl-8.5 pr-8 py-1.5 text-xs border border-gray-250 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/80 text-gray-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all font-medium placeholder-gray-400 dark:placeholder-gray-500"
+                />
+                <button
+                  v-if="pickerSearchQuery"
+                  @click="pickerSearchQuery = ''"
+                  class="p-1 hover:bg-gray-250 dark:hover:bg-gray-700 rounded-md absolute right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                >
+                  <X class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
             <!-- Panel Template List -->
             <div class="flex-1 overflow-y-auto custom-scrollbar">
               <div class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -711,7 +728,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -729,7 +746,21 @@ import {
   Link2,
   Server,
   User,
-  Copy
+  Copy,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Layers,
+  Component as ComponentIcon,
+  Box,
+  Search
 } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
@@ -737,6 +768,7 @@ import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import ConnectionForm from './ConnectionForm.vue'
 import type { DatabaseConnection } from '@/stores/app'
 import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
+import ProjectIconPicker from '../projects/ProjectIconPicker.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -745,6 +777,42 @@ const appStore = useAppStore()
 const projectsStore = useProjectsStore()
 const templatesStore = useConnectionTemplatesStore()
 const connectionPairsStore = useConnectionPairsStore()
+
+const activeConnIconPickerId = ref<string | null>(null)
+const toggleConnIconPicker = (id: string) => {
+  activeConnIconPickerId.value = activeConnIconPickerId.value === id ? null : id
+}
+
+const getConnDisplayIcon = (conn: any) => {
+  return connectionPairsStore.getResolvedConnectionIcon(conn)
+}
+
+const getConnDisplayColor = (conn: any) => {
+  return connectionPairsStore.getResolvedConnectionColor(conn)
+}
+
+const handleConnIconSelect = (connId: string, data: { icon: string; color: string }) => {
+  connectionPairsStore.updateProjectConnectionIcon(connId, data.icon, data.color)
+  activeConnIconPickerId.value = null
+}
+
+const iconMap: Record<string, any> = {
+  Database,
+  Package,
+  Cpu,
+  Zap,
+  Terminal,
+  Cloud,
+  Shield,
+  Activity,
+  HardDrive,
+  Globe,
+  Rocket,
+  Server,
+  Layers,
+  Component: ComponentIcon,
+  Box
+}
 
 // Inline Edit State
 const editingDbConnId = ref<string | null>(null)
@@ -784,6 +852,13 @@ const showGlobalPicker = ref(false)
 const pickerSelectedIds = ref<string[]>([])
 const pickerEnvFilter = ref<string[]>(['ALL'])
 const pickerTypeFilter = ref('ALL')
+const pickerSearchQuery = ref('')
+
+watch(showGlobalPicker, (newVal) => {
+  if (!newVal) {
+    pickerSearchQuery.value = ''
+  }
+})
 
 onMounted(async () => {
   await templatesStore.reloadData()
@@ -836,6 +911,15 @@ const filteredGlobalTemplates = computed(() => {
 
   if (pickerTypeFilter.value !== 'ALL') {
     list = list.filter(t => t.type === pickerTypeFilter.value)
+  }
+
+  if (pickerSearchQuery.value.trim() !== '') {
+    const q = pickerSearchQuery.value.toLowerCase()
+    list = list.filter(t => 
+      t.name?.toLowerCase().includes(q) || 
+      t.host?.toLowerCase().includes(q) || 
+      t.database?.toLowerCase().includes(q)
+    )
   }
 
   return list

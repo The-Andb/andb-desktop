@@ -447,24 +447,27 @@ onMounted(async () => {
       if (data.operation === 'export') {
         let connId = data.connectionId || data.connId
 
-        // Priority Resolution: Use active context if ID is missing from event
-        if (!connId && appStore.activeFetchConnectionId) {
-          connId = appStore.activeFetchConnectionId
-        }
-
-        // Fallback: Multi-factor lookup (Env + DB)
+        // 1. Fallback: Multi-factor lookup (Env + DB) if ID is missing but Env is present
         if (!connId && data.env) {
-          const conn = appStore.resolvedConnections.find(
-            c =>
-              c.environment === data.env &&
-              (c.database === data.db || c.name === data.db || !data.db)
-          )
+          const searchEnv = String(data.env).trim().toUpperCase()
+          const searchDb = data.db ? String(data.db).trim().toLowerCase() : ''
+          const conn = appStore.resolvedConnections.find(c => {
+            const cEnv = String(c.environment || '').trim().toUpperCase()
+            const cDb = c.database ? String(c.database).trim().toLowerCase() : ''
+            const cName = c.name ? String(c.name).trim().toLowerCase() : ''
+            return cEnv === searchEnv && (!searchDb || cDb === searchDb || cName === searchDb)
+          })
           if (conn) {
             connId = conn.id
           }
         }
 
-        // Final fallback
+        // 2. Active context fallback if env lookup didn't resolve it
+        if (!connId && appStore.activeFetchConnectionId) {
+          connId = appStore.activeFetchConnectionId
+        }
+
+        // 3. Final fallback
         connId = connId || appStore.selectedConnectionId || 'default'
 
         const normalizedType = data.type ? String(data.type).toLowerCase() : ''

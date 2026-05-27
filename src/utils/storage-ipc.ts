@@ -281,7 +281,7 @@ export const storage = {
         code: "'JetBrains Mono', monospace"
       },
       fontSizeProfile: 'medium' as 'small' | 'medium' | 'large' | 'custom',
-      hiddenHorizontalTabs: [],
+      hiddenHorizontalTabs: ['/instant-compare', '/integrations'],
       layoutSettings: {
         sidebar: true,
         breadcrumbs: true,
