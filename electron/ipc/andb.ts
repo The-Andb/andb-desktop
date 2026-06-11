@@ -11,7 +11,7 @@ import { eq } from 'drizzle-orm'
  */
 export async function handleAndbExecute(_event: any, args: any) {
   const { sourceConnection, targetConnection, operation, options } = args || {}
-  
+
   // Setup global progress listener once per worker lifecycle
   const { BackgroundWorker } = require('../services/background-worker')
   const worker = BackgroundWorker.getInstance()
@@ -30,6 +30,21 @@ export async function handleAndbExecute(_event: any, args: any) {
         }
       })
     })
+  }
+
+  // Intercept executeQuery and apply lazy loading LIMIT/OFFSET
+  if (operation === 'executeQuery' && options && typeof options.sql === 'string' && options.limit !== undefined) {
+    const limit = Number(options.limit)
+    const offset = Number(options.offset || 0)
+    let sql = options.sql.trim()
+    
+    // Apply limit/offset dynamically to SELECT queries if they don't already have a LIMIT clause
+    if (/^\s*SELECT\s/i.test(sql) && !/LIMIT\s+\d+/i.test(sql)) {
+      if (sql.endsWith(';')) {
+        sql = sql.slice(0, -1)
+      }
+      options.sql = `${sql} LIMIT ${limit} OFFSET ${offset};`
+    }
   }
 
   return await AndbBuilder.execute(sourceConnection, targetConnection, operation, options, _event.sender)
@@ -115,11 +130,11 @@ export async function handleAndbClearData(_event: any, args: any) {
     // Support BOTH modern object wrapper AND legacy direct connection passing styles robustly
     const connection = args?.connection || args
     const purgeFiles = args?.purgeFiles === true
-    
+
     if (!connection) {
-       throw new Error('Missing database connection parameter');
+      throw new Error('Missing database connection parameter');
     }
-    
+
     await AndbBuilder.clearConnectionData(connection, purgeFiles)
     return { success: true }
   } catch (error: any) {
@@ -220,9 +235,9 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
     // The caller MUST pass `connections` (the active project's resolved connections).
     // Without connections, we cannot determine which project owns which data — return empty.
     const knownConnections: any[] = args?.connections || []
-    console.log('[handleAndbGetSchemas] Received knownConnections count:', knownConnections.length)
+    // console.log('[handleAndbGetSchemas] Received knownConnections count:', knownConnections.length)
     if (knownConnections.length > 0) {
-      console.log('[handleAndbGetSchemas] knownConnections details:', knownConnections.map(c => ({ id: c.id, name: c.name, env: c.environment, db: c.database })))
+      // console.log('[handleAndbGetSchemas] knownConnections details:', knownConnections.map(c => ({ id: c.id, name: c.name, env: c.environment, db: c.database })))
     }
     if (knownConnections.length === 0) {
       return { success: true, data: [] }
@@ -251,7 +266,7 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
         const dbName = conn.database
         const dbType = conn.source_type || conn.type || 'mysql'
 
-        console.log(`[handleAndbGetSchemas] Fetching DDL objects for project connection: ${envName} / ${dbName} (${dbType})`)
+        // console.log(`[handleAndbGetSchemas] Fetching DDL objects for project connection: ${envName} / ${dbName} (${dbType})`)
 
         const tables = await worker.getDDLObjects(envName, dbName, 'TABLES', dbType) || []
         const views = await worker.getDDLObjects(envName, dbName, 'VIEWS', dbType) || []
@@ -259,13 +274,13 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
         const functions = await worker.getDDLObjects(envName, dbName, 'FUNCTIONS', dbType) || []
         const triggers = await worker.getDDLObjects(envName, dbName, 'TRIGGERS', dbType) || []
 
-        console.log(`[handleAndbGetSchemas] DDL counts for ${envName} / ${dbName}:`, {
-          tables: tables.length,
-          views: views.length,
-          procedures: procedures.length,
-          functions: functions.length,
-          triggers: triggers.length
-        })
+        // console.log(`[handleAndbGetSchemas] DDL counts for ${envName} / ${dbName}:`, {
+        //   tables: tables.length,
+        //     views: views.length,
+        //       procedures: procedures.length,
+        //         functions: functions.length,
+        //           triggers: triggers.length
+        // })
 
         const dbData = {
           name: dbName,
@@ -286,7 +301,7 @@ export async function handleAndbGetSchemas(_event: any, args: any) {
       }
     }
 
-    console.log('[handleAndbGetSchemas] Final schemas returned count:', result.length)
+    // console.log('[handleAndbGetSchemas] Final schemas returned count:', result.length)
     return { success: true, data: result }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -516,7 +531,7 @@ export async function handleAndbGetFeaturesStatus() {
 /**
  * Handle Pick Unified Workspace Directory
  */
-export async function handlePickWorkspaceDir() {
+export async function handlePickWorkspaceDir(_event?: any, args?: { isFirstStart?: boolean }) {
   const result = await dialog.showOpenDialog({
     title: 'Select Workspace Directory',
     properties: ['openDirectory', 'createDirectory']
@@ -527,39 +542,56 @@ export async function handlePickWorkspaceDir() {
   const targetDir = result.filePaths[0]
   const targetDbPath = path.join(targetDir, 'andb-storage.db')
   const currentDbPath = CoreBridge.getDbPath()
-  
+
   const userDataPath = app.getPath('userData')
   const yaml = require('js-yaml')
   const dbConfigPath = path.join(userDataPath, 'db-config.yaml')
   let config: any = {}
   if (fs.existsSync(dbConfigPath)) {
-    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
+    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) { }
   }
 
   let oldProjectDir = config.projectBaseDir || process.cwd()
 
   try {
     let action = 'moved'
-    
+
     const files = fs.readdirSync(targetDir)
     const isEmpty = files.length === 0 || (files.length === 1 && files[0] === '.DS_Store')
     const hasDb = fs.existsSync(targetDbPath)
     const hasProjectDb = fs.existsSync(path.join(targetDir, 'db'))
-    
+
+    const isFirstStart = args?.isFirstStart || false
+
     if (hasDb || hasProjectDb) {
+      const buttons = isFirstStart
+        ? ['Link to Workspace', 'Cancel']
+        : ['Link to Workspace', 'Overwrite with Current Data', 'Cancel']
+
       const { response } = await dialog.showMessageBox({
         type: 'warning',
         title: 'Existing Workspace Detected',
         message: 'A workspace already exists in this folder.',
-        detail: 'Do you want to Link to this existing Workspace, or Overwrite it with your current data? (Overwriting will permanently delete previous data in that folder).',
-        buttons: ['Link to Workspace', 'Overwrite with Current Data', 'Cancel'],
+        detail: isFirstStart
+          ? 'Do you want to Link to this existing Workspace?'
+          : 'Do you want to Link to this existing Workspace, or Overwrite it with your current data? (Overwriting will permanently delete previous data in that folder).',
+        buttons,
         defaultId: 0,
-        cancelId: 2
+        cancelId: isFirstStart ? 1 : 2
       })
 
-      if (response === 2) {
+      let finalResponse = response
+      if (isFirstStart) {
+        if (response === 1) {
+          finalResponse = 2 // Cancel
+        } else if (response === 0) {
+          finalResponse = 0 // Link
+        }
+      }
+
+      if (finalResponse === 2) {
         return { success: false, canceled: true }
-      } else if (response === 1) {
+      } else if (finalResponse === 1) {
         // Overwrite
         if (fs.existsSync(currentDbPath)) {
           fs.copyFileSync(currentDbPath, targetDbPath)
@@ -567,25 +599,25 @@ export async function handlePickWorkspaceDir() {
             const oldKeyDir = path.join(path.dirname(currentDbPath), 'security')
             const newKeyDir = path.join(targetDir, 'security')
             if (fs.existsSync(oldKeyDir)) {
-               const fsPromises = require('fs/promises')
-               await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
+              const fsPromises = require('fs/promises')
+              await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
             }
           } catch (e) {
             console.warn('Failed to relocate security keys', e)
           }
         }
-        
+
         // Copy project DDLs
         const fsPromises = require('fs/promises');
         if (oldProjectDir && oldProjectDir !== targetDir) {
-           if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
-               await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
-           }
-           if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
-               await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
-           }
+          if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
+            await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
+          }
+          if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
+            await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
+          }
         }
-        
+
         action = 'overwrote'
       } else {
         // Link
@@ -609,22 +641,22 @@ export async function handlePickWorkspaceDir() {
           const oldKeyDir = path.join(path.dirname(currentDbPath), 'security')
           const newKeyDir = path.join(targetDir, 'security')
           if (fs.existsSync(oldKeyDir)) {
-             const fsPromises = require('fs/promises')
-             await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
+            const fsPromises = require('fs/promises')
+            await fsPromises.cp(oldKeyDir, newKeyDir, { recursive: true, force: true })
           }
         } catch (e) {
           console.warn('Failed to relocate security keys', e)
         }
       }
-      
+
       const fsPromises = require('fs/promises');
       if (oldProjectDir && oldProjectDir !== targetDir) {
-         if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
-             await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
-         }
-         if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
-             await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
-         }
+        if (fs.existsSync(path.join(oldProjectDir, 'db'))) {
+          await fsPromises.cp(path.join(oldProjectDir, 'db'), path.join(targetDir, 'db'), { recursive: true, force: true });
+        }
+        if (fs.existsSync(path.join(oldProjectDir, 'map-migrate'))) {
+          await fsPromises.cp(path.join(oldProjectDir, 'map-migrate'), path.join(targetDir, 'map-migrate'), { recursive: true, force: true });
+        }
       }
     }
 
@@ -656,7 +688,7 @@ export async function handlePickWorkspaceDir() {
         await handleRelaunchApp()
       }
     } catch (relaunchErr) {
-       if ((global as any).logger) (global as any).logger.warn('Relaunch prompt failed', relaunchErr)
+      if ((global as any).logger) (global as any).logger.warn('Relaunch prompt failed', relaunchErr)
     }
 
     return { success: true, path: targetDir, action }
@@ -674,12 +706,12 @@ export async function handleResetWorkspace() {
   if (fs.existsSync(dbConfigPath)) {
     const yaml = require('js-yaml')
     let config: any = {}
-    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) {}
+    try { config = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {} } catch (e) { }
     delete config.dbPath
     delete config.projectBaseDir
     config.lastUpdated = new Date().toISOString()
     fs.writeFileSync(dbConfigPath, yaml.dump(config), 'utf8')
-    
+
     // Prompt for relaunch to switch back to local storage
     try {
       const { response } = await dialog.showMessageBox({
@@ -696,7 +728,7 @@ export async function handleResetWorkspace() {
         await handleRelaunchApp()
       }
     } catch (relaunchErr) {
-       if ((global as any).logger) (global as any).logger.warn('Reset relaunch prompt failed', relaunchErr)
+      if ((global as any).logger) (global as any).logger.warn('Reset relaunch prompt failed', relaunchErr)
     }
   }
   return { success: true }
@@ -741,7 +773,7 @@ function getFlatDirectoryTree(dirPath: string, depth = 0, results: any[] = []) {
         });
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return results;
 }
 
@@ -754,7 +786,7 @@ export async function handleGetWorkspaceStatus() {
   let pathVal = ''
   if (fs.existsSync(dbConfigPath)) {
     const yaml = require('js-yaml')
-    try { 
+    try {
       const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
       pathVal = config.projectBaseDir || ''
     } catch (e: any) {
@@ -766,14 +798,14 @@ export async function handleGetWorkspaceStatus() {
   let actualPath = pathVal;
   let isFallback = false;
   let fallbackReason = '';
-  
+
   if (!actualPath) {
     actualPath = path.join(userDataPath, 'db');
     isFallback = true;
     fallbackReason = 'No custom workspace configured. Standard application cache fallback in effect.';
   } else if (!fs.existsSync(actualPath)) {
     // Critical: Path configured but does not exist on disk! Fallback to active process.cwd()
-    actualPath = process.cwd(); 
+    actualPath = process.cwd();
     isFallback = true;
     fallbackReason = 'Configured Workspace location not found! Emergency fallback to Current Working Directory (CWD) is ACTIVE.';
   }
@@ -781,9 +813,9 @@ export async function handleGetWorkspaceStatus() {
   // Generate flat directory tree map
   const tree = getFlatDirectoryTree(actualPath);
 
-  return { 
-    success: true, 
-    path: pathVal, 
+  return {
+    success: true,
+    path: pathVal,
     actualPath: actualPath,
     isFallback: isFallback,
     fallbackReason: fallbackReason,
@@ -804,7 +836,7 @@ export async function handleMigrateVaultData(_event: any, args: { projectId: str
 
   if (fs.existsSync(dbConfigPath)) {
     const yaml = require('js-yaml')
-    try { 
+    try {
       const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
       vaultPath = config.projectBaseDir || ''
     } catch (e: any) {
@@ -819,11 +851,11 @@ export async function handleMigrateVaultData(_event: any, args: { projectId: str
 
   try {
     const fsPromises = require('fs/promises')
-    
+
     // Unified standardization strategy: matches @the-andb/core logic 100%
     const rawName = projectName || projectSlug || 'default'
     const sanitizedName = rawName.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_')
-    
+
     // Align both Vault Migration AND Strategy to same output directory structure: projects/<name>
     const targetDir = path.join(vaultPath, 'projects', sanitizedName)
 
@@ -864,7 +896,7 @@ export async function handleRollbackVaultData(_event: any, args: { projectId: st
 
   if (fs.existsSync(dbConfigPath)) {
     const yaml = require('js-yaml')
-    try { 
+    try {
       const config: any = yaml.load(fs.readFileSync(dbConfigPath, 'utf8')) || {}
       vaultPath = config.projectBaseDir || ''
     } catch (e: any) {
@@ -880,7 +912,7 @@ export async function handleRollbackVaultData(_event: any, args: { projectId: st
     // Unified standardization strategy
     const rawName = projectName || projectSlug || 'default'
     const sanitizedName = rawName.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_')
-    
+
     const targetDir = path.join(vaultPath, 'projects', sanitizedName)
 
     if (fs.existsSync(targetDir)) {
@@ -1059,7 +1091,7 @@ export async function handleSaveInstantCompare(_event: any, args: any) {
 
     const { BackgroundWorker } = require('../services/background-worker')
     const worker = BackgroundWorker.getInstance()
-    
+
     // Resolve project details
     const projectId = worker.getActiveProjectId() || 'default'
     const baseDir = worker.getActiveProjectBaseDir() || app.getPath('userData')
@@ -1265,6 +1297,105 @@ export async function handleAndbReadMigrationFile(_event: any, filePath: string)
 
     const content = fs.readFileSync(fullPath, 'utf8')
     return { success: true, data: content }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Monitor Pulse operation
+ */
+export async function handleAndbMonitorPulse(_event: any, args: any) {
+  try {
+    const { connection } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'monitor-pulse', {})
+    return result
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Monitor Deep Snapshot operation
+ */
+export async function handleAndbMonitorSnapshot(_event: any, args: any) {
+  try {
+    const { connection } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'monitor-snapshot', {})
+    return result
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Monitor Kill Thread operation
+ */
+export async function handleAndbMonitorKill(_event: any, args: any) {
+  try {
+    const { connection, threadId } = args || {}
+    const result = await AndbBuilder.execute(connection, null, 'monitor-kill', { threadId })
+    return result
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Auto Save Query operation
+ */
+export async function handleAndbSaveQuery(_event: any, args: { sql: string, projectBaseDir: string, filename: string }) {
+  try {
+    const { sql, projectBaseDir, filename } = args || {}
+    if (!projectBaseDir) throw new Error('projectBaseDir is required')
+
+    const queryDir = path.join(projectBaseDir, 'query')
+    if (!fs.existsSync(queryDir)) {
+      fs.mkdirSync(queryDir, { recursive: true })
+    }
+
+    const filePath = path.join(queryDir, filename)
+    fs.writeFileSync(filePath, sql || '', 'utf8')
+    return { success: true, filePath }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Deep Search (Global Code Search)
+ */
+export async function handleAndbDeepSearch(_event: any, args: any) {
+  try {
+    const { sourceConnection, keyword } = args || {}
+    if (!sourceConnection) {
+      throw new Error('Connection details are required')
+    }
+    if (!keyword) {
+      return { success: true, data: [] }
+    }
+
+    const sql = `
+      SELECT ROUTINE_TYPE AS object_type, ROUTINE_NAME AS object_name, 'ROUTINES' AS source_meta 
+      FROM information_schema.ROUTINES 
+      WHERE ROUTINE_SCHEMA = DATABASE() AND ROUTINE_DEFINITION LIKE CONCAT('%', ?, '%')
+      UNION ALL
+      SELECT 'TRIGGER' AS object_type, TRIGGER_NAME AS object_name, 'TRIGGERS' AS source_meta 
+      FROM information_schema.TRIGGERS 
+      WHERE TRIGGER_SCHEMA = DATABASE() AND ACTION_STATEMENT LIKE CONCAT('%', ?, '%')
+      UNION ALL
+      SELECT 'VIEW' AS object_type, TABLE_NAME AS object_name, 'VIEWS' AS source_meta 
+      FROM information_schema.VIEWS 
+      WHERE TABLE_SCHEMA = DATABASE() AND VIEW_DEFINITION LIKE CONCAT('%', ?, '%')
+      ORDER BY object_type, object_name;
+    `.trim()
+
+    const result = await AndbBuilder.execute(sourceConnection, null, 'executeQuery', {
+      sql,
+      params: [keyword, keyword, keyword]
+    })
+
+    return result
   } catch (error: any) {
     return { success: false, error: error.message }
   }

@@ -127,7 +127,11 @@
       "buildResources": "public"
     },
     "files": [
-      "dist/**/*",
+      "dist/assets/**/*",
+      "dist/index.html",
+      "dist/andb-logo.png",
+      "dist/icon.png",
+      "dist/demo/**/*",
       "dist-electron/**/*",
       "!dist-electron/main.ts",
       "package.json",

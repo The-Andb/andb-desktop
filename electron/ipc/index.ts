@@ -116,6 +116,11 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-get-server-info', andb.handleAndbGetServerInfo)
   ipcMain.handle('andb-get-fk-graph', andb.handleAndbGetFKGraph)
 
+  // Live Monitoring Module
+  ipcMain.handle('andb-monitor-pulse', andb.handleAndbMonitorPulse)
+  ipcMain.handle('andb-monitor-snapshot', andb.handleAndbMonitorSnapshot)
+  ipcMain.handle('andb-monitor-kill', andb.handleAndbMonitorKill)
+
   // AI Assistant (The "Brain")
   ipcMain.handle('andb-ai-configure', andb.handleAndbAIConfigure)
   ipcMain.handle('andb-ai-review', andb.handleAndbAIReview)
@@ -137,6 +142,12 @@ export function registerIpcHandlers() {
 
   // Read migration SQL file from vault
   ipcMain.handle('andb-read-migration-file', andb.handleAndbReadMigrationFile)
+
+  // Auto save Schema view queries
+  ipcMain.handle('andb-save-query', andb.handleAndbSaveQuery)
+
+  // Deep Search (Global Code Search)
+  ipcMain.handle('andb-deep-search', andb.handleAndbDeepSearch)
 }
 
 export function setupUpdaterEventListeners(mainWindow: BrowserWindow) {

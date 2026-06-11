@@ -91,13 +91,16 @@ export const useAppStore = defineStore('app', () => {
   const isInitialized = ref(false)
   const compareMode = ref<'auto' | 'instant'>('auto')
   const compareStack = ref<{
-    source: { name: string; ddl: string; type?: string } | null
-    target: { name: string; ddl: string; type?: string } | null
+    source: { name: string; ddl: string; type?: string; connectionName?: string; env?: string; database?: string } | null
+    target: { name: string; ddl: string; type?: string; connectionName?: string; env?: string; database?: string } | null
   }>({
     source: null,
     target: null
   })
   const isCompareStackVisible = ref(false)
+  const excludedEnvironments = ref<string[]>([])
+  const excludedCategories = ref<string[]>([])
+  const excludedDatabases = ref<string[]>([])
 
   // ... (inside the store factory)
   const buttonStyle = ref<'full' | 'minimal' | 'icons'>('full')
@@ -120,6 +123,7 @@ export const useAppStore = defineStore('app', () => {
   const hiddenHorizontalTabs = ref<string[]>(['/instant-compare', '/integrations'])
 
   const connections = ref<DatabaseConnection[]>([])
+  const environments = ref<any[]>([])
 
   // Global Schema Fetching State
   const isSchemaFetching = ref(false)
@@ -137,6 +141,8 @@ export const useAppStore = defineStore('app', () => {
 
   const layoutSettings = ref({
     sidebar: true,
+    compareSidebarCollapsed: false,
+    schemaSidebarCollapsed: false,
     breadcrumbs: true,
     toolbar: true,
     sidebarPosition: 'left' as 'left' | 'right',
@@ -220,6 +226,19 @@ export const useAppStore = defineStore('app', () => {
           await resetConnections()
         }
 
+        const projectsStore = useProjectsStore()
+        if (projectsStore.isLoaded && projectsStore.selectedProjectId) {
+          const proj = projectsStore.projects.find(p => p.id === projectsStore.selectedProjectId)
+          if (proj) {
+            excludedEnvironments.value = [...(proj.settings?.excludedEnvironments || [])]
+            excludedDatabases.value = [...(proj.settings?.excludedDatabases || [])]
+            excludedCategories.value = [...(proj.settings?.excludedCategories || [])]
+          }
+        }
+
+        // Load environments for sorting
+        environments.value = await storage.getEnvironments()
+
         isInitialized.value = true
       } catch (e: any) {
         console.error('[AppStore] Initialization failed:', e)
@@ -251,6 +270,13 @@ export const useAppStore = defineStore('app', () => {
       const projectsStore = useProjectsStore()
       if (!projectsStore.isLoaded) return
 
+      const proj = projectsStore.projects.find(p => p.id === newProjectId)
+      if (proj) {
+        excludedEnvironments.value = [...(proj.settings?.excludedEnvironments || [])]
+        excludedDatabases.value = [...(proj.settings?.excludedDatabases || [])]
+        excludedCategories.value = [...(proj.settings?.excludedCategories || [])]
+      }
+
       if (newProjectId === currentLoadedProjectId) return
 
       currentLoadedProjectId = newProjectId
@@ -265,11 +291,27 @@ export const useAppStore = defineStore('app', () => {
 
     // Filter by both IDs assigned to the project AND the environments enabled for this project
     if (!project) return []
-    return resolvedConnections.value.filter(
+    const conns = resolvedConnections.value.filter(
       conn =>
         project.connectionIds.includes(conn.id) &&
         project.enabledEnvironmentIds.includes(conn.environment)
     )
+
+    // Sort by environment order and then by name
+    return [...conns].sort((a, b) => {
+      const envA = environments.value.find(
+        (e: any) => e.name.toUpperCase() === a.environment.toUpperCase()
+      )
+      const envB = environments.value.find(
+        (e: any) => e.name.toUpperCase() === b.environment.toUpperCase()
+      )
+
+      const orderA = envA ? envA.order : 999
+      const orderB = envB ? envB.order : 999
+
+      if (orderA !== orderB) return orderA - orderB
+      return a.name.localeCompare(b.name)
+    })
   })
 
   /**
@@ -339,6 +381,38 @@ export const useAppStore = defineStore('app', () => {
         return
       }
       storage.saveConnections(newConnections, projectsStore.selectedProjectId)
+    },
+    { deep: true }
+  )
+
+  // Watch exclusions and save to the active project settings
+  watch(
+    [excludedEnvironments, excludedDatabases, excludedCategories],
+    ([newEnvs, newDbs, newCats]) => {
+      const projectsStore = useProjectsStore()
+      if (projectsStore.isLoaded && projectsStore.selectedProjectId) {
+        const currentProj = projectsStore.currentProject
+        if (currentProj) {
+          const oldEnvs = currentProj.settings?.excludedEnvironments || []
+          const oldDbs = currentProj.settings?.excludedDatabases || []
+          const oldCats = currentProj.settings?.excludedCategories || []
+
+          const envsChanged = JSON.stringify(oldEnvs) !== JSON.stringify(newEnvs)
+          const dbsChanged = JSON.stringify(oldDbs) !== JSON.stringify(newDbs)
+          const catsChanged = JSON.stringify(oldCats) !== JSON.stringify(newCats)
+
+          if (envsChanged || dbsChanged || catsChanged) {
+            projectsStore.updateProject(projectsStore.selectedProjectId, {
+              settings: {
+                ...currentProj.settings,
+                excludedEnvironments: [...newEnvs],
+                excludedDatabases: [...newDbs],
+                excludedCategories: [...newCats]
+              }
+            })
+          }
+        }
+      }
     },
     { deep: true }
   )
@@ -652,6 +726,9 @@ export const useAppStore = defineStore('app', () => {
     compareStack,
     isCompareStackVisible,
     clearCompareStack,
+    excludedEnvironments,
+    excludedCategories,
+    excludedDatabases,
 
     globalSearchQuery,
     globalSearchFilter,
@@ -677,6 +754,7 @@ export const useAppStore = defineStore('app', () => {
     getConnectionById,
     getConnectionsByEnvironment,
     isPairValid,
+    environments,
 
     // Actions
     toggleSidebar,

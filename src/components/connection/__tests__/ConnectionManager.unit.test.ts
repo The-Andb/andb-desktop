@@ -33,7 +33,9 @@ const mockConnectionPairsStore = {
   enabledEnvironments: [
     { name: 'DEV', id: 'DEV' },
     { name: 'PROD', id: 'PROD' }
-  ]
+  ],
+  getResolvedConnectionColor: vi.fn().mockReturnValue('bg-gray-500'),
+  getResolvedConnectionIcon: vi.fn().mockReturnValue('Database')
 }
 
 const mockTemplatesStore = {
@@ -62,7 +64,7 @@ vi.mock('lucide-vue-next', () => ({
   Plus: { template: '<svg data-testid="icon-plus"></svg>' },
   Check: { template: '<svg data-testid="icon-check"></svg>' },
   Database: { template: '<svg data-testid="icon-database"></svg>' },
-  ShieldQuestion: { template: '<svg data-testid="icon-shield"></svg>' },
+  ShieldQuestion: { template: '<svg data-testid="icon-shield-question"></svg>' },
   Edit2: { template: '<svg data-testid="icon-edit"></svg>' },
   Trash2: { template: '<svg data-testid="icon-trash"></svg>' },
   X: { template: '<svg data-testid="icon-x"></svg>' },
@@ -73,6 +75,20 @@ vi.mock('lucide-vue-next', () => ({
   Link2: { template: '<svg data-testid="icon-link"></svg>' },
   Server: { template: '<svg data-testid="icon-server"></svg>' },
   User: { template: '<svg data-testid="icon-user"></svg>' },
+  Package: { template: '<svg data-testid="icon-package"></svg>' },
+  Cpu: { template: '<svg data-testid="icon-cpu"></svg>' },
+  Zap: { template: '<svg data-testid="icon-zap"></svg>' },
+  Terminal: { template: '<svg data-testid="icon-terminal"></svg>' },
+  Cloud: { template: '<svg data-testid="icon-cloud"></svg>' },
+  Shield: { template: '<svg data-testid="icon-shield"></svg>' },
+  Activity: { template: '<svg data-testid="icon-activity"></svg>' },
+  HardDrive: { template: '<svg data-testid="icon-hard-drive"></svg>' },
+  Globe: { template: '<svg data-testid="icon-globe"></svg>' },
+  Rocket: { template: '<svg data-testid="icon-rocket"></svg>' },
+  Layers: { template: '<svg data-testid="icon-layers"></svg>' },
+  Component: { template: '<svg data-testid="icon-component"></svg>' },
+  Box: { template: '<svg data-testid="icon-box"></svg>' },
+  Search: { template: '<svg data-testid="icon-search"></svg>' },
   // Compatibility with older tests/others
   Edit: { template: '<svg data-testid="icon-edit"></svg>' },
   Copy: { template: '<svg data-testid="icon-copy"></svg>' },

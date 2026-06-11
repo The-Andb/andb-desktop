@@ -39,7 +39,7 @@ test.describe('Theme Visual Regression', () => {
       }
 
       // 2. Navigate to Settings to change theme
-      await window.click('button[title="Settings"]');
+      await window.locator('button[title="Settings"]').first().click();
       await window.waitForSelector('h1:has-text("Settings")');
 
       // 3. Find and click the theme option using the data attribute

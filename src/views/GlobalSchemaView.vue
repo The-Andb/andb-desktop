@@ -105,23 +105,23 @@
     </template>
 
     <template #breadcrumbs>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1">
         <!-- Connection Dropdown -->
         <Menu as="div" class="relative inline-block text-left">
           <MenuButton
-            class="group inline-flex items-center gap-2 px-3 py-1 bg-emerald-50/80 dark:bg-emerald-950/20 hover:bg-emerald-100/65 dark:hover:bg-emerald-900/30 rounded-full border border-emerald-200/50 dark:border-emerald-900/50 shadow-sm shadow-emerald-500/5 transition-all select-none focus:outline-none"
+            class="group inline-flex items-center gap-1.5 px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800/80 rounded-lg transition-all select-none focus:outline-none"
           >
-            <div class="relative flex">
-              <Database class="w-3.5 h-3.5 text-emerald-500" />
-              <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-white dark:ring-gray-900 animate-pulse"></div>
+            <div class="relative flex items-center">
+              <Database class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+              <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
             </div>
             <span
-              class="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 truncate max-w-[200px]"
+              class="text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-250 truncate max-w-[200px]"
               :title="activeConnectionName"
             >
               {{ activeConnectionName }}
             </span>
-            <ChevronDown class="w-3 h-3 text-emerald-600 dark:text-emerald-400 opacity-80 group-hover:opacity-100 transition-opacity" />
+            <ChevronDown class="w-3 h-3 text-gray-400 dark:text-gray-500 opacity-80 group-hover:opacity-100 transition-opacity" />
           </MenuButton>
 
           <transition
@@ -164,16 +164,18 @@
           </transition>
         </Menu>
 
-        <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700 flex-shrink-0" />
+        <span class="mx-1 text-gray-300 dark:text-gray-700 font-normal select-none">/</span>
 
         <!-- DDL Type Dropdown -->
         <Menu as="div" class="relative inline-block text-left">
           <MenuButton
-            class="group inline-flex items-center gap-2 px-2.5 py-1 bg-gray-100/80 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-800/80 rounded-lg border border-gray-200/50 dark:border-gray-700/50 text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-[0.1em] transition-all select-none focus:outline-none"
+            class="group inline-flex items-center gap-1.5 px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800/80 rounded-lg transition-all select-none focus:outline-none"
           >
-            <component :is="selectedDdlTypeObj.icon" class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-            <span>{{ $t(selectedDdlTypeObj.translationKey) }}</span>
-            <ChevronDown class="w-3 h-3 text-gray-500 dark:text-gray-400 opacity-80 group-hover:opacity-100 transition-opacity" />
+            <component :is="selectedDdlTypeObj.icon" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+            <span class="text-[11px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-250">
+              {{ $t(selectedDdlTypeObj.translationKey) }}
+            </span>
+            <ChevronDown class="w-3 h-3 text-gray-400 dark:text-gray-500 opacity-80 group-hover:opacity-100 transition-opacity" />
           </MenuButton>
 
           <transition
@@ -217,9 +219,9 @@
 
         <!-- Selected Item -->
         <template v-if="selectedItem">
-          <ChevronRight class="w-3 h-3 text-gray-300 dark:text-gray-700 flex-shrink-0" />
-          <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white dark:bg-gray-800/40 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
-             <span class="text-[10px] font-bold text-gray-900 dark:text-white font-mono tracking-tight selection:bg-emerald-200">{{
+          <span class="mx-1 text-gray-300 dark:text-gray-700 font-normal select-none">/</span>
+          <div class="flex items-center px-1.5 py-0.5">
+             <span class="text-[11px] font-bold text-gray-800 dark:text-gray-250 font-mono tracking-tight">{{
                selectedItem.name
              }}</span>
           </div>
@@ -241,6 +243,8 @@
             :filtered-results-count="filteredResults.length"
             :selected-item-name="selectedItem?.name"
             v-model:search-flags="searchFlags"
+            v-model:sortBy="sortBy"
+            v-model:sortOrder="sortOrder"
             :is-indexing-columns="isIndexingColumns"
             :selected-size-filter="selectedSizeFilter"
             :table-stats="tableStatsMap"
@@ -259,10 +263,12 @@
             @start-resize="startResultsResize"
             @new-query="openQueryConsole"
             @send-to-instant="handleSendToInstant"
+            @refresh-item="handleRefreshItem"
           />
 
           <SchemaContentWorkspace
             class="flex-1 min-w-0"
+            :connection="appStore.getConnectionById(selectedConnectionId)"
             :tabs="tabs"
             :active-tab-id="activeTabId"
             :selected-item="selectedItem"
@@ -275,13 +281,18 @@
             :has-source="!!appStore.compareStack.source"
             :triggers="schemaData.triggers"
             :navigatable-names="navigatableNames"
+            :schema-metadata="schemaMetadata"
             @select-tab="handleSelectTab"
             @close-tab="handleCloseTab"
+            @duplicate-tab="handleDuplicateTab"
+            @close-others="handleCloseOthers"
+            @close-right="handleCloseRight"
             @pick-stack="handlePickForInstant"
             @snapshot="takeSnapshot"
             @download="downloadDDL"
             @apply-table="handleApplyTable"
             @navigate-to-definition="handleNavigateToDefinition"
+            @open-editor="data => openQueryConsole(data.sql, data.title)"
           />
         </main>
       </div>
@@ -304,7 +315,8 @@
 <script setup lang="ts">
 import MainLayout from '@/layouts/MainLayout.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronRight, ChevronDown, Zap, CalendarClock, Check } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronDown, Zap, CalendarClock, Check } from 'lucide-vue-next'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { useAppStore } from '@/stores/app'
@@ -318,6 +330,7 @@ import TabSearchModal from '@/components/general/TabSearchModal.vue'
 import Andb from '@/utils/andb'
 
 const appStore = useAppStore()
+const { t } = useI18n()
 
 // Composable integration
 const selectedConnectionId = computed(() => appStore.selectedConnectionId)
@@ -371,10 +384,12 @@ watch(
 // UI State
 const searchFlags = appStore.globalSearchFlags
 const selectedSizeFilter = ref('all')
-const viewMode = ref<'visual' | 'code'>('visual')
+const viewMode = ref<'visual' | 'code' | 'data'>('visual')
 const resultsWidth = ref(300)
 const treeExpandCmd = ref<{ action: 'expand' | 'collapse'; ts: number } | null>(null)
 const isSearchExpanded = ref(false)
+const sortBy = ref<'name' | 'date'>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
 const toolbarSearchInput = ref<HTMLInputElement | null>(null)
 const debouncedSearchQuery = ref('')
 let searchDebounceTimeout: any = null
@@ -467,7 +482,33 @@ const filteredResults = computed(() => {
     }
   }
 
+  // Apply sorting based on sortBy and sortOrder
+  results = [...results].sort((a, b) => {
+    let comparison = 0
+    if (sortBy.value === 'date') {
+      const timeA = new Date(a.updated_at || a.lastUpdated || a.createTime || a.updateTime || 0).getTime()
+      const timeB = new Date(b.updated_at || b.lastUpdated || b.createTime || b.updateTime || 0).getTime()
+      comparison = timeA - timeB
+    } else {
+      comparison = a.name.localeCompare(b.name)
+    }
+    return sortOrder.value === 'asc' ? comparison : -comparison
+  })
+
   return results
+})
+
+const schemaMetadata = computed(() => {
+  const tables = (schemaData.value?.tables || []).map((t: any) => t.name)
+  const columns: Record<string, string[]> = {}
+  
+  for (const [tableName, tableInfo] of Object.entries(columnIndex.value || {})) {
+    if (tableInfo && (tableInfo as any).columns) {
+      columns[tableName] = (tableInfo as any).columns.map((c: any) => c.name)
+    }
+  }
+  
+  return { tables, columns }
 })
 
 const navigatableNames = computed(() => {
@@ -532,30 +573,88 @@ watch(
 const tableStatsMap = ref({}) // Simplified for now
 
 // Instant Compare Integration
-const isSourceInInstant = computed(
-  () => appStore.compareStack.source?.name === selectedItem.value?.name
-)
-const isTargetInInstant = computed(
-  () => appStore.compareStack.target?.name === selectedItem.value?.name
-)
+const isSourceInInstant = computed(() => {
+  if (!selectedItem.value) return false
+  const src = appStore.compareStack.source
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
+  return (
+    src?.name === selectedItem.value.name &&
+    src?.env === conn?.environment &&
+    src?.database === conn?.database
+  )
+})
+const isTargetInInstant = computed(() => {
+  if (!selectedItem.value) return false
+  const dest = appStore.compareStack.target
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
+  return (
+    dest?.name === selectedItem.value.name &&
+    dest?.env === conn?.environment &&
+    dest?.database === conn?.database
+  )
+})
 
 const handlePickForInstant = (type: 'source' | 'target') => {
   if (!selectedItem.value) return
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
+  const current = appStore.compareStack[type]
+  
+  // Uncheck if clicking the already selected slot on the same database
+  if (
+    current?.name === selectedItem.value.name &&
+    current?.env === conn?.environment &&
+    current?.database === conn?.database
+  ) {
+    appStore.compareStack[type] = null
+    if (!appStore.compareStack.source && !appStore.compareStack.target) {
+      appStore.isCompareStackVisible = false
+    }
+    return
+  }
+
+  // Remove from the opposite slot if it's selected there to prevent being both source and target
+  const oppositeSlot = type === 'source' ? 'target' : 'source'
+  const opposite = appStore.compareStack[oppositeSlot]
+  if (
+    opposite?.name === selectedItem.value.name &&
+    opposite?.env === conn?.environment &&
+    opposite?.database === conn?.database
+  ) {
+    appStore.compareStack[oppositeSlot] = null
+  }
+
   appStore.compareStack[type] = {
     name: selectedItem.value.name,
     ddl: formattedDdl.value,
-    type: selectedItem.value.type
+    type: selectedItem.value.type,
+    connectionName: conn?.name,
+    env: conn?.environment,
+    database: conn?.database
   }
+  
+  appStore.isCompareStackVisible = true
 }
 
 const handleSendToInstant = (item: any, slot: 'source' | 'target') => {
   if (!item) return
+  const conn = appStore.getConnectionById(selectedConnectionId.value)
   appStore.compareStack[slot] = {
     name: item.name,
     ddl: item.ddl || item.content || '',
-    type: item.type
+    type: item.type,
+    connectionName: conn?.name,
+    env: conn?.environment,
+    database: conn?.database
   }
   appStore.isCompareStackVisible = true
+}
+
+const handleRefreshItem = async (item: any) => {
+  if (!item) return
+  const prevSelected = selectedItem.value
+  selectedItem.value = item
+  await loadSchema(true, true)
+  selectedItem.value = prevSelected
 }
 
 // Tab Management
@@ -572,6 +671,26 @@ const openQueryConsole = (initialSql: string = '', customName?: string) => {
   tabs.value.push(newTab)
   activeTabId.value = queryId
   selectedItem.value = newTab
+}
+
+const openDefinitionSearch = (query: string = '') => {
+  const existing = tabs.value.find(t => t.type === 'deep-search')
+  if (existing) {
+    activeTabId.value = existing.id
+    selectedItem.value = existing
+    window.dispatchEvent(new CustomEvent('update-definition-search-query', { detail: { query } }))
+  } else {
+    const searchId = `deep-search-${Date.now()}`
+    const newTab = {
+      id: searchId,
+      name: 'Definition Search',
+      type: 'deep-search',
+      initialQuery: query
+    }
+    tabs.value.push(newTab)
+    activeTabId.value = searchId
+    selectedItem.value = newTab
+  }
 }
 
 const openNewObjectTemplate = (type: 'TABLE' | 'VIEW' | 'FUNCTION' | 'PROCEDURE') => {
@@ -653,6 +772,32 @@ const handleCloseTab = (id: string) => {
         activeTabId.value = null
       }
     }
+  }
+}
+
+const handleDuplicateTab = (id: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (!tab) return
+
+  const newTab = JSON.parse(JSON.stringify(tab))
+  newTab.id = `${tab.id}-copy-${Date.now()}`
+  newTab.name = `${tab.name} (${t('common.copy')})`
+
+  const index = tabs.value.findIndex(t => t.id === id)
+  tabs.value.splice(index + 1, 0, newTab)
+  handleSelectTab(newTab.id)
+}
+
+const handleCloseOthers = (id: string) => {
+  tabs.value = tabs.value.filter(t => t.id === id)
+  handleSelectTab(id)
+}
+
+const handleCloseRight = (id: string) => {
+  const index = tabs.value.findIndex(t => t.id === id)
+  if (index !== -1) {
+    tabs.value = tabs.value.slice(0, index + 1)
+    handleSelectTab(id)
   }
 }
 
@@ -760,6 +905,11 @@ const handleObjectSelectedEvent = (e: CustomEvent) => {
   setTimeout(unwatch, 5000)
 }
 
+const handleOpenDefinitionSearchEvent = (e: CustomEvent) => {
+  const query = e.detail?.query || ''
+  openDefinitionSearch(query)
+}
+
 onMounted(async () => {
   if (appStore.isInitialized) {
     loadSchema()
@@ -767,12 +917,14 @@ onMounted(async () => {
   window.addEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
   window.addEventListener('category-selected', handleCategorySelectedEvent as any)
   window.addEventListener('object-selected', handleObjectSelectedEvent as any)
+  window.addEventListener('open-definition-search', handleOpenDefinitionSearchEvent as any)
 })
 
 onUnmounted(() => {
   window.removeEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
   window.removeEventListener('category-selected', handleCategorySelectedEvent as any)
   window.removeEventListener('object-selected', handleObjectSelectedEvent as any)
+  window.removeEventListener('open-definition-search', handleOpenDefinitionSearchEvent as any)
 })
 
 // Auto-load when store is ready

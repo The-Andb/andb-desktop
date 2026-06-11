@@ -210,6 +210,27 @@ export class BackgroundWorker extends EventEmitter {
    * Compatibility layer for execute
    */
   public async execute(operation: string, payload: any): Promise<any> {
+    if (operation === 'compare-arbitrary') {
+      let timeoutId: NodeJS.Timeout | null = null;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          SafeLogger.error('[BackgroundWorker] compare-arbitrary operation timed out after 10 seconds');
+          reject(new Error('Comparison timed out (10s limit exceeded)'));
+        }, 10000);
+      });
+
+      try {
+        const result = await Promise.race([
+          this.call('execute', { operation, payload }),
+          timeoutPromise
+        ]);
+        return result;
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      }
+    }
     return this.call('execute', { operation, payload })
   }
 

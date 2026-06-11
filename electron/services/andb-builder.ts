@@ -308,7 +308,7 @@ export class AndbBuilder {
   static async execute(
     sourceConn: DatabaseConnection,
     targetConn: DatabaseConnection | null,
-    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot' | 'getTableStats' | 'getServerInfo' | 'getFKGraph' | 'ai-configure' | 'ai-review' | 'ai-ask',
+    operation: 'export' | 'compare' | 'migrate' | 'generate' | 'getSchemaObjects' | 'test-connection' | 'andb-create-snapshot' | 'create-snapshot' | 'getTableStats' | 'getServerInfo' | 'getFKGraph' | 'ai-configure' | 'ai-review' | 'ai-ask' | 'monitor-pulse' | 'monitor-snapshot' | 'monitor-kill' | 'executeQuery' | 'closeQuerySession' | 'cancelQuery',
     options: any = {},
     sender?: WebContents
   ): Promise<any> {
@@ -337,6 +337,20 @@ export class AndbBuilder {
                    sourceConn?.name?.toUpperCase() || 
                    sourceConn?.id?.toUpperCase() || 'DEFAULT';
       const tEnv = targetConn?.environment?.toUpperCase() || null;
+
+      // Determine active connection based on requested environment/env in options
+      let activeConn = sourceConn;
+      const requestedEnv = (options?.environment || options?.env)?.toUpperCase();
+      if (requestedEnv && targetConn && (
+        targetConn.environment?.toUpperCase() === requestedEnv ||
+        targetConn.name?.toUpperCase() === requestedEnv ||
+        targetConn.id?.toUpperCase() === requestedEnv
+      )) {
+        activeConn = targetConn;
+      }
+      const activeEnv = activeConn?.environment?.toUpperCase() || 
+                        activeConn?.name?.toUpperCase() || 
+                        activeConn?.id?.toUpperCase() || 'DEFAULT';
 
       // Build sourceConfig in the format ProjectConfigService.setConnection() expects
       // so OrchestrationService.syncConfigWithPayload() can pre-register the connection
@@ -370,11 +384,11 @@ export class AndbBuilder {
 
       const payload: any = {
         ...options,
-        connection: sourceConn, // Raw connection for getSchemaObjects / test-connection
+        connection: activeConn, // Raw connection for getSchemaObjects / test-connection / export
         srcEnv: sEnv,
         destEnv: tEnv,
-        env: sEnv,
-        db: sourceConn?.database || sourceConn?.name,
+        env: activeEnv,
+        db: activeConn?.database || activeConn?.name || options.db || options.database,
         sourceConnection: sourceConn,
         targetConnection: targetConn,
         // These are required by syncConfigWithPayload → setConnection, so ExporterService

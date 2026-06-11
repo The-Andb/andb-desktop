@@ -110,6 +110,8 @@ interface Settings {
   excludeTags?: string[]
   sqlitePath: string
   setupCompleted: boolean
+  betaRegistered: boolean
+  betaEmail: string
   aiProvider: 'gemini' | 'openai' | 'anthropic' | 'vertex' | 'custom'
   aiApiKey?: string
   aiVertexProjectId?: string
@@ -135,6 +137,8 @@ const defaultSettings: Settings = {
   excludeTags: [],
   sqlitePath: '',
   setupCompleted: false,
+  betaRegistered: false,
+  betaEmail: '',
   aiProvider: 'gemini',
   aiApiKey: '',
   aiVertexProjectId: '',

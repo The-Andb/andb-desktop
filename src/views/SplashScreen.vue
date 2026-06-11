@@ -218,7 +218,7 @@ const loadWorkspacePath = async () => {
 
 const pickWorkspaceDir = async () => {
   if ((window as any).electronAPI && (window as any).electronAPI.pickWorkspaceDir) {
-    const result = await (window as any).electronAPI.pickWorkspaceDir()
+    const result = await (window as any).electronAPI.pickWorkspaceDir({ isFirstStart: true })
     if (result && result.success && result.path) {
       currentWorkspaceDir.value = result.path
       workspaceMsg.value =

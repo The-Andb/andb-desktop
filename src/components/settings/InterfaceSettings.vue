@@ -22,7 +22,8 @@ import {
   Terminal,
   Network,
   Type,
-  Code
+  Code,
+  Activity
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -58,6 +59,7 @@ const navItems = computed(() => {
     { name: t('common.dashboard'), path: '/', icon: Home, visible: true },
     { name: t('common.schema'), path: '/schema', icon: Database, visible: true },
     { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
+    { name: 'Table Pulse', path: '/pulse', icon: Activity, visible: true },
     { name: t('common.history'), path: '/history', icon: HistoryIcon, visible: true },
     { name: 'Instant Compare', path: '/instant-compare', icon: Workflow, visible: true },
     { name: 'Integrations', path: '/integrations', icon: Terminal, visible: true },
@@ -87,7 +89,7 @@ const toggleHorizontalTab = (path: string) => {
   if (index === -1) {
     hidden.push(path)
   } else {
-    if (enabledTabsCount.value >= 4) {
+    if (appStore.navStyle === 'horizontal-tabs' && enabledTabsCount.value >= 4) {
       return
     }
     hidden.splice(index, 1)
@@ -390,7 +392,6 @@ const buttonStyles = computed<
 
         <!-- Visible Tabs Configuration -->
         <div
-          v-if="appStore.navStyle === 'horizontal-tabs'"
           class="mt-4 p-5 bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-2"
         >
           <div class="mb-4">
@@ -399,7 +400,11 @@ const buttonStyles = computed<
               >{{ $t('settings.interface.visibleConfig') }}</label
             >
             <div class="text-[10px] text-gray-400 uppercase tracking-tighter">
-              {{ $t('settings.interface.visibleConfigDesc', { max: 4 }) }}
+              {{ 
+                appStore.navStyle === 'horizontal-tabs' 
+                  ? $t('settings.interface.visibleConfigDesc', { max: 4 }) 
+                  : 'Select tabs to display in the vertical sidebar menu' 
+              }}
             </div>
           </div>
           <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -408,13 +413,13 @@ const buttonStyles = computed<
               :key="item.path"
               class="flex items-center px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 rounded-xl cursor-pointer gap-3 transition-colors shadow-sm group"
               :class="{
-                'opacity-50 cursor-not-allowed pointer-events-none': appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4
+                'opacity-50 cursor-not-allowed pointer-events-none': appStore.navStyle === 'horizontal-tabs' && appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4
               }"
             >
               <input
                 type="checkbox"
                 :checked="!appStore.hiddenHorizontalTabs.includes(item.path)"
-                :disabled="appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4"
+                :disabled="appStore.navStyle === 'horizontal-tabs' && appStore.hiddenHorizontalTabs.includes(item.path) && enabledTabsCount >= 4"
                 @change="toggleHorizontalTab(item.path)"
                 class="w-4 h-4 rounded text-primary-500 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 focus:ring-primary-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
               />

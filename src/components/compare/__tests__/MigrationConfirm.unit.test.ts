@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/vue'
+import { createPinia, setActivePinia } from 'pinia'
 import MigrationConfirm from '../MigrationConfirm.vue'
 
 // Mock dependencies
@@ -32,7 +33,9 @@ vi.mock('lucide-vue-next', () => ({
   Check: { template: '<svg data-testid="icon-check"></svg>' },
   List: { template: '<svg data-testid="icon-list"></svg>' },
   Workflow: { template: '<svg data-testid="icon-workflow"></svg>' },
-  Sigma: { template: '<svg data-testid="icon-sigma"></svg>' }
+  Sigma: { template: '<svg data-testid="icon-sigma"></svg>' },
+  Loader2: { template: '<svg data-testid="icon-loader2"></svg>' },
+  Info: { template: '<svg data-testid="icon-info"></svg>' }
 }))
 
 // Mock DDLViewer to avoid rendering complex Monaco/highlighting components
@@ -44,6 +47,10 @@ vi.mock('@/components/ddl/DDLViewer.vue', () => ({
 }))
 
 describe('MigrationConfirm.vue', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   const renderComponent = (props = {}) => {
     return render(MigrationConfirm, {
       props: {

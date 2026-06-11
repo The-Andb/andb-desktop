@@ -1,104 +1,43 @@
 <template>
   <div class="h-full w-full bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
-    <!-- Header -->
+    <!-- Header (only visible in designer mode when creating a new table) -->
     <div
+      v-if="isNew"
       class="px-6 py-3 bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0"
     >
       <div class="flex items-center gap-3">
         <!-- Visual Designer Header Mode -->
-        <template v-if="isNew">
-          <div class="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 shadow-sm">
-            <Table2 class="w-4 h-4 text-emerald-500" />
-            <input
-              v-model="localTableName"
-              placeholder="table_name"
-              class="bg-transparent font-bold text-sm outline-none w-48 text-gray-900 dark:text-white font-mono"
-            />
-          </div>
-          <div class="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
-          <!-- Engine Select -->
-          <select v-model="localOptions.engine" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
-            <option>InnoDB</option>
-            <option>MyISAM</option>
-            <option>Memory</option>
-          </select>
-          <!-- Charset Select -->
-          <select v-model="localOptions.charset" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
-            <option>utf8mb4</option>
-            <option>utf8</option>
-            <option>latin1</option>
-          </select>
-        </template>
-
-        <!-- Static View Header Mode -->
-        <template v-else>
-          <div class="flex items-center gap-2" v-if="options">
-            <span
-              v-if="options?.engine"
-              class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
-              >{{ options.engine }}</span
-            >
-            <span
-              v-if="options?.charset"
-              class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-500 uppercase"
-              >{{ options.charset }}</span
-            >
-            <p
-              v-if="options?.comment"
-              class="text-xs text-gray-400 italic hidden lg:block max-w-[200px] truncate"
-              :title="options.comment"
-            >
-              {{ options.comment }}
-            </p>
-          </div>
-
-          <!-- High-visibility Stats in Header -->
-          <div
-            v-if="stats"
-            class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-3"
-          >
-            <div class="flex flex-col">
-              <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
-                >Rows</span
-              >
-              <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300">{{
-                formatNumber(stats.rowCount)
-              }}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
-                >Size</span
-              >
-              <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300"
-                >{{ Math.round((stats.dataLengthMB + stats.indexLengthMB) * 10) / 10 }}
-                <span class="text-[9px] opacity-60">MB</span></span
-              >
-            </div>
-          </div>
-        </template>
+        <div class="flex items-center gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 shadow-sm">
+          <Table2 class="w-4 h-4 text-emerald-500" />
+          <input
+            v-model="localTableName"
+            placeholder="table_name"
+            class="bg-transparent font-bold text-sm outline-none w-48 text-gray-900 dark:text-white font-mono"
+          />
+        </div>
+        <div class="h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+        <!-- Engine Select -->
+        <select v-model="localOptions.engine" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
+          <option>InnoDB</option>
+          <option>MyISAM</option>
+          <option>Memory</option>
+        </select>
+        <!-- Charset Select -->
+        <select v-model="localOptions.charset" class="bg-white dark:bg-gray-800 text-[10px] border border-gray-200 dark:border-gray-700 rounded px-2 py-1 font-mono text-gray-600 dark:text-gray-300 outline-none shadow-sm uppercase font-bold">
+          <option>utf8mb4</option>
+          <option>utf8</option>
+          <option>latin1</option>
+        </select>
       </div>
 
       <!-- Right Side Actions -->
       <div class="flex items-center gap-2">
         <button
-          v-if="isNew"
           @click="handleApply"
           class="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-lg shadow-md hover:shadow-lg shadow-emerald-500/20 text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
         >
           <Check class="w-3.5 h-3.5" />
           Apply SQL
-        </button>
-        <button
-          v-else-if="stats"
-          @click="$emit('refreshStats')"
-          class="p-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-center gap-1.5 transition-colors group"
-          title="Refresh Statistics"
-        >
-          <RotateCcw class="w-3.5 h-3.5 text-gray-400 group-hover:text-primary-500" />
-          <span
-            class="text-[10px] font-bold text-gray-400 uppercase group-hover:text-primary-500 leading-none"
-            >Refresh</span
-          >
         </button>
       </div>
     </div>
@@ -744,7 +683,7 @@
                   Row Count
                 </p>
                 <p class="text-2xl font-black text-gray-900 dark:text-white">
-                  {{ formatNumber(stats.rowCount) }}
+                  {{ new Intl.NumberFormat().format(stats.rowCount) }}
                 </p>
               </div>
               <div
@@ -795,7 +734,7 @@
                   Auto Increment
                 </p>
                 <p class="text-lg font-black text-gray-900 dark:text-white">
-                  {{ formatNumber(stats.autoIncrement) }}
+                  {{ new Intl.NumberFormat().format(stats.autoIncrement) }}
                 </p>
               </div>
             </div>
@@ -889,7 +828,6 @@ import {
   ShieldCheck,
   ShieldAlert,
   ShieldX,
-  RotateCcw,
   RefreshCw,
   Trash2,
   Check,

@@ -145,9 +145,6 @@
             </div>
           </div>
         </div>
-
-
-
         <!-- Action Footer -->
         <div class="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-between gap-2 shadow-sm">
           <button
@@ -162,10 +159,11 @@
             type="button"
             class="flex-1 flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-primary-600 shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="loading || targetIsStatic"
-            @click="$emit('confirm')"
+            @click="handleConfirm"
             :title="targetIsStatic ? $t('migration.staticWarning') : ''"
           >
-            <Zap class="w-3.5 h-3.5 fill-current" :class="{ 'animate-spin': loading }" />
+            <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
+            <Zap v-else class="w-3.5 h-3.5 fill-current" />
             {{ loading ? $t('common.processing') : 'Migrate' }}
           </button>
         </div>
@@ -187,29 +185,15 @@
             >
               {{ selectedItemName }}
             </span>
-            <div
-              v-if="showWarning"
-              class="ml-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/50 text-[10px] font-bold text-amber-600 dark:text-amber-400 normal-case tracking-normal"
-            >
-              <AlertTriangle class="w-3 h-3 shrink-0" />
-              <span class="truncate max-w-[300px]">{{ $t('migration.warning') }}</span>
-            </div>
-            <div
-              v-if="targetIsStatic"
-              class="ml-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700/50 text-[10px] font-bold text-red-600 dark:text-red-400 normal-case tracking-normal"
-            >
-              <AlertTriangle class="w-3 h-3 shrink-0" />
-              <span class="truncate max-w-[300px]">{{ $t('migration.staticWarning') }}</span>
-            </div>
           </span>
-          <!-- <button 
-                  v-if="sqlScript && !fetchingSql"
-                  @click="copySql"
-                  class="text-[10px] font-bold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95"
-                >
-                  <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" />
-                  {{ copied ? $t('common.copied') : $t('common.copy') }}
-                </button> -->
+          <button 
+            v-if="(sqlScript || (sqlMap && Object.keys(sqlMap).length > 0)) && !fetchingSql"
+            @click="copyAllAlterScripts"
+            class="text-[10px] font-extrabold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95"
+          >
+            <Copy class="w-3.5 h-3.5" />
+            Copy All Scripts
+          </button>
         </div>
 
         <div class="flex-1 relative bg-gray-50 dark:bg-gray-950 overflow-hidden flex flex-col">
@@ -231,11 +215,64 @@
           </div>
 
           <div v-else-if="previewSql" class="flex-1 flex flex-col min-h-0 relative">
-            <!-- Info tip explaining diff alignment / Semantic diff -->
-            <div class="px-6 py-2.5 bg-blue-50/50 dark:bg-blue-950/20 border-b border-blue-100/50 dark:border-blue-900/30 text-[10px] text-blue-600 dark:text-blue-400 flex items-start gap-2 select-none leading-normal">
-              <Info class="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
-              <div>
-                {{ $t('migration.semanticDiffNote') }}
+            <!-- Combined Alert Center -->
+            <div class="border-b border-gray-200 dark:border-gray-800 shrink-0 p-4">
+              <div
+                class="rounded-xl border p-3 flex items-start gap-3 justify-between transition-all"
+                :class="[
+                  targetIsStatic
+                    ? 'bg-red-500/5 border-red-200 dark:border-red-900/30 text-red-900 dark:text-red-400'
+                    : showWarning
+                    ? 'bg-amber-500/5 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-400'
+                    : 'bg-blue-500/5 border-blue-200 dark:border-blue-900/30 text-blue-900 dark:text-blue-400'
+                ]"
+              >
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <!-- Dynamic Icon based on highest severity -->
+                  <component
+                    :is="targetIsStatic ? AlertTriangle : (showWarning ? AlertTriangle : Info)"
+                    class="w-4 h-4 shrink-0 mt-0.5"
+                    :class="[
+                      targetIsStatic ? 'text-red-500' : (showWarning ? 'text-amber-500' : 'text-blue-500')
+                    ]"
+                  />
+                  <div class="space-y-1.5 min-w-0 flex-1 text-[10.5px]">
+                    <div class="font-extrabold uppercase tracking-wider text-[11px] leading-tight">
+                      {{
+                        targetIsStatic
+                          ? $t('migration.staticWarning')
+                          : showWarning
+                          ? $t('migration.warning')
+                          : 'Semantic SQL Preview'
+                      }}
+                    </div>
+                    <ul class="list-disc pl-4 space-y-1 text-[10px] opacity-85 leading-normal font-medium">
+                      <li v-if="targetIsStatic">
+                        This connection is configured as static. Migration operations are disabled to prevent accidental modifications.
+                      </li>
+                      <li v-if="showWarning">
+                        This migration script contains destructive operations that will permanently delete columns or tables. Please review carefully.
+                      </li>
+                      <li>
+                        {{ $t('migration.semanticDiffNote') }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Control checkbox on the right if warning is present and target is not static -->
+                <div v-if="showWarning && !targetIsStatic" class="shrink-0 ml-4 self-center">
+                  <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 hover:bg-amber-200/50 dark:hover:bg-amber-900/30 transition-all cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      v-model="allowDestructive"
+                      class="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300 dark:border-amber-700"
+                    />
+                    <span class="text-[9px] font-extrabold uppercase tracking-widest text-amber-800 dark:text-amber-300">
+                      Allow Drop Command
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
             <DDLViewer
@@ -283,8 +320,11 @@ import {
   Workflow,
   Sigma,
   RefreshCw,
-  Info
+  Info,
+  Loader2,
+  Copy
 } from 'lucide-vue-next'
+import { useNotificationStore } from '@/stores/notification'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -459,5 +499,68 @@ watch(
   { immediate: true }
 )
 
+const notificationStore = useNotificationStore()
+
+const copyAllAlterScripts = async () => {
+  try {
+    let text = ''
+    if (isBatchMode.value) {
+      if (!props.sqlMap || Object.keys(props.sqlMap).length === 0) {
+        if (props.sqlScript) {
+          text = props.sqlScript
+        } else {
+          notificationStore.add({
+            type: 'warning',
+            title: 'Copy Failed',
+            message: 'No SQL scripts generated yet.'
+          })
+          return
+        }
+      } else {
+        const parts: string[] = []
+        itemsToProcess.value.forEach((item: any) => {
+          const key = getItemKey(item)
+          const sql = props.sqlMap?.[key]
+          if (sql) {
+            const singleType = item.type ? item.type.replace(/s$/, '') : 'object'
+            parts.push(`======== ${singleType} ${item.name} =======\n${sql.trim()}\n======== end ${singleType} ${item.name} ========`)
+          }
+        })
+        text = parts.join('\n\n')
+      }
+    } else {
+      const item = props.item
+      const singleType = item.type ? item.type.replace(/s$/, '') : 'object'
+      text = `======== ${singleType} ${item.name} =======\n${(props.sqlScript || '').trim()}\n======== end ${singleType} ${item.name} ========`
+    }
+
+    await navigator.clipboard.writeText(text)
+    notificationStore.add({
+      type: 'success',
+      title: 'Copied All',
+      message: 'All ALTER scripts have been copied to clipboard.'
+    })
+  } catch (e: any) {
+    notificationStore.add({
+      type: 'error',
+      title: 'Copy Failed',
+      message: e.message
+    })
+  }
+}
+
+const allowDestructive = ref(!appStore.safeMode)
+
+// Synchronize allowDestructive with safeMode when it changes
+watch(
+  () => appStore.safeMode,
+  safeMode => {
+    allowDestructive.value = !safeMode
+  }
+)
+
+const handleConfirm = () => {
+  emit('confirm', allowDestructive.value)
+}
 
 </script>

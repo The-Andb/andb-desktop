@@ -60,9 +60,9 @@ declare global {
 
       // andb-core operations (new programmatic approach)
       andbExecute: (args: {
-        sourceConnection: DatabaseConnection
+        sourceConnection?: DatabaseConnection
         targetConnection?: DatabaseConnection
-        operation: 'export' | 'compare' | 'migrate' | 'generate' | 'search'
+        operation: 'export' | 'compare' | 'migrate' | 'generate' | 'search' | 'executeQuery' | 'closeQuerySession' | 'cancelQuery'
         options: any
       }) => Promise<{ success: boolean; data?: any; error?: string }>
 
@@ -112,11 +112,11 @@ declare global {
         apiKey: string,
         provider: string
       ) => Promise<{ success: boolean; error?: string }>
-      aiReview: (args: { context: any }) => Promise<{ success: boolean; data: any; error?: string }>
-      aiAsk: (args: {
-        question: string
+      aiReview: (context: any) => Promise<{ success: boolean; data: any; error?: string }>
+      aiAsk: (
+        question: string,
         context?: any
-      }) => Promise<{ success: boolean; data: any; error?: string }>
+      ) => Promise<{ success: boolean; data: any; error?: string }>
       onAiControlEvent: (callback: (payload: any) => void) => void
 
       openBackupFolder: () => Promise<{ success: boolean; error?: string }>
@@ -172,7 +172,9 @@ declare global {
         getMcpPath: () => Promise<string>
       }
 
-      pickWorkspaceDir: () => Promise<{
+      pickWorkspaceDir: (options?: {
+        isFirstStart?: boolean
+      }) => Promise<{
         success: boolean
         path?: string
         action?: string
@@ -190,7 +192,13 @@ declare global {
         ) => Promise<{ success: boolean; data?: string; error?: string }>
       }
 
+      // Live Monitoring Module
+      monitorPulse: (connection: any) => Promise<{ threadsRunning: number; lockWaits: number }>
+      monitorSnapshot: (connection: any) => Promise<{ lockTree: any[]; processList: any[] }>
+      monitorKill: (connection: any, threadId: number) => Promise<void>
+
       // Generic invoke for dynamic calls
+      andbDeepSearch: (args: { sourceConnection: any; keyword: string }) => Promise<{ success: boolean; data?: any[]; error?: string }>
       invoke: (channel: string, ...args: any[]) => Promise<any>
     }
   }

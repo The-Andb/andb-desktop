@@ -7,12 +7,15 @@
       :active-tab-id="activeTabId"
       @select="id => emit('select-tab', id)"
       @close="id => emit('close-tab', id)"
+      @duplicate="id => emit('duplicate-tab', id)"
+      @close-others="id => emit('close-others', id)"
+      @close-right="id => emit('close-right', id)"
     />
 
     <div v-if="selectedItem" class="flex-1 flex flex-col overflow-hidden">
       <!-- Item Header / Local Actions -->
       <div
-        v-if="selectedItem.type !== 'query'"
+        v-if="selectedItem.type !== 'query' && selectedItem.type !== 'deep-search'"
         class="px-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0 h-12"
       >
         <div class="flex items-center overflow-hidden gap-3">
@@ -29,6 +32,60 @@
               selectedItem.type
             }}</span>
           </div>
+
+          <!-- High-visibility Stats in Header (Globally across tabs) -->
+          <div
+            v-if="['tables', 'table'].includes(selectedItem.type) && !selectedItem.isNew"
+            class="flex items-center gap-3 ml-4 pl-4 border-l border-gray-250 dark:border-gray-700 select-none shrink-0"
+          >
+            <!-- Toggle Button -->
+            <button
+              @click="toggleTableInfo"
+              class="p-1 text-gray-400 hover:text-primary-500 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Toggle Table Information"
+            >
+              <Info class="w-3.5 h-3.5" :class="{ 'text-primary-500': showTableInfo }" />
+            </button>
+
+            <template v-if="showTableInfo">
+              <!-- Engine -->
+              <span
+                v-if="detailedData?.options?.engine"
+                class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-600 dark:text-gray-300 uppercase shrink-0 font-bold border border-gray-200 dark:border-gray-600"
+              >
+                {{ detailedData.options.engine }}
+              </span>
+
+              <!-- Charset -->
+              <span
+                v-if="detailedData?.options?.charset"
+                class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded font-mono text-gray-600 dark:text-gray-300 uppercase shrink-0 font-bold border border-gray-200 dark:border-gray-600"
+              >
+                {{ detailedData.options.charset }}
+              </span>
+
+              <!-- Stats (Row count / Size) -->
+              <template v-if="tableStats">
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
+                    >Rows</span
+                  >
+                  <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono">{{
+                    formatNumber(tableStats.rowCount)
+                  }}</span>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-[9px] text-gray-400 uppercase tracking-tighter leading-none mb-0.5"
+                    >Size</span
+                  >
+                  <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono"
+                    >{{ Math.round((tableStats.dataLengthMB + tableStats.indexLengthMB) * 10) / 10 }}
+                    <span class="text-[9px] opacity-60">MB</span></span
+                  >
+                </div>
+              </template>
+            </template>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -37,6 +94,17 @@
             v-if="['tables', 'table'].includes(selectedItem.type) && !selectedItem.isNew"
             class="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700 mx-2 shadow-inner"
           >
+           <button
+              @click="emit('update:viewMode', 'data')"
+              class="px-3 py-1 rounded-md text-[11px] font-bold uppercase transition-all"
+              :class="
+                viewMode === 'data'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm'
+                  : 'text-gray-400'
+              "
+            >
+              Data
+            </button>
             <button
               @click="emit('update:viewMode', 'visual')"
               class="px-3 py-1 rounded-md text-[11px] font-bold uppercase transition-all"
@@ -59,6 +127,7 @@
             >
               Code
             </button>
+           
           </div>
 
           <!-- Actions only for existing persistence layers -->
@@ -105,10 +174,18 @@
           v-else-if="selectedItem.type === 'query'"
           :connection="selectedItem.connection"
           :initial-sql="selectedItem.initialSql"
+          :schema-metadata="schemaMetadata"
+        />
+        <DefinitionSearchPanel
+          v-else-if="selectedItem.type === 'deep-search'"
+          :connection="connection"
+          :initial-query="selectedItem.initialQuery"
+          @open-editor="data => emit('open-editor', data)"
         />
 
         <template v-else-if="['tables', 'table'].includes(selectedItem.type)">
-          <DDLViewer v-if="viewMode === 'code'" :content="formattedDdl" :navigatable-names="navigatableNames" @navigate-to-definition="word => emit('navigate-to-definition', word)" />
+          <TableDataInspector v-if="viewMode === 'data'" :connection="connection" :table-name="selectedItem.name" />
+          <DDLViewer v-else-if="viewMode === 'code'" :content="formattedDdl" :navigatable-names="navigatableNames" @navigate-to-definition="word => emit('navigate-to-definition', word)" />
           <TableDetailedView
             v-else-if="detailedData"
             :table-name="selectedItem.name"
@@ -119,6 +196,8 @@
             :partitions="detailedData.partitions"
             :triggers="triggers"
             :is-new="selectedItem.isNew"
+            :stats="tableStats"
+            @refresh-stats="fetchTableStats"
             @apply-table="sql => emit('apply-table', sql)"
           />
           <!-- Analyzing/Parsing state fallback -->
@@ -151,6 +230,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import {
   Workflow,
   Camera,
@@ -164,19 +244,24 @@ import {
   CalendarClock,
   Network,
   Database,
-  Loader2
+  Loader2,
+  Info
 } from 'lucide-vue-next'
 import TabBar from '@/components/general/TabBar.vue'
 import DDLViewer from '@/components/ddl/DDLViewer.vue'
 import SchemaDiagram from '@/components/ddl/SchemaDiagram.vue'
 import TableDetailedView from '@/components/ddl/TableDetailedView.vue'
 import QueryConsole from '@/components/schema/QueryConsole.vue'
+import TableDataInspector from '@/components/schema/TableDataInspector.vue'
+import DefinitionSearchPanel from '@/components/schema/DefinitionSearchPanel.vue'
+import Andb from '@/utils/andb'
 
 const props = defineProps<{
+  connection?: any
   tabs: any[]
   activeTabId: string | null
   selectedItem: any
-  viewMode: 'visual' | 'code'
+  viewMode: 'visual' | 'code' | 'data'
   formattedDdl?: string
   detailedData?: any
   tables: any[]
@@ -185,17 +270,62 @@ const props = defineProps<{
   hasSource: boolean
   triggers: any[]
   navigatableNames?: string[]
+  schemaMetadata?: { tables: string[], columns: Record<string, string[]> }
 }>()
+
+// Table stats logic
+const tableStats = ref<any>(null)
+
+const showTableInfo = ref(localStorage.getItem('andb_show_table_info') !== 'false')
+
+const toggleTableInfo = () => {
+  showTableInfo.value = !showTableInfo.value
+  localStorage.setItem('andb_show_table_info', String(showTableInfo.value))
+}
+
+const formatNumber = (num: number) => {
+  if (num === undefined || num === null) return '0'
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+  return num.toString()
+}
+
+const fetchTableStats = async () => {
+  if (!props.connection || !props.selectedItem || props.selectedItem.isNew || !['tables', 'table'].includes(props.selectedItem.type)) {
+    tableStats.value = null
+    return
+  }
+  try {
+    const stats = await Andb.getTableStats(props.connection)
+    const list = Array.isArray(stats) ? stats : (stats as any)?.data || []
+    tableStats.value = list.find((s: any) => s.tableName === props.selectedItem.name) || null
+  } catch (err) {
+    console.warn('Failed to fetch table stats:', err)
+    tableStats.value = null
+  }
+}
+
+watch(
+  () => [props.selectedItem?.name, props.connection],
+  () => {
+    fetchTableStats()
+  },
+  { immediate: true }
+)
 
 const emit = defineEmits<{
   'select-tab': [id: string]
   'close-tab': [id: string]
-  'update:viewMode': [mode: 'visual' | 'code']
+  'duplicate-tab': [id: string]
+  'close-others': [id: string]
+  'close-right': [id: string]
+  'update:viewMode': [mode: 'visual' | 'code' | 'data']
   'pick-stack': [type: 'source' | 'target']
   snapshot: []
   download: []
   'apply-table': [sql: string]
   'navigate-to-definition': [word: string]
+  'open-editor': [data: { sql: string; title: string }]
 }>()
 
 const typeIcons = {

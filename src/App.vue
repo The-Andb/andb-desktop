@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="h-screen bg-gray-50 dark:bg-gray-900">
     <router-view />
     <UpdateModal />
     <ShortcutsModal :isOpen="shortcutStore.isModalOpen" @close="shortcutStore.closeModal" />
@@ -37,7 +37,7 @@ const featuresStore = useFeaturesStore()
 const shortcutStore = useShortcutStore()
 const router = useRouter()
 const { t } = useI18n()
-
+const projectsStore = useProjectsStore()
 // Inject Dynamic Typography Variables into DOM root
 watch(
   () => appStore.fontSizes,
@@ -105,10 +105,13 @@ const handleDatabaseRefreshRequested = async (e: any) => {
     await Andb.clearConnectionData(conn)
 
     const ddlTypes: any[] = ['tables', 'views', 'procedures', 'functions', 'triggers', 'events']
+    const filteredTypes = ddlTypes.filter(
+      type => !appStore.excludedCategories.includes(`${conn.environment}:${conn.database}:${type}`)
+    )
     consoleStore.addLog(`Fetching all DDL types for ${conn.name} (parallel)...`, 'info')
 
     await Promise.all(
-      ddlTypes.map(async type => {
+      filteredTypes.map(async type => {
         const taskId = `${conn.id}-${type}`
         appStore.updateSchemaProgress(taskId, {
           current: 0,
@@ -159,7 +162,12 @@ const handleProjectHardPurgeRequested = async () => {
     consoleStore.addLog(`Removing all local directory caches and SQLite schemas for current workspace context...`, 'warn')
     consoleStore.setVisibility(true)
 
-    const activeConnections = appStore.filteredConnections
+    const activeConnections = appStore.filteredConnections.filter(conn => {
+      return (
+        !appStore.excludedEnvironments.includes(conn.environment) &&
+        !appStore.excludedDatabases.includes(`${conn.environment}:${conn.database}`)
+      )
+    })
     if (activeConnections.length === 0) {
       consoleStore.addLog(`No active connections linked to project. Wiping physical directory anyway...`, 'info')
     } else {
@@ -184,8 +192,11 @@ const handleProjectHardPurgeRequested = async () => {
       // Parallel rebuild across connections and DDL types!
       await Promise.all(
         activeConnections.map(async conn => {
+          const filteredTypes = ddlTypes.filter(
+            type => !appStore.excludedCategories.includes(`${conn.environment}:${conn.database}:${type}`)
+          )
           await Promise.all(
-            ddlTypes.map(async type => {
+            filteredTypes.map(async type => {
               const taskId = `${conn.id}-${type}`
               appStore.updateSchemaProgress(taskId, {
                 current: 0,
@@ -232,7 +243,12 @@ const handleProjectLiveRefreshRequested = async () => {
     appStore.isSchemaFetching = true
     consoleStore.addLog(`🚀 SMART REFRESH: Stale cache (> 5 mins). Fetching live schemas for ${activeProjectName}...`, 'info')
 
-    const activeConnections = appStore.filteredConnections
+    const activeConnections = appStore.filteredConnections.filter(conn => {
+      return (
+        !appStore.excludedEnvironments.includes(conn.environment) &&
+        !appStore.excludedDatabases.includes(`${conn.environment}:${conn.database}`)
+      )
+    })
     if (activeConnections.length === 0) {
       consoleStore.addLog(`No active connections to sync. Re-syncing UI view only...`, 'info')
       sidebarStore.requestRefresh()
@@ -246,8 +262,11 @@ const handleProjectLiveRefreshRequested = async () => {
     // Spawns parallel live export without destroying physical folder, updating local files natively
     await Promise.all(
       activeConnections.map(async conn => {
+        const filteredTypes = ddlTypes.filter(
+          type => !appStore.excludedCategories.includes(`${conn.environment}:${conn.database}:${type}`)
+        )
         await Promise.all(
-          ddlTypes.map(async type => {
+          filteredTypes.map(async type => {
             const taskId = `${conn.id}-${type}`
             appStore.updateSchemaProgress(taskId, {
               current: 0,
@@ -624,6 +643,23 @@ onMounted(async () => {
         import('@sentry/electron/renderer').then(Sentry => {
           Sentry.setUser({ id })
         })
+      }
+    },
+    { immediate: true }
+  )
+
+  // Watch project change to redirect to connection setup if empty
+  watch(
+    () => projectsStore.selectedProjectId,
+    newId => {
+      if (newId && projectsStore.isLoaded && router.currentRoute.value.path !== '/project-settings') {
+        const proj = projectsStore.projects.find(p => p.id === newId)
+        if (proj && (!proj.connectionIds || proj.connectionIds.length === 0)) {
+          router.push({
+            path: '/project-settings',
+            query: { cat: 'connections', no_connections: 'true' }
+          })
+        }
       }
     },
     { immediate: true }

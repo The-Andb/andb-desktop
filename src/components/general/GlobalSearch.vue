@@ -126,6 +126,19 @@
                 <span class="text-[10px] font-bold">{{ $t('navigation.actions.columnSearch') }}</span>
               </div>
             </button>
+            <div class="border-t border-gray-150 dark:border-gray-800 my-1"></div>
+            
+            <button
+              @click.stop="triggerDbWideSearch"
+              class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors group/live"
+            >
+              <SearchCode class="w-3.5 h-3.5 text-emerald-500 group-hover/live:scale-110 transition-transform" />
+              <div class="flex flex-col items-start min-w-0">
+                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Definition Search</span>
+                <span class="text-[8px] font-medium text-gray-400 dark:text-gray-500 truncate max-w-[160px]" v-if="appStore.globalSearchQuery">Search "{{ appStore.globalSearchQuery }}" in DB</span>
+                <span class="text-[8px] font-medium text-gray-400 dark:text-gray-500" v-else>Search routines & views</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -208,7 +221,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Search, X, ListFilter, Check, CaseSensitive, WholeWord, Regex, FileCode, Binary, MoreHorizontal } from 'lucide-vue-next'
+import { Search, X, ListFilter, Check, CaseSensitive, WholeWord, Regex, FileCode, Binary, MoreHorizontal, SearchCode } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 
 const route = useRoute()
@@ -222,6 +235,13 @@ const isAdvancedDropdownOpen = ref(false)
 const isCompareView = computed(() => route.path === '/compare')
 const isSchemaView = computed(() => route.path === '/schema')
 const isHistoryView = computed(() => route.path === '/history')
+
+const triggerDbWideSearch = () => {
+  isAdvancedDropdownOpen.value = false
+  window.dispatchEvent(new CustomEvent('open-definition-search', {
+    detail: { query: appStore.globalSearchQuery }
+  }))
+}
 
 const isSearchableRoute = computed(() => {
   return ['/schema', '/compare', '/history'].includes(route.path)

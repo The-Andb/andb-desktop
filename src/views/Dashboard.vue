@@ -780,6 +780,7 @@ import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useOperationsStore } from '@/stores/operations'
+import { useSidebarStore } from '@/stores/sidebar'
 import Andb from '@/utils/andb'
 
 const { t } = useI18n()
@@ -1097,12 +1098,34 @@ const fetchDashboardStats = async () => {
       Andb.getServerInfo(conn as any)
     ])
 
-    // Handle potential double-wrapping from legacy or unexpected IPC behavior
+    let statsData = []
     if (stats && (stats as any).success && (stats as any).data) {
-      dbStats.value = (stats as any).data
+      statsData = (stats as any).data
     } else {
-      dbStats.value = Array.isArray(stats) ? stats : []
+      statsData = Array.isArray(stats) ? stats : []
     }
+
+    const sidebarStore = useSidebarStore()
+    const dbObj = sidebarStore.environments
+      .flatMap((e: any) => e.databases || [])
+      .find((d: any) => d.connectionId === conn.id)
+
+    if (dbObj) {
+      dbStats.value = [
+        ...statsData,
+        { type: 'table', count: dbObj.tables?.length || 0 },
+        { type: 'view', count: dbObj.views?.length || 0 },
+        { type: 'routine', count: (dbObj.procedures?.length || 0) + (dbObj.functions?.length || 0) }
+      ]
+    } else {
+      dbStats.value = [
+        ...statsData,
+        { type: 'table', count: statsData.length },
+        { type: 'view', count: 0 },
+        { type: 'routine', count: 0 }
+      ]
+    }
+
     serverInfo.value = info && (info as any).success ? (info as any).data : info
   } catch (e: any) {
     statsError.value = e.message

@@ -39,6 +39,7 @@ export interface MigrateOptions {
   status?: DDL_STATUS
   dryRun?: boolean
   objects?: any[]
+  force?: boolean
 }
 
 export interface ConnectionTestResult {
@@ -52,13 +53,37 @@ export class Andb {
    * Helper to sanitize objects for IPC (removes Proxies, functions, etc)
    */
   private static sanitize<T>(obj: T): T {
-    if (!obj) return obj
-    try {
-      return JSON.parse(JSON.stringify(obj))
-    } catch (e) {
-      // Fallback to shallow clone if JSON fails (e.g. circular)
-      return { ...obj }
+    if (obj === null || obj === undefined) return obj
+    if (typeof obj !== 'object') return obj
+
+    // Handle Array
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.sanitize(item)) as any
     }
+
+    // Handle Date
+    if (obj instanceof Date) {
+      return new Date(obj.getTime()) as any
+    }
+
+    // Handle RegExp
+    if (obj instanceof RegExp) {
+      return new RegExp(obj.source, obj.flags) as any
+    }
+
+    // Recursively copy keys of the object to strip Vue 3 reactive proxies
+    const sanitized: any = {}
+    for (const key of Object.keys(obj as any)) {
+      if (key.startsWith('__v_') || key.startsWith('_$')) {
+        continue
+      }
+      const val = (obj as any)[key]
+      if (typeof val === 'function' || typeof val === 'symbol') {
+        continue
+      }
+      sanitized[key] = this.sanitize(val)
+    }
+    return sanitized as T
   }
 
   /**
@@ -241,16 +266,17 @@ export class Andb {
   ): Promise<any> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
+      const forceVal = options.dryRun === false ? true : (options as any).force === true
       const result = await window.electronAPI.andbExecute(
         this.sanitize({
           sourceConnection,
           targetConnection,
           operation: 'migrate',
-          options: { ...options, ...this.getCoreSettings() }
+          options: { ...options, force: forceVal, ...this.getCoreSettings() }
         })
       )
 
-      if (result.success) return result.data
+      if (result.success) return result.data !== undefined ? result.data : result
       throw new Error(result.error || 'Migration failed')
     } catch (error: any) {
       throw new Error(`Migration failed: ${error.message}`)
@@ -743,7 +769,7 @@ export class Andb {
   static async aiAsk(question: string, context?: any): Promise<any> {
     if (!isElectron) return null
     try {
-      const result = await window.electronAPI.aiAsk({ question, context: this.sanitize(context) })
+      const result = await window.electronAPI.aiAsk(question, this.sanitize(context))
       if (result.success) return result.data
       throw new Error(result.error || 'AI Assistance failed')
     } catch (error: any) {
@@ -757,7 +783,11 @@ export class Andb {
   static async executeQuery(
     connection: DatabaseConnection,
     sql: string,
-    params: any[] = []
+    params: any[] = [],
+    sessionId?: string,
+    autocommit?: boolean,
+    limit?: number,
+    offset?: number
   ): Promise<any[]> {
     if (!isElectron) throw new Error('Not in Electron environment')
     try {
@@ -765,7 +795,7 @@ export class Andb {
         this.sanitize({
           sourceConnection: connection,
           operation: 'executeQuery',
-          options: { sql, params }
+          options: { sql, params, sessionId, autocommit, limit, offset }
         } as any)
       )
 
@@ -773,6 +803,55 @@ export class Andb {
       throw new Error(result.error || 'Query failed')
     } catch (error: any) {
       throw new Error(`Query failed: ${error.message}`)
+    }
+  }
+
+  static async closeQuerySession(sessionId: string): Promise<void> {
+    if (!isElectron) return
+    try {
+      await window.electronAPI.andbExecute({
+        operation: 'closeQuerySession',
+        options: { sessionId }
+      })
+    } catch (error) {
+      console.warn('Failed to close query session:', error)
+    }
+  }
+
+  /**
+   * Cancel a running query session connection
+   */
+  static async cancelQuery(connection: DatabaseConnection, sessionId: string): Promise<void> {
+    if (!isElectron) return
+    try {
+      await window.electronAPI.andbExecute(
+        this.sanitize({
+          sourceConnection: connection,
+          operation: 'cancelQuery',
+          options: { sessionId, connection }
+        } as any)
+      )
+    } catch (error) {
+      console.warn('Failed to cancel query:', error)
+    }
+  }
+
+  /**
+   * Execute deep global code search for procedures, functions, triggers, and views
+   */
+  static async deepSearch(connection: DatabaseConnection, keyword: string): Promise<any[]> {
+    if (!isElectron) throw new Error('Not in Electron environment')
+    try {
+      const result = await window.electronAPI.andbDeepSearch(
+        this.sanitize({
+          sourceConnection: connection,
+          keyword
+        })
+      )
+      if (result.success) return result.data || []
+      throw new Error(result.error || 'Deep search failed')
+    } catch (error: any) {
+      throw new Error(`Deep search failed: ${error.message}`)
     }
   }
 }

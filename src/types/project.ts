@@ -25,6 +25,9 @@ export interface Project {
     projectBaseDir?: string
     aiEnabled?: boolean
     aiPromptOverride?: string
+    excludedEnvironments?: string[]
+    excludedDatabases?: string[]
+    excludedCategories?: string[]
   }
   createdAt: string
   updatedAt: string

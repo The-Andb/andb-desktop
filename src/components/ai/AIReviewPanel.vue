@@ -56,7 +56,10 @@ const props = defineProps<{
 }>()
 
 const question = ref('')
-const isLoading = ref(false)
+const isLoading = computed({
+  get: () => chatStore.isLoading,
+  set: (val) => { chatStore.isLoading = val }
+})
 const showHistory = ref(false)
 
 const personas = [

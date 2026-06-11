@@ -66,7 +66,6 @@
           >
             <!-- Left: Comparison Results List (Sub-sidebar style) -->
             <CompareResultsList
-              v-if="appStore.layoutSettings.sidebar"
               :resultsWidth="resultsWidth"
               v-model:activeType="selectedFilterType"
               v-model:sortBy="sortBy"
@@ -113,6 +112,7 @@
               @close-right="handleCloseRight"
               @migrate="migrateSingleItem"
               @navigate-to-definition="handleNavigateToDefinition"
+              @refresh-pair="handleRefreshPair"
             />
           </div>
 
@@ -287,7 +287,16 @@ const sendToInstant = (item: any, slot: 'source' | 'target' = 'source') => {
     return
   }
 
-  appStore.compareStack[slot] = { name: item.name, ddl, type: item.type }
+  const conn = slot === 'source' ? activePair.value?.source : activePair.value?.target
+
+  appStore.compareStack[slot] = {
+    name: item.name,
+    ddl,
+    type: item.type,
+    connectionName: conn?.name,
+    env: conn?.environment,
+    database: conn?.database
+  }
 
   appStore.isCompareStackVisible = true
 }
@@ -760,6 +769,7 @@ const resultsByCategory = computed(() => {
 // Actions
 const runComparison = async () => {
   if (!activePair.value) return
+  const { source, target } = activePair.value
   // Debounce: prevent rapid re-clicks within 1.5 seconds
   const now = Date.now()
   if (now - lastCompareTime.value < 1500) return
@@ -774,15 +784,17 @@ const runComparison = async () => {
   error.value = null
 
   try {
-    const { source, target } = activePair.value
+    if (appStore.excludedEnvironments.includes(source.environment) || appStore.excludedEnvironments.includes(target.environment)) {
+      consoleStore.addLog(`⚠️ Smart Sync Warning: Source or Target environment is excluded from sync scope. Skipping...`, 'warn')
+      sidebarStore.isComparing = false
+      loading.value = false
+      loadingAction.value = null
+      return
+    }
 
-    let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = [
-      'tables',
-      'procedures',
-      'functions',
-      'triggers',
-      'views'
-    ]
+    let objTypes: ('tables' | 'procedures' | 'functions' | 'triggers' | 'views')[] = (
+      ['tables', 'procedures', 'functions', 'triggers', 'views'] as any[]
+    ).filter(type => !appStore.excludedCategories.includes(`${source.environment}:${source.database}:${type}`))
     let compareName: string | undefined = undefined
 
     // Atomic Compare Logic
@@ -909,36 +921,40 @@ const runComparison = async () => {
 
 const runFetchAndCompare = async () => {
   if (!activePair.value) return
+  const { source, target } = activePair.value
   loading.value = true
   loadingAction.value = 'fetch'
   sidebarStore.isComparing = true
-  statusMessage.value = 'Fetching fresh DDLs from databases...'
+  statusMessage.value = 'Fetching fresh DDLs from databases in parallel...'
 
   try {
-    const { source, target } = activePair.value
-    const types: ('tables' | 'views' | 'procedures' | 'functions' | 'triggers')[] = [
-      'tables',
-      'views',
-      'procedures',
-      'functions',
-      'triggers'
-    ]
-
-    // 1. Export source
-    consoleStore.addLog(`Fetching Source: ${source.name}`, 'info')
-    for (const type of types) {
-      statusMessage.value = `Fetching ${type} from ${source.name}...`
-      await Andb.export(source, target, { type, environment: source.environment })
+    if (
+      appStore.excludedEnvironments.includes(source.environment) || 
+      appStore.excludedEnvironments.includes(target.environment) ||
+      appStore.excludedDatabases.includes(`${source.environment}:${source.database}`) ||
+      appStore.excludedDatabases.includes(`${target.environment}:${target.database}`)
+    ) {
+      consoleStore.addLog(`⚠️ Smart Sync Warning: Source or Target database/environment is excluded from sync scope. Skipping Fetch...`, 'warn')
+      sidebarStore.isComparing = false
+      loading.value = false
+      loadingAction.value = null
+      return
     }
 
-    // 2. Export target
-    consoleStore.addLog(`Fetching Target: ${target.name}`, 'info')
-    for (const type of types) {
-      statusMessage.value = `Fetching ${type} from ${target.name}...`
-      await Andb.export(source, target, { type, environment: target.environment })
-    }
+    const allTypes = ['tables', 'views', 'procedures', 'functions', 'triggers'] as const
 
-    // 3. Run comparison
+    const sourceTypes = allTypes.filter(type => !appStore.excludedCategories.includes(`${source.environment}:${source.database}:${type}`))
+    const targetTypes = allTypes.filter(type => !appStore.excludedCategories.includes(`${target.environment}:${target.database}:${type}`))
+
+    consoleStore.addLog(`Fetching Source & Target DDLs in parallel...`, 'info')
+    
+    // Fetch source and target in parallel
+    await Promise.all([
+      ...sourceTypes.map(type => Andb.export(source, target, { type, environment: source.environment })),
+      ...targetTypes.map(type => Andb.export(source, target, { type, environment: target.environment }))
+    ])
+
+    // Run comparison
     statusMessage.value = 'Analyzing differences...'
     await runComparison()
 
@@ -951,6 +967,44 @@ const runFetchAndCompare = async () => {
     error.value = e.message
     showErrorModal.value = true
     consoleStore.addLog(`Fetch error: ${e.message}`, 'error')
+  } finally {
+    sidebarStore.isComparing = false
+    loading.value = false
+    loadingAction.value = null
+  }
+}
+
+const handleRefreshPair = async (item: any) => {
+  if (!activePair.value || !item) return
+  loading.value = true
+  loadingAction.value = 'fetch'
+  sidebarStore.isComparing = true
+  statusMessage.value = `Refreshing and re-comparing ${item.name} (${item.type})...`
+
+  try {
+    const { source, target } = activePair.value
+    const type = item.type // e.g., 'tables', 'views', etc.
+    const name = item.name
+
+    consoleStore.addLog(`Fetching Source: ${source.name} - ${name} (${type})`, 'info')
+    await Andb.export(source, target, { type, environment: source.environment, name })
+
+    consoleStore.addLog(`Fetching Target: ${target.name} - ${name} (${type})`, 'info')
+    await Andb.export(source, target, { type, environment: target.environment, name })
+
+    // Run comparison for the active pair
+    statusMessage.value = 'Analyzing differences...'
+    await runComparison()
+
+    notificationStore.add({
+      title: 'Pair Refresh Complete',
+      message: `Object ${name} refreshed and compared successfully`,
+      type: 'success'
+    })
+  } catch (e: any) {
+    error.value = e.message
+    showErrorModal.value = true
+    consoleStore.addLog(`Pair refresh error: ${e.message}`, 'error')
   } finally {
     sidebarStore.isComparing = false
     loading.value = false
@@ -1098,7 +1152,7 @@ const closeMigrationTerminal = () => {
   migrationTerminal.value.sqlMap = {}
 }
 
-const executeConfirmedMigration = async () => {
+const executeConfirmedMigration = async (allowDestructive: boolean = false) => {
   if (!migrationTerminal.value.isOpen) return
   const items = [...migrationTerminal.value.items]
   const batchType = migrationTerminal.value.batchType
@@ -1106,18 +1160,18 @@ const executeConfirmedMigration = async () => {
 
   try {
     if (dialogType === 'single') {
-      await migrateSingleItem(items[0], true)
+      await migrateSingleItem(items[0], true, allowDestructive)
     } else if (dialogType === 'batch') {
-      await migrateBatchInline(batchType!, true)
+      await migrateBatchInline(batchType!, true, allowDestructive)
     } else if (dialogType === 'custom-batch') {
-      await migrateCustomItems(items, true)
+      await migrateCustomItems(items, true, allowDestructive)
     }
   } finally {
     closeMigrationTerminal()
   }
 }
 
-const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
+const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force: boolean = false) => {
   if (
     !activePair.value ||
     !item ||
@@ -1189,7 +1243,8 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
         targetEnv: target.environment,
         name: item.name,
         status: status,
-        dryRun: appStore.safeMode
+        dryRun: appStore.safeMode,
+        force: force
       })
 
       if (!appStore.safeMode) {
@@ -1255,7 +1310,7 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false) => {
     isMigratingItemId.value = null
   }
 }
-const migrateBatchInline = async (type: string, skipConfirm: boolean = false) => {
+const migrateBatchInline = async (type: string, skipConfirm: boolean = false, force: boolean = false) => {
   if (isTargetDump.value) {
     notificationStore.add({
       type: 'warning',
@@ -1409,7 +1464,8 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
               targetEnv: target.environment,
               status: status,
               objects,
-              dryRun: appStore.safeMode
+              dryRun: appStore.safeMode,
+              force: force
             })
           }
         }
@@ -1505,7 +1561,7 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false) =>
   }
 }
 
-const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) => {
+const migrateCustomItems = async (items: any[], skipConfirm: boolean = false, force: boolean = false) => {
   if (isTargetDump.value) {
     notificationStore.add({
       type: 'warning',
@@ -1606,7 +1662,8 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
               sourceEnv: source.environment,
               targetEnv: target.environment,
               objects,
-              dryRun: appStore.safeMode
+              dryRun: appStore.safeMode,
+              force: force
             })
 
             if (result.successful && Array.isArray(result.successful)) {
@@ -1664,8 +1721,9 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false) =>
             targetEnv: target.environment
           })
 
-          if (Array.isArray(results) && resultsMap[ddlType]) {
-            resultsMap[ddlType].value = results.map((r: any) => ({
+          const key = ddlType.toLowerCase()
+          if (Array.isArray(results) && resultsMap[key]) {
+            resultsMap[key].value = results.map((r: any) => ({
               ...r,
               type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
             }))

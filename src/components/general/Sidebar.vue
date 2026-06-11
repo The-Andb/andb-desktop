@@ -279,11 +279,29 @@
                 <div
                   class="text-[9px] font-bold truncate opacity-60 uppercase tracking-widest mt-0.5 flex items-center gap-1"
                 >
-                  <span class="text-primary-600 dark:text-primary-400 font-extrabold">{{
+                  <span
+                    @click.stop="toggleEnvironmentVisibility(pair.sourceEnv)"
+                    class="font-extrabold hover:underline cursor-pointer transition-all duration-200"
+                    :class="[
+                      hiddenEnvironmentsInPair.has(pair.sourceEnv)
+                        ? 'text-gray-400 dark:text-gray-500 line-through opacity-40'
+                        : 'text-primary-600 dark:text-primary-400'
+                    ]"
+                    title="Toggle tree visibility"
+                  >{{
                     pair.sourceEnv
                   }}</span>
                   <span class="mx-1 opacity-40">→</span>
-                  <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">{{
+                  <span
+                    @click.stop="toggleEnvironmentVisibility(pair.targetEnv)"
+                    class="font-extrabold hover:underline cursor-pointer transition-all duration-200"
+                    :class="[
+                      hiddenEnvironmentsInPair.has(pair.targetEnv)
+                        ? 'text-gray-400 dark:text-gray-500 line-through opacity-40'
+                        : 'text-emerald-600 dark:text-emerald-400'
+                    ]"
+                    title="Toggle tree visibility"
+                  >{{
                     pair.targetEnv
                   }}</span>
                 </div>
@@ -303,114 +321,180 @@
                 />
               </button>
             </div>
-            <div v-if="connectionPairsStore.selectedPairId === pair.id" class="pl-2 pr-2 py-2 animate-in slide-in-from-top-2 duration-300">
+            <div v-if="connectionPairsStore.selectedPairId === pair.id" class="pl-2 pr-2 py-2 animate-in slide-in-from-top-2 duration-300">              <div v-for="env in displayEnvironments.filter(e => !hiddenEnvironmentsInPair.has(e.name))" :key="env.name" class="space-y-0.5">
+                <!-- Environment Node (Mirrored from standard view but for selected pair) -->
+                <div
+                  class="group/env flex items-center h-7 px-2 cursor-pointer text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 border-l-2 border-transparent transition-colors"
+                  :class="{
+                    'text-gray-900 dark:text-white': expandedEnvironments.has(env.name),
+                    'border-primary-500 bg-primary-50/50 dark:bg-primary-900/10': isSourceEnvironment(
+                      env.name
+                    )
+                  }"
+                  @click="toggleEnvironment(env.name)"
+                >
+                  <ChevronRight
+                    class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/env:text-gray-900 dark:group-hover/env:text-white"
+                    :class="{
+                      'rotate-90 text-gray-900 dark:text-white': expandedEnvironments.has(env.name)
+                    }"
+                  />
+                  <input
+                    type="checkbox"
+                    :checked="!appStore.excludedEnvironments.includes(env.name)"
+                    @click.stop="toggleEnvExcluded(env.name)"
+                    class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
+                  />
+                  <component
+                    :is="getEnvIcon(env.name)"
+                    class="w-3.5 h-3.5 mr-2"
+                    :style="{ color: getEnvColor(env.name) }"
+                  />
+                  <span class="text-[10px] font-black uppercase tracking-wider truncate flex-1">{{
+                    env.name
+                  }}</span>
+                </div>
 
-              <div v-for="env in displayEnvironments" :key="env.name" class="space-y-0.5">
-                <div v-for="db in env.databases" :key="db.name" class="relative">
-                  <!-- Database Node -->
-                  <div
-                    class="group/db flex items-center h-8 px-2 cursor-pointer transition-colors border-l-2 rounded-lg"
-                    :class="[
-                      isActiveDatabase(db)
-                        ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-primary-500 font-bold'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'
-                    ]"
-                    @click="selectDatabase(env.name, db.name)"
-                  >
-                    <ChevronRight
-                      class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white"
-                      :class="{
-                        'rotate-90 text-gray-900 dark:text-white': expandedDatabases.has(
-                          `${env.name}-${db.name}`
-                        )
-                      }"
-                      @click.stop="toggleDatabase(env.name, db.name)"
-                    />
-                    <RefreshCw v-if="isDatabaseRefreshing(db)" class="w-3.5 h-3.5 mr-2 text-primary-500 animate-spin" />
-                    <Database v-else class="w-3.5 h-3.5 mr-2 text-amber-500" />
-                    <span class="text-[12px] font-bold truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
-                  </div>
+                <!-- Databases -->
+                <div v-if="expandedEnvironments.has(env.name)">
+                  <div v-for="db in env.databases" :key="db.name" class="relative">
+                    <div
+                      class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
+                    ></div>
 
-                  <!-- Categories -->
-                  <div v-if="expandedDatabases.has(`${env.name}-${db.name}`)" class="relative mt-0.5 mb-2">
-                    <div class="absolute left-[15px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"></div>
-                    <div v-for="type in ddlTypes" :key="type.key">
+                    <div
+                      class="group/db flex items-center h-8 px-2 pl-[38px] cursor-pointer transition-colors border-l-2 rounded-lg"
+                      :class="[
+                        isActiveDatabase(db)
+                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-primary-500 font-bold'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'
+                      ]"
+                      @click="selectDatabase(env.name, db.name)"
+                    >
+                      <ChevronRight
+                        class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white shrink-0"
+                        :class="{
+                          'rotate-90 text-gray-900 dark:text-white': expandedDatabases.has(
+                            `${env.name}-${db.name}`
+                          )
+                        }"
+                        @click.stop="toggleDatabase(env.name, db.name)"
+                      />
+                      <input
+                        type="checkbox"
+                        :checked="!appStore.excludedDatabases.includes(`${env.name}:${db.name}`)"
+                        @click.stop="toggleDbExcluded(env.name, db.name)"
+                        class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
+                      />
+                      <RefreshCw v-if="isDatabaseRefreshing(db)" class="w-3.5 h-3.5 mr-2 text-primary-500 animate-spin" />
+                      <Database v-else class="w-3.5 h-3.5 mr-2 text-amber-500" />
+                      <span class="text-[12px] font-bold truncate flex-1">{{ getDatabaseDisplayName(db) }}</span>
+                    </div>
+
+                    <!-- Categories -->
+                    <div v-if="expandedDatabases.has(`${env.name}-${db.name}`)" class="relative">
                       <div
-                        class="group/cat flex items-center h-7 px-2 pl-[20px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg"
-                        :class="[
-                          (db[type.key]?.length || 0) === 0
-                            ? 'text-gray-400 dark:text-gray-500'
-                            : 'text-gray-700 dark:text-gray-300'
-                        ]"
-                        @click="selectCategory(env.name, db.name, type.key)"
-                      >
-                        <ChevronRight
-                          v-if="(showDdlDetails || isSearchActive) && (db[type.key]?.length || 0) > 0"
-                          class="w-3 h-3 mr-1 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
-                          :class="{
-                            'rotate-90 text-gray-900 dark:text-white': isCategoryExpanded(env.name, db.name, type.key)
-                          }"
-                          @click.stop="toggleCategory(env.name, db.name, type.key)"
-                        />
-                        <div
-                          v-else-if="showDdlDetails || isSearchActive"
-                          class="w-3 h-3 mr-1 shrink-0"
-                        ></div>
-                        <div class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800">
-                          <RefreshCw
-                            v-if="isCategoryRefreshing(db, type.key)"
-                            class="w-3 h-3 text-primary-500 animate-spin"
-                          />
-                          <component
-                            v-else
-                            :is="type.icon"
-                            class="w-3 h-3"
-                            :class="(db[type.key]?.length || 0) === 0 ? 'text-gray-400 grayscale' : type.colorClass"
-                          />
-                        </div>
-                        <span class="text-[10px] font-black truncate flex-1 uppercase tracking-tighter text-gray-500 dark:text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white transition-colors duration-200">{{ type.label }}</span>
-                        <div class="flex items-center gap-1.5 ml-auto">
-                          <span
-                            v-if="(db[type.key]?.length || 0) > 0"
-                            class="text-[9px] font-black leading-none px-1 py-[1.5px] rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums"
-                          >
-                            {{ db[type.key]?.length }}
-                          </span>
-                          <div
-                            class="w-1.5 h-1.5 rounded-full"
-                            :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
-                          ></div>
-                        </div>
-                      </div>
+                        class="absolute left-[45px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
+                      ></div>
 
-                      <!-- Sub-list of DDL items (Compare View) -->
-                      <div
-                        v-if="(showDdlDetails || isSearchActive) && isCategoryExpanded(env.name, db.name, type.key)"
-                        class="relative ml-[34px] mt-0.5 mb-1.5 space-y-0.5"
-                      >
-                        <div class="absolute left-[9px] top-0 bottom-0 w-px bg-gray-150 dark:bg-gray-800"></div>
+                      <div v-for="type in ddlTypes" :key="type.key">
                         <div
-                          v-for="item in db[type.key]"
-                          :key="item.name"
-                          @click="selectObject(env.name, db.name, type.key, item.name)"
-                          class="group/item flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                          class="group/cat flex items-center h-7 px-2 pl-[58px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                          :class="[
+                            (db[type.key]?.length || 0) === 0
+                              ? 'text-gray-400 dark:text-gray-500'
+                              : 'text-gray-700 dark:text-gray-300'
+                          ]"
+                          @click="selectCategory(env.name, db.name, type.key)"
                         >
-                          <span
-                            class="text-[11px] font-medium truncate text-gray-600 dark:text-gray-450 group-hover/item:text-gray-900 dark:group-hover/item:text-white flex-1"
-                          >
-                            {{ item.name }}
-                          </span>
-                          <!-- Changed dot badge if compare view -->
+                          <ChevronRight
+                            v-if="(showDdlDetails || isSearchActive) && (db[type.key]?.length || 0) > 0"
+                            class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
+                            :class="{
+                              'rotate-90 text-gray-900 dark:text-white': isCategoryExpanded(env.name, db.name, type.key)
+                            }"
+                            @click.stop="toggleCategory(env.name, db.name, type.key)"
+                          />
                           <div
-                            v-if="isCompareView && comparisonMap[`${type.key}-${item.name}`]"
-                            class="w-1.5 h-1.5 rounded-full mr-1 shrink-0"
-                            :class="[
-                              comparisonMap[`${type.key}-${item.name}`].status === 'added' ? 'bg-green-500' :
-                              comparisonMap[`${type.key}-${item.name}`].status === 'removed' ? 'bg-red-500' :
-                              comparisonMap[`${type.key}-${item.name}`].status === 'modified' ? 'bg-blue-500 animate-pulse' : 'bg-transparent'
-                            ]"
-                            :title="comparisonMap[`${type.key}-${item.name}`].status"
+                            v-else
+                            class="w-3.5 h-3.5 mr-1.5 shrink-0"
                           ></div>
+                          <input
+                            type="checkbox"
+                            :checked="!appStore.excludedCategories.includes(`${env.name}:${db.name}:${type.key}`)"
+                            @click.stop="toggleCategoryExcluded(env.name, db.name, type.key)"
+                            class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
+                          />
+                          <div
+                            class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800"
+                          >
+                            <RefreshCw
+                              v-if="isCategoryRefreshing(db, type.key)"
+                              class="w-3 h-3 text-primary-500 animate-spin"
+                            />
+                            <component
+                              v-else
+                              :is="type.icon"
+                              class="w-3 h-3"
+                              :class="
+                                (db[type.key]?.length || 0) === 0
+                                  ? 'text-gray-400 grayscale'
+                                  : type.colorClass
+                              "
+                            />
+                          </div>
+                          <span
+                            class="text-[10px] font-black truncate flex-1 uppercase tracking-tighter text-gray-500 dark:text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white transition-colors duration-200"
+                            >{{ type.label }}</span
+                          >
+                          <div class="flex items-center gap-1.5 ml-auto">
+                            <span
+                              v-if="(db[type.key]?.length || 0) > 0"
+                              class="text-[9px] font-black leading-none px-1 py-[1.5px] rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500/80 dark:text-gray-400 shadow-inner border border-black/5 dark:border-white/5 tabular-nums"
+                            >
+                              {{ db[type.key]?.length }}
+                            </span>
+                            <div
+                              class="w-1.5 h-1.5 rounded-full"
+                              :class="getCategoryChangeCount(db, type.key) > 0 ? 'bg-primary-500 shadow-sm shadow-primary-500/50' : 'bg-transparent'"
+                            ></div>
+                          </div>
+                        </div>
+
+                        <!-- Sub-list of DDL items (Compare View) -->
+                        <div
+                          v-if="(showDdlDetails || isSearchActive) && isCategoryExpanded(env.name, db.name, type.key)"
+                          class="relative ml-[106px] mt-0.5 mb-1.5 space-y-0.5"
+                        >
+                          <div class="absolute left-[9px] top-0 bottom-0 w-px bg-gray-150 dark:bg-gray-800"></div>
+                          <div
+                            v-for="item in db[type.key]"
+                            :key="item.name"
+                            @click="selectObject(env.name, db.name, type.key, item.name)"
+                            class="group/item flex items-center h-6 pl-3 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                          >
+                            <component
+                              :is="type.icon"
+                              class="w-3 h-3 mr-1.5 shrink-0 opacity-45 group-hover/item:opacity-85 transition-opacity"
+                              :class="type.colorClass"
+                            />
+                            <span
+                              class="text-[11px] font-medium truncate text-gray-600 dark:text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white flex-1"
+                            >
+                              {{ item.name }}
+                            </span>
+                            <!-- Changed dot badge if compare view -->
+                            <div
+                              v-if="isCompareView && comparisonMap[`${type.key}-${item.name}`]"
+                              class="w-1.5 h-1.5 rounded-full mr-1 shrink-0"
+                              :class="[
+                                comparisonMap[`${type.key}-${item.name}`].status === 'added' ? 'bg-green-500' :
+                                comparisonMap[`${type.key}-${item.name}`].status === 'removed' ? 'bg-red-500' :
+                                comparisonMap[`${type.key}-${item.name}`].status === 'modified' ? 'bg-blue-500 animate-pulse' : 'bg-transparent'
+                              ]"
+                              :title="comparisonMap[`${type.key}-${item.name}`].status"
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -447,6 +531,12 @@
                   'rotate-90 text-gray-900 dark:text-white': expandedEnvironments.has(env.name)
                 }"
               />
+              <input
+                type="checkbox"
+                :checked="!appStore.excludedEnvironments.includes(env.name)"
+                @click.stop="toggleEnvExcluded(env.name)"
+                class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
+              />
               <component
                 :is="getEnvIcon(env.name)"
                 class="w-3.5 h-3.5 mr-2"
@@ -465,7 +555,7 @@
                 ></div>
 
                 <div
-                  class="group/db flex items-center h-8 px-2 pl-[22px] cursor-pointer transition-colors border-l-2"
+                  class="group/db flex items-center h-8 px-2 pl-[38px] cursor-pointer transition-colors border-l-2"
                   :class="[
                     isActiveDatabase(db)
                       ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-primary-500 font-bold'
@@ -474,13 +564,19 @@
                   @click="selectDatabase(env.name, db.name)"
                 >
                   <ChevronRight
-                    class="w-3 h-3 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white"
+                    class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/db:text-gray-900 dark:group-hover/db:text-white shrink-0"
                     :class="{
                       'rotate-90 text-gray-900 dark:text-white': expandedDatabases.has(
                         `${env.name}-${db.name}`
                       )
                     }"
                     @click.stop="toggleDatabase(env.name, db.name)"
+                  />
+                  <input
+                    type="checkbox"
+                    :checked="!appStore.excludedDatabases.includes(`${env.name}:${db.name}`)"
+                    @click.stop="toggleDbExcluded(env.name, db.name)"
+                    class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
                   />
                   <RefreshCw v-if="isDatabaseRefreshing(db)" class="w-3.5 h-3.5 mr-2 text-primary-500 animate-spin" />
                   <Database v-else class="w-3.5 h-3.5 mr-2 text-amber-500" />
@@ -492,12 +588,12 @@
                 <!-- Categories -->
                 <div v-if="expandedDatabases.has(`${env.name}-${db.name}`)" class="relative">
                   <div
-                    class="absolute left-[19px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
+                    class="absolute left-[45px] top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-800"
                   ></div>
 
                   <div v-for="type in ddlTypes" :key="type.key">
                     <div
-                      class="group/cat flex items-center h-7 px-2 pl-[24px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      class="group/cat flex items-center h-7 px-2 pl-[58px] cursor-pointer transition-colors border-l-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       :class="[
                         (db[type.key]?.length || 0) === 0
                           ? 'text-gray-400 dark:text-gray-500'
@@ -507,16 +603,22 @@
                     >
                       <ChevronRight
                         v-if="(showDdlDetails || isSearchActive) && (db[type.key]?.length || 0) > 0"
-                        class="w-3 h-3 mr-1 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
+                        class="w-3.5 h-3.5 mr-1.5 transition-transform text-gray-400 group-hover/cat:text-gray-900 dark:group-hover/cat:text-white shrink-0"
                         :class="{
                           'rotate-90 text-gray-900 dark:text-white': isCategoryExpanded(env.name, db.name, type.key)
                         }"
                         @click.stop="toggleCategory(env.name, db.name, type.key)"
                       />
                       <div
-                        v-else-if="showDdlDetails || isSearchActive"
-                        class="w-3 h-3 mr-1 shrink-0"
+                        v-else
+                        class="w-3.5 h-3.5 mr-1.5 shrink-0"
                       ></div>
+                      <input
+                        type="checkbox"
+                        :checked="!appStore.excludedCategories.includes(`${env.name}:${db.name}:${type.key}`)"
+                        @click.stop="toggleCategoryExcluded(env.name, db.name, type.key)"
+                        class="mr-2 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0"
+                      />
                       <div
                         class="w-5 h-5 rounded flex items-center justify-center mr-2 border border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-800"
                       >
@@ -556,15 +658,20 @@
                     <!-- Sub-list of DDL items (Standard View) -->
                     <div
                       v-if="(showDdlDetails || isSearchActive) && isCategoryExpanded(env.name, db.name, type.key)"
-                      class="relative ml-[36px] mt-0.5 mb-1.5 space-y-0.5"
+                      class="relative ml-[106px] mt-0.5 mb-1.5 space-y-0.5"
                     >
                       <div class="absolute left-[9px] top-0 bottom-0 w-px bg-gray-150 dark:bg-gray-800"></div>
                       <div
                         v-for="item in db[type.key]"
                         :key="item.name"
                         @click="selectObject(env.name, db.name, type.key, item.name)"
-                        class="group/item flex items-center h-6 pl-4 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                        class="group/item flex items-center h-6 pl-3 pr-2 cursor-pointer transition-colors rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                       >
+                        <component
+                          :is="type.icon"
+                          class="w-3 h-3 mr-1.5 shrink-0 opacity-45 group-hover/item:opacity-85 transition-opacity"
+                          :class="type.colorClass"
+                        />
                         <span
                           class="text-[11px] font-medium truncate text-gray-600 dark:text-gray-400 group-hover/item:text-gray-900 dark:group-hover/item:text-white flex-1"
                         >
@@ -628,10 +735,10 @@
         </button>
 
         <router-link
-          v-for="item in navItems"
+          v-for="item in visibleNavItems"
           :key="item.path"
           :to="item.path"
-          class="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
+          class="p-2 text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
           :title="item.name"
         >
           <component :is="item.icon" class="w-5 h-5" />
@@ -742,6 +849,7 @@ const navItems = computed(() => {
     { name: t('common.dashboard'), path: '/', icon: Home, visible: true },
     { name: t('common.schema'), path: '/schema', icon: Database, visible: true },
     { name: t('common.compare'), path: '/compare', icon: GitCompare, visible: true },
+    { name: 'Table Pulse', path: '/pulse', icon: Activity, visible: true },
     { name: t('common.history'), path: '/history', icon: History, visible: true },
     { name: 'Instant Compare', path: '/instant-compare', icon: Workflow, visible: true },
     { name: 'Git Sync', path: '/integrations', icon: GitBranch, visible: true },
@@ -764,7 +872,6 @@ const navItems = computed(() => {
 const isMoreMenuOpen = ref(false)
 
 const visibleNavItems = computed(() => {
-  if (appStore.navStyle !== 'horizontal-tabs') return navItems.value
   return navItems.value.filter(item => !appStore.hiddenHorizontalTabs.includes(item.path))
 })
 
@@ -803,6 +910,16 @@ const toggleCategory = (envName: string, dbName: string, typeKey: string) => {
 
 const isCompareView = computed(() => route.path === '/compare')
 
+const hiddenEnvironmentsInPair = ref<Set<string>>(new Set())
+
+const toggleEnvironmentVisibility = (envName: string) => {
+  if (hiddenEnvironmentsInPair.value.has(envName)) {
+    hiddenEnvironmentsInPair.value.delete(envName)
+  } else {
+    hiddenEnvironmentsInPair.value.add(envName)
+  }
+}
+
 // Comparison Mapping from Store
 const comparisonMap = computed(() => {
   const map: Record<string, any> = {}
@@ -825,9 +942,11 @@ const getCategoryChangeCount = (db: any, typeKey: string) => {
 const filteredEnvironments = computed(() => {
   let envs = environments.value
 
-  if (route.path === '/compare' && activePair.value?.sourceEnv) {
+  if (route.path === '/compare' && activePair.value) {
+    const src = activePair.value.sourceEnv?.toUpperCase()
+    const tgt = activePair.value.targetEnv?.toUpperCase()
     envs = environments.value.filter(
-      env => env.name.toUpperCase() === activePair.value?.sourceEnv?.toUpperCase()
+      env => env.name.toUpperCase() === src || env.name.toUpperCase() === tgt
     )
   }
 
@@ -1141,6 +1260,103 @@ const handleSmartRefresh = () => {
   } else {
     // ⚡ Cache is fresh: Light UI re-sync from local SQLite to prevent server spamming
     sidebarStore.requestRefresh()
+  }
+}
+
+const toggleEnvExcluded = (envName: string) => {
+  const idx = appStore.excludedEnvironments.indexOf(envName)
+  if (idx >= 0) {
+    appStore.excludedEnvironments.splice(idx, 1)
+    // Auto check (include) all databases and categories under this environment
+    const envData = displayEnvironments.value.find((e: any) => e.name === envName)
+    if (envData) {
+      envData.databases.forEach((db: any) => {
+        const dbKey = `${envName}:${db.name}`
+        const dbIdx = appStore.excludedDatabases.indexOf(dbKey)
+        if (dbIdx >= 0) {
+          appStore.excludedDatabases.splice(dbIdx, 1)
+        }
+        ddlTypes.value.forEach(type => {
+          const key = `${envName}:${db.name}:${type.key}`
+          const catIdx = appStore.excludedCategories.indexOf(key)
+          if (catIdx >= 0) {
+            appStore.excludedCategories.splice(catIdx, 1)
+          }
+        })
+      })
+    }
+  } else {
+    appStore.excludedEnvironments.push(envName)
+    // Auto uncheck (exclude) all databases and categories under this environment
+    const envData = displayEnvironments.value.find((e: any) => e.name === envName)
+    if (envData) {
+      envData.databases.forEach((db: any) => {
+        const dbKey = `${envName}:${db.name}`
+        if (!appStore.excludedDatabases.includes(dbKey)) {
+          appStore.excludedDatabases.push(dbKey)
+        }
+        ddlTypes.value.forEach(type => {
+          const key = `${envName}:${db.name}:${type.key}`
+          if (!appStore.excludedCategories.includes(key)) {
+            appStore.excludedCategories.push(key)
+          }
+        })
+      })
+    }
+  }
+}
+
+const toggleDbExcluded = (envName: string, dbName: string) => {
+  const key = `${envName}:${dbName}`
+  const idx = appStore.excludedDatabases.indexOf(key)
+  if (idx >= 0) {
+    appStore.excludedDatabases.splice(idx, 1)
+    // Auto check all DDL categories under this database
+    ddlTypes.value.forEach(type => {
+      const catIdx = appStore.excludedCategories.indexOf(`${envName}:${dbName}:${type.key}`)
+      if (catIdx >= 0) {
+        appStore.excludedCategories.splice(catIdx, 1)
+      }
+    })
+    // Auto check grandparent environment
+    const envIdx = appStore.excludedEnvironments.indexOf(envName)
+    if (envIdx >= 0) {
+      appStore.excludedEnvironments.splice(envIdx, 1)
+    }
+  } else {
+    appStore.excludedDatabases.push(key)
+    // Auto uncheck all DDL categories under this database
+    ddlTypes.value.forEach(type => {
+      const catKey = `${envName}:${dbName}:${type.key}`
+      if (!appStore.excludedCategories.includes(catKey)) {
+        appStore.excludedCategories.push(catKey)
+      }
+    })
+  }
+}
+
+const toggleCategoryExcluded = (envName: string, dbName: string, typeKey: string) => {
+  const key = `${envName}:${dbName}:${typeKey}`
+  const idx = appStore.excludedCategories.indexOf(key)
+  if (idx >= 0) {
+    // It was unchecked (excluded) → Now checking (including) it!
+    appStore.excludedCategories.splice(idx, 1)
+    
+    // Auto check parent database
+    const dbKey = `${envName}:${dbName}`
+    const dbIdx = appStore.excludedDatabases.indexOf(dbKey)
+    if (dbIdx >= 0) {
+      appStore.excludedDatabases.splice(dbIdx, 1)
+    }
+    
+    // Auto check grandparent environment
+    const envIdx = appStore.excludedEnvironments.indexOf(envName)
+    if (envIdx >= 0) {
+      appStore.excludedEnvironments.splice(envIdx, 1)
+    }
+  } else {
+    // It was checked (included) → Now unchecking (excluding) it!
+    appStore.excludedCategories.push(key)
   }
 }
 

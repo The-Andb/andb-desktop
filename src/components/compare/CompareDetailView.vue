@@ -17,31 +17,32 @@
         class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0"
       >
         <div class="flex items-center text-xs space-x-2 overflow-hidden">
-          <div class="flex items-center text-gray-500 dark:text-gray-400">
-            <Server class="w-3.5 h-3.5 mr-1" />
-            <span class="truncate">{{ selectedPath.env }}</span>
-          </div>
-          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-          <div class="flex items-center text-gray-500 dark:text-gray-400">
-            <Database class="w-3.5 h-3.5 mr-1" />
-            <span class="truncate">{{ selectedPath.db }}</span>
-          </div>
-          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-          <div class="flex items-center text-gray-600 dark:text-gray-300 font-bold">
-            <component :is="getIconForType(selectedItem.type)" class="w-3.5 h-3.5 mr-1 text-gray-400" />
-            <span class="uppercase">{{ selectedItem.type }}</span>
-          </div>
-          <ChevronRight class="w-3 h-3 text-gray-400 dark:text-gray-500 shrink-0" />
-          <div class="flex items-center">
-            <span class="font-bold text-gray-900 dark:text-white truncate text-sm">{{ selectedItem.name }}</span>
+          <span class="text-gray-400 dark:text-gray-500 font-medium truncate max-w-[80px]">{{ selectedPath.env }}</span>
+          <ChevronRight class="w-3 h-3 text-gray-350 dark:text-gray-650 shrink-0" />
+          <span class="text-gray-400 dark:text-gray-500 font-medium truncate max-w-[100px]">{{ selectedPath.db }}</span>
+          <ChevronRight class="w-3 h-3 text-gray-350 dark:text-gray-650 shrink-0" />
+          
+          <div class="flex items-center gap-1.5 font-bold text-gray-900 dark:text-white text-sm">
+            <component :is="getIconForType(selectedItem.type)" class="w-4 h-4 text-primary-500 shrink-0" />
+            <span class="truncate max-w-[180px] font-mono">{{ selectedItem.name }}</span>
           </div>
           <span
             :class="getStatusClass(selectedItem.status)"
-            class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-opacity-10 font-black border uppercase tracking-tighter"
+            class="ml-2 text-[9px] px-2 py-0.5 rounded-full bg-opacity-10 font-black border uppercase tracking-tighter"
             :style="{ borderColor: 'currentColor' }"
           >
             {{ getStatusText(selectedItem.status) }}
           </span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            @click="$emit('refresh-pair', selectedItem)"
+            class="text-[10px] font-extrabold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95 animate-in fade-in duration-200"
+            title="Re-fetch and compare only this object"
+          >
+            <RotateCw class="w-3.5 h-3.5" />
+            Refresh Pair
+          </button>
         </div>
       </div>
       <div class="flex-1 flex flex-col min-h-0 min-w-0">
@@ -68,7 +69,6 @@
 
 <script setup lang="ts">
 import {
-  Server,
   Database,
   ChevronRight,
   Zap,
@@ -76,7 +76,8 @@ import {
   Table,
   Layers,
   Workflow,
-  Sigma
+  Sigma,
+  RotateCw
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import TabBar from '@/components/general/TabBar.vue'
@@ -105,7 +106,8 @@ defineEmits([
   'close-others',
   'close-right',
   'migrate',
-  'navigate-to-definition'
+  'navigate-to-definition',
+  'refresh-pair'
 ])
 
 const getIconForType = (type: string) => {

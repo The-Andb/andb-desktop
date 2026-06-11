@@ -19,7 +19,8 @@ export const useAiChatStore = defineStore('aiChat', {
   state: () => ({
     conversations: [] as Conversation[],
     currentConversationId: null as string | null,
-    isInitialized: false
+    isInitialized: false,
+    isLoading: false
   }),
   actions: {
     async init() {

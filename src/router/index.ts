@@ -57,6 +57,16 @@ const routes = [
     path: '/integrations',
     name: 'Integrations',
     component: () => import('@/views/Integrations.vue')
+  },
+  {
+    path: '/pulse',
+    name: 'Pulse',
+    component: () => import('@/views/Pulse.vue')
+  },
+  {
+    path: '/beta',
+    name: 'BetaRegistration',
+    component: () => import('@/views/BetaRegistration.vue')
   }
 ]
 
@@ -76,8 +86,11 @@ router.beforeEach(async (to, _from, next) => {
   if (!settingsStore.settings.setupCompleted && to.path !== '/splash') {
     return next({ path: '/splash' })
   }
+  if (settingsStore.settings.setupCompleted && !settingsStore.settings.betaRegistered && to.path !== '/beta') {
+    return next({ path: '/beta' })
+  }
 
-  const publicPaths = ['/splash', '/projects', '/settings', '/project-settings', '/integrations']
+  const publicPaths = ['/splash', '/beta', '/projects', '/settings', '/project-settings', '/integrations']
   if (publicPaths.includes(to.path)) {
     return next()
   }
@@ -90,6 +103,14 @@ router.beforeEach(async (to, _from, next) => {
 
   if (projectsStore.projects.length === 0) {
     return next({ path: '/projects' })
+  }
+
+  const currentProj = projectsStore.currentProject
+  if (currentProj && (!currentProj.connectionIds || currentProj.connectionIds.length === 0)) {
+    return next({
+      path: '/project-settings',
+      query: { cat: 'connections', no_connections: 'true' }
+    })
   }
 
   next()

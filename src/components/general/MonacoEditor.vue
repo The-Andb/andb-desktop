@@ -16,12 +16,14 @@ const props = defineProps<{
   theme?: string
   readOnly?: boolean
   options?: any
+  schemaMetadata?: { tables: string[], columns: Record<string, string[]> }
 }>()
 
 const emit = defineEmits(['update:modelValue', 'execute', 'executeNew'])
 
 const editorContainer = ref<HTMLElement | null>(null)
 let editor: monaco.editor.IStandaloneCodeEditor | null = null
+let completionDisposable: monaco.IDisposable | null = null
 
 onMounted(async () => {
   if (!editorContainer.value) return
@@ -70,6 +72,110 @@ onMounted(async () => {
     keybindings: [monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.KeyF],
     run: () => {
       formatSql()
+    }
+  })
+
+  // Register dynamic SQL autocomplete completion provider
+  completionDisposable = monaco.languages.registerCompletionItemProvider('sql', {
+    provideCompletionItems: (model, position) => {
+      const textUntilPosition = model.getValueInRange({
+        startLineNumber: 1,
+        startColumn: 1,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column
+      })
+
+      const words = textUntilPosition.trim().split(/\s+/)
+      const lastWord = words[words.length - 1] || ''
+      const suggestions: monaco.languages.CompletionItem[] = []
+
+      if (props.schemaMetadata) {
+        const { tables, columns } = props.schemaMetadata
+
+        // 1. Suggest columns if we see table_name.
+        if (lastWord.includes('.')) {
+          const parts = lastWord.split('.')
+          const tableName = parts[parts.length - 2]
+          const colList = columns[tableName]
+          if (colList) {
+            colList.forEach(col => {
+              suggestions.push({
+                label: col,
+                kind: monaco.languages.CompletionItemKind.Field,
+                insertText: col,
+                detail: `Column of ${tableName}`,
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: position.column - (parts[parts.length - 1].length),
+                  endLineNumber: position.lineNumber,
+                  endColumn: position.column
+                }
+              } as any)
+            })
+            return { suggestions } as any
+          }
+        }
+
+        // 2. Suggest tables after FROM, JOIN, UPDATE, INTO, TABLE keywords
+        const sqlKeywordsBeforeTable = ['FROM', 'JOIN', 'UPDATE', 'INTO', 'TABLE']
+        const hasKeywordBefore = words.some((w, idx) => {
+          const isKeyword = sqlKeywordsBeforeTable.includes(w.toUpperCase())
+          return isKeyword && (words.length - idx) <= 3
+        })
+
+        if (hasKeywordBefore) {
+          tables.forEach(table => {
+            suggestions.push({
+              label: table,
+              kind: monaco.languages.CompletionItemKind.Class,
+              insertText: `\`${table}\``,
+              detail: 'Table',
+              range: {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column - lastWord.length,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+              }
+            } as any)
+          })
+          return { suggestions } as any
+        }
+
+        // 3. General suggestions (both tables and columns)
+        tables.forEach(table => {
+          suggestions.push({
+            label: table,
+            kind: monaco.languages.CompletionItemKind.Class,
+            insertText: `\`${table}\``,
+            detail: 'Table',
+            range: {
+              startLineNumber: position.lineNumber,
+              startColumn: position.column - lastWord.length,
+              endLineNumber: position.lineNumber,
+              endColumn: position.column
+            }
+          } as any)
+        })
+
+        Object.entries(columns).forEach(([tableName, colList]) => {
+          colList.forEach(col => {
+            suggestions.push({
+              label: `${tableName}.${col}`,
+              kind: monaco.languages.CompletionItemKind.Field,
+              insertText: `\`${col}\``,
+              detail: `Column of ${tableName}`,
+              range: {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column - lastWord.length,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+              }
+            } as any)
+          })
+        })
+      }
+
+      return { suggestions } as any
     }
   })
 })
@@ -123,11 +229,21 @@ onUnmounted(() => {
   if (editor) {
     editor.dispose()
   }
+  if (completionDisposable) {
+    completionDisposable.dispose()
+  }
   observer.disconnect()
 })
 
+const getSelectedText = () => {
+  if (!editor) return ''
+  const selection = editor.getSelection()
+  return selection ? editor.getModel()?.getValueInRange(selection) : ''
+}
+
 defineExpose({
   getEditor: () => editor,
+  getSelectedText,
   format: formatSql
 })
 </script>

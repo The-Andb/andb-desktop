@@ -51,13 +51,27 @@
             ? 'border-l border-gray-200 dark:border-gray-800'
             : 'border-r border-gray-200 dark:border-gray-800'
           ">
-        <div
-          class="px-4 h-12 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 shrink-0">
-          <h2 class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">
-            {{ $t('history.snapshotsList') }}
-          </h2>
-          <span class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ filteredSnapshots.length }} {{
-            $t('history.records') }}</span>
+        <div class="px-2 py-1.5 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 shrink-0 flex items-center justify-between">
+          <div class="flex items-center bg-white dark:bg-gray-950 p-0.5 rounded-lg border border-gray-150 dark:border-gray-805 w-full">
+            <button
+              @click="currentTab = 'snapshots'"
+              class="flex-1 py-1 text-[9px] font-black uppercase tracking-widest rounded-md transition-all duration-200"
+              :class="currentTab === 'snapshots'
+                ? 'bg-primary-500 text-white shadow-sm font-black'
+                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-bold'"
+            >
+              Snapshots
+            </button>
+            <button
+              @click="currentTab = 'migrations'"
+              class="flex-1 py-1 text-[9px] font-black uppercase tracking-widest rounded-md transition-all duration-200"
+              :class="currentTab === 'migrations'
+                ? 'bg-primary-500 text-white shadow-sm font-black'
+                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-bold'"
+            >
+              Migrations
+            </button>
+          </div>
         </div>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar">
@@ -66,12 +80,12 @@
             <p class="text-xs uppercase tracking-widest">{{ $t('history.loading') }}</p>
           </div>
 
-          <div v-else-if="filteredSnapshots.length === 0" class="p-8 text-center text-gray-400">
+          <div v-else-if="currentTab === 'snapshots' && filteredSnapshots.length === 0" class="p-8 text-center text-gray-400">
             <ScanSearch class="w-12 h-12 mx-auto mb-2 opacity-10" />
             <p class="text-xs uppercase tracking-widest">{{ $t('history.noHistory') }}</p>
           </div>
 
-          <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
+          <div v-else-if="currentTab === 'snapshots'" class="divide-y divide-gray-100 dark:divide-gray-800">
             <div v-for="snapshot in filteredSnapshots" :key="snapshot.id" @click="selectSnapshot(snapshot)"
               class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors relative group border-l-4 border-transparent"
               :class="{
@@ -106,6 +120,55 @@
                 <div v-if="snapshot.version_tag"
                   class="text-[9px] px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 rounded-full font-bold uppercase tracking-widest scale-90 origin-right">
                   {{ snapshot.version_tag.replace('pre-migration-', '') }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="currentTab === 'migrations'" class="divide-y divide-gray-100 dark:divide-gray-800">
+            <div v-if="migrationOperations.length === 0" class="p-8 text-center text-gray-400">
+              <ScanSearch class="w-12 h-12 mx-auto mb-2 opacity-10" />
+              <p class="text-xs uppercase tracking-widest">No Migration History</p>
+            </div>
+            
+            <div v-else v-for="op in migrationOperations" :key="op.id" @click="selectMigration(op)"
+              class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors relative group border-l-4 border-transparent"
+              :class="{
+                'bg-primary-50 dark:bg-primary-900/20 border-primary-500':
+                  selectedMigrationId === op.id
+              }">
+              <div class="flex items-start justify-between mb-1">
+                <div class="flex items-center min-w-0">
+                  <span class="p-1.5 rounded bg-gray-100 dark:bg-gray-800 mr-3 text-gray-500 dark:text-gray-400">
+                    <Zap class="w-3.5 h-3.5 text-orange-500" />
+                  </span>
+                  <div class="flex flex-col min-w-0">
+                    <span class="font-bold text-gray-900 dark:text-white truncate text-title">
+                      Migration #{{ op.id }}
+                    </span>
+                    <div
+                      class="flex items-center space-x-2 text-[10px] uppercase tracking-tighter text-gray-400 font-bold mt-0.5">
+                      <span
+                        class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{{
+                        op.targetEnv }}</span>
+                      <span class="truncate">{{ op.metadata?.database || 'Unknown DB' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between mt-2">
+                <div class="flex items-center text-[10px] text-gray-400">
+                  <Clock class="w-3 h-3 mr-1" />
+                  {{ formatDate(op.startTime) }}
+                </div>
+                <div
+                  class="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest scale-90 origin-right border"
+                  :class="op.status === 'success'
+                    ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
+                    : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'"
+                >
+                  {{ op.status }}
                 </div>
               </div>
             </div>
@@ -210,6 +273,7 @@ import Andb from '@/utils/andb'
 import { useAppStore } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import { useNotificationStore } from '@/stores/notification'
+import { useOperationsStore } from '@/stores/operations'
 import TabBar from '@/components/general/TabBar.vue'
 import {
   History,
@@ -236,14 +300,18 @@ const copySuccess = ref(false)
 const appStore = useAppStore()
 const projectsStore = useProjectsStore()
 const notificationStore = useNotificationStore()
+const operationsStore = useOperationsStore()
 const route = useRoute()
 const { t } = useI18n()
+
+const currentTab = ref<'snapshots' | 'migrations'>('snapshots')
+const selectedMigrationId = ref<string | null>(null)
 
 // Tabs State
 const tabs = ref<any[]>([])
 const activeTabId = ref<string | null>(null)
 
-const formatDateShort = (dateStr: string) => {
+const formatDateShort = (dateStr: string | Date) => {
   try {
     const date = new Date(dateStr)
     return (
@@ -274,6 +342,61 @@ const selectSnapshot = (snapshot: any) => {
 
   activeTabId.value = tabId
   selectedSnapshot.value = snapshot
+  selectedMigrationId.value = null
+}
+
+const migrationOperations = computed(() => {
+  return operationsStore.filteredOperations
+    .filter(op => op.type === 'migrate')
+    .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+})
+
+const selectMigration = async (op: any) => {
+  selectedMigrationId.value = op.id
+  selectedSnapshot.value = null // clear current detail view first to trigger loading
+
+  // Read SQL file
+  let content = ''
+  if (op.metadata?.filePath) {
+    try {
+      const res = await (window as any).electronAPI.readMigrationFile(op.metadata.filePath)
+      if (res.success) {
+        content = res.data
+      } else {
+        content = `-- Failed to read migration script: ${res.error || 'Unknown error'}\n\n/* Target Objects:\n${JSON.stringify(op.metadata?.targetObjects, null, 2)}\n*/`
+      }
+    } catch (e: any) {
+      content = `-- Error loading migration script: ${e.message}\n\n/* Target Objects:\n${JSON.stringify(op.metadata?.targetObjects, null, 2)}\n*/`
+    }
+  } else {
+    content = `-- No script file path logged for this migration.\n\n/* Target Objects:\n${JSON.stringify(op.metadata?.targetObjects, null, 2)}\n*/`
+  }
+
+  const constructedDetail = {
+    id: op.id,
+    ddl_name: `Migration Run #${op.id}`,
+    ddl_type: 'migrate',
+    ddl_content: content,
+    environment: op.targetEnv || 'Unknown',
+    database_name: op.metadata?.database || 'Unknown',
+    created_at: op.startTime,
+    version_tag: op.status === 'success' ? 'Success' : 'Failed'
+  }
+
+  // Create a tab
+  const tabId = `migration-${op.id}`
+  const existingTab = tabs.value.find(t => t.id === tabId)
+  if (!existingTab) {
+    tabs.value.push({
+      id: tabId,
+      name: `Migration #${op.id}`,
+      icon: Zap,
+      data: constructedDetail
+    })
+  }
+
+  activeTabId.value = tabId
+  selectedSnapshot.value = constructedDetail
 }
 
 const handlePrevTab = () => {
@@ -421,7 +544,7 @@ const getIconForType = (type: string) => {
   }
 }
 
-const formatDate = (dateStr: string) => {
+const formatDate = (dateStr: string | Date) => {
   try {
     const date = new Date(dateStr)
     return date.toLocaleString('vi-VN', {
@@ -512,6 +635,37 @@ const restoreVersion = async () => {
   }
 }
 
+const handleCategorySelectedEvent = (e: any) => {
+  const { env, type, db } = e.detail
+
+  // Update global store if needed
+  const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
+  if (conn) {
+    appStore.selectedConnectionId = conn.id
+  }
+
+  if (type && type !== 'all') {
+    filters.value.type = type.toUpperCase()
+  } else {
+    filters.value.type = ''
+  }
+}
+
+const handleObjectSelectedEvent = (e: any) => {
+  const { env, name, type, db } = e.detail
+
+  // Update global store if needed
+  const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
+  if (conn) {
+    appStore.selectedConnectionId = conn.id
+  }
+
+  appStore.globalSearchQuery = name
+  if (type) {
+    filters.value.type = type.toUpperCase()
+  }
+}
+
 onMounted(async () => {
   await loadSnapshots()
 
@@ -524,36 +678,8 @@ onMounted(async () => {
   }
 
   // Listen for sidebar selection events to filter history AND update Global Connection
-  window.addEventListener('category-selected', (e: any) => {
-    const { env, type, db } = e.detail
-
-    // Update global store if needed
-    const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
-    if (conn) {
-      appStore.selectedConnectionId = conn.id
-    }
-
-    if (type && type !== 'all') {
-      filters.value.type = type.toUpperCase()
-    } else {
-      filters.value.type = ''
-    }
-  })
-
-  window.addEventListener('object-selected', (e: any) => {
-    const { env, name, type, db } = e.detail
-
-    // Update global store if needed
-    const conn = appStore.resolvedConnections.find(c => c.environment === env && c.database === db)
-    if (conn) {
-      appStore.selectedConnectionId = conn.id
-    }
-
-    appStore.globalSearchQuery = name
-    if (type) {
-      filters.value.type = type.toUpperCase()
-    }
-  })
+  window.addEventListener('category-selected', handleCategorySelectedEvent)
+  window.addEventListener('object-selected', handleObjectSelectedEvent)
 
   // Shortcuts
   window.addEventListener('andb-close-active-tab', handleCloseActiveTab)
@@ -562,6 +688,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('category-selected', handleCategorySelectedEvent)
+  window.removeEventListener('object-selected', handleObjectSelectedEvent)
   window.removeEventListener('andb-close-active-tab', handleCloseActiveTab)
   window.removeEventListener('andb-prev-tab', handlePrevTab)
   window.removeEventListener('andb-next-tab', handleNextTab)

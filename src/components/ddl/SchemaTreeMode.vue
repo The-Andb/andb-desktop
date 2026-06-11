@@ -145,6 +145,13 @@
                         "
                       >
                         <button
+                          @click.stop="emit('refresh-item', item.data)"
+                          class="p-1 rounded-full text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all shrink-0"
+                          title="Refresh this object"
+                        >
+                          <RotateCw class="w-3 h-3" />
+                        </button>
+                        <button
                           v-if="appStore.compareStack?.source?.name === item.data?.name"
                           @click.stop="emit('send-to-instant', item.data, 'source')"
                           class="p-1 rounded-full bg-orange-500 text-white dark:bg-orange-600 transition-all shadow-sm"
@@ -243,7 +250,8 @@ import {
   Zap,
   CalendarClock,
   Database,
-  ChevronRight
+  ChevronRight,
+  RotateCw
 } from 'lucide-vue-next'
 
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
@@ -269,6 +277,7 @@ const emit = defineEmits<{
   (e: 'navigate-to-definition', name: string): void
   (e: 'send-to-instant', item: any, slot: 'source' | 'target'): void
   (e: 'select-column', payload: { item: any; columnName: string }): void
+  (e: 'refresh-item', item: any): void
 }>()
 
 const collapsedCategories = ref(new Set<string>())

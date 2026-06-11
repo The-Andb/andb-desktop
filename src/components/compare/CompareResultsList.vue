@@ -1,22 +1,54 @@
 <template>
   <div
-    :style="{ width: resultsWidth + 'px' }"
-    class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300 border-r"
+    :style="{ width: isCollapsed ? '48px' : resultsWidth + 'px' }"
+    class="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 flex flex-col shrink-0 relative transition-all duration-300 border-r overflow-hidden"
   >
+    <!-- Collapsed State Layout -->
+    <div v-if="isCollapsed" class="flex-1 flex flex-col items-center py-3 justify-between">
+      <button
+        @click="appStore.layoutSettings.compareSidebarCollapsed = false"
+        class="p-2 text-gray-400 hover:text-primary-500 hover:bg-gray-150 dark:hover:bg-gray-800 rounded-xl transition-all hover:scale-105 active:scale-95"
+        title="Expand Database Overview"
+      >
+        <PanelLeftOpen class="w-4 h-4" />
+      </button>
+      
+      <div class="flex-1 flex items-center justify-center">
+        <span class="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-gray-500 transform rotate-90 whitespace-nowrap select-none">
+          Overview
+        </span>
+      </div>
+
+      <div class="w-8 h-8 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center">
+        <Database class="w-4 h-4" />
+      </div>
+    </div>
+
     <!-- Results Header -->
-    <div
-      class="px-4 h-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
-    >
+    <template v-else>
+      <div
+        class="px-4 h-12 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between"
+      >
       <div class="flex items-center gap-2">
         <Database class="w-3.5 h-3.5 text-gray-400 opacity-50" />
         <span class="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Database Overview</span>
       </div>
-      <div
-        v-if="activeType !== 'all'"
-        @click="$emit('update:activeType', 'all')"
-        class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500"
-      >
-        <ChevronLeft class="w-3.5 h-3.5" />
+      <div class="flex items-center gap-1.5">
+        <div
+          v-if="activeType !== 'all'"
+          @click="$emit('update:activeType', 'all')"
+          class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500"
+          title="Back to Categories"
+        >
+          <ChevronLeft class="w-3.5 h-3.5" />
+        </div>
+        <div
+          @click="appStore.layoutSettings.compareSidebarCollapsed = true"
+          class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-red-500"
+          title="Minimize Column"
+        >
+          <PanelLeftClose class="w-3.5 h-3.5" />
+        </div>
       </div>
     </div>
 
@@ -243,7 +275,8 @@
                 class="mr-2.5 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 cursor-pointer w-3.5 h-3.5 shrink-0 transition-all bg-white dark:bg-gray-800 self-start mt-1.5"
               />
 
-              <div class="flex-1 min-w-0 pr-2">
+              <div class="flex-1 min-w-0 pr-2 flex items-center gap-1.5">
+                <component :is="getIconForType(cat.type)" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 opacity-60 shrink-0" />
                 <div
                   class="font-mono truncate text-[11px] text-gray-700 dark:text-gray-300"
                   :class="{ 'font-bold text-primary-600 dark:text-primary-400': selectedItem?.name === item.name }"
@@ -343,9 +376,11 @@
         </button>
       </div>
     </transition>
+  </template>
 
-    <!-- Resize Handle -->
+  <!-- Resize Handle -->
     <div
+      v-if="!isCollapsed"
       @mousedown="startResize"
       class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400/50 transition-colors z-20"
     ></div>
@@ -372,11 +407,15 @@ import {
   ArrowDownAZ,
   CalendarClock,
   Plus,
-  Minus
+  Minus,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-vue-next'
 import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
+
+const isCollapsed = computed(() => appStore.layoutSettings.compareSidebarCollapsed)
 
 const { t } = useI18n()
 

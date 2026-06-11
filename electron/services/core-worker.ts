@@ -71,7 +71,7 @@ function healDirectoryLayout(vaultRoot: string, targetDir: string): string {
     const targetName = path.basename(normTarget);
     
     // Pattern matching the previous iteration ID-suffix format: project-slug-5fcc440f
-    const legacyPattern = /^[a-z0-9_-]+-[a-f0-9]{8}$/i;
+    const legacyPattern = /^[a-z0-9_-]+-[a-f0-9]{8,36}$/i;
     
     if (legacyPattern.test(targetName)) {
         const lastHyphen = targetName.lastIndexOf('-');

@@ -187,6 +187,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('andb-get-fk-graph', args)
   },
 
+  // Live Monitoring Module
+  monitorPulse: (connection: any) => ipcRenderer.invoke('andb-monitor-pulse', { connection }),
+  monitorSnapshot: (connection: any) => ipcRenderer.invoke('andb-monitor-snapshot', { connection }),
+  monitorKill: (connection: any, threadId: number) => ipcRenderer.invoke('andb-monitor-kill', { connection, threadId }),
+
   andbGetSavedComparisonResults: (args: {
     sourceConnection: any
     targetConnection: any
@@ -257,7 +262,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // File System Operations
   pickFile: (options: any) => ipcRenderer.invoke('pick-file', options),
-  pickWorkspaceDir: () => ipcRenderer.invoke('pick-workspace-dir'),
+  pickWorkspaceDir: (options?: { isFirstStart?: boolean }) => ipcRenderer.invoke('pick-workspace-dir', options),
   resetWorkspaceDir: () => ipcRenderer.invoke('reset-workspace-dir'),
   getWorkspaceStatus: () => ipcRenderer.invoke('get-workspace-status'),
   
@@ -274,6 +279,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Generic invoke for dynamic calls
+  andbDeepSearch: (args: { sourceConnection: any, keyword: string }) => {
+    return ipcRenderer.invoke('andb-deep-search', args)
+  },
   invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
 

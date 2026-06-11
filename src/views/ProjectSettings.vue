@@ -145,6 +145,25 @@
             v-if="activeCategory === 'connections'"
             class="animate-in fade-in slide-in-from-bottom-2 duration-500"
           >
+            <!-- No Connections Alert Banner -->
+            <div
+              v-if="route.query.no_connections === 'true'"
+              class="mb-6 p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300 relative overflow-hidden group"
+            >
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.05),transparent_60%)] pointer-events-none"></div>
+              <div class="p-3 bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl shrink-0">
+                <ShieldAlert class="w-6 h-6 animate-pulse" />
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-sm font-black text-amber-900 dark:text-amber-200 uppercase tracking-wider flex items-center gap-2">
+                  No Database Connection Detected
+                </h3>
+                <p class="text-xs text-amber-700/80 dark:text-amber-300/80 leading-relaxed font-medium max-w-3xl">
+                  This project does not have any database connections configured. To start comparing and migrating schemas, please <strong>Create a Connection</strong> below, or <strong>Import an existing database connection</strong> using the actions on the connection card.
+                </p>
+              </div>
+            </div>
+
             <ConnectionManager />
           </div>
 
@@ -723,11 +742,32 @@ const handleDeepLink = (query: any) => {
   }
 }
 
-// Watch for project changes to reset state
+// Watch for project changes to reset state and manage warnings
 watch(
   () => projectsStore.selectedProjectId,
-  () => {
+  (newId) => {
     activeCategory.value = 'connections'
+
+    if (newId) {
+      const proj = projectsStore.projects.find(p => p.id === newId)
+      const hasConnections = proj && proj.connectionIds && proj.connectionIds.length > 0
+
+      if (hasConnections) {
+        if (route.query.no_connections) {
+          router.replace({
+            path: route.path,
+            query: { ...route.query, no_connections: undefined }
+          })
+        }
+      } else {
+        if (route.query.no_connections !== 'true') {
+          router.replace({
+            path: route.path,
+            query: { ...route.query, no_connections: 'true' }
+          })
+        }
+      }
+    }
   }
 )
 

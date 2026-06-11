@@ -1,6 +1,7 @@
 <template>
   <header
-    class="relative z-[60] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-2 h-14 transition-all duration-300 ease-in-out shrink-0"
+    class="relative bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-2 h-14 transition-all duration-300 ease-in-out shrink-0"
+    style="z-index: 100;"
   >
     <div class="flex items-center justify-between gap-4 h-full">
       <!-- Left side: Toggle button and title/breadcrumbs -->

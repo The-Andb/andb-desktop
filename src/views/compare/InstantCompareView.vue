@@ -186,7 +186,7 @@
             <div class="flex items-center justify-between px-1">
               <label
                 class="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em]"
-                >Source SQL (Reference)</label
+                >Source: {{ sourceLabel }}</label
               >
               <button
                 @click="srcDDL = ''"
@@ -232,7 +232,7 @@
             <div class="flex items-center justify-between px-1">
               <label
                 class="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em]"
-                >Target SQL (Comparison)</label
+                >Target: {{ targetLabel }}</label
               >
               <button
                 @click="destDDL = ''"
@@ -334,8 +334,8 @@
               <MirrorDiffView
                 :source-ddl="result.diff?.source || srcDDL"
                 :target-ddl="result.diff?.target || destDDL"
-                source-label="Source Snippet"
-                target-label="Target Snippet"
+                :source-label="sourceLabel"
+                :target-label="targetLabel"
                 :status="result.status"
                 class="flex-1 h-full w-full"
               />
@@ -629,6 +629,24 @@ const syncScrollDest = () => {
     destPre.value.scrollLeft = destTextarea.value.scrollLeft
   }
 }
+
+const sourceLabel = computed(() => {
+  const src = appStore.compareStack.source
+  if (src && src.name) {
+    const details = [src.env, src.connectionName, src.database].filter(Boolean).join(' - ')
+    return details ? `${src.name} (${details})` : src.name
+  }
+  return 'Source Snippet'
+})
+
+const targetLabel = computed(() => {
+  const dest = appStore.compareStack.target
+  if (dest && dest.name) {
+    const details = [dest.env, dest.connectionName, dest.database].filter(Boolean).join(' - ')
+    return details ? `${dest.name} (${details})` : dest.name
+  }
+  return 'Target Snippet'
+})
 
 const isOverlay = computed(() => !!props.initialSource || !!props.initialTarget)
 

@@ -102,6 +102,25 @@
                           </div>
                         </div>
                       </label>
+                      <label class="flex items-start cursor-pointer group mt-3">
+                        <div class="relative flex items-center mt-0.5">
+                          <input type="checkbox" v-model="ignoreDefiner" class="sr-only" />
+                          <div
+                            class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold"
+                            :class="{ 'bg-primary-500 border-primary-500': ignoreDefiner }"
+                          >
+                            <Check v-show="ignoreDefiner" class="w-3 h-3 text-white" />
+                          </div>
+                        </div>
+                        <div class="ml-2">
+                          <div class="text-gray-900 dark:text-white font-medium">
+                            {{ $t('compare.diffView.ignoreDefiner', 'Ignore DEFINER') }}
+                          </div>
+                          <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">
+                            {{ $t('compare.diffView.ignoreDefinerDesc', 'Ignore DEFINER clause in diff display') }}
+                          </div>
+                        </div>
+                      </label>
                     </div>
                     <!-- Line Wrapping -->
                     <div>
@@ -369,6 +388,25 @@
                       </div>
                     </div>
                   </label>
+                  <label class="flex items-start cursor-pointer group mt-3">
+                    <div class="relative flex items-center mt-0.5">
+                      <input type="checkbox" v-model="ignoreDefiner" class="sr-only" />
+                      <div
+                        class="w-4 h-4 border rounded border-gray-300 dark:border-gray-600 group-hover:border-primary-500 transition-colors flex items-center justify-center font-bold"
+                        :class="{ 'bg-primary-500 border-primary-500': ignoreDefiner }"
+                      >
+                        <Check v-show="ignoreDefiner" class="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <div class="ml-2">
+                      <div class="text-gray-900 dark:text-white font-medium">
+                        {{ $t('compare.diffView.ignoreDefiner', 'Ignore DEFINER') }}
+                      </div>
+                      <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">
+                        {{ $t('compare.diffView.ignoreDefinerDesc', 'Ignore DEFINER clause in diff display') }}
+                      </div>
+                    </div>
+                  </label>
                 </div>
 
                 <!-- Line Wrapping -->
@@ -549,6 +587,22 @@ const viewType = ref<'split' | 'unified'>('split')
 const hideWhitespace = ref(false)
 const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
 const wrapLines = ref(props.diffOptions?.wrapLines ?? false)
+const ignoreDefiner = ref(true)
+
+function cleanDefiner(ddl: string): string {
+  if (!ddl) return ''
+  const definerPattern = /DEFINER\s*=\s*(?:'[^']*'|"[^"]*"|`[^`]*`|[^\s@]+)+(?:@(?:'[^']*'|"[^"]*"|`[^`]*`|[^\s@\(\);]+)+)?/gi
+  
+  const beginMatch = ddl.match(/(\s)BEGIN(\s|$)/i)
+  if (beginMatch && beginMatch.index !== undefined) {
+    let header = ddl.substring(0, beginMatch.index)
+    const body = ddl.substring(beginMatch.index)
+    header = header.replace(definerPattern, '').replace(/\s{2,}/g, ' ')
+    return header + body
+  }
+  
+  return ddl.replace(definerPattern, '')
+}
 
 const isEmptySource = computed(() => !props.sourceDdl || props.status === 'missing_in_source')
 const isEmptyTarget = computed(
@@ -571,6 +625,10 @@ let chunkIdCounter = 0
 
 const highlightedSourceLines = computed(() => {
   if (!props.sourceDdl) return []
+  let ddl = props.sourceDdl
+  if (ignoreDefiner.value) {
+    ddl = cleanDefiner(ddl)
+  }
   const normalize = (s: string) =>
     s
       .replace(/\r\n/g, '\n')
@@ -578,12 +636,16 @@ const highlightedSourceLines = computed(() => {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
-  const html = Prism.highlight(normalize(props.sourceDdl), Prism.languages.sql, 'sql')
+  const html = Prism.highlight(normalize(ddl), Prism.languages.sql, 'sql')
   return html.split('\n')
 })
 
 const highlightedTargetLines = computed(() => {
   if (!props.targetDdl) return []
+  let ddl = props.targetDdl
+  if (ignoreDefiner.value) {
+    ddl = cleanDefiner(ddl)
+  }
   const normalize = (s: string) =>
     s
       .replace(/\r\n/g, '\n')
@@ -591,7 +653,7 @@ const highlightedTargetLines = computed(() => {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
-  const html = Prism.highlight(normalize(props.targetDdl), Prism.languages.sql, 'sql')
+  const html = Prism.highlight(normalize(ddl), Prism.languages.sql, 'sql')
   return html.split('\n')
 })
 
@@ -601,13 +663,20 @@ watch(
     () => props.targetDdl,
     () => props.diffOptions?.showChangesOnly,
     hideWhitespace,
-    internalIgnoreCase
+    internalIgnoreCase,
+    ignoreDefiner
   ],
   () => {
     const unescapeHtml = (s: string) =>
       s ? s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : ''
-    const oldLines = props.sourceDdl ? unescapeHtml(props.sourceDdl).split('\n') : []
-    const newLines = props.targetDdl ? unescapeHtml(props.targetDdl).split('\n') : []
+    let sourceRaw = props.sourceDdl ? unescapeHtml(props.sourceDdl) : ''
+    let targetRaw = props.targetDdl ? unescapeHtml(props.targetDdl) : ''
+    if (ignoreDefiner.value) {
+      sourceRaw = cleanDefiner(sourceRaw)
+      targetRaw = cleanDefiner(targetRaw)
+    }
+    const oldLines = sourceRaw ? sourceRaw.split('\n') : []
+    const newLines = targetRaw ? targetRaw.split('\n') : []
 
     const baseRows = computeAlignedDiff(oldLines, newLines)
 

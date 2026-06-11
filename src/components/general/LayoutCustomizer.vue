@@ -28,6 +28,8 @@ const showLayoutMenu = ref(false)
 const resetLayout = () => {
   appStore.layoutSettings = {
     sidebar: true,
+    compareSidebarCollapsed: false,
+    schemaSidebarCollapsed: false,
     breadcrumbs: true,
     toolbar: true,
     sidebarPosition: 'left',

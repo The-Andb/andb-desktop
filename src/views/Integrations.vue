@@ -103,17 +103,18 @@ const loadGitConfig = async () => {
 
     const wsStatus = await window.electronAPI?.getWorkspaceStatus?.()
     let wsPath = wsStatus?.success && wsStatus.path ? wsStatus.path : ''
-    if (wsPath && currentProjectId.value) {
-      const pName = projectsStore.currentProject?.name || ''
+    if (projectsStore.currentProject?.projectBaseDir) {
+      wsPath = projectsStore.currentProject.projectBaseDir
+    } else if (wsPath && currentProjectId.value) {
+      const pName = projectsStore.currentProject?.name || 'default'
       const slug = pName
         .toLowerCase()
         .trim()
         .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
+        .replace(/[\s_-]+/g, '_')
         .replace(/^-+|-+$/g, '')
-      const shortId = (currentProjectId.value || '').split('-')[0] || ''
-      const subFolder = slug ? `${slug}-${shortId}` : shortId
-      wsPath = `${wsPath}/${subFolder}`
+      const canonicalName = slug.replace(/[^a-z0-9_-]/gi, '_').toLowerCase().replace(/-+/g, '_')
+      wsPath = `${wsPath}/projects/${canonicalName}`
     }
 
     if (data) {
@@ -359,6 +360,35 @@ const openExternal = (url: string) => {
     window.open(url, '_blank')
   }
 }
+
+const gitStatusDetails = computed(() => {
+  if (!gitStatus.value) return []
+  const list: { name: string; type: string; status: 'staged' | 'modified' | 'untracked'; path: string }[] = []
+  
+  const parseFile = (file: string, status: 'staged' | 'modified' | 'untracked') => {
+    if (!file) return
+    const parts = file.split(/[/\\]/)
+    const filename = parts.pop() || ''
+    const name = filename.replace(/\.sql$/i, '')
+    const typeFolder = parts.pop() || ''
+    let type = typeFolder.toUpperCase()
+    if (type.endsWith('S')) {
+      type = type.slice(0, -1)
+    }
+    list.push({
+      name,
+      type: type || 'OTHER',
+      status,
+      path: file
+    })
+  }
+
+  ;(gitStatus.value.stagedFiles || []).forEach((f: string) => parseFile(f, 'staged'))
+  ;(gitStatus.value.modifiedFiles || []).forEach((f: string) => parseFile(f, 'modified'))
+  ;(gitStatus.value.untrackedFiles || []).forEach((f: string) => parseFile(f, 'untracked'))
+
+  return list
+})
 </script>
 
 <template>
@@ -716,21 +746,46 @@ const openExternal = (url: string) => {
                         </div>
 
                         <div
-                          class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800"
+                          class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3"
                         >
-                          <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-2">
-                            Impacted Objects
+                          <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                            Impacted Objects & Status
                           </h4>
-                          <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-2">
-                            <span
-                              v-for="file in [
-                                ...(gitStatus?.modifiedFiles || []),
-                                ...(gitStatus?.untrackedFiles || [])
-                              ]"
-                              class="px-2 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[10px] font-mono text-gray-600 dark:text-gray-400"
+                          <div class="max-h-48 overflow-y-auto pr-2 divide-y divide-gray-100 dark:divide-gray-800/50 space-y-2">
+                            <div
+                              v-for="item in gitStatusDetails"
+                              :key="item.path"
+                              class="flex items-center justify-between text-xs font-medium py-1.5 first:pt-0"
                             >
-                              {{ file.split('/').pop() }}
-                            </span>
+                              <div class="flex items-center gap-2 min-w-0">
+                                <span
+                                  class="text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider shrink-0"
+                                  :class="{
+                                    'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30': item.type === 'TABLE',
+                                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800/30': item.type === 'VIEW',
+                                    'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100 dark:border-teal-900/30': item.type === 'PROCEDURE' || item.type === 'FUNCTION',
+                                    'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30': item.type === 'TRIGGER',
+                                    'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400': !['TABLE', 'VIEW', 'PROCEDURE', 'FUNCTION', 'TRIGGER'].includes(item.type)
+                                  }"
+                                >
+                                  {{ item.type }}
+                                </span>
+                                <span class="font-mono text-gray-700 dark:text-gray-300 truncate font-bold">{{ item.name }}</span>
+                              </div>
+                              <span
+                                class="text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider shrink-0"
+                                :class="{
+                                  'bg-emerald-55 dark:bg-emerald-950/30 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30': item.status === 'staged',
+                                  'bg-orange-50 dark:bg-orange-900/20 text-orange-650 dark:text-orange-400 border border-orange-100 dark:border-orange-850/30': item.status === 'modified',
+                                  'bg-blue-50 dark:bg-blue-900/20 text-blue-650 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30': item.status === 'untracked'
+                                }"
+                              >
+                                {{ item.status }}
+                              </span>
+                            </div>
+                            <div v-if="gitStatusDetails.length === 0" class="text-center py-4 text-gray-400 italic text-xs">
+                              No changes detected in repository.
+                            </div>
                           </div>
                         </div>
                       </div>
