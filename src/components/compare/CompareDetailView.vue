@@ -24,7 +24,7 @@
           
           <div class="flex items-center gap-1.5 font-bold text-gray-900 dark:text-white text-sm">
             <component :is="getIconForType(selectedItem.type)" class="w-4 h-4 text-primary-500 shrink-0" />
-            <span class="truncate max-w-[180px] font-mono">{{ selectedItem.name }}</span>
+            <span class="font-mono">{{ selectedItem.name }}</span>
           </div>
           <span
             :class="getStatusClass(selectedItem.status)"
@@ -37,11 +37,21 @@
         <div class="flex items-center gap-2 shrink-0">
           <button
             @click="$emit('refresh-pair', selectedItem)"
-            class="text-[10px] font-extrabold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95 animate-in fade-in duration-200"
+            class="text-[10px] font-extrabold text-gray-500 hover:text-white hover:bg-gray-500 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 shadow-sm active:scale-95 animate-in fade-in duration-200"
             title="Re-fetch and compare only this object"
           >
             <RotateCw class="w-3.5 h-3.5" />
             Refresh Pair
+          </button>
+          
+          <button
+            v-if="selectedItem.status?.toLowerCase() !== 'equal' && selectedItem.status?.toLowerCase() !== 'same'"
+            @click="$emit('migrate', { ...selectedItem, backwards: true })"
+            class="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 hover:text-white hover:bg-amber-600 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 shadow-sm active:scale-95 animate-in fade-in duration-200"
+            title="Alter Source database to match Target"
+          >
+            <RotateCw class="w-3.5 h-3.5 transform -scale-x-100" />
+            Alter Source
           </button>
         </div>
       </div>

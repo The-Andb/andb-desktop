@@ -37,7 +37,14 @@ const isPolling = ref(true)
 const countdown = ref(3)
 const dbVersion = ref('')
 const loading = ref(false)
-const pulseStats = ref({ threadsRunning: 0, lockWaits: 0 })
+const pulseStats = ref({
+  threadsRunning: 0,
+  lockWaits: 0,
+  queriesPerSec: 0,
+  activeConnections: 0,
+  maxConnections: 151,
+  uptimeSeconds: 0,
+})
 const lockTree = ref<any[]>([])
 const processList = ref<any[]>([])
 const searchQuery = ref('')
@@ -170,20 +177,24 @@ const fetchDbVersion = async () => {
   }
 }
 
-// Pull metrics from core
+// Pull metrics from core — single IPC call (monitorSnapshot now returns pulse+processlist+lockTree)
 const fetchMetrics = async (showLoadingIndicator = false) => {
   if (!currentConnection.value || isIdle.value) return
   if (showLoadingIndicator) loading.value = true
   try {
-    // 1. Get Pulse Stats
-    const statsRes = await window.electronAPI.monitorPulse(sanitize(currentConnection.value))
-    if (statsRes) {
-      pulseStats.value = statsRes
-    }
-
-    // 2. If warning/critical, or manual diagnose is active, fetch snapshot
     const snapshotRes = await window.electronAPI.monitorSnapshot(sanitize(currentConnection.value))
     if (snapshotRes) {
+      // Merge pulse stats if returned by new getFullSnapshot backend
+      if (snapshotRes.pulse) {
+        pulseStats.value = {
+          threadsRunning: snapshotRes.pulse.threadsRunning ?? pulseStats.value.threadsRunning,
+          lockWaits: snapshotRes.pulse.lockWaits ?? pulseStats.value.lockWaits,
+          queriesPerSec: snapshotRes.pulse.queriesPerSec ?? pulseStats.value.queriesPerSec,
+          activeConnections: snapshotRes.pulse.activeConnections ?? pulseStats.value.activeConnections,
+          maxConnections: snapshotRes.pulse.maxConnections ?? pulseStats.value.maxConnections,
+          uptimeSeconds: snapshotRes.pulse.uptimeSeconds ?? pulseStats.value.uptimeSeconds,
+        }
+      }
       lockTree.value = snapshotRes.lockTree || []
       processList.value = snapshotRes.processList || []
     }
@@ -486,41 +497,80 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Warning Indicator Banner -->
+      <!-- Status Banner + Metrics Grid -->
       <div 
-        class="mb-6 p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between"
+        class="mb-6 rounded-2xl border transition-all duration-300"
         :class="{
           'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400': statusLevel === 'green',
           'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400': statusLevel === 'yellow',
           'bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400': statusLevel === 'red'
         }"
       >
-        <div class="flex items-center gap-3">
-          <div 
-            class="w-3 h-3 rounded-full animate-pulse"
-            :class="{
-              'bg-green-500': statusLevel === 'green',
-              'bg-amber-500': statusLevel === 'yellow',
-              'bg-red-500': statusLevel === 'red'
-            }"
-          ></div>
-          <div>
-            <h3 class="text-xs font-black uppercase tracking-wider">{{ statusMessage }}</h3>
-            <p class="text-[10px] font-bold uppercase tracking-wider opacity-70 mt-0.5">
-              Running Threads: {{ pulseStats.threadsRunning }} | Locked Threads Waiting: {{ pulseStats.lockWaits }}
-            </p>
+        <!-- Top bar: status + AI diagnose -->
+        <div class="flex items-center justify-between p-4 pb-3">
+          <div class="flex items-center gap-3">
+            <div 
+              class="w-3 h-3 rounded-full animate-pulse"
+              :class="{
+                'bg-green-500': statusLevel === 'green',
+                'bg-amber-500': statusLevel === 'yellow',
+                'bg-red-500': statusLevel === 'red'
+              }"
+            ></div>
+            <div>
+              <h3 class="text-xs font-black uppercase tracking-wider">{{ statusMessage }}</h3>
+              <p class="text-[10px] font-bold uppercase tracking-wider opacity-70 mt-0.5">
+                Running Threads: {{ pulseStats.threadsRunning }} | Locked Threads Waiting: {{ pulseStats.lockWaits }}
+              </p>
+            </div>
           </div>
+
+          <button
+            @click="runAIDiagnose"
+            :disabled="chatStore.isLoading"
+            class="flex items-center gap-1.5 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-primary-500/20 active:scale-95"
+          >
+            <component :is="chatStore.isLoading ? RefreshCw : Brain" class="w-3.5 h-3.5" :class="{ 'animate-spin': chatStore.isLoading }" />
+            {{ chatStore.isLoading ? 'Diagnosing...' : 'AI Diagnose' }}
+          </button>
         </div>
 
-        <button
-          @click="runAIDiagnose"
-          :disabled="chatStore.isLoading"
-          class="flex items-center gap-1.5 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-primary-500/20 active:scale-95"
+        <!-- Metrics mini-grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px border-t"
+          :class="{
+            'border-green-500/10': statusLevel === 'green',
+            'border-amber-500/10': statusLevel === 'yellow',
+            'border-red-500/10': statusLevel === 'red',
+          }"
         >
-          <component :is="chatStore.isLoading ? RefreshCw : Brain" class="w-3.5 h-3.5" :class="{ 'animate-spin': chatStore.isLoading }" />
-          {{ chatStore.isLoading ? 'Diagnosing...' : 'AI Diagnose' }}
-        </button>
+          <!-- QPS -->
+          <div class="px-4 py-3 text-center">
+            <div class="text-lg font-black tabular-nums">{{ pulseStats.queriesPerSec.toLocaleString() }}</div>
+            <div class="text-[9px] font-black uppercase tracking-widest opacity-60 mt-0.5">Queries / sec</div>
+          </div>
+          <!-- Active Connections -->
+          <div class="px-4 py-3 text-center">
+            <div class="text-lg font-black tabular-nums">
+              {{ pulseStats.activeConnections }}
+              <span class="text-[11px] font-semibold opacity-50">/ {{ pulseStats.maxConnections }}</span>
+            </div>
+            <div class="text-[9px] font-black uppercase tracking-widest opacity-60 mt-0.5">Active Connections</div>
+          </div>
+          <!-- Running Threads -->
+          <div class="px-4 py-3 text-center">
+            <div class="text-lg font-black tabular-nums">{{ pulseStats.threadsRunning }}</div>
+            <div class="text-[9px] font-black uppercase tracking-widest opacity-60 mt-0.5">Running Threads</div>
+          </div>
+          <!-- Lock Waits -->
+          <div class="px-4 py-3 text-center">
+            <div class="text-lg font-black tabular-nums" :class="{ 'text-red-500': pulseStats.lockWaits > 0 }">
+              {{ pulseStats.lockWaits }}
+            </div>
+            <div class="text-[9px] font-black uppercase tracking-widest opacity-60 mt-0.5">Lock Waits</div>
+          </div>
+        </div>
       </div>
+
 
       <!-- Idle Inactivity Warning Overlay -->
       <div 

@@ -30,6 +30,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('test-connection', connection)
   },
 
+  andbDetectDatabases: (connection: DatabaseConnection): Promise<{ success: boolean; databases?: string[]; error?: string }> => {
+    return ipcRenderer.invoke('andb-detect-databases', connection)
+  },
+
   // Database/Storage operations
   getMigrationHistory: (limit?: number) => {
     return ipcRenderer.invoke('get-migration-history', limit)
@@ -191,6 +195,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   monitorPulse: (connection: any) => ipcRenderer.invoke('andb-monitor-pulse', { connection }),
   monitorSnapshot: (connection: any) => ipcRenderer.invoke('andb-monitor-snapshot', { connection }),
   monitorKill: (connection: any, threadId: number) => ipcRenderer.invoke('andb-monitor-kill', { connection, threadId }),
+  discoverLocalDatabases: (workspacePath?: string) => ipcRenderer.invoke('andb-discover-local', { workspacePath }),
+
 
   andbGetSavedComparisonResults: (args: {
     sourceConnection: any

@@ -119,12 +119,40 @@
               type="text"
               :disabled="readOnlyFields.includes('database')"
               :placeholder="$t('connections.databasePlaceholder')"
-              class="w-full h-12 px-4 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold leading-tight"
+              class="w-full h-12 pl-4 pr-24 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold leading-tight"
             />
+            <button
+              v-if="!readOnlyFields.includes('database') && ['mysql', 'postgres'].includes(modelValue.type)"
+              @click="detectDatabases"
+              type="button"
+              class="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/40 dark:hover:bg-primary-900/60 rounded-lg text-[9px] font-black uppercase text-primary-600 dark:text-primary-400 transition-all active:scale-95 flex items-center gap-1"
+              :disabled="detecting"
+            >
+              <Zap v-if="!detecting" class="w-3 h-3" />
+              <Loader v-else class="w-3 h-3 animate-spin" />
+              {{ detecting ? 'Detecting...' : 'Detect' }}
+            </button>
             <Lock
               v-if="readOnlyFields.includes('database')"
               class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
             />
+            
+            <!-- Detected databases dropdown -->
+            <div
+              v-if="showDatabasesDropdown && detectedDatabases.length > 0"
+              ref="dropdownRef"
+              class="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl p-1 space-y-0.5"
+            >
+              <button
+                v-for="db in detectedDatabases"
+                :key="db"
+                @click="selectDatabase(db)"
+                type="button"
+                class="w-full text-left px-3 py-2 text-xs font-bold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-750 dark:text-gray-300 transition-colors"
+              >
+                {{ db }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -421,7 +449,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Database, ChevronDown, Eye, EyeOff, FolderOpen, Lock, ShieldCheck } from 'lucide-vue-next'
+import { onClickOutside } from '@vueuse/core'
+import { Database, ChevronDown, Eye, EyeOff, FolderOpen, Lock, ShieldCheck, Zap, Loader } from 'lucide-vue-next'
 
 const props = withDefaults(
   defineProps<{
@@ -496,5 +525,56 @@ const pickSshKey = async () => {
     })
     if (path) updateSshField('privateKeyPath', path)
   }
+}
+
+const detectedDatabases = ref<string[]>([])
+const detecting = ref(false)
+const showDatabasesDropdown = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
+
+onClickOutside(dropdownRef, () => {
+  showDatabasesDropdown.value = false
+})
+
+const detectDatabases = async () => {
+  if (detecting.value) return
+  
+  if (!props.modelValue.host || !props.modelValue.username) {
+    alert('Please enter Host and Username first.')
+    return
+  }
+
+  detecting.value = true
+  showDatabasesDropdown.value = false
+  detectedDatabases.value = []
+  try {
+    const conn = {
+      host: props.modelValue.host,
+      port: Number(props.modelValue.port) || (props.modelValue.type === 'postgres' ? 5432 : 3306),
+      username: props.modelValue.username,
+      password: props.modelValue.password || '',
+      type: props.modelValue.type,
+      database: props.modelValue.database || (props.modelValue.type === 'postgres' ? 'postgres' : 'mysql'),
+      ssh: props.modelValue.ssh
+    }
+
+    const res = await window.electronAPI.andbDetectDatabases(JSON.parse(JSON.stringify(conn)))
+    if (res && res.success && res.databases && res.databases.length > 0) {
+      detectedDatabases.value = res.databases
+      showDatabasesDropdown.value = true
+      updateField('databases', res.databases)
+    } else {
+      alert(res?.error || 'No databases detected or connection failed.')
+    }
+  } catch (err: any) {
+    alert(err.message || 'Connection failed.')
+  } finally {
+    detecting.value = false
+  }
+}
+
+const selectDatabase = (db: string) => {
+  updateField('database', db)
+  showDatabasesDropdown.value = false
 }
 </script>

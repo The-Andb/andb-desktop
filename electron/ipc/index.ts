@@ -61,6 +61,7 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-execute', andb.handleAndbExecute)
   ipcMain.handle('andb-test', andb.handleAndbTest)
   ipcMain.handle('test-connection', andb.handleAndbTestConnection)
+  ipcMain.handle('andb-detect-databases', andb.handleAndbDetectDatabases)
   ipcMain.handle('andb-get-saved-comparison-results', andb.handleAndbGetComparisons)
   ipcMain.handle('andb-get-schemas', andb.handleAndbGetSchemas)
   ipcMain.handle('andb-parse-table', andb.handleAndbParseTable)
@@ -120,6 +121,9 @@ export function registerIpcHandlers() {
   ipcMain.handle('andb-monitor-pulse', andb.handleAndbMonitorPulse)
   ipcMain.handle('andb-monitor-snapshot', andb.handleAndbMonitorSnapshot)
   ipcMain.handle('andb-monitor-kill', andb.handleAndbMonitorKill)
+
+  // Local Discovery Module
+  ipcMain.handle('andb-discover-local', andb.handleAndbDiscoverLocal)
 
   // AI Assistant (The "Brain")
   ipcMain.handle('andb-ai-configure', andb.handleAndbAIConfigure)

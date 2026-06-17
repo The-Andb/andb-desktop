@@ -14,8 +14,14 @@
           <h2
             class="text-[10px] sm:text-xs font-black leading-6 text-gray-900 dark:text-white uppercase tracking-tight sm:tracking-wider whitespace-nowrap opacity-80"
           >
-            {{ isBatchMode ? $t('migration.titleBatch') : $t('migration.titleSingle') }}
+            {{ isBackwards ? 'Alter Source DDL Item' : (isBatchMode ? $t('migration.titleBatch') : $t('migration.titleSingle')) }}
           </h2>
+          <span
+            v-if="isBackwards"
+            class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-widest border border-amber-500/20"
+          >
+            Backwards (Alter Source)
+          </span>
           <div class="h-3 w-px bg-gray-300 dark:bg-gray-600 shrink-0 mx-1 sm:mx-0"></div>
           <div
             class="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 font-mono truncate"
@@ -157,14 +163,15 @@
           </button>
           <button
             type="button"
-            class="flex-1 flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border border-primary-600 shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 flex items-center justify-center rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="isBackwards ? 'bg-amber-600 hover:bg-amber-500 border-amber-600 text-white' : 'bg-primary-600 hover:bg-primary-500 border-primary-600 text-white'"
             :disabled="loading || targetIsStatic"
             @click="handleConfirm"
             :title="targetIsStatic ? $t('migration.staticWarning') : ''"
           >
             <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
             <Zap v-else class="w-3.5 h-3.5 fill-current" />
-            {{ loading ? $t('common.processing') : 'Migrate' }}
+            {{ loading ? $t('common.processing') : (isBackwards ? 'Alter Source' : 'Migrate') }}
           </button>
         </div>
       </div>
@@ -391,6 +398,7 @@ const getStatusIcon = (status: string) => {
 }
 
 const isBatchMode = computed(() => !!props.item?.isBatch)
+const isBackwards = computed(() => !!props.item?.backwards)
 
 const itemsToProcess = computed(() => {
   if (isBatchMode.value) return props.item?.items || []

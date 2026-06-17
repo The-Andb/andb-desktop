@@ -35,14 +35,6 @@
       </div>
       <div class="flex items-center gap-1.5">
         <div
-          v-if="activeType !== 'all'"
-          @click="$emit('update:activeType', 'all')"
-          class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-primary-500"
-          title="Back to Categories"
-        >
-          <ChevronLeft class="w-3.5 h-3.5" />
-        </div>
-        <div
           @click="appStore.layoutSettings.compareSidebarCollapsed = true"
           class="cursor-pointer p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-red-500"
           title="Minimize Column"
@@ -400,7 +392,6 @@ import {
   Workflow,
   Search,
   CheckCircle2,
-  ChevronLeft,
   ChevronRight,
   PlusCircle,
   XCircle,

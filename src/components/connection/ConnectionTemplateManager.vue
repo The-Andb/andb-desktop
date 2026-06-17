@@ -153,6 +153,14 @@
               </Transition>
 
               <button
+                @click="showLocalDiscovery = true"
+                class="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 mx-1"
+                title="Auto-scan local running databases"
+              >
+                <Zap class="w-4 h-4" /> Scan Local
+              </button>
+
+              <button
                 @click="openForm(undefined, false)"
                 class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95"
               >
@@ -458,8 +466,8 @@
                               class="text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-xl transition-all duration-300 transform hover:scale-110 hover:bg-rose-50 dark:hover:bg-rose-900/10"
                               :title="$t('common.delete')"
                             >
-                              <Trash2 class="w-4 h-4" /></button
-                            >>
+                              <Trash2 class="w-4 h-4" />
+                            </button>
                           </div>
                         </Transition>
                       </div>
@@ -675,6 +683,17 @@
         </div>
       </template>
     </div>
+
+    <!-- Local Database Auto-Discovery Dialog -->
+    <Teleport to="body">
+      <Transition name="panel">
+        <LocalDiscovery
+          v-if="showLocalDiscovery"
+          @close="showLocalDiscovery = false"
+          @imported="showLocalDiscovery = false"
+        />
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -696,11 +715,13 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  Eraser
+  Eraser,
+  Zap
 } from 'lucide-vue-next'
 import { useConnectionTemplatesStore, type ConnectionTemplate } from '@/stores/connectionTemplates'
 import BaseConnectionForm from '@/components/connection/BaseConnectionForm.vue'
 import SetupUserTemplate from '@/components/connection/SetupUserTemplate.vue'
+import LocalDiscovery from './LocalDiscovery.vue'
 import { useI18n } from 'vue-i18n'
 import Andb from '@/utils/andb'
 import type { DatabaseConnection } from '@/stores/app'
@@ -818,6 +839,7 @@ const cleanEmptyConnections = (confirmed = false) => {
 // State
 const showAddForm = ref(false)
 const showPassword = ref(false)
+const showLocalDiscovery = ref(false)
 const editingTemplate = ref<ConnectionTemplate | null>(null)
 const reconfigureMode = ref(false)
 const isUserConnectionMode = ref(false) // true when user clicked 'Add User'

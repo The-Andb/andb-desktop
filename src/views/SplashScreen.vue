@@ -240,6 +240,17 @@ const completeSetup = async () => {
   settingsStore.settings.setupCompleted = true
 
   if ((window as any).electronAPI) {
+    // Explicitly commit the settings change to the SQLite database and wait for it to resolve
+    if ((window as any).electronAPI.storage && (window as any).electronAPI.storage.set) {
+      try {
+        await (window as any).electronAPI.storage.set(
+          'andb-ui-settings',
+          JSON.parse(JSON.stringify(settingsStore.settings))
+        )
+      } catch (e) {
+        console.error('Failed to save settings before relaunch', e)
+      }
+    }
     // Hard reboot Electron to allow the Core Engine side to re-index the newly configured SQLite / Projects paths
     const result = await (window as any).electronAPI.invoke('relaunch-app')
 

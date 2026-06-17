@@ -71,6 +71,7 @@ declare global {
       onAndbProgress: (callback: (event: any, data: any) => void) => void
 
       andbGetSchemas: (args?: any) => Promise<{ success: boolean; data?: any; error?: string }>
+      andbDetectDatabases: (connection: any) => Promise<{ success: boolean; databases?: string[]; error?: string }>
       andbParseTable: (ddl: string) => Promise<{ success: boolean; data?: any; error?: string }>
 
       // Table Inspector (AI DBA Super Mode)
@@ -194,7 +195,7 @@ declare global {
 
       // Live Monitoring Module
       monitorPulse: (connection: any) => Promise<{ threadsRunning: number; lockWaits: number }>
-      monitorSnapshot: (connection: any) => Promise<{ lockTree: any[]; processList: any[] }>
+      monitorSnapshot: (connection: any) => Promise<{ lockTree: any[]; processList: any[]; pulse?: any }>
       monitorKill: (connection: any, threadId: number) => Promise<void>
 
       // Generic invoke for dynamic calls

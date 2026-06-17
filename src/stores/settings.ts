@@ -156,6 +156,20 @@ const loadSettingsAsync = async (currentSettings: any) => {
       if (res && res.success && res.data) {
         const parsed = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
         Object.assign(currentSettings.value, { ...defaultSettings, ...parsed })
+      } else {
+        // Fallback: If 'andb-ui-settings' is missing, check if legacy settings or projects exist
+        const legacyRes = await (window as any).electronAPI.storage.get('settings')
+        const projectsRes = await (window as any).electronAPI.storage.get('projects')
+        const hasLegacySettings = legacyRes && legacyRes.success && legacyRes.data
+        const hasProjects = projectsRes && projectsRes.success && projectsRes.data && projectsRes.data.length > 0
+
+        if (hasLegacySettings || hasProjects) {
+          Object.assign(currentSettings.value, {
+            ...defaultSettings,
+            setupCompleted: true
+          })
+          await saveSettings(currentSettings.value)
+        }
       }
     }
   } catch (err) {

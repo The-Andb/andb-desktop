@@ -9,6 +9,7 @@ export interface ConnectionTemplate {
   host: string
   port: number
   database?: string
+  databases?: string[]
   schema?: string
   username: string
   password?: string
@@ -118,8 +119,62 @@ export const useConnectionTemplatesStore = defineStore('connectionTemplates', ()
     }
   }
 
-  function removeTemplate(id: string) {
+  async function removeTemplate(id: string) {
     templates.value = templates.value.filter(t => t.id !== id)
+
+    // 1. Get all connections across all projects from storage
+    const allConns = await storage.getConnections()
+
+    // 2. Find connections referencing this template
+    const connsToRemove = allConns.filter(c => c.templateId === id)
+
+    if (connsToRemove.length > 0) {
+      const { useAppStore } = await import('./app')
+      const { useProjectsStore } = await import('./projects')
+      const { useConnectionPairsStore } = await import('./connectionPairs')
+      const { Andb } = await import('@/utils/andb')
+
+      const appStore = useAppStore()
+      const projectsStore = useProjectsStore()
+      const connectionPairsStore = useConnectionPairsStore()
+
+      // 3. For each connection referencing the template, clean it up
+      for (const conn of connsToRemove) {
+        // Clear cached data
+        try {
+          await Andb.clearConnectionData(conn)
+        } catch (e) {
+          console.warn('Failed to clear connection data:', e)
+        }
+
+        // Remove from current project loaded list if it's there
+        appStore.connections = appStore.connections.filter(c => c.id !== conn.id)
+
+        // Remove from all projects' connection lists in memory
+        projectsStore.removeItemFromProject('connection', conn.id)
+
+        // Clean up connection pairs referencing this connection in memory
+        connectionPairsStore.connectionPairs.forEach(pair => {
+          if (pair.sourceConnectionId === conn.id) {
+            pair.sourceConnectionId = undefined
+            pair.sourceEnv = ''
+          }
+          if (pair.targetConnectionId === conn.id) {
+            pair.targetConnectionId = undefined
+            pair.targetEnv = ''
+          }
+        })
+
+        // Remove from SQLite database
+        await storage.removeConnection(conn.id, conn.projectId)
+      }
+
+      // Save updated projects and connection pairs to persist changes
+      await Promise.all([
+        storage.saveProjects(projectsStore.projects),
+        storage.saveConnectionPairs(connectionPairsStore.connectionPairs)
+      ])
+    }
   }
 
   return {

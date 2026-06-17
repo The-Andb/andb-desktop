@@ -143,16 +143,66 @@
             >{{ $t('connections.database') }} *</label
           >
           <div class="relative">
-            <input
+            <select
+              v-if="!manualDbInput && detectedDatabases.length > 0"
               v-model="form.database"
-              type="text"
-              :placeholder="$t('connections.databasePlaceholder')"
-              class="w-full px-4 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold"
+              class="w-full h-12 px-4 pr-10 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold appearance-none"
               :class="{ 'border-red-500 ring-4 ring-red-500/10': errors.database }"
-            />
-            <Database
-              class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none"
-            />
+              @change="($event.target as HTMLSelectElement).value === '__manual__' && (manualDbInput = true)"
+            >
+              <option value="" disabled>Select Database</option>
+              <option v-for="db in detectedDatabases" :key="db" :value="db">
+                {{ db }}
+              </option>
+              <option value="__manual__">+ Type manually...</option>
+            </select>
+            <div v-if="!manualDbInput && detectedDatabases.length > 0" class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+              <ChevronDown class="w-4 h-4" />
+            </div>
+
+            <!-- Fallback Textbox + Detect -->
+            <template v-else>
+              <input
+                v-model="form.database"
+                type="text"
+                @focus="showDatabasesDropdown = true"
+                :placeholder="$t('connections.databasePlaceholder')"
+                class="w-full px-4 pr-24 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all outline-none font-bold"
+                :class="{ 'border-red-500 ring-4 ring-red-500/10': errors.database }"
+              />
+              <button
+                v-if="['mysql', 'postgres'].includes(form.type)"
+                @click="detectDatabases"
+                type="button"
+                class="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-primary-100 hover:bg-primary-200 dark:bg-primary-900/40 dark:hover:bg-primary-900/60 rounded-lg text-[9px] font-black uppercase text-primary-600 dark:text-primary-400 transition-all active:scale-95 flex items-center gap-1 font-sans"
+                :disabled="detecting"
+              >
+                <Zap v-if="!detecting" class="w-3 h-3" />
+                <Loader v-else class="w-3 h-3 animate-spin" />
+                {{ detecting ? 'Detecting...' : 'Detect' }}
+              </button>
+              <Database
+                v-else
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none"
+              />
+
+              <!-- Detected databases dropdown -->
+              <div
+                v-if="showDatabasesDropdown && detectedDatabases.length > 0"
+                ref="dropdownRef"
+                class="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl p-1 space-y-0.5"
+              >
+                <button
+                  v-for="db in detectedDatabases"
+                  :key="db"
+                  @click="selectDatabase(db)"
+                  type="button"
+                  class="w-full text-left px-3 py-2 text-xs font-bold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-750 dark:text-gray-300 transition-colors"
+                >
+                  {{ db }}
+                </button>
+              </div>
+            </template>
           </div>
           <p v-if="errors.database" class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">
             {{ errors.database }}
@@ -273,6 +323,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { onClickOutside } from '@vueuse/core'
 import {
   ChevronDown,
   ShieldQuestion,
@@ -285,7 +336,8 @@ import {
   User,
   Database,
   Layers,
-  Save
+  Save,
+  Zap
 } from 'lucide-vue-next'
 import { useConnectionPairsStore } from '@/stores/connectionPairs'
 import { useConnectionTemplatesStore } from '@/stores/connectionTemplates'
@@ -353,6 +405,12 @@ const isTesting = ref(false)
 const isSaving = ref(false)
 const testResult = ref<{ success: boolean; message: string } | null>(null)
 
+const detectedDatabases = ref<string[]>([])
+const detecting = ref(false)
+const showDatabasesDropdown = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
+const manualDbInput = ref(false)
+
 // Validation errors
 const errors = ref<Record<string, string>>({})
 
@@ -399,6 +457,14 @@ watch(
 
       if (template.schema && !form.value.schema) {
         form.value.schema = template.schema
+      }
+
+      if (template.databases && template.databases.length > 0) {
+        detectedDatabases.value = template.databases
+        manualDbInput.value = false
+      } else {
+        detectedDatabases.value = []
+        manualDbInput.value = true
       }
 
       // Auto-fill connection name if empty
@@ -512,4 +578,51 @@ watch(
   },
   { deep: true }
 )
+
+
+onClickOutside(dropdownRef, () => {
+  showDatabasesDropdown.value = false
+})
+
+const detectDatabases = async () => {
+  if (detecting.value) return
+  
+  if (!form.value.host || !form.value.username) {
+    alert('Please select a template with Host and Username first.')
+    return
+  }
+
+  detecting.value = true
+  showDatabasesDropdown.value = false
+  detectedDatabases.value = []
+
+  try {
+    const conn = {
+      host: form.value.host,
+      port: Number(form.value.port) || (form.value.type === 'postgres' ? 5432 : 3306),
+      username: form.value.username,
+      password: form.value.password || '',
+      type: form.value.type,
+      database: form.value.database || (form.value.type === 'postgres' ? 'postgres' : 'mysql'),
+      ssh: form.value.ssh
+    }
+
+    const res = await (window as any).electronAPI.andbDetectDatabases(JSON.parse(JSON.stringify(conn)))
+    if (res && res.success && res.databases && res.databases.length > 0) {
+      detectedDatabases.value = res.databases
+      showDatabasesDropdown.value = true
+    } else {
+      alert(res?.error || 'No databases detected or connection failed.')
+    }
+  } catch (err: any) {
+    alert(err.message || 'Connection failed.')
+  } finally {
+    detecting.value = false
+  }
+}
+
+const selectDatabase = (db: string) => {
+  form.value.database = db
+  showDatabasesDropdown.value = false
+}
 </script>

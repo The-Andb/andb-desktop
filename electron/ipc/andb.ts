@@ -486,6 +486,16 @@ export async function handleAndbTestConnection(_event: any, args: any) {
   }
 }
 
+export async function handleAndbDetectDatabases(_event: any, args: any) {
+  try {
+    const connection = args
+    const result = await AndbBuilder.execute(connection, null, 'detect-databases', {})
+    return result
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
 /**
  * Handle Get Migration Changelog
  */
@@ -1340,6 +1350,24 @@ export async function handleAndbMonitorKill(_event: any, args: any) {
     return { success: false, error: error.message }
   }
 }
+
+/**
+ * Handle Local Database Discovery operation
+ */
+export async function handleAndbDiscoverLocal(_event: any, args: any) {
+  try {
+    const { workspacePath } = args || {}
+    const { BackgroundWorker } = require('../services/background-worker')
+    const worker = BackgroundWorker.getInstance()
+    const pathVal = workspacePath || worker.getActiveProjectBaseDir() || app.getPath('userData')
+
+    const result = await worker.execute('discovery-scan', { workspacePath: pathVal })
+    return result
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
 
 /**
  * Handle Auto Save Query operation

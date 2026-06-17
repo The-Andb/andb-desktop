@@ -44,8 +44,8 @@
                   ? { isBatch: true, items: migrationTerminal.items }
                   : migrationTerminal.items[0]
               "
-              :source-name="sourceName"
-              :target-name="targetName"
+              :source-name="migrationTerminal.items[0]?.backwards ? targetName : sourceName"
+              :target-name="migrationTerminal.items[0]?.backwards ? sourceName : targetName"
               :sql-script="migrationTerminal.sqlScript"
               :sql-map="migrationTerminal.sqlMap"
               :fetching-sql="migrationTerminal.fetching"
@@ -1177,10 +1177,22 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
     !item ||
     !item.name ||
     isMigratingItemId.value === item.name ||
-    isMigrating.value ||
-    isTargetDump.value
+    isMigrating.value
   )
     return
+
+  const isBackwards = !!item.backwards
+  const sourceConn = isBackwards ? activePair.value.target : activePair.value.source
+  const targetConn = isBackwards ? activePair.value.source : activePair.value.target
+
+  if (targetConn.type === 'dump') {
+    notificationStore.add({
+      type: 'warning',
+      title: t('compare.dumpReadOnly'),
+      message: t('compare.cannotMigrateToDump')
+    })
+    return
+  }
 
   // Prompt user for confirmation to prevent accidental clicks if not skipped
   if (!skipConfirm) {
@@ -1194,12 +1206,11 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
 
     // fetch SQL
     try {
-      const { source, target }: any = activePair.value
-      const result = await Andb.generate(source, target, {
+      const result = await Andb.generate(sourceConn, targetConn, {
         type: item.type,
         name: item.name,
-        sourceEnv: source.environment,
-        targetEnv: target.environment,
+        sourceEnv: sourceConn.environment,
+        targetEnv: targetConn.environment,
         dryRun: true
       })
       migrationTerminal.value.sqlScript = result.sql || `-- Result: ${result.message}`
@@ -1216,19 +1227,19 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
   isMigrating.value = true
 
   try {
-    const { source, target } = activePair.value
-
     let status: 'NEW' | 'UPDATED' | 'DEPRECATED' = 'NEW'
     if (item.status === 'modified' || item.status === 'different' || item.status === 'updated') {
       status = 'UPDATED'
+    } else if (item.status === 'new' || item.status === 'missing_in_target') {
+      status = isBackwards ? 'DEPRECATED' : 'NEW'
     } else if (item.status === 'deprecated' || item.status === 'missing_in_source') {
-      status = 'DEPRECATED'
+      status = isBackwards ? 'NEW' : 'DEPRECATED'
     }
 
     const opId = operationsStore.addOperation({
       type: 'migrate',
-      sourceEnv: source.environment,
-      targetEnv: target.environment,
+      sourceEnv: sourceConn.environment,
+      targetEnv: targetConn.environment,
       status: 'pending',
       startTime: new Date()
     })
@@ -1237,10 +1248,10 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
       if (appStore.safeMode) {
         await new Promise(resolve => setTimeout(resolve, 500))
       }
-      await Andb.migrate(source, target, {
+      await Andb.migrate(sourceConn, targetConn, {
         type: item.type as any,
-        sourceEnv: source.environment,
-        targetEnv: target.environment,
+        sourceEnv: sourceConn.environment,
+        targetEnv: targetConn.environment,
         name: item.name,
         status: status,
         dryRun: appStore.safeMode,
@@ -1250,7 +1261,7 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
       if (!appStore.safeMode) {
         await applyAtomicVerify(item)
         try {
-          await Andb.createSnapshot(target, item.type, item.name)
+          await Andb.createSnapshot(targetConn, item.type, item.name)
         } catch (snapshotErr: any) {
           console.warn(`[Compare] Failed to create snapshot for ${item.name}:`, snapshotErr)
         }
@@ -1281,8 +1292,8 @@ const migrateSingleItem = async (item: any, skipConfirm: boolean = false, force:
                 operation: 'git-sync' as any,
                 options: {
                   config: gitConfRes.data,
-                  env: target.environment,
-                  db: target.database || target.name,
+                  env: targetConn.environment,
+                  db: targetConn.database || targetConn.name,
                   message: `chore(schema): auto-sync after migration of ${item.name}`
                 }
               })
@@ -1416,6 +1427,9 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false, fo
 
       for (const ddlType of ddlTypes) {
         // 1. Migrate all changes for this type
+        // Accumulate all migrated items across all statuses so we can export them after
+        const migratedItems: any[] = []
+
         for (const status of statuses) {
           const categoryItems = (resultsMap[ddlType]?.value || []).filter((i: any) => {
             const s = i.status?.toLowerCase()
@@ -1467,15 +1481,24 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false, fo
               dryRun: appStore.safeMode,
               force: force
             })
+            // Collect items that were attempted for export
+            migratedItems.push(...categoryItems)
           }
         }
 
         if (!appStore.safeMode) {
-          // 2. Export Target (Atomic for Category)
-          await Andb.export(source, target, {
-            type: ddlType as any,
-            environment: target.environment
-          })
+          // 2. Export Target (Atomic per-object — only fetch DDL for objects that were just migrated)
+          for (const item of migratedItems) {
+            try {
+              await Andb.export(source, target, {
+                type: ddlType as any,
+                environment: target.environment,
+                name: item.name
+              })
+            } catch (exportErr: any) {
+              console.warn(`[Compare] Post-migrate export failed for ${item.name}:`, exportErr)
+            }
+          }
 
           // 3. Compare (Atomic for Category)
           const results = await Andb.compare(source, target, {
@@ -1772,11 +1795,13 @@ const applyAtomicVerify = async (item: any) => {
 
   try {
     const { source, target } = activePair.value
+    const isBackwards = !!item.backwards
+    const exportConn = isBackwards ? source : target
 
-    // 1. Export atomic (Target only, since source hasn't changed)
+    // 1. Export atomic (Export the database that was altered)
     await Andb.export(source, target, {
       type: item.type as any,
-      environment: target.environment,
+      environment: exportConn.environment,
       name: item.name
     })
 

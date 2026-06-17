@@ -327,7 +327,26 @@
                       v-if="editingDbConnId === connection.id"
                       class="flex items-center gap-1.5 min-w-[120px]"
                     >
+                      <select
+                        v-if="!manualDbInput && getTemplateForConnection(connection)?.databases?.length"
+                        :value="editingDbValue"
+                        @change="onDbSelectChange(connection.id, ($event.target as HTMLSelectElement).value)"
+                        @blur="editingDbConnId = null"
+                        v-focus
+                        class="w-full px-2 py-1 text-xs font-bold border border-primary-500 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-4 focus:ring-primary-500/10"
+                      >
+                        <option value="" disabled>Select Database</option>
+                        <option
+                          v-for="db in getTemplateForConnection(connection)?.databases || []"
+                          :key="db"
+                          :value="db"
+                        >
+                          {{ db }}
+                        </option>
+                        <option value="__manual__">+ Type manually...</option>
+                      </select>
                       <input
+                        v-else
                         v-model="editingDbValue"
                         @blur="saveDbEdit(connection.id)"
                         @keyup.enter="saveDbEdit(connection.id)"
@@ -817,6 +836,33 @@ const iconMap: Record<string, any> = {
 // Inline Edit State
 const editingDbConnId = ref<string | null>(null)
 const editingDbValue = ref('')
+const manualDbInput = ref(false)
+
+const getTemplateForConnection = (conn: DatabaseConnection) => {
+  let template = conn.templateId
+    ? templatesStore.templates.find(t => t.id === conn.templateId)
+    : null
+
+  if (!template && conn.host && conn.host !== 'localhost' && conn.host !== 'file') {
+    template =
+      templatesStore.templates.find(
+        t =>
+          t.host === conn.host &&
+          (t.port === conn.port || !conn.port) &&
+          t.username === conn.username
+      ) || null
+  }
+  return template || undefined
+}
+
+const onDbSelectChange = (id: string, val: string) => {
+  if (val === '__manual__') {
+    manualDbInput.value = true
+  } else {
+    editingDbValue.value = val
+    saveDbEdit(id)
+  }
+}
 
 // Directive for auto-focus
 const vFocus = {
@@ -826,6 +872,7 @@ const vFocus = {
 const startEditDb = (conn: DatabaseConnection) => {
   editingDbConnId.value = conn.id
   editingDbValue.value = conn.database || ''
+  manualDbInput.value = false
 }
 
 const saveDbEdit = async (id: string) => {
@@ -867,7 +914,7 @@ onMounted(async () => {
     router.replace({ query: { ...route.query, action: undefined } })
   }
   displayedConnections.value.forEach((conn: DatabaseConnection) => {
-    if (conn.type !== 'dump') appStore.testConnection(conn.id)
+    if (conn.type && ['mysql', 'postgres', 'sqlite'].includes(conn.type as any)) appStore.testConnection(conn.id)
   })
 })
 

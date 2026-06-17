@@ -585,17 +585,32 @@ export const useAppStore = defineStore('app', () => {
     }
 
     const projectsStore = useProjectsStore()
-    const currentProjectId = projectsStore.selectedProjectId
+    const { useConnectionPairsStore } = await import('./connectionPairs')
+    const connectionPairsStore = useConnectionPairsStore()
 
     // Remove from in-memory list (deep watcher auto-saves the new filtered list)
     connections.value = connections.value.filter(conn => conn.id !== id)
 
-    // Remove from project settings list to keep UI synchronized
-    if (currentProjectId) {
-      const currentProject = projectsStore.projects.find(p => p.id === currentProjectId)
-      if (currentProject) {
-        currentProject.connectionIds = currentProject.connectionIds.filter(cid => cid !== id)
+    // Remove from ALL projects' connection lists to keep UI synchronized
+    projectsStore.removeItemFromProject('connection', id)
+
+    // Clean up connection pairs referencing this connection
+    let pairsChanged = false
+    connectionPairsStore.connectionPairs.forEach(pair => {
+      if (pair.sourceConnectionId === id) {
+        pair.sourceConnectionId = undefined
+        pair.sourceEnv = ''
+        pairsChanged = true
       }
+      if (pair.targetConnectionId === id) {
+        pair.targetConnectionId = undefined
+        pair.targetEnv = ''
+        pairsChanged = true
+      }
+    })
+
+    if (pairsChanged) {
+      await storage.saveConnectionPairs(connectionPairsStore.connectionPairs)
     }
   }
 
