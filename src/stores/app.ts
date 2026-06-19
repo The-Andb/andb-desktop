@@ -280,7 +280,24 @@ export const useAppStore = defineStore('app', () => {
       if (newProjectId === currentLoadedProjectId) return
 
       currentLoadedProjectId = newProjectId
-      const savedConnections = await storage.getConnections(newProjectId)
+      let savedConnections = await storage.getConnections(newProjectId)
+      
+      // Auto-repair orphaned or stolen connections (caused by Live Demo race condition)
+      if (proj && proj.connectionIds && proj.connectionIds.length > 0) {
+        const missingIds = proj.connectionIds.filter(id => !savedConnections.some(c => c.id === id))
+        if (missingIds.length > 0) {
+          const allConnections = await storage.getConnections()
+          const recovered = allConnections.filter(c => missingIds.includes(c.id))
+          if (recovered.length > 0) {
+            console.warn('[AppStore] Auto-recovering stolen connections:', recovered.map(c => c.name))
+            recovered.forEach(c => c.projectId = newProjectId)
+            savedConnections = [...savedConnections, ...recovered]
+            // Force save to update SQLite with correct projectId
+            await storage.saveConnections(savedConnections, newProjectId)
+          }
+        }
+      }
+
       connections.value = savedConnections
     }
   })

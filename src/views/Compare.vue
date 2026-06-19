@@ -9,6 +9,7 @@
         :loadingAction="loadingAction"
         :activePair="activePair"
         @runComparison="runComparison"
+        @openSearchTab="openSearchTab"
       />
     </template>
 
@@ -105,6 +106,7 @@
               :isMigratingItemId="isMigratingItemId"
               :diffOptions="diffOptions"
               :navigatableNames="navigatableNames"
+              :allResults="allResults"
               @select-tab="handleSelectTab"
               @close-tab="handleCloseTab"
               @duplicate-tab="handleDuplicateTab"
@@ -113,6 +115,7 @@
               @migrate="migrateSingleItem"
               @navigate-to-definition="handleNavigateToDefinition"
               @refresh-pair="handleRefreshPair"
+              @open-item="selectItem"
             />
           </div>
 
@@ -138,60 +141,6 @@
 
     <!-- No slot needed, AI Panel is now in MainLayout -->
   </MainLayout>
-
-  <!-- Error Details Modal -->
-  <div
-    v-if="showErrorModal && error"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-  >
-    <div
-      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-red-100 dark:border-red-900/30 w-full max-w-lg overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
-    >
-      <div class="p-6 flex flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <div
-            class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0"
-          >
-            <AlertCircle class="w-6 h-6 text-red-500" />
-          </div>
-          <div>
-            <h3
-              class="text-lg font-extrabold text-gray-900 dark:text-white uppercase tracking-tight"
-            >
-              {{ $t('common.error') }}
-            </h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-              An unexpected issue occurred during the operation
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="bg-gray-50 dark:bg-gray-950 rounded-xl p-4 border border-gray-100 dark:border-gray-800/50 font-mono text-xs text-red-600 dark:text-red-400 break-words max-h-[300px] overflow-y-auto custom-scrollbar leading-relaxed"
-        >
-          {{ error }}
-        </div>
-
-        <div class="flex items-center gap-3 mt-2">
-          <button
-            @click="showErrorModal = false"
-            class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all"
-          >
-            {{ $t('common.close') }}
-          </button>
-          <button
-            @click="
-              runComparison();
-              showErrorModal = false
-            "
-            class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Item Context Menu Container -->
   <div style="display: contents">
@@ -225,7 +174,6 @@ import Andb from '@/utils/andb'
 import { useI18n } from 'vue-i18n'
 import {
   Sigma,
-  AlertCircle,
   Zap,
   Database,
   Table,
@@ -242,12 +190,14 @@ import CompareResultsList from '@/components/compare/CompareResultsList.vue'
 import CompareDetailView from '@/components/compare/CompareDetailView.vue'
 import CompareToolbar from '@/components/compare/CompareToolbar.vue'
 import CompareBreadcrumbs from '@/components/compare/CompareBreadcrumbs.vue'
+import { useErrorModalStore } from '@/stores/errorModal'
 
 const connectionPairsStore = useConnectionPairsStore()
 const appStore = useAppStore()
 const operationsStore = useOperationsStore()
 const consoleStore = useConsoleStore()
 const notificationStore = useNotificationStore()
+const errorStore = useErrorModalStore()
 const sidebarStore = useSidebarStore()
 const projectsStore = useProjectsStore()
 const { t } = useI18n()
@@ -422,7 +372,6 @@ const diffOptions = ref({
   showChangesOnly: true // default to true
 })
 const lastCompareTime = ref(0)
-const showErrorModal = ref(false)
 const treeExpandCmd = ref<{ action: 'expand' | 'collapse'; ts: number } | null>(null)
 const collapsedCategories = ref(new Set<string>())
 watch(selectedFilterType, (newType) => {
@@ -449,6 +398,19 @@ const sortBy = ref<'status' | 'name' | 'date'>('status')
 // Tabs State
 const tabs = ref<any[]>([])
 const activeTabId = ref<string | null>(null)
+
+const openSearchTab = () => {
+  const searchTabId = 'search_advanced'
+  const existingTab = tabs.value.find(t => t.id === searchTabId)
+  if (!existingTab) {
+    tabs.value.push({
+      id: searchTabId,
+      name: 'Advanced Search',
+      data: { type: 'search_advanced', name: 'Advanced Search' }
+    })
+  }
+  handleSelectTab(searchTabId)
+}
 
 // Item Context Menu State
 const itemContextMenu = ref({
@@ -899,13 +861,21 @@ const runComparison = async () => {
     }
 
     consoleStore.addLog('Comparison completed successfully', 'success')
-  } catch (e: any) {
-    error.value = e.message || 'Comparison failed'
-    consoleStore.addLog(`Comparison failed: ${e.message}`, 'error')
+  } catch (err: any) {
+    loading.value = false
+    loadingAction.value = null
+    console.error('Comparison error:', err)
+    error.value = err.message || 'An unknown error occurred during comparison.'
+    errorStore.showError({
+      message: error.value || 'Unknown error',
+      onRetry: runComparison,
+      retryText: 'Retry'
+    })
+    consoleStore.addLog(`Comparison failed: ${err.message}`, 'error')
     notificationStore.add({
       type: 'error',
       title: 'Comparison Failed',
-      message: e.message
+      message: err.message
     })
   } finally {
     appStore.isSchemaFetching = false // Release global fetch state
@@ -965,7 +935,6 @@ const runFetchAndCompare = async () => {
     })
   } catch (e: any) {
     error.value = e.message
-    showErrorModal.value = true
     consoleStore.addLog(`Fetch error: ${e.message}`, 'error')
   } finally {
     sidebarStore.isComparing = false
@@ -1003,7 +972,9 @@ const handleRefreshPair = async (item: any) => {
     })
   } catch (e: any) {
     error.value = e.message
-    showErrorModal.value = true
+    errorStore.showError({
+      message: error.value || 'Unknown error'
+    })
     consoleStore.addLog(`Pair refresh error: ${e.message}`, 'error')
   } finally {
     sidebarStore.isComparing = false
@@ -1487,38 +1458,12 @@ const migrateBatchInline = async (type: string, skipConfirm: boolean = false, fo
         }
 
         if (!appStore.safeMode) {
-          // 2. Export Target (Atomic per-object — only fetch DDL for objects that were just migrated)
+          // Atomic per-object verification — only fetch DDL for objects that were just migrated
           for (const item of migratedItems) {
             try {
-              await Andb.export(source, target, {
-                type: ddlType as any,
-                environment: target.environment,
-                name: item.name
-              })
-            } catch (exportErr: any) {
-              console.warn(`[Compare] Post-migrate export failed for ${item.name}:`, exportErr)
-            }
-          }
-
-          // 3. Compare (Atomic for Category)
-          const results = await Andb.compare(source, target, {
-            type: ddlType as any,
-            sourceEnv: source.environment,
-            targetEnv: target.environment
-          })
-
-          // 4. Update UI State immediately
-          if (Array.isArray(results) && resultsMap[ddlType]) {
-            resultsMap[ddlType].value = results.map((r: any) => ({
-              ...r,
-              type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
-            }))
-
-            if (selectedItem.value && selectedItem.value.type === ddlType) {
-              const found = results.find((r: any) => r.name === selectedItem.value.name)
-              if (found) {
-                selectedItem.value = { ...found, type: ddlType }
-              }
+              await applyAtomicVerify(item)
+            } catch (verifyErr: any) {
+              console.warn(`[Compare] Post-migrate verify failed for ${item.name}:`, verifyErr)
             }
           }
         }
@@ -1724,32 +1669,12 @@ const migrateCustomItems = async (items: any[], skipConfirm: boolean = false, fo
       }
 
       if (!appStore.safeMode) {
-        for (const ddlType of Array.from(typeSet)) {
-          const resultsMap: Record<string, any> = {
-            tables: tableResults,
-            procedures: procedureResults,
-            functions: functionResults,
-            views: viewResults,
-            triggers: triggerResults
-          }
-
-          await Andb.export(source, target, {
-            type: ddlType as any,
-            environment: target.environment
-          })
-
-          const results = await Andb.compare(source, target, {
-            type: ddlType as any,
-            sourceEnv: source.environment,
-            targetEnv: target.environment
-          })
-
-          const key = ddlType.toLowerCase()
-          if (Array.isArray(results) && resultsMap[key]) {
-            resultsMap[key].value = results.map((r: any) => ({
-              ...r,
-              type: ddlType.endsWith('s') ? ddlType : ddlType + 's'
-            }))
+        // Atomic per-object verification — only fetch DDL for objects that were just migrated
+        for (const item of items) {
+          try {
+            await applyAtomicVerify(item)
+          } catch (verifyErr: any) {
+            console.warn(`[Compare] Post-migrate verify failed for ${item.name}:`, verifyErr)
           }
         }
       }
@@ -1924,7 +1849,7 @@ onMounted(async () => {
   window.addEventListener('andb-prev-tab', handlePrevTab)
   window.addEventListener('andb-next-tab', handleNextTab)
   window.addEventListener('andb-refresh-active-view', handleRefreshActiveView)
-  window.addEventListener('andb-focus-search', handleFocusSearch)
+  window.addEventListener('andb-focus-local-search', handleFocusSearch)
 
   window.addEventListener('click', closeItemContextMenu)
 })
@@ -1961,7 +1886,7 @@ onUnmounted(() => {
   window.removeEventListener('andb-prev-tab', handlePrevTab)
   window.removeEventListener('andb-next-tab', handleNextTab)
   window.removeEventListener('andb-refresh-active-view', handleRefreshActiveView)
-  window.removeEventListener('andb-focus-search', handleFocusSearch)
+  window.removeEventListener('andb-focus-local-search', handleFocusSearch)
 
   window.removeEventListener('click', closeItemContextMenu)
 })

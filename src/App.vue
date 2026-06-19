@@ -9,6 +9,7 @@
       :isAppUpdate="isAppChangelog"
       @dismiss="dismissMigrationChangelog"
     />
+    <AppErrorModal />
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import Andb from '@/utils/andb'
 import UpdateModal from '@/components/general/UpdateModal.vue'
 import ShortcutsModal from '@/components/general/ShortcutsModal.vue'
 import MigrationChangelogModal from '@/components/general/MigrationChangelogModal.vue'
+import AppErrorModal from '@/components/general/AppErrorModal.vue'
 
 const appStore = useAppStore()
 const updaterStore = useUpdaterStore()
@@ -426,10 +428,17 @@ const handleKeydown = (event: KeyboardEvent) => {
     return
   }
 
-  // Cmd+F: Focus Search
-  if (isMod && key === 'f') {
+  // Cmd+F: Local Search
+  if (isMod && key === 'f' && !event.shiftKey) {
     event.preventDefault()
-    window.dispatchEvent(new CustomEvent('andb-focus-search'))
+    window.dispatchEvent(new CustomEvent('andb-focus-local-search'))
+    return
+  }
+
+  // Cmd+Shift+F: Global Search
+  if (isMod && key === 'f' && event.shiftKey) {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('andb-focus-global-search'))
     return
   }
 

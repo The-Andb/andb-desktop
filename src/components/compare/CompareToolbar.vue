@@ -4,6 +4,16 @@
 
     <!-- Right Side: Actions & Controls -->
     <div class="flex items-center gap-4 flex-1 justify-end">
+      <!-- Global Search Button -->
+      <button
+        @click="$emit('openSearchTab')"
+        class="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all shadow-sm border border-primary-100 dark:border-primary-800/50"
+        title="Advanced Search across all DDLs"
+      >
+        <Search class="w-3.5 h-3.5" />
+        <span v-if="appStore.buttonStyle !== 'icons'">Search</span>
+      </button>
+
       <!-- View Mode Switch & Safe Mode Toggle -->
       <div
         v-if="appStore.layoutSettings.toolbar"
@@ -149,7 +159,8 @@ import {
   GitMerge,
   ShieldCheck,
   Info,
-  X
+  X,
+  Search
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
@@ -165,7 +176,8 @@ defineProps<{
 defineEmits([
   'update:viewMode',
   'update:showSafeModeInfo',
-  'runComparison'
+  'runComparison',
+  'openSearchTab'
 ])
 
 const { t } = useI18n()

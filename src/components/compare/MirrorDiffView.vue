@@ -3,6 +3,38 @@
     class="mirror-diff-view flex h-full min-h-0 min-w-0 max-w-full overflow-hidden bg-white dark:bg-gray-950 group/view border-t border-gray-200 dark:border-gray-800 relative"
     :style="{ fontFamily: appStore.fontFamilies.code, fontSize: appStore.fontSizes.code + 'px' }"
   >
+    <!-- Search Bar -->
+    <div
+      v-if="showSearch"
+      class="absolute top-12 right-6 z-50 flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl shadow-black/10 border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in slide-in-from-top-2"
+    >
+      <div class="px-3 text-gray-400 dark:text-gray-500">
+        <Search class="w-4 h-4" />
+      </div>
+      <input
+        ref="searchInputRef"
+        v-model="searchQuery"
+        type="text"
+        placeholder="Find in DDL..."
+        class="w-48 bg-transparent border-none text-xs font-mono text-gray-900 dark:text-white focus:ring-0 px-0 py-2 outline-none"
+        @keyup.esc="closeSearch"
+      />
+      <button
+        @click="searchQuery = ''"
+        v-if="searchQuery"
+        class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      >
+        <X class="w-3.5 h-3.5" />
+      </button>
+      <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+      <button
+        @click="closeSearch"
+        class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
     <!-- SPLIT VIEW MODE -->
     <template v-if="viewType === 'split'">
       <div class="flex-1 flex flex-col min-h-0 min-w-0 max-w-full overflow-hidden relative">
@@ -38,6 +70,14 @@
                 class="text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase"
                 >{{ $t('compare.diffView.new') }}</span
               >
+
+              <button
+                @click="handleGlobalFocusSearch"
+                class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                title="Search in code (Cmd+F)"
+              >
+                <Search class="w-3.5 h-3.5" />
+              </button>
 
               <!-- Settings Component -->
               <div class="relative" ref="settingsRef">
@@ -237,7 +277,7 @@
                         class="line-content source-content px-2 py-0.5 grow ddl-code overflow-x-auto no-scrollbar"
                         :class="[wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre']"
                         @scroll="handleHorizontalScroll($event, 'source')"
-                        v-html="highlightNavLinks(row.source.highlighted || row.source.content)"
+                        v-html="highlightSearchTerm(highlightNavLinks(row.source.highlighted || row.source.content))"
                         @click="handleCodeClick"
                       ></div>
                     </div>
@@ -258,7 +298,7 @@
                         class="line-content target-content px-2 py-0.5 grow ddl-code overflow-x-auto no-scrollbar"
                         :class="[wrapLines ? 'whitespace-pre-wrap break-words' : 'whitespace-pre']"
                         @scroll="handleHorizontalScroll($event, 'target')"
-                        v-html="highlightNavLinks(row.target.highlighted || row.target.content)"
+                        v-html="highlightSearchTerm(highlightNavLinks(row.target.highlighted || row.target.content))"
                         @click="handleCodeClick"
                       ></div>
                     </div>
@@ -501,7 +541,7 @@
                   wrapLines ? 'whitespace-pre-wrap break-words overflow-hidden' : 'whitespace-pre',
                   { 'is-navigating': isNavigating }
                 ]"
-                v-html="highlightNavLinks(row.highlighted || row.content)"
+                v-html="highlightSearchTerm(highlightNavLinks(row.highlighted || row.content))"
                 @click="handleCodeClick"
               ></div>
             </div>
@@ -551,11 +591,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import prismjs from 'prismjs'
 const Prism = prismjs
 import 'prismjs/components/prism-sql'
-import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-vue-next'
+import { Settings, Check, ChevronDown, ChevronUp, ChevronsUpDown, Search, X } from 'lucide-vue-next'
 import { useAppStore } from '@/stores/app'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 
@@ -588,6 +628,88 @@ const hideWhitespace = ref(false)
 const internalIgnoreCase = ref(props.diffOptions?.ignoreCase ?? true)
 const wrapLines = ref(props.diffOptions?.wrapLines ?? false)
 const ignoreDefiner = ref(true)
+
+// --- Search Feature ---
+const showSearch = ref(false)
+const searchQuery = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const escapeRegExp = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function highlightText(text: string, term: string) {
+  const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi')
+  return text.replace(regex, '<mark class="bg-yellow-300 dark:bg-yellow-800 text-black dark:text-white rounded-sm px-0.5">$1</mark>')
+}
+
+function highlightSearchTerm(html: string) {
+  if (!searchQuery.value) return html
+  const term = searchQuery.value
+  let result = ''
+  let inTag = false
+  let buffer = ''
+  for (let i = 0; i < html.length; i++) {
+    const char = html[i]
+    if (char === '<') {
+      if (buffer) {
+        result += highlightText(buffer, term)
+        buffer = ''
+      }
+      inTag = true
+      result += char
+    } else if (char === '>') {
+      inTag = false
+      result += char
+    } else {
+      if (inTag) {
+        result += char
+      } else {
+        buffer += char
+      }
+    }
+  }
+  if (buffer) {
+    result += highlightText(buffer, term)
+  }
+  return result
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault()
+    e.stopPropagation()
+    openSearch()
+  }
+}
+
+const handleGlobalFocusSearch = () => {
+  openSearch()
+}
+
+const openSearch = () => {
+  showSearch.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+    searchInputRef.value?.select()
+  })
+}
+
+const closeSearch = () => {
+  showSearch.value = false
+  searchQuery.value = ''
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
+// -----------------------
 
 function cleanDefiner(ddl: string): string {
   if (!ddl) return ''
@@ -637,7 +759,7 @@ const highlightedSourceLines = computed(() => {
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
   const html = Prism.highlight(normalize(ddl), Prism.languages.sql, 'sql')
-  return html.split('\n')
+  return html.split('\n').map(line => highlightSearchTerm(line))
 })
 
 const highlightedTargetLines = computed(() => {
@@ -654,7 +776,7 @@ const highlightedTargetLines = computed(() => {
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
   const html = Prism.highlight(normalize(ddl), Prism.languages.sql, 'sql')
-  return html.split('\n')
+  return html.split('\n').map(line => highlightSearchTerm(line))
 })
 
 watch(

@@ -68,6 +68,13 @@
           <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
         </button>
         <button
+          @click="handleGlobalFocusSearch"
+          class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
+          title="Search in code (Cmd+F)"
+        >
+          <Search class="w-4 h-4" />
+        </button>
+        <button
           @click="copyDDL"
           class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
           :title="$t('common.copyScript')"
@@ -84,9 +91,42 @@
       </div>
     </div>
 
+    <!-- Search Bar -->
+    <div
+      v-if="showSearch"
+      class="absolute top-16 right-6 z-50 flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl shadow-black/10 border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in slide-in-from-top-2"
+    >
+      <div class="px-3 text-gray-400 dark:text-gray-500">
+        <Search class="w-4 h-4" />
+      </div>
+      <input
+        ref="searchInputRef"
+        v-model="searchTerm"
+        type="text"
+        placeholder="Find in DDL..."
+        class="w-48 bg-transparent border-none text-xs font-mono text-gray-900 dark:text-white focus:ring-0 px-0 py-2 outline-none"
+        @keyup.esc="closeSearch"
+      />
+      <button
+        @click="searchTerm = ''"
+        v-if="searchTerm"
+        class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      >
+        <X class="w-3.5 h-3.5" />
+      </button>
+      <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+      <button
+        @click="closeSearch"
+        class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
     <!-- Code Viewer -->
     <DDLViewer
       :content="code"
+      :search-term="searchTerm"
       :font-size="fontSize"
       :font-family="fontFamily"
       :show-copy-button="false"
@@ -107,10 +147,13 @@ import {
   Layers,
   Workflow,
   Sigma,
-  Zap
+  Zap,
+  Search,
+  X
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { useNotificationStore } from '@/stores/notification'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps<{
   code: string
@@ -127,6 +170,45 @@ const props = defineProps<{
 const emit = defineEmits(['refresh', 'snapshot', 'history'])
 const { t } = useI18n()
 const notificationStore = useNotificationStore()
+
+const showSearch = ref(false)
+const searchTerm = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault()
+    e.stopPropagation()
+    openSearch()
+  }
+}
+
+const handleGlobalFocusSearch = () => {
+  openSearch()
+}
+
+const openSearch = () => {
+  showSearch.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+    searchInputRef.value?.select()
+  })
+}
+
+const closeSearch = () => {
+  showSearch.value = false
+  searchTerm.value = ''
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
 
 const typeIcons: Record<string, any> = {
   tables: Table,

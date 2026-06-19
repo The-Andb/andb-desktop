@@ -108,6 +108,27 @@
                 </button>
               </div>
             </div>
+            
+            <!-- Local Search Bar -->
+            <div class="mb-4 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search class="w-4 h-4 text-gray-400" />
+              </div>
+              <input
+                v-model="searchTerm"
+                type="text"
+                placeholder="Search in DDL..."
+                class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg pl-10 pr-10 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <button
+                v-if="searchTerm"
+                @click="searchTerm = ''"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            
             <div class="space-y-4">
               <div v-for="(stmt, index) in ddlStatements" :key="index" class="relative group">
                 <div
@@ -209,7 +230,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { X, FileCode, Copy, CheckCircle, Code2, LayoutTemplate } from 'lucide-vue-next'
+import { X, FileCode, Copy, CheckCircle, Code2, LayoutTemplate, Search } from 'lucide-vue-next'
 import DDLVisualizer from '@/components/ddl/DDLVisualizer.vue'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 import Andb from '@/utils/andb'
@@ -448,10 +469,19 @@ onUnmounted(() => {
 })
 
 const highlightNavLinks = (text: string) => {
-  return highlightLinks(text, props.navigatableNames || [], false)
+  let html = highlightLinks(text, props.navigatableNames || [], false)
+  if (searchTerm.value) {
+    const term = searchTerm.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${term})`, 'gi')
+    html = html.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 text-gray-900 dark:text-white rounded px-0.5">$1</mark>')
+  }
+  return html
 }
 
 const handleCodeClick = (event: MouseEvent, _index: number) => {
+  // Ignore clicks on search highlights
+  if ((event.target as HTMLElement).tagName === 'MARK') return
+  
   const word = getNavigatableWord(event, props.navigatableNames || [])
   if (word) {
     emit('close')
@@ -459,7 +489,10 @@ const handleCodeClick = (event: MouseEvent, _index: number) => {
   }
 }
 
+const searchTerm = ref('')
+
 const close = () => {
+  searchTerm.value = ''
   emit('close')
 }
 

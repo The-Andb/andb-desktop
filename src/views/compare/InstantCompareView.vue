@@ -180,21 +180,62 @@
         <!-- INPUT STEP -->
         <div
           v-show="step === 'input'"
-          class="flex-1 flex w-full p-2 gap-4 bg-white dark:bg-gray-950"
+          class="flex-1 flex w-full p-2 gap-4 bg-white dark:bg-gray-950 relative"
         >
+          <!-- Search Bar -->
+          <div
+            v-if="showSearch"
+            class="absolute top-4 right-6 z-50 flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl shadow-black/10 border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in slide-in-from-top-2"
+          >
+            <div class="px-3 text-gray-400 dark:text-gray-500">
+              <Search class="w-4 h-4" />
+            </div>
+            <input
+              ref="searchInputRef"
+              v-model="searchQuery"
+              type="text"
+              placeholder="Find in snippets..."
+              class="w-48 bg-transparent border-none text-xs font-mono text-gray-900 dark:text-white focus:ring-0 px-0 py-2 outline-none"
+              @keyup.esc="closeSearch"
+            />
+            <button
+              @click="searchQuery = ''"
+              v-if="searchQuery"
+              class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <X class="w-3.5 h-3.5" />
+            </button>
+            <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+            <button
+              @click="closeSearch"
+              class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
           <div class="flex-1 flex flex-col gap-2 group relative">
             <div class="flex items-center justify-between px-1">
               <label
                 class="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em]"
                 >Source: {{ sourceLabel }}</label
               >
-              <button
-                @click="srcDDL = ''"
-                class="text-[9px] font-bold text-gray-400 hover:text-red-500 uppercase transition-colors"
-                v-if="srcDDL"
-              >
-                Clear
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="handleGlobalFocusSearch"
+                  class="text-gray-400 hover:text-primary-500 transition-colors"
+                  title="Search (Cmd+F)"
+                >
+                  <Search class="w-3.5 h-3.5" />
+                </button>
+                <button
+                  @click="srcDDL = ''"
+                  class="text-[9px] font-bold text-gray-400 hover:text-red-500 uppercase transition-colors"
+                  v-if="srcDDL"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
             <div
               class="flex-1 relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 focus-within:border-primary-500/30 rounded-xl shadow-sm transition-all group/editor"
@@ -234,13 +275,22 @@
                 class="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.2em]"
                 >Target: {{ targetLabel }}</label
               >
-              <button
-                @click="destDDL = ''"
-                class="text-[9px] font-bold text-gray-400 hover:text-red-500 uppercase transition-colors"
-                v-if="destDDL"
-              >
-                Clear
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="handleGlobalFocusSearch"
+                  class="text-gray-400 hover:text-primary-500 transition-colors"
+                  title="Search (Cmd+F)"
+                >
+                  <Search class="w-3.5 h-3.5" />
+                </button>
+                <button
+                  @click="destDDL = ''"
+                  class="text-[9px] font-bold text-gray-400 hover:text-red-500 uppercase transition-colors"
+                  v-if="destDDL"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
             <div
               class="flex-1 relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 focus-within:border-primary-500/30 rounded-xl shadow-sm transition-all group/editor"
@@ -414,7 +464,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue'
 import {
   Flame,
   GitCompare,
@@ -602,18 +652,90 @@ const formatDate = (dateStr: string) => {
   }
 }
 
+// --- Local Search Feature ---
+const showSearch = ref(false)
+const searchQuery = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const handleGlobalFocusSearch = () => {
+  if (step.value === 'input') {
+    showSearch.value = true
+    nextTick(() => {
+      searchInputRef.value?.focus()
+      searchInputRef.value?.select()
+    })
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('andb-focus-local-search', handleGlobalFocusSearch)
+})
+
+const closeSearch = () => {
+  showSearch.value = false
+  searchQuery.value = ''
+}
+
+const escapeRegExp = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function highlightText(text: string, term: string) {
+  const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi')
+  return text.replace(regex, '<mark class="bg-yellow-300 dark:bg-yellow-800 text-black dark:text-white rounded-sm px-0.5">$1</mark>')
+}
+
+function highlightSearchTerm(html: string) {
+  if (!searchQuery.value) return html
+  const term = searchQuery.value
+  let result = ''
+  let inTag = false
+  let buffer = ''
+  for (let i = 0; i < html.length; i++) {
+    const char = html[i]
+    if (char === '<') {
+      if (buffer) {
+        result += highlightText(buffer, term)
+        buffer = ''
+      }
+      inTag = true
+      result += char
+    } else if (char === '>') {
+      inTag = false
+      result += char
+    } else {
+      if (inTag) {
+        result += char
+      } else {
+        buffer += char
+      }
+    }
+  }
+  if (buffer) {
+    result += highlightText(buffer, term)
+  }
+  return result
+}
+// ----------------------------
+
 
 const highlightedSrc = computed(() => {
   if (!srcDDL.value) return ''
   // Append a space to ensure the final newline renders correctly if present
   const val = srcDDL.value.endsWith('\n') ? srcDDL.value + ' ' : srcDDL.value
-  return Prism.highlight(val, Prism.languages.sql, 'sql')
+  let html = Prism.highlight(val, Prism.languages.sql, 'sql')
+  return highlightSearchTerm(html)
 })
 
 const highlightedDest = computed(() => {
   if (!destDDL.value) return ''
   const val = destDDL.value.endsWith('\n') ? destDDL.value + ' ' : destDDL.value
-  return Prism.highlight(val, Prism.languages.sql, 'sql')
+  let html = Prism.highlight(val, Prism.languages.sql, 'sql')
+  return highlightSearchTerm(html)
 })
 
 const syncScrollSrc = () => {

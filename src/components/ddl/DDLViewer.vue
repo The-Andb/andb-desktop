@@ -37,11 +37,50 @@
       </div>
     </div>
 
+    <!-- Search Bar -->
+    <div
+      v-if="showSearch"
+      class="absolute top-2 right-4 z-[60] flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl shadow-black/10 border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in slide-in-from-top-2"
+    >
+      <div class="px-3 text-gray-400 dark:text-gray-500">
+        <Search class="w-4 h-4" />
+      </div>
+      <input
+        ref="searchInputRef"
+        v-model="localSearchQuery"
+        type="text"
+        placeholder="Find in code..."
+        class="w-48 bg-transparent border-none text-xs font-mono text-gray-900 dark:text-white focus:ring-0 px-0 py-2 outline-none"
+        @keyup.esc="closeSearch"
+      />
+      <button
+        @click="localSearchQuery = ''"
+        v-if="localSearchQuery"
+        class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      >
+        <X class="w-3.5 h-3.5" />
+      </button>
+      <div class="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+      <button
+        @click="closeSearch"
+        class="p-2 text-gray-400 hover:text-red-500 transition-colors"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
+
     <!-- Toolbar (Overlay) -->
     <div
-      v-if="showCopyButton"
-      class="absolute top-2 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2"
+      v-if="showCopyButton && !showSearch"
+      class="absolute top-2 right-4 z-[50] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2"
     >
+      <button
+        @click="handleFocusSearch"
+        class="p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700/80 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm border border-black/5 dark:border-white/5"
+        title="Search in code (Cmd+F)"
+      >
+        <Search class="w-4 h-4" />
+      </button>
       <button
         @click="appStore.requestAiReview()"
         class="p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg text-indigo-500 dark:text-indigo-400 transition-all shadow-sm border border-black/5 dark:border-white/5"
@@ -62,10 +101,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-sql'
-import { Copy, Check, Sparkles } from 'lucide-vue-next'
+import { Copy, Check, Sparkles, Search, X } from 'lucide-vue-next'
 import { getNavigatableWord, highlightLinks } from '@/utils/navigation'
 import { useAppStore } from '@/stores/app'
 
@@ -108,6 +147,24 @@ const emit = defineEmits(['navigate-to-definition'])
 const copied = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 const selectedLine = ref<number | null>(null)
+
+// Search feature
+const localSearchQuery = ref('')
+const showSearch = ref(false)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const handleFocusSearch = () => {
+  showSearch.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+    searchInputRef.value?.select()
+  })
+}
+
+const closeSearch = () => {
+  showSearch.value = false
+  localSearchQuery.value = ''
+}
 
 // Reset selection when content changes
 watch(
@@ -155,11 +212,13 @@ watch(isNavigating, val => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
+  window.addEventListener('andb-focus-local-search', handleFocusSearch)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
   window.removeEventListener('keyup', handleGlobalKeyup)
+  window.removeEventListener('andb-focus-local-search', handleFocusSearch)
 })
 
 const copyToClipboard = () => {
@@ -180,12 +239,13 @@ const highlightedLines = computed(() => {
 
   // Prepare search regex if needed
   let searchRegex: RegExp | null = null
-  if (props.searchTerm && props.searchTerm.trim()) {
+  const activeSearchTerm = props.searchTerm || localSearchQuery.value
+  if (activeSearchTerm && activeSearchTerm.trim()) {
     try {
-      const escaped = props.searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const escaped = activeSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       searchRegex = new RegExp(`(${escaped})`, 'gi')
     } catch (e) {
-      console.warn('Invalid search term for highlight:', props.searchTerm)
+      console.warn('Invalid search term for highlight:', activeSearchTerm)
     }
   }
 

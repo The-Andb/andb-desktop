@@ -411,7 +411,18 @@ const recentlyClosedTabs = ref<any[]>([])
 // Selection logic
 const activeConnectionName = computed(() => {
   const conn = appStore.resolvedConnections.find(c => c.id === selectedConnectionId.value)
-  return conn ? conn.name : 'Unknown'
+  if (conn) return conn.name
+  
+  // Fallback: if no valid connection is selected but we have filtered connections,
+  // we should display the first one's name and proactively update the store
+  if (appStore.filteredConnections.length > 0) {
+    nextTick(() => {
+      appStore.selectedConnectionId = appStore.filteredConnections[0].id
+    })
+    return appStore.filteredConnections[0].name
+  }
+  
+  return 'Select Database'
 })
 
 // Advanced Filtering Logic
@@ -912,6 +923,9 @@ const handleOpenDefinitionSearchEvent = (e: CustomEvent) => {
 
 onMounted(async () => {
   if (appStore.isInitialized) {
+    if (!selectedConnectionId.value && appStore.filteredConnections.length > 0) {
+      appStore.selectedConnectionId = appStore.filteredConnections[0].id
+    }
     loadSchema()
   }
   window.addEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
@@ -931,8 +945,13 @@ onUnmounted(() => {
 watch(
   () => appStore.isInitialized,
   val => {
-    if (val && selectedConnectionId.value) {
-      loadSchema()
+    if (val) {
+      if (!selectedConnectionId.value && appStore.filteredConnections.length > 0) {
+        appStore.selectedConnectionId = appStore.filteredConnections[0].id
+      }
+      if (selectedConnectionId.value) {
+        loadSchema()
+      }
     }
   }
 )

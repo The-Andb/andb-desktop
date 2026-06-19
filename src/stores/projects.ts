@@ -458,6 +458,13 @@ export const useProjectsStore = defineStore('projects', () => {
       enabledEnvironmentIds: ['DEV', 'PROD']
     })
 
+    // Switch to Demo Project FIRST so that connections and pairs bind to it
+    selectProject(demoProject.id)
+    
+    // Wait for the async project switch to complete in appStore to prevent 
+    // old connections from bleeding into the new project via race condition.
+    await new Promise(resolve => setTimeout(resolve, 150))
+
     // 2. Create Demo Connections
     const sourceConn = appStore.addConnection(
       {
@@ -504,9 +511,6 @@ export const useProjectsStore = defineStore('projects', () => {
 
     demoProject.pairIds = [demoPair.id]
 
-    // 4. Switch to Demo Project
-    selectProject(demoProject.id)
-
     return demoPair
   }
 
@@ -544,6 +548,13 @@ export const useProjectsStore = defineStore('projects', () => {
       pairIds: [],
       enabledEnvironmentIds: ['DEV', 'PROD']
     })
+
+    // Switch to new project FIRST so that connections and pairs bind to it
+    selectProject(quickProject.id)
+    
+    // Wait for the async project switch to complete in appStore to prevent 
+    // old connections from bleeding into the new project via race condition.
+    await new Promise(resolve => setTimeout(resolve, 150))
 
     // 2. Create Connections
     const sourceConn = appStore.addConnection(

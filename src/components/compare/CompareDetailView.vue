@@ -12,7 +12,14 @@
       @close-right="$emit('close-right', $event)"
     />
 
-    <div v-if="selectedItem" class="h-full flex flex-col">
+    <div v-if="selectedItem?.type === 'search_advanced'" class="h-full flex flex-col">
+      <CompareSearchView
+        :all-results="allResults"
+        @open-item="$emit('open-item', $event)"
+      />
+    </div>
+
+    <div v-else-if="selectedItem" class="h-full flex flex-col">
       <div
         class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-between h-12 shrink-0"
       >
@@ -92,6 +99,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import TabBar from '@/components/general/TabBar.vue'
 import MirrorDiffView from '@/components/compare/MirrorDiffView.vue'
+import CompareSearchView from '@/components/compare/CompareSearchView.vue'
 
 const { t } = useI18n()
 
@@ -107,6 +115,7 @@ defineProps<{
   isMigratingItemId: string | null
   diffOptions: any
   navigatableNames: string[]
+  allResults: any[]
 }>()
 
 defineEmits([
@@ -117,7 +126,8 @@ defineEmits([
   'close-right',
   'migrate',
   'navigate-to-definition',
-  'refresh-pair'
+  'refresh-pair',
+  'open-item'
 ])
 
 const getIconForType = (type: string) => {

@@ -304,8 +304,8 @@ const focusSearch = () => {
 
 // Global Keyboard Shortcut Listener
 const handleKeydown = (e: KeyboardEvent) => {
-  // Cmd+F or Cmd+K
-  if ((e.metaKey || e.ctrlKey) && (e.key === 'f' || e.key === 'k')) {
+  // Cmd+K
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
     focusSearch()
   }
@@ -320,11 +320,11 @@ watch(() => appStore.globalSearchQuery, (newVal) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
-  window.addEventListener('andb-focus-search', focusSearch)
+  window.addEventListener('andb-focus-global-search', focusSearch)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
-  window.removeEventListener('andb-focus-search', focusSearch)
+  window.removeEventListener('andb-focus-global-search', focusSearch)
 })
 </script>
