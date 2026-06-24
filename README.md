@@ -1,6 +1,10 @@
 # TheAndb Desktop
 
-**The Intelligent Database Orchestrator** — Professional desktop application for seamless schema visualization, comparison, and synchronization.
+> Compare and sync your database schemas across environments — safely, visually, and fast.
+
+📸 Screenshots
+
+<!-- TODO: Add GIF or screenshot of comparison UI here -->
 
 ## 🚀 Features
 
@@ -27,12 +31,18 @@
 - **Build Tool**: Vite
 - **Metadata Storage**: SQLite (better-sqlite3)
 
+## 📋 Prerequisites
+
+- Node.js >= 18
+- macOS (Windows support coming soon)
+- MySQL 5.7+ or 8.0+
+
 ## 📦 Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/The-Andb/andb.git
-cd andb
+git clone https://github.com/The-Andb/andb-desktop.git
+cd andb-desktop
 
 # Install dependencies
 npm install
@@ -52,35 +62,9 @@ npm run dev:desktop
 - `Ctrl+Shift+E`: Export selected
 - `Ctrl+Shift+M`: Create migration
 
-## 📄 License & Commercial
+## 📄 License
 
-**Proprietary Source-Available License**
-
-Copyright (c) 2026 <your name>. All rights reserved.
-
-### ✅ Permitted Use
-
-- View, clone, and run the software locally for personal and evaluation purposes.
-
-### ❌ Restrictions
-
-You may NOT:
-
-- Use the software in production environments
-- Offer the software as a service (SaaS)
-- Redistribute, sublicense, or sell the software
-- Modify and distribute modified versions
-
-### 💼 Commercial License
-
-For production use, SaaS deployment, or commercial licensing, please contact:
-https://theandb.xyz
-© 2024 - 2026 TheAndb. All rights reserved.
-
-### Note:
-
-> This project is source-available to promote transparency and learning.
-> If you need production usage, please consider a commercial license.
+**TheAndb Desktop** and **TheAndb Core** are free to download and use for internal business operations including production use. A commercial license is required only if you redistribute, white-label, or resell the software as a competing product.
 
 ---
 

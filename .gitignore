@@ -149,3 +149,10 @@ src/**/*.js
 .cursor/rules/snyk_rules.mdc
 /test-results
 /playwright-report
+
+# System files
+.DS_Store
+dev-notes/
+
+# Runtime storage
+andb-storage.db
