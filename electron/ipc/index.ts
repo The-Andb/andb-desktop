@@ -149,6 +149,7 @@ export function registerIpcHandlers() {
 
   // Auto save Schema view queries
   ipcMain.handle('andb-save-query', andb.handleAndbSaveQuery)
+  ipcMain.handle('andb-load-query', andb.handleAndbLoadQuery)
 
   // Deep Search (Global Code Search)
   ipcMain.handle('andb-deep-search', andb.handleAndbDeepSearch)

@@ -156,7 +156,9 @@ export function useSchemaLoader(
     let preservedName = null
     let preservedType = null
 
-    if (keepSelection || forceRefresh) {
+    const isVirtualTab = selectedItem.value && ['query', 'diagrams', 'deep-search'].includes(selectedItem.value.type) || selectedItem.value?.isNew
+
+    if (keepSelection || forceRefresh || isVirtualTab) {
       preservedName = selectedItem.value?.name
       preservedType = selectedItem.value?.type
     } else {

@@ -625,12 +625,12 @@ const getRowIdentifierClause = (row: any) => {
   const idCol = cols.find(c => c.toLowerCase() === 'id') || cols.find(c => c.toLowerCase().endsWith('id'))
   if (idCol && row[idCol] !== undefined && row[idCol] !== null) {
     const val = typeof row[idCol] === 'number' ? row[idCol] : `'${String(row[idCol]).replace(/'/g, "''")}'`
-    return `\`${idCol}\` = ${val}`
+    return `${Andb.quoteIdentifier(idCol, props.connection?.type)} = ${val}`
   }
   return cols.map(c => {
-    if (row[c] === null) return `\`${c}\` IS NULL`
+    if (row[c] === null) return `${Andb.quoteIdentifier(c, props.connection?.type)} IS NULL`
     const val = typeof row[c] === 'number' ? row[c] : `'${String(row[c]).replace(/'/g, "''")}'`
-    return `\`${c}\` = ${val}`
+    return `${Andb.quoteIdentifier(c, props.connection?.type)} = ${val}`
   }).join(' AND ')
 }
 
@@ -647,7 +647,7 @@ const submitEdits = async () => {
       const columns: string[] = []
       const values: string[] = []
       for (const [col, val] of Object.entries(ins)) {
-        columns.push(`\`${col}\``)
+        columns.push(Andb.quoteIdentifier(col, props.connection?.type))
         if (val === null || val === 'NULL') {
           values.push('NULL')
         } else {
@@ -657,7 +657,8 @@ const submitEdits = async () => {
         }
       }
       if (columns.length > 0) {
-        sqls.push(`INSERT INTO \`${props.tableName}\` (${columns.join(', ')}) VALUES (${values.join(', ')});`)
+        const qTable = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+        sqls.push(`INSERT INTO ${qTable} (${columns.join(', ')}) VALUES (${values.join(', ')});`)
       }
     }
 
@@ -668,13 +669,14 @@ const submitEdits = async () => {
       if (!originalRow) continue
       
       const setClauses = Object.entries(cols).map(([col, newVal]) => {
-        if (newVal === null || newVal === 'NULL') return `\`${col}\` = NULL`
+        if (newVal === null || newVal === 'NULL') return `${Andb.quoteIdentifier(col, props.connection?.type)} = NULL`
         const val = typeof originalRow[col] === 'number' && !isNaN(Number(newVal)) ? Number(newVal) : `'${String(newVal).replace(/'/g, "''")}'`
-        return `\`${col}\` = ${val}`
+        return `${Andb.quoteIdentifier(col, props.connection?.type)} = ${val}`
       }).join(', ')
       
       const whereClause = getRowIdentifierClause(originalRow)
-      sqls.push(`UPDATE \`${props.tableName}\` SET ${setClauses} WHERE ${whereClause};`)
+      const qTable = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+      sqls.push(`UPDATE ${qTable} SET ${setClauses} WHERE ${whereClause};`)
     }
     
     for (const rowIndex of stagedDeletions.value) {
@@ -682,7 +684,8 @@ const submitEdits = async () => {
       if (!originalRow) continue
       
       const whereClause = getRowIdentifierClause(originalRow)
-      sqls.push(`DELETE FROM \`${props.tableName}\` WHERE ${whereClause};`)
+      const qTable = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+      sqls.push(`DELETE FROM ${qTable} WHERE ${whereClause};`)
     }
     
     if (sqls.length > 0) {

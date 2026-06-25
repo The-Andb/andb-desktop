@@ -16,6 +16,8 @@ interface AppSchema {
     theme: 'light' | 'dark' | 'system'
     language: 'en' | 'vi'
     sidebarCollapsed: boolean
+    safeMode?: boolean
+    strictColumnOrder?: boolean
   }
   version: string
 }
@@ -91,7 +93,9 @@ export const storage = {
     return {
       theme: 'light' as const,
       language: 'en' as const,
-      sidebarCollapsed: false
+      sidebarCollapsed: false,
+      safeMode: true,
+      strictColumnOrder: false
     }
   },
 

@@ -67,6 +67,32 @@
           class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"
         ></div>
 
+        <!-- Strict Order Toggle -->
+        <div
+          class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none"
+        >
+          <ArrowUpDown
+            class="w-4 h-4"
+            :class="appStore.strictColumnOrder ? 'text-primary-500' : 'text-gray-400'"
+          />
+
+          <span
+            class="text-[10px] font-bold uppercase tracking-widest text-gray-500 cursor-help"
+            title="When ON, column position changes trigger differences. When OFF, position differences are ignored."
+          >Strict Order</span>
+
+          <button
+            @click="toggleStrictColumnOrder"
+            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ml-1"
+            :class="appStore.strictColumnOrder ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"
+          >
+            <span
+              class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              :class="appStore.strictColumnOrder ? 'translate-x-4' : 'translate-x-0'"
+            ></span>
+          </button>
+        </div>
+
         <!-- Safe Mode Toggle -->
         <div
           class="relative flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 select-none"
@@ -160,11 +186,12 @@ import {
   ShieldCheck,
   Info,
   X,
-  Search
+  Search,
+  ArrowUpDown
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const props = defineProps<{
   appStore: any
   viewMode: string
   showSafeModeInfo: boolean
@@ -173,7 +200,7 @@ defineProps<{
   activePair: any
 }>()
 
-defineEmits([
+const emit = defineEmits([
   'update:viewMode',
   'update:showSafeModeInfo',
   'runComparison',
@@ -181,4 +208,9 @@ defineEmits([
 ])
 
 const { t } = useI18n()
+
+const toggleStrictColumnOrder = () => {
+  props.appStore.strictColumnOrder = !props.appStore.strictColumnOrder
+  emit('runComparison')
+}
 </script>

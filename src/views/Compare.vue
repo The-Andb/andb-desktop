@@ -104,9 +104,11 @@
               :isTargetDump="isTargetDump"
               :isMigrating="isMigrating"
               :isMigratingItemId="isMigratingItemId"
+              :is-refreshing="loading && loadingAction === 'fetch' && refreshingTabId === activeTabId"
               :diffOptions="diffOptions"
               :navigatableNames="navigatableNames"
               :allResults="allResults"
+              :buttonStyle="appStore.buttonStyle"
               @select-tab="handleSelectTab"
               @close-tab="handleCloseTab"
               @duplicate-tab="handleDuplicateTab"
@@ -398,6 +400,7 @@ const sortBy = ref<'status' | 'name' | 'date'>('status')
 // Tabs State
 const tabs = ref<any[]>([])
 const activeTabId = ref<string | null>(null)
+const refreshingTabId = ref<string | null>(null)
 
 const openSearchTab = () => {
   const searchTabId = 'search_advanced'
@@ -800,7 +803,8 @@ const runComparison = async () => {
           type,
           sourceEnv: activePair.value!.sourceEnv,
           targetEnv: activePair.value!.targetEnv,
-          name: compareName
+          name: compareName,
+          strictColumnOrder: appStore.strictColumnOrder
         })
       )
     )
@@ -818,14 +822,29 @@ const runComparison = async () => {
         else if (type === 'triggers') targetArray = triggerResults.value
 
         const newArray = [...targetArray]
-        res.forEach(newItem => {
-          const existingIdx = newArray.findIndex(item => item.name === newItem.name)
+        const newItem = res.find((i: any) => i.name === compareName)
+        const existingIdx = newArray.findIndex(item => item.name === compareName)
+
+        if (newItem) {
           if (existingIdx >= 0) {
-            newArray[existingIdx] = newItem
+            newArray[existingIdx] = { ...newItem, type }
           } else {
-            newArray.push(newItem)
+            newArray.push({ ...newItem, type })
           }
-        })
+        } else {
+          // If the item is not in the comparison results, it means it is EQUAL
+          if (existingIdx >= 0) {
+            const currentItem = newArray[existingIdx]
+            newArray[existingIdx] = {
+              ...currentItem,
+              status: 'EQUAL',
+              diff: {
+                source: currentItem.diff?.source || currentItem.diff?.target || '',
+                target: currentItem.diff?.source || currentItem.diff?.target || ''
+              }
+            }
+          }
+        }
 
         if (type === 'tables') tableResults.value = newArray
         else if (type === 'procedures') procedureResults.value = newArray
@@ -850,6 +869,27 @@ const runComparison = async () => {
 
     // Complete operation record
     operationsStore.completeOperation(opId, true, { ddlCount: totalCount })
+
+    // Sync tabs and selectedItem with new comparison results
+    tabs.value.forEach(tab => {
+      if (tab.id === 'search_advanced') return
+      
+      const type = tab.data?.type?.toLowerCase()
+      let list: any[] = []
+      if (type === 'tables') list = tableResults.value
+      else if (type === 'procedures') list = procedureResults.value
+      else if (type === 'functions') list = functionResults.value
+      else if (type === 'views') list = viewResults.value
+      else if (type === 'triggers') list = triggerResults.value
+
+      const newItem = list.find((i: any) => i.name === tab.data?.name)
+      if (newItem) {
+        tab.data = newItem
+        if (selectedItem.value && selectedItem.value.name === tab.data.name && selectedItem.value.type === tab.data.type) {
+          selectedItem.value = newItem
+        }
+      }
+    })
 
     // Sync to Sidebar Store
     sidebarStore.setComparisonResults(allResults.value)
@@ -945,6 +985,8 @@ const runFetchAndCompare = async () => {
 
 const handleRefreshPair = async (item: any) => {
   if (!activePair.value || !item) return
+  const tabId = `${item.type || 'unknown'}-${item.name}`
+  refreshingTabId.value = tabId
   loading.value = true
   loadingAction.value = 'fetch'
   sidebarStore.isComparing = true
@@ -964,12 +1006,6 @@ const handleRefreshPair = async (item: any) => {
     // Run comparison for the active pair
     statusMessage.value = 'Analyzing differences...'
     await runComparison()
-
-    notificationStore.add({
-      title: 'Pair Refresh Complete',
-      message: `Object ${name} refreshed and compared successfully`,
-      type: 'success'
-    })
   } catch (e: any) {
     error.value = e.message
     errorStore.showError({
@@ -980,6 +1016,7 @@ const handleRefreshPair = async (item: any) => {
     sidebarStore.isComparing = false
     loading.value = false
     loadingAction.value = null
+    refreshingTabId.value = null
   }
 }
 

@@ -41,6 +41,21 @@
       ></div>
     </div>
 
+    <div class="flex items-center gap-1 shrink-0 ml-1">
+      <!-- + New Query button at end of tabs -->
+      <button
+        v-if="showAddButton"
+        @click="$emit('new-query')"
+        class="flex-none flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-emerald-500 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/10 transition-all duration-150 active:scale-95"
+        title="New Query (Ctrl+T)"
+      >
+        <Plus class="w-3.5 h-3.5" />
+      </button>
+
+      <!-- Slot for extra actions at the end of tab bar -->
+      <slot name="actions"></slot>
+    </div>
+
     <!-- Context Menu Container -->
     <div style="display: contents">
       <Teleport to="body">
@@ -103,7 +118,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { X, Copy, Trash2, ArrowRightToLine } from 'lucide-vue-next'
+import { X, Copy, Trash2, ArrowRightToLine, Plus } from 'lucide-vue-next'
 
 const props = defineProps<{
   tabs: Array<{
@@ -112,9 +127,10 @@ const props = defineProps<{
     icon?: any
   }>
   activeTabId: string | null
+  showAddButton?: boolean
 }>()
 
-defineEmits(['select', 'close', 'duplicate', 'closeOthers', 'closeRight'])
+defineEmits(['select', 'close', 'duplicate', 'closeOthers', 'closeRight', 'new-query'])
 
 const showContextMenu = ref(false)
 const menuPosition = ref({ x: 0, y: 0 })

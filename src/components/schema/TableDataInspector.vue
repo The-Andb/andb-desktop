@@ -397,7 +397,9 @@ const executeQuery = async () => {
 
   try {
     const cols = selectProjection.value.trim() || '*'
-    let query = `SELECT ${cols} FROM \`${props.tableName}\` as \`${tableAlias.value}\``
+    const quotedTable = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+    const quotedAlias = Andb.quoteIdentifier(tableAlias.value, props.connection?.type)
+    let query = `SELECT ${cols} FROM ${quotedTable} as ${quotedAlias}`
     
     if (filter.value.trim()) {
       const cleanFilter = filter.value.trim()
@@ -405,7 +407,8 @@ const executeQuery = async () => {
     }
 
     if (sortBy.value) {
-      query += ` ORDER BY \`${sortBy.value}\` ${sortOrder.value}`
+      const quotedSortBy = Andb.quoteIdentifier(sortBy.value, props.connection?.type)
+      query += ` ORDER BY ${quotedSortBy} ${sortOrder.value}`
     }
 
     const data = await Andb.executeQuery(props.connection, query, [], undefined, undefined, CHUNK_SIZE.value, 0)
@@ -418,7 +421,8 @@ const executeQuery = async () => {
       persistedHeaders.value = Object.keys(results.value[0])
     } else if (persistedHeaders.value.length === 0 && props.tableName) {
       try {
-        const desc = await Andb.executeQuery(props.connection, `DESCRIBE \`${props.tableName}\``)
+        const quotedTableDesc = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+        const desc = await Andb.executeQuery(props.connection, `DESCRIBE ${quotedTableDesc}`)
         if (Array.isArray(desc) && desc.length > 0) {
           persistedHeaders.value = desc.map((r: any) => r.Field || r.COLUMN_NAME || r.name || Object.values(r)[0])
         }
@@ -506,7 +510,9 @@ const loadMore = async () => {
 
   try {
     const cols = selectProjection.value.trim() || '*'
-    let query = `SELECT ${cols} FROM \`${props.tableName}\` as \`${tableAlias.value}\``
+    const quotedTable = Andb.quoteIdentifier(props.tableName, props.connection?.type)
+    const quotedAlias = Andb.quoteIdentifier(tableAlias.value, props.connection?.type)
+    let query = `SELECT ${cols} FROM ${quotedTable} as ${quotedAlias}`
     
     if (filter.value.trim()) {
       const cleanFilter = filter.value.trim()
@@ -514,7 +520,8 @@ const loadMore = async () => {
     }
 
     if (sortBy.value) {
-      query += ` ORDER BY \`${sortBy.value}\` ${sortOrder.value}`
+      const quotedSortBy = Andb.quoteIdentifier(sortBy.value, props.connection?.type)
+      query += ` ORDER BY ${quotedSortBy} ${sortOrder.value}`
     }
 
     const data = await Andb.executeQuery(props.connection, query, [], undefined, undefined, CHUNK_SIZE.value, nextOffset)

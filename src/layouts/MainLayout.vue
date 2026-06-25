@@ -63,7 +63,7 @@
         <!-- Toolbar Row (Operational context & Breadcrumbs) -->
         <div
           v-if="appStore.layoutSettings.toolbar && ($slots.toolbar || $slots.breadcrumbs || isGlobalLayer)"
-          class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950 z-[20] transition-all duration-300"
+          class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 bg-white dark:bg-gray-950 z-[90] transition-all duration-300"
         >
           <div class="flex-1 flex items-center justify-between min-w-0 h-full">
             <!-- Left Side: Breadcrumbs -->

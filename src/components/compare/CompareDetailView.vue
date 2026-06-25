@@ -44,21 +44,65 @@
         <div class="flex items-center gap-2 shrink-0">
           <button
             @click="$emit('refresh-pair', selectedItem)"
-            class="text-[10px] font-extrabold text-gray-500 hover:text-white hover:bg-gray-500 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 shadow-sm active:scale-95 animate-in fade-in duration-200"
-            title="Re-fetch and compare only this object"
+            :disabled="isRefreshing || showSuccessTick"
+            class="text-[10px] font-extrabold flex items-center transition-all rounded-lg active:scale-95 animate-in fade-in duration-200 focus:outline-none disabled:opacity-80 disabled:cursor-default"
+            :class="[
+              buttonStyle === 'icons' ? 'p-2 shadow-sm' : buttonStyle === 'full' ? 'px-3.5 py-2 shadow-md' : 'px-2.5 py-1.5 shadow-sm',
+              buttonStyle === 'icons' ? '' : 'gap-1.5',
+              showSuccessTick
+                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900/40'
+                : buttonStyle === 'full'
+                  ? 'text-gray-850 dark:text-gray-250 hover:bg-gray-200 dark:hover:bg-gray-700 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 border border-gray-350 dark:border-gray-700'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-600 bg-gray-50 dark:bg-gray-950/20 border border-gray-200 dark:border-gray-800'
+            ]"
+            title="Force refresh database metadata & re-run comparison for this object"
           >
-            <RotateCw class="w-3.5 h-3.5" />
-            Refresh Pair
+            <template v-if="isRefreshing">
+              <RotateCw class="w-3.5 h-3.5 animate-spin" />
+              <span v-if="buttonStyle !== 'icons'">Refreshing...</span>
+            </template>
+            <template v-else-if="showSuccessTick">
+              <Check class="w-3.5 h-3.5 text-emerald-500" />
+              <span v-if="buttonStyle !== 'icons'">Refreshed</span>
+            </template>
+            <template v-else>
+              <RotateCw class="w-3.5 h-3.5" />
+              <span v-if="buttonStyle !== 'icons'">Refresh Pair</span>
+            </template>
           </button>
           
           <button
             v-if="selectedItem.status?.toLowerCase() !== 'equal' && selectedItem.status?.toLowerCase() !== 'same'"
             @click="$emit('migrate', { ...selectedItem, backwards: true })"
-            class="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 hover:text-white hover:bg-amber-600 flex items-center gap-1.5 transition-all px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 shadow-sm active:scale-95 animate-in fade-in duration-200"
+            class="text-[10px] font-extrabold flex items-center transition-all rounded-lg active:scale-95 animate-in fade-in duration-200 focus:outline-none"
+            :class="[
+              buttonStyle === 'icons' ? 'p-2 shadow-sm' : buttonStyle === 'full' ? 'px-3.5 py-2 shadow-md' : 'px-2.5 py-1.5 shadow-sm',
+              buttonStyle === 'icons' ? '' : 'gap-1.5',
+              buttonStyle === 'full'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-655 text-white border-transparent'
+                : 'text-amber-600 dark:text-amber-400 hover:text-white hover:bg-amber-600 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40'
+            ]"
             title="Alter Source database to match Target"
           >
-            <RotateCw class="w-3.5 h-3.5 transform -scale-x-100" />
-            Alter Source
+            <ArrowLeft class="w-3.5 h-3.5" />
+            <span v-if="buttonStyle !== 'icons'">Alter Source</span>
+          </button>
+
+          <button
+            v-if="selectedItem.status?.toLowerCase() !== 'equal' && selectedItem.status?.toLowerCase() !== 'same' && !isTargetDump"
+            @click="$emit('migrate', { ...selectedItem, backwards: false })"
+            class="text-[10px] font-extrabold flex items-center transition-all rounded-lg active:scale-95 animate-in fade-in duration-200 focus:outline-none"
+            :class="[
+              buttonStyle === 'icons' ? 'p-2 shadow-sm' : buttonStyle === 'full' ? 'px-3.5 py-2 shadow-md' : 'px-2.5 py-1.5 shadow-sm',
+              buttonStyle === 'icons' ? '' : 'gap-1.5',
+              buttonStyle === 'full'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-655 text-white border-transparent'
+                : 'text-emerald-600 dark:text-emerald-400 hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900/40'
+            ]"
+            title="Alter Target database to match Source"
+          >
+            <ArrowRight class="w-3.5 h-3.5" />
+            <span v-if="buttonStyle !== 'icons'">Alter Target</span>
           </button>
         </div>
       </div>
@@ -85,6 +129,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import {
   Database,
   ChevronRight,
@@ -94,7 +139,10 @@ import {
   Layers,
   Workflow,
   Sigma,
-  RotateCw
+  RotateCw,
+  ArrowLeft,
+  ArrowRight,
+  Check
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import TabBar from '@/components/general/TabBar.vue'
@@ -103,20 +151,42 @@ import CompareSearchView from '@/components/compare/CompareSearchView.vue'
 
 const { t } = useI18n()
 
-defineProps<{
-  tabs: any[]
-  activeTabId: string | null
-  selectedItem: any | null
-  selectedPath: { env: string; db: string; type: string }
-  sourceName: string
-  targetName: string
-  isTargetDump: boolean
-  isMigrating: boolean
-  isMigratingItemId: string | null
-  diffOptions: any
-  navigatableNames: string[]
-  allResults: any[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    tabs: any[]
+    activeTabId: string | null
+    selectedItem: any | null
+    selectedPath: { env: string; db: string; type: string }
+    sourceName: string
+    targetName: string
+    isTargetDump: boolean
+    isMigrating: boolean
+    isMigratingItemId: string | null
+    isRefreshing?: boolean
+    diffOptions: any
+    navigatableNames: string[]
+    allResults: any[]
+    buttonStyle?: 'full' | 'minimal' | 'icons'
+  }>(),
+  {
+    isRefreshing: false,
+    buttonStyle: 'full'
+  }
+)
+
+const showSuccessTick = ref(false)
+
+watch(
+  () => props.isRefreshing,
+  (newVal, oldVal) => {
+    if (oldVal === true && newVal === false) {
+      showSuccessTick.value = true
+      setTimeout(() => {
+        showSuccessTick.value = false
+      }, 2000)
+    }
+  }
+)
 
 defineEmits([
   'select-tab',

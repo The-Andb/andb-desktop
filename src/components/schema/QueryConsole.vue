@@ -18,7 +18,7 @@
 
         <!-- Cancel / Stop Button -->
         <button
-          v-if="isLoading && activeSession && props.connection"
+          v-if="isLoading && activeSession && activeConnection"
           @click="handleCancelQuery"
           class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-wider rounded-lg shadow-md shadow-red-500/10 active:scale-[0.98] transition-all shrink-0"
         >
@@ -27,6 +27,16 @@
         </button>
 
         <div class="h-5 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1 shrink-0"></div>
+
+        <!-- Fill Params -->
+        <button
+          @click="fillParameters"
+          class="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 transition-colors shrink-0"
+          title="Quick Fill Parameters"
+        >
+          <Wand2 class="w-3.5 h-3.5 text-purple-500" />
+          <span>Fill Params</span>
+        </button>
 
         <!-- Format SQL -->
         <button
@@ -61,6 +71,19 @@
 
       <!-- Right side: Limit, View & Export Dropdowns -->
       <div class="flex items-center gap-2.5 shrink-0">
+        <!-- DB Selector -->
+        <div class="flex items-center gap-1.5 shrink-0 pr-2 border-r border-gray-200 dark:border-gray-700">
+          <Database class="w-3.5 h-3.5 text-gray-400" />
+          <select
+            v-model="localConnectionId"
+            class="bg-transparent border-none text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-0 cursor-pointer min-w-[100px] p-0"
+          >
+            <option v-for="conn in appStore.filteredConnections" :key="conn.id" :value="conn.id">
+              {{ conn.name }} ({{ conn.environment }})
+            </option>
+          </select>
+        </div>
+
         <!-- Limit Selection -->
         <div class="flex items-center gap-2 shrink-0">
           <span class="text-[10px] font-black uppercase text-gray-455 dark:text-gray-500 tracking-wider">Limit:</span>
@@ -282,7 +305,7 @@
 
         <!-- Result Content (Universal Data Grid) -->
         <UniversalDataGrid
-          v-else-if="activeTab === 'grid' && activeSession.results && activeSession.results.length > 0"
+          v-else-if="activeTab === 'grid' && activeSession.results && (activeSession.results.length > 0 || getColumnHeaders(activeSession).length > 0)"
           ref="gridRef"
           :table-id="`query-console-${activeSession.id}`"
           :headers="getColumnHeaders(activeSession)"
@@ -294,7 +317,7 @@
           :row-height="rowHeight"
           :text-size="parseInt(textSize)"
           :show-column-filters="showColumnFilters"
-          :connection="connection"
+          :connection="activeConnection"
           :table-name="detectTableName(activeSession.sql)"
           @edits-committed="handleExecute(false)"
           @load-more="loadMore"
@@ -395,7 +418,7 @@
         <p class="text-sm tracking-tight font-medium">
           Ready to execute SQL on
           <span class="text-primary-500 font-bold">{{
-            connection?.name || 'Unknown Connection'
+            activeConnection?.name || 'Unknown Connection'
           }}</span>
         </p>
       </div>
@@ -410,16 +433,16 @@
           <div
             class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] shrink-0"
           ></div>
-          <span class="text-gray-400 whitespace-nowrap">{{ connection?.name || 'Unknown' }}</span>
+          <span class="text-gray-400 whitespace-nowrap">{{ activeConnection?.name || 'Unknown' }}</span>
         </div>
         <div class="flex items-center gap-4 text-gray-400/60 min-w-0 shrink-0">
           <span
             class="truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] whitespace-nowrap block"
-            :title="connection?.host"
-            >{{ connection?.host || 'localhost' }}{{ connection?.port ? `:${connection.port}` : '' }}</span
+            :title="activeConnection?.host"
+            >{{ activeConnection?.host || 'localhost' }}{{ activeConnection?.port ? `:${activeConnection.port}` : '' }}</span
           >
           <span class="whitespace-nowrap shrink-0">UTF-8</span>
-          <span class="text-primary-500 whitespace-nowrap shrink-0">{{ connection?.type || 'SQL' }}Dialect</span>
+          <span class="text-primary-500 whitespace-nowrap shrink-0">{{ activeConnection?.type || 'SQL' }}Dialect</span>
         </div>
 
         <!-- Auto-commit and transaction controls -->
@@ -471,10 +494,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { Play, Loader2, Database, X, ChevronDown, Download, AlignLeft, Zap, Save, SlidersHorizontal, Maximize2 } from 'lucide-vue-next'
+import { Play, Loader2, Database, X, ChevronDown, Download, AlignLeft, Zap, Save, SlidersHorizontal, Maximize2, Wand2 } from 'lucide-vue-next'
 import { Andb } from '@/utils/andb'
 import MonacoEditor from '@/components/general/MonacoEditor.vue'
-import type { DatabaseConnection } from '@/stores/app'
+import { useAppStore, type DatabaseConnection } from '@/stores/app'
 import { useProjectsStore } from '@/stores/projects'
 import UniversalDataGrid from './UniversalDataGrid.vue'
 
@@ -497,8 +520,29 @@ interface ResultSession {
 const props = defineProps<{
   connection?: DatabaseConnection
   initialSql?: string
+  skipAutoload?: boolean
   schemaMetadata?: { tables: string[], columns: Record<string, string[]> }
 }>()
+
+const emit = defineEmits<{
+  (e: 'update-sql', sql: string): void
+}>()
+
+const appStore = useAppStore()
+const localConnectionId = ref(props.connection?.id || '')
+
+watch(() => props.connection, (newConn) => {
+  if (newConn && newConn.id !== localConnectionId.value) {
+    localConnectionId.value = newConn.id
+  }
+})
+
+const activeConnection = computed(() => {
+  if (localConnectionId.value) {
+    return appStore.getConnectionById(localConnectionId.value) || props.connection
+  }
+  return props.connection
+})
 
 const sql = ref(props.initialSql || '')
 const sessions = ref<ResultSession[]>([])
@@ -544,11 +588,11 @@ const autoFitColumns = () => {
 }
 
 // Session ID for auto-saving queries to a single file per editor instance session
-const sessionTimestamp = ref(Math.floor(Date.now() / 1000))
 const projectsStore = useProjectsStore()
 
 let saveTimeout: any = null
 watch(sql, (newSql) => {
+  emit('update-sql', newSql)
   if (saveTimeout) clearTimeout(saveTimeout)
   saveTimeout = setTimeout(() => {
     if (!newSql.trim()) return
@@ -556,10 +600,12 @@ watch(sql, (newSql) => {
     const baseDir = currentProject?.projectBaseDir || currentProject?.settings?.projectBaseDir
     if (!baseDir) return
 
+    const connId = activeConnection.value?.id || 'default'
+
     window.electronAPI.invoke('andb-save-query', {
       sql: newSql,
       projectBaseDir: baseDir,
-      filename: `query_${sessionTimestamp.value}.sql`
+      filename: `autosave_${connId}.sql`
     }).catch((err: any) => console.error('[QueryConsole] Auto-save error:', err))
   }, 1000)
 })
@@ -568,11 +614,134 @@ const formatSql = () => {
   monacoRef.value?.format()
 }
 
+const fillParameters = () => {
+  const currentSql = sql.value
+  if (!currentSql) return
+
+  const paramMatch = currentSql.match(/--\s*PARAMETERS\s*:\s*(\[.*\])/i)
+  if (!paramMatch) return
+
+  try {
+    const paramsJson = paramMatch[1]
+    const params = JSON.parse(paramsJson)
+    
+    if (!Array.isArray(params)) return
+
+    let paramIndex = 0
+    let inString = false
+    let stringChar = ''
+    let filledSql = ''
+    
+    for (let i = 0; i < currentSql.length; i++) {
+      const char = currentSql[i]
+      
+      if ((char === "'" || char === '"') && (i === 0 || currentSql[i - 1] !== '\\')) {
+        if (!inString) {
+          inString = true
+          stringChar = char
+        } else if (stringChar === char) {
+          inString = false
+        }
+      }
+      
+      if (char === '?' && !inString && paramIndex < params.length) {
+        const val = params[paramIndex++]
+        if (val === null) filledSql += 'NULL'
+        else if (typeof val === 'string') filledSql += `'${val.replace(/'/g, "''")}'`
+        else if (typeof val === 'boolean') filledSql += val ? 'TRUE' : 'FALSE'
+        else filledSql += String(val)
+      } else {
+        filledSql += char
+      }
+    }
+
+    // Remove the PARAMETERS comment
+    filledSql = filledSql.replace(/--\s*PARAMETERS\s*:\s*\[.*\]/i, '').trim()
+
+    sql.value = filledSql
+  } catch (err) {
+    console.error('Failed to parse parameters:', err)
+  }
+}
+
 const activeSession = computed(() => sessions.value.find(s => s.id === activeSessionId.value))
 
+const extractHeadersFromSql = (sqlText: string, schemaMetadata?: any): string[] => {
+  if (!sqlText) return []
+  const cleanSql = sqlText.trim().replace(/\s+/g, ' ')
+  
+  if (!cleanSql.toUpperCase().startsWith('SELECT')) return []
+
+  const match = cleanSql.match(/select\s+(.*?)\s+from/i)
+  if (!match) return []
+
+  const selectExpr = match[1].trim()
+  
+  const fields: string[] = []
+  let currentField = ''
+  let parenDepth = 0
+  for (let i = 0; i < selectExpr.length; i++) {
+    const char = selectExpr[i]
+    if (char === '(') parenDepth++
+    else if (char === ')') parenDepth--
+    
+    if (char === ',' && parenDepth === 0) {
+      fields.push(currentField.trim())
+      currentField = ''
+    } else {
+      currentField += char
+    }
+  }
+  if (currentField.trim()) {
+    fields.push(currentField.trim())
+  }
+
+  const headers: string[] = []
+  for (const field of fields) {
+    const cleanField = field.replace(/`/g, '').replace(/"/g, '').replace(/'/g, '')
+    
+    const asMatch = cleanField.match(/\s+as\s+(\S+)/i)
+    if (asMatch) {
+      headers.push(asMatch[1])
+      continue
+    }
+
+    const words = cleanField.split(/\s+/)
+    if (words.length > 1) {
+      const lastWord = words[words.length - 1]
+      if (/^[a-zA-Z0-9_-]+$/.test(lastWord) && !['ASC', 'DESC', 'AND', 'OR', 'ON'].includes(lastWord.toUpperCase())) {
+        headers.push(lastWord)
+        continue
+      }
+    }
+
+    const dotParts = cleanField.split('.')
+    let columnName = dotParts[dotParts.length - 1].trim()
+    
+    if (columnName === '*') {
+      const tableName = detectTableName(sqlText)
+      if (tableName && schemaMetadata?.columns?.[tableName]) {
+        headers.push(...schemaMetadata.columns[tableName])
+        continue
+      }
+    }
+
+    headers.push(columnName)
+  }
+
+  return headers
+}
+
 const getColumnHeaders = (session: ResultSession) => {
-  if (!session.results || session.results.length === 0) return []
-  return Object.keys(session.results[0])
+  if (!session.results) return []
+  if ((session.results as any).__fields && (session.results as any).__fields.length > 0) {
+    return (session.results as any).__fields
+  }
+  if (session.results.length > 0) {
+    return Object.keys(session.results[0])
+  }
+  // Try to parse headers directly from SELECT query if results are empty and there are no fields metadata
+  return extractHeadersFromSql(session.sql, props.schemaMetadata)
 }
 
 
@@ -591,7 +760,7 @@ const downloadCsv = (session?: ResultSession | null) => {
     headers.join(','),
     ...session.results.map(row =>
       headers
-        .map(header => {
+        .map((header: any) => {
           let val = row[header]
           if (val === null) return 'NULL'
           if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`
@@ -624,7 +793,7 @@ const handleExecute = async (newTab: boolean = false) => {
   if (!querySql || isLoading.value) return
   activeTab.value = 'grid'
 
-  if (!props.connection) {
+  if (!activeConnection.value) {
     addResultSession(
       {
         sql: querySql,
@@ -652,7 +821,7 @@ const handleExecute = async (newTab: boolean = false) => {
 
   try {
     const data = await Andb.executeQuery(
-      props.connection,
+      activeConnection.value,
       querySql,
       [],
       targetSessionId,
@@ -698,7 +867,7 @@ const handleExplain = async () => {
   if (!targetSql || isLoading.value) return
   activeTab.value = 'explain'
 
-  if (!props.connection) {
+  if (!activeConnection.value) {
     addResultSession(
       {
         sql: `EXPLAIN ${targetSql}`,
@@ -720,7 +889,7 @@ const handleExplain = async () => {
 
   try {
     const data = await Andb.executeQuery(
-      props.connection,
+      activeConnection.value,
       explainSql,
       [],
       targetSessionId,
@@ -759,14 +928,14 @@ const handleExplain = async () => {
 }
 
 const toggleAutocommit = async () => {
-  if (!activeSession.value || !props.connection) return
+  if (!activeSession.value || !activeConnection.value) return
   const currentVal = activeSession.value.autocommit !== false
   const nextVal = !currentVal
   activeSession.value.autocommit = nextVal
 
   try {
     await Andb.executeQuery(
-      props.connection,
+      activeConnection.value,
       `SET autocommit = ${nextVal ? 1 : 0};`,
       [],
       activeSession.value.id,
@@ -778,10 +947,10 @@ const toggleAutocommit = async () => {
 }
 
 const commitTransaction = async () => {
-  if (!activeSession.value || !props.connection) return
+  if (!activeSession.value || !activeConnection.value) return
   isLoading.value = true
   try {
-    await Andb.executeQuery(props.connection, 'COMMIT;', [], activeSession.value.id, false)
+    await Andb.executeQuery(activeConnection.value, 'COMMIT;', [], activeSession.value.id, false)
   } catch (err: any) {
     activeSession.value.isError = true
     activeSession.value.error = `Commit failed: ${err.message}`
@@ -791,10 +960,10 @@ const commitTransaction = async () => {
 }
 
 const rollbackTransaction = async () => {
-  if (!activeSession.value || !props.connection) return
+  if (!activeSession.value || !activeConnection.value) return
   isLoading.value = true
   try {
-    await Andb.executeQuery(props.connection, 'ROLLBACK;', [], activeSession.value.id, false)
+    await Andb.executeQuery(activeConnection.value, 'ROLLBACK;', [], activeSession.value.id, false)
   } catch (err: any) {
     activeSession.value.isError = true
     activeSession.value.error = `Rollback failed: ${err.message}`
@@ -804,9 +973,9 @@ const rollbackTransaction = async () => {
 }
 
 const handleCancelQuery = async () => {
-  if (!activeSession.value || !props.connection) return
+  if (!activeSession.value || !activeConnection.value) return
   try {
-    await Andb.cancelQuery(props.connection, activeSession.value.id)
+    await Andb.cancelQuery(activeConnection.value, activeSession.value.id)
   } catch (err: any) {
     console.error('Failed to cancel query:', err)
   }
@@ -882,7 +1051,7 @@ const stopResize = () => {
 
 const loadMore = async () => {
   const session = activeSession.value
-  if (!session || isLoading.value || session.isLoadingMore || !session.hasMore || !props.connection) return
+  if (!session || isLoading.value || session.isLoadingMore || !session.hasMore || !activeConnection.value) return
 
   session.isLoadingMore = true
   const CHUNK_SIZE = Number(limit.value)
@@ -893,7 +1062,7 @@ const loadMore = async () => {
     
     // Call executeQuery passing limit and offset
     const data = await Andb.executeQuery(
-      props.connection,
+      activeConnection.value,
       querySql,
       [],
       session.id,
@@ -920,8 +1089,33 @@ const closeDropdowns = () => {
   showExportMenu.value = false
 }
 
+const loadAutoSave = async () => {
+  if (props.skipAutoload) return
+  if (sql.value) return // If initialSql was provided, don't overwrite
+
+  const currentProject = projectsStore.currentProject
+  const baseDir = currentProject?.projectBaseDir || currentProject?.settings?.projectBaseDir
+  if (!baseDir) return
+
+  const connId = activeConnection.value?.id || 'default'
+  const filename = `autosave_${connId}.sql`
+  
+  try {
+    const result = await (window as any).electronAPI.andbLoadQuery({
+      projectBaseDir: baseDir,
+      filename
+    })
+    if (result.success && result.sql) {
+      sql.value = result.sql
+    }
+  } catch (err) {
+    console.warn('[QueryConsole] Failed to load auto-save:', err)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('click', closeDropdowns)
+  loadAutoSave()
 })
 
 onUnmounted(async () => {

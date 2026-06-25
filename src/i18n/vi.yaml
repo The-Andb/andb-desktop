@@ -455,9 +455,9 @@ connections:
   databaseType: 'Loại cơ sở dữ liệu'
   types:
     mysql: 'MySQL / MariaDB'
+    postgres: 'PostgreSQL'
+    sqlite: 'SQLite'
     dump: 'Tệp SQL Dump'
-    postgres: 'PostgreSQL (Sắp ra mắt)'
-    sqlite: 'SQLite (Sắp ra mắt)'
   dumpPath: 'Đường dẫn tệp SQL'
   dumpPathPlaceholder: 'Chọn hoặc nhập đường dẫn tới tệp .sql'
 
@@ -467,8 +467,8 @@ environments:
   manageConnections: 'Quản lý kết nối'
   dev: 'Phát triển'
   stage: 'Staging'
-  uat: 'Kiểm thử chấp nhận'
-  prod: 'Sản xuất'
+  uat: 'UAT'
+  prod: 'Production'
   custom: 'Tùy chỉnh'
   manager:
     namePlaceholder: 'Tên môi trường'
@@ -675,7 +675,7 @@ settings:
     subtitle: 'Định nghĩa luồng logic giữa môi trường nguồn và đích'
   backup:
     title: 'Toàn vẹn dữ liệu & Di động'
-    subtitle: 'Sao lưu cấu hình chính và ảnh chụp khôi phục'
+    subtitle: 'Sao lưu cấu hình chính và snapshot khôi phục'
   update:
     title: 'Cập nhật phần mềm'
     subtitle: 'Kiểm tra bản cập nhật ứng dụng và quản lý phiên bản'
@@ -867,9 +867,9 @@ restrictedUserSetup:
     btn: 'Kiểm tra & Hoàn tất'
     pass: 'HỢP LỆ'
     fail: 'CẦN KIỂM TRA LẠI'
-    baseConn: 'Kết nối cơ bản'
-    schemaRead: 'Quyền đọc lược đồ'
-    sandboxTest: 'Kiểm tra an toàn (Sandbox Write)'
+    noRights: 'Chưa kiểm tra được quyền'
+    schemaRead: 'Quyền đọc Schema'
+    schemaWrite: 'Quyền ghi Schema'
   success:
     title: 'Tuyệt vời! Hệ thống đã sẵn sàng.'
     msg: 'Tài khoản the_andb đã được cấu hình đúng chuẩn bảo mật. Bạn có thể bắt đầu làm việc ngay bây giờ.'

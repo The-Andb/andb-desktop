@@ -29,6 +29,7 @@ export interface CompareOptions {
   sourceEnv: string
   targetEnv: string
   name?: string // Specific object name
+  strictColumnOrder?: boolean
 }
 
 export interface MigrateOptions {
@@ -102,6 +103,16 @@ export class Andb {
       })
     }
     return rules.join('|')
+  }
+
+  /**
+   * Helper to quote an identifier based on database type
+   */
+  static quoteIdentifier(identifier: string, connectionType?: string): string {
+    if (connectionType === 'postgres') {
+      return `"${identifier}"`
+    }
+    return `\`${identifier}\``
   }
 
   /**
@@ -799,7 +810,16 @@ export class Andb {
         } as any)
       )
 
-      if (result.success) return result.data
+      if (result.success) {
+        if (result.data && result.data.rows !== undefined) {
+          const rows = result.data.rows;
+          if (result.data.fields) {
+            rows.__fields = result.data.fields;
+          }
+          return rows;
+        }
+        return result.data;
+      }
       throw new Error(result.error || 'Query failed')
     } catch (error: any) {
       throw new Error(`Query failed: ${error.message}`)

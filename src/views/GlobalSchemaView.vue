@@ -9,96 +9,23 @@
         @refresh="loadSchema(true)"
       >
         <template #actions>
-          <div class="flex items-center relative">
-            <!-- Unified New Object Split Action Dropdown -->
-            <Menu as="div" class="relative inline-flex shadow-sm shadow-emerald-500/10 hover:shadow-md hover:shadow-emerald-500/20 transition-all duration-300 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 p-[1px]">
-              <!-- Left Side: Primary default action (New Query) -->
-              <button
-                @click="openQueryConsole()"
-                class="group flex items-center gap-2 px-3 py-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-l-[7px] transition-all duration-300 active:scale-[0.98] shrink-0"
-                title="New Query"
-              >
-                <Terminal class="w-3.5 h-3.5 group-hover:scale-110 transition-transform opacity-90" />
-                <span class="hidden lg:inline text-[10.5px] font-bold uppercase tracking-wider">New Query</span>
-              </button>
-
-              <!-- Extremely subtle vertical divider -->
-              <div class="w-px bg-white/20 h-auto my-1"></div>
-
-              <!-- Right Side: Dropdown overlay trigger -->
-              <MenuButton
-                class="px-2 py-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-r-[7px] transition-all duration-300 active:scale-[0.98] flex items-center justify-center focus:outline-none"
-                title="More creation options"
-              >
-                <ChevronDown class="w-3.5 h-3.5 opacity-80 hover:opacity-100 transition-opacity" />
-              </MenuButton>
-
-              <!-- Glassmorphic Animated Dropdown Panel -->
-              <transition
-                enter-active-class="transition duration-150 ease-out"
-                enter-from-class="transform scale-95 opacity-0 -translate-y-2"
-                enter-to-class="transform scale-100 opacity-100 translate-y-0"
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="transform scale-100 opacity-100 translate-y-0"
-                leave-to-class="transform scale-95 opacity-0 -translate-y-2"
-              >
-                <MenuItems
-                  class="absolute right-0 top-full mt-2 w-48 origin-top-right rounded-xl bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 shadow-2xl shadow-gray-950/20 z-[100] p-1 focus:outline-none backdrop-blur-xl overflow-hidden ring-1 ring-black/5"
-                >
-                  <div class="px-3 py-2 border-b border-gray-100 dark:border-gray-800/80 mb-1 select-none">
-                    <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Create Object</p>
-                  </div>
-                  <MenuItem v-slot="{ active }">
-                    <button
-                      @click="openNewObjectTemplate('TABLE')"
-                      :class="[
-                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
-                      ]"
-                    >
-                      <Table2 class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
-                      New Table
-                    </button>
-                  </MenuItem>
-                  <MenuItem v-slot="{ active }">
-                    <button
-                      @click="openNewObjectTemplate('VIEW')"
-                      :class="[
-                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
-                      ]"
-                    >
-                      <Eye class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
-                      New View
-                    </button>
-                  </MenuItem>
-                  <MenuItem v-slot="{ active }">
-                    <button
-                      @click="openNewObjectTemplate('FUNCTION')"
-                      :class="[
-                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
-                      ]"
-                    >
-                      <Sigma class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
-                      New Function
-                    </button>
-                  </MenuItem>
-                  <MenuItem v-slot="{ active }">
-                    <button
-                      @click="openNewObjectTemplate('PROCEDURE')"
-                      :class="[
-                        active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                        'group flex w-full items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
-                      ]"
-                    >
-                      <Cpu class="w-4 h-4 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
-                      New Procedure
-                    </button>
-                  </MenuItem>
-                </MenuItems>
-              </transition>
-            </Menu>
+          <div class="flex items-center gap-2">
+            <!-- Primary: New Query button -->
+            <button
+              @click="openQueryConsole('', undefined, true)"
+              class="group flex items-center transition-all duration-200 active:scale-[0.97]"
+              :class="[
+                appStore.buttonStyle === 'icons' ? 'p-2 shadow-sm rounded-lg' : appStore.buttonStyle === 'full' ? 'px-3 py-1.5 shadow-sm shadow-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/30 rounded-lg font-bold' : 'px-2.5 py-1.5 rounded-lg border font-bold',
+                appStore.buttonStyle === 'icons' ? '' : 'gap-2',
+                appStore.buttonStyle === 'full'
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-transparent'
+                  : 'text-emerald-600 dark:text-emerald-400 hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-250 dark:border-emerald-900/40'
+              ]"
+              title="New Query (Ctrl+T)"
+            >
+              <Terminal class="w-3.5 h-3.5 group-hover:scale-110 transition-transform opacity-90" />
+              <span v-if="appStore.buttonStyle !== 'icons'" class="hidden lg:inline text-[10.5px] uppercase tracking-wider">New Query</span>
+            </button>
           </div>
         </template>
       </SchemaActionToolbar>
@@ -261,7 +188,7 @@
             @select="handleSelectItem"
             @refresh="loadSchema(true)"
             @start-resize="startResultsResize"
-            @new-query="openQueryConsole"
+            @new-query="openQueryConsole('', undefined, true)"
             @send-to-instant="handleSendToInstant"
             @refresh-item="handleRefreshItem"
           />
@@ -293,6 +220,9 @@
             @apply-table="handleApplyTable"
             @navigate-to-definition="handleNavigateToDefinition"
             @open-editor="data => openQueryConsole(data.sql, data.title)"
+            @new-query="openQueryConsole('', undefined, true)"
+            @create-object="type => openNewObjectTemplate(type)"
+            @update-tab-sql="handleUpdateTabSql"
           />
         </main>
       </div>
@@ -320,6 +250,7 @@ import { Database, Terminal, Table2, Eye, Sigma, Cpu, ChevronDown, Zap, Calendar
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 
 import { useAppStore } from '@/stores/app'
+import { useProjectsStore } from '@/stores/projects'
 import { useSchemaLoader } from '@/composables/useSchemaLoader'
 
 // Modular components
@@ -669,19 +600,53 @@ const handleRefreshItem = async (item: any) => {
 }
 
 // Tab Management
-const openQueryConsole = (initialSql: string = '', customName?: string) => {
+const openQueryConsole = (initialSql: string = '', customName?: string, skipAutoload: boolean = false) => {
   const queryId = `query-${Date.now()}`
   const newTab = {
     id: queryId,
     name: customName || `Query ${tabs.value.filter(t => t.type === 'query').length + 1}`,
     type: 'query',
     connection: appStore.getConnectionById(selectedConnectionId.value),
-    initialSql
+    initialSql,
+    skipAutoload
   }
 
   tabs.value.push(newTab)
   activeTabId.value = queryId
   selectedItem.value = newTab
+}
+
+const handleUpdateTabSql = (id: string, newSql: string) => {
+  const tab = tabs.value.find(t => t.id === id)
+  if (tab) {
+    tab.initialSql = newSql
+  }
+}
+
+const checkAndRestoreAutoSave = async (connId: string) => {
+  if (!connId) return
+
+  // Check if we already have a query tab open for this connection
+  const hasQueryTab = tabs.value.some(t => t.type === 'query' && t.connection?.id === connId)
+  if (hasQueryTab) return
+
+  const currentProject = useProjectsStore().currentProject
+  const baseDir = currentProject?.projectBaseDir || currentProject?.settings?.projectBaseDir
+  if (!baseDir) return
+
+  try {
+    const result = await (window as any).electronAPI.andbLoadQuery({
+      projectBaseDir: baseDir,
+      filename: `autosave_${connId}.sql`
+    })
+    
+    if (result.success && result.sql && result.sql.trim()) {
+      const connName = appStore.getConnectionById(connId)?.name || ''
+      openQueryConsole(result.sql, `Restored Query ${connName ? `(${connName}) ` : ''}${Date.now().toString().slice(-4)}`)
+    }
+  } catch (e) {
+    console.warn('[GlobalSchemaView] Could not load auto-save:', e)
+  }
 }
 
 const openDefinitionSearch = (query: string = '') => {
@@ -824,8 +789,18 @@ const handleReopenTab = (tab: any) => {
 const resetNavigation = () => {
   selectedItem.value = null
   selectedFilterType.value = 'all'
-  tabs.value = []
-  activeTabId.value = null
+  
+  // Preserve query and deep-search tabs across connection changes
+  tabs.value = tabs.value.filter(t => t.type === 'query' || t.type === 'deep-search')
+  
+  // Select the first remaining tab if the active one was discarded
+  if (activeTabId.value && !tabs.value.some(t => t.id === activeTabId.value)) {
+    if (tabs.value.length > 0) {
+      handleSelectTab(tabs.value[0].id)
+    } else {
+      activeTabId.value = null
+    }
+  }
 }
 
 const startResultsResize = (e: MouseEvent) => {
@@ -927,6 +902,9 @@ onMounted(async () => {
       appStore.selectedConnectionId = appStore.filteredConnections[0].id
     }
     loadSchema()
+    if (selectedConnectionId.value) {
+      checkAndRestoreAutoSave(selectedConnectionId.value)
+    }
   }
   window.addEventListener('andb-open-tab-search', handleOpenTabSearchEvent)
   window.addEventListener('category-selected', handleCategorySelectedEvent as any)
@@ -951,15 +929,19 @@ watch(
       }
       if (selectedConnectionId.value) {
         loadSchema()
+        checkAndRestoreAutoSave(selectedConnectionId.value)
       }
     }
   }
 )
 
-watch(selectedConnectionId, () => {
+watch(selectedConnectionId, (newId) => {
   if (appStore.isInitialized) {
     resetNavigation()
     loadSchema()
+    if (newId) {
+      checkAndRestoreAutoSave(newId)
+    }
   }
 })
 

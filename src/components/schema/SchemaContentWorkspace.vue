@@ -2,15 +2,105 @@
   <div class="flex-1 bg-white dark:bg-gray-950 overflow-hidden flex flex-col relative">
     <!-- Tab Bar -->
     <TabBar
-      v-if="tabs.length > 0"
       :tabs="tabs"
       :active-tab-id="activeTabId"
+      :show-add-button="false"
       @select="id => emit('select-tab', id)"
       @close="id => emit('close-tab', id)"
       @duplicate="id => emit('duplicate-tab', id)"
       @close-others="id => emit('close-others', id)"
       @close-right="id => emit('close-right', id)"
-    />
+      @new-query="emit('new-query')"
+    >
+      <template #actions>
+        <!-- Single Plus Button Dropdown -->
+        <Menu as="div" class="relative">
+          <MenuButton
+            class="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all duration-150 active:scale-95 focus:outline-none"
+            title="Create New..."
+          >
+            <Plus class="w-3.5 h-3.5" />
+          </MenuButton>
+
+          <transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+            enter-to-class="transform scale-100 opacity-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="transform scale-100 opacity-100 translate-y-0"
+            leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+          >
+            <MenuItems
+              class="absolute right-0 mt-1 w-44 origin-top-right rounded-xl bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 shadow-2xl z-[100] p-1 focus:outline-none backdrop-blur-xl ring-1 ring-black/5"
+            >
+              <div class="px-2.5 py-1.5 border-b border-gray-100 dark:border-gray-800/80 mb-1 select-none">
+                <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Create New</p>
+              </div>
+              <MenuItem v-slot="{ active }">
+                <button
+                  @click="emit('new-query')"
+                  :class="[
+                    active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <Plus class="w-3.5 h-3.5 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                  New Query
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  @click="emit('create-object', 'TABLE')"
+                  :class="[
+                    active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <Table2 class="w-3.5 h-3.5 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                  New Table
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  @click="emit('create-object', 'VIEW')"
+                  :class="[
+                    active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <Eye class="w-3.5 h-3.5 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                  New View
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  @click="emit('create-object', 'FUNCTION')"
+                  :class="[
+                    active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <Sigma class="w-3.5 h-3.5 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                  New Function
+                </button>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
+                <button
+                  @click="emit('create-object', 'PROCEDURE')"
+                  :class="[
+                    active ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/15' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    'group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[10px] font-bold uppercase tracking-wider transition-all duration-150 active:scale-[0.98]'
+                  ]"
+                >
+                  <Cpu class="w-3.5 h-3.5 transition-colors duration-150" :class="active ? 'text-white' : 'text-emerald-500'" />
+                  New Procedure
+                </button>
+              </MenuItem>
+            </MenuItems>
+          </transition>
+        </Menu>
+      </template>
+    </TabBar>
 
     <div v-if="selectedItem" class="flex-1 flex flex-col overflow-hidden">
       <!-- Item Header / Local Actions -->
@@ -174,7 +264,9 @@
           v-else-if="selectedItem.type === 'query'"
           :connection="selectedItem.connection"
           :initial-sql="selectedItem.initialSql"
+          :skip-autoload="selectedItem.skipAutoload"
           :schema-metadata="schemaMetadata"
+          @update-sql="newSql => emit('update-tab-sql', selectedItem.id, newSql)"
         />
         <DefinitionSearchPanel
           v-else-if="selectedItem.type === 'deep-search'"
@@ -245,8 +337,11 @@ import {
   Network,
   Database,
   Loader2,
-  Info
+  Info,
+  Plus,
+  Table2
 } from 'lucide-vue-next'
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import TabBar from '@/components/general/TabBar.vue'
 import DDLViewer from '@/components/ddl/DDLViewer.vue'
 import SchemaDiagram from '@/components/ddl/SchemaDiagram.vue'
@@ -326,6 +421,9 @@ const emit = defineEmits<{
   'apply-table': [sql: string]
   'navigate-to-definition': [word: string]
   'open-editor': [data: { sql: string; title: string }]
+  'new-query': []
+  'create-object': [type: 'TABLE' | 'VIEW' | 'FUNCTION' | 'PROCEDURE']
+  'update-tab-sql': [id: string, sql: string]
 }>()
 
 const typeIcons = {

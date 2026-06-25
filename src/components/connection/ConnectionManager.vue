@@ -153,12 +153,7 @@
             <LayoutTemplate class="w-4 h-4" /> Import
           </button>
 
-          <button
-            @click="showAddForm = true"
-            class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95"
-          >
-            <Plus class="w-4 h-4" /> Add Connection
-          </button>
+
         </div>
       </div>
 
@@ -474,7 +469,7 @@
             {{ $t('connections.noConnections') || 'No endpoints found' }}
           </h3>
           <p class="text-xs text-gray-500 max-w-xs mb-6">
-            Import from Global Templates or create new connections manually.
+            Import from Global Templates to get started.
           </p>
           <div class="flex items-center gap-3">
             <button
@@ -483,12 +478,7 @@
             >
               <LayoutTemplate class="w-4 h-4" /> Import from Global
             </button>
-            <button
-              @click="showAddForm = true"
-              class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/20 transition-all active:scale-95 flex items-center gap-2"
-            >
-              <Plus class="w-4 h-4" /> New Connection
-            </button>
+
           </div>
         </div>
       </div>
@@ -976,15 +966,23 @@ const importSelectedTemplates = async () => {
   const targetProjectId = projectsStore.selectedProjectId
   if (!targetProjectId || pickerSelectedIds.value.length === 0) return
 
+  const project = projectsStore.projects.find(p => p.id === targetProjectId)
   const defaultEnv = connectionPairsStore.enabledEnvironments[0]?.name || 'DEV'
+  
+  const envsToAdd: string[] = []
 
   for (const templateId of pickerSelectedIds.value) {
     const template = templatesStore.templates.find(t => t.id === templateId)
     if (!template) continue
 
+    const envName = (template.environment?.split(',')[0]?.trim() || defaultEnv)
+    if (project && !project.enabledEnvironmentIds.includes(envName) && !envsToAdd.includes(envName)) {
+       envsToAdd.push(envName)
+    }
+
     const connData: Omit<DatabaseConnection, 'id'> = {
       name: template.name,
-      environment: (template.environment?.split(',')[0]?.trim() || defaultEnv) as any,
+      environment: envName as any,
       database: template.database || '',
       templateId: template.id,
       type: template.type as any,
@@ -994,6 +992,12 @@ const importSelectedTemplates = async () => {
       username: template.username || ''
     }
     await appStore.addConnection(connData, targetProjectId)
+  }
+  
+  if (project && envsToAdd.length > 0) {
+    projectsStore.updateProject(targetProjectId, {
+      enabledEnvironmentIds: [...project.enabledEnvironmentIds, ...envsToAdd]
+    })
   }
 
   // Reset and close

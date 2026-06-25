@@ -87,6 +87,7 @@ export const useAppStore = defineStore('app', () => {
   // State
   const sidebarCollapsed = ref(false)
   const safeMode = ref(true) // Default to true for safety
+  const strictColumnOrder = ref(false)
   const aiEnabled = ref(true) // Master switch for AI features
   const isInitialized = ref(false)
   const compareMode = ref<'auto' | 'instant'>('auto')
@@ -202,6 +203,7 @@ export const useAppStore = defineStore('app', () => {
         }
 
         safeMode.value = savedSettings.safeMode !== undefined ? savedSettings.safeMode : true
+        strictColumnOrder.value = savedSettings.strictColumnOrder !== undefined ? savedSettings.strictColumnOrder : false
         aiEnabled.value = savedSettings.aiEnabled !== undefined ? savedSettings.aiEnabled : true
 
         // Manage Installation ID
@@ -456,6 +458,10 @@ export const useAppStore = defineStore('app', () => {
 
   watch(safeMode, newValue => {
     storage.updateSettings({ safeMode: newValue })
+  })
+
+  watch(strictColumnOrder, newValue => {
+    storage.updateSettings({ strictColumnOrder: newValue })
   })
 
   watch(aiEnabled, newValue => {
@@ -737,6 +743,7 @@ export const useAppStore = defineStore('app', () => {
     isInitialized,
     sidebarCollapsed,
     safeMode,
+    strictColumnOrder,
     aiEnabled,
     isDark,
     buttonStyle,

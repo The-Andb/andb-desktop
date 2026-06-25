@@ -252,6 +252,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     permissions: any
   }) => ipcRenderer.invoke('probe-restricted-user', args),
 
+  // Auto save Schema view queries
+  andbSaveQuery: (args: any) => ipcRenderer.invoke('andb-save-query', args),
+  andbLoadQuery: (args: any) => ipcRenderer.invoke('andb-load-query', args),
+
   // Auto Updater
   updater: {
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),

@@ -1377,7 +1377,7 @@ export async function handleAndbSaveQuery(_event: any, args: { sql: string, proj
     const { sql, projectBaseDir, filename } = args || {}
     if (!projectBaseDir) throw new Error('projectBaseDir is required')
 
-    const queryDir = path.join(projectBaseDir, 'query')
+    const queryDir = path.join(projectBaseDir, 'vault', 'temp', 'query')
     if (!fs.existsSync(queryDir)) {
       fs.mkdirSync(queryDir, { recursive: true })
     }
@@ -1385,6 +1385,25 @@ export async function handleAndbSaveQuery(_event: any, args: { sql: string, proj
     const filePath = path.join(queryDir, filename)
     fs.writeFileSync(filePath, sql || '', 'utf8')
     return { success: true, filePath }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Handle Load Query operation
+ */
+export async function handleAndbLoadQuery(_event: any, args: { projectBaseDir: string, filename: string }) {
+  try {
+    const { projectBaseDir, filename } = args || {}
+    if (!projectBaseDir) throw new Error('projectBaseDir is required')
+
+    const filePath = path.join(projectBaseDir, 'vault', 'temp', 'query', filename)
+    if (fs.existsSync(filePath)) {
+      const sql = fs.readFileSync(filePath, 'utf8')
+      return { success: true, sql }
+    }
+    return { success: true, sql: '' }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

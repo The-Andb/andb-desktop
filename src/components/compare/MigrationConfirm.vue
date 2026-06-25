@@ -155,23 +155,41 @@
         <div class="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-between gap-2 shadow-sm">
           <button
             type="button"
-            class="flex-1 flex items-center justify-center rounded-xl bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-all border border-gray-200 dark:border-gray-700 shadow-sm active:scale-95"
+            class="flex items-center justify-center rounded-xl transition-all active:scale-95"
+            :class="[
+              appStore.buttonStyle === 'icons' ? 'p-2.5 shadow-sm' : appStore.buttonStyle === 'full' ? 'px-5 py-2.5 shadow-md border border-gray-305 dark:border-gray-700 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 text-gray-750 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-750 font-black' : 'px-4 py-2.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-500 hover:text-gray-750 dark:text-gray-400 dark:hover:text-gray-200 font-bold',
+              appStore.buttonStyle === 'icons' ? '' : 'flex-1 gap-1.5'
+            ]"
             :disabled="loading"
             @click="$emit('close')"
+            title="Back"
           >
-            Back
+            <ArrowLeft class="w-3.5 h-3.5" />
+            <span v-if="appStore.buttonStyle !== 'icons'" class="text-[10px] uppercase tracking-wider">Back</span>
           </button>
           <button
             type="button"
-            class="flex-1 flex items-center justify-center rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border shadow-md hover:shadow-lg active:scale-95 items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="isBackwards ? 'bg-amber-600 hover:bg-amber-500 border-amber-600 text-white' : 'bg-primary-600 hover:bg-primary-500 border-primary-600 text-white'"
+            class="flex items-center justify-center rounded-xl transition-all border active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="[
+              appStore.buttonStyle === 'icons' ? 'p-2.5 shadow-sm' : appStore.buttonStyle === 'full' ? 'px-5 py-2.5 shadow-md font-black' : 'px-4 py-2.5 shadow-sm font-bold',
+              appStore.buttonStyle === 'icons' ? '' : 'flex-1 gap-1.5',
+              isBackwards
+                ? appStore.buttonStyle === 'full'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 border-transparent text-white shadow-lg shadow-amber-500/20'
+                  : 'text-amber-600 dark:text-amber-400 hover:text-white hover:bg-amber-600 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40'
+                : appStore.buttonStyle === 'full'
+                  ? 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 border-transparent text-white shadow-lg shadow-primary-500/20'
+                  : 'text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 bg-primary-50 dark:bg-primary-950/20 border border-primary-200 dark:border-primary-900/40'
+            ]"
             :disabled="loading || targetIsStatic"
             @click="handleConfirm"
-            :title="targetIsStatic ? $t('migration.staticWarning') : ''"
+            :title="targetIsStatic ? $t('migration.staticWarning') : (isBackwards ? 'Alter Source' : 'Migrate')"
           >
             <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
             <Zap v-else class="w-3.5 h-3.5 fill-current" />
-            {{ loading ? $t('common.processing') : (isBackwards ? 'Alter Source' : 'Migrate') }}
+            <span v-if="appStore.buttonStyle !== 'icons'" class="text-[10px] uppercase tracking-wider">
+              {{ loading ? $t('common.processing') : (isBackwards ? 'Alter Source' : 'Migrate') }}
+            </span>
           </button>
         </div>
       </div>
@@ -196,10 +214,18 @@
           <button 
             v-if="(sqlScript || (sqlMap && Object.keys(sqlMap).length > 0)) && !fetchingSql"
             @click="copyAllAlterScripts"
-            class="text-[10px] font-extrabold text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 shadow-sm active:scale-95"
+            class="text-[10px] font-extrabold flex items-center transition-all shadow-sm active:scale-95"
+            :class="[
+              appStore.buttonStyle === 'icons' ? 'p-2 rounded-lg' : appStore.buttonStyle === 'full' ? 'px-3.5 py-2 rounded-lg shadow-md' : 'px-3 py-1.5 rounded-lg',
+              appStore.buttonStyle === 'icons' ? '' : 'gap-1.5',
+              appStore.buttonStyle === 'full'
+                ? 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white border-transparent'
+                : 'text-primary-600 dark:text-primary-400 hover:text-white hover:bg-primary-600 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30'
+            ]"
+            title="Copy All Scripts"
           >
             <Copy class="w-3.5 h-3.5" />
-            Copy All Scripts
+            <span v-if="appStore.buttonStyle !== 'icons'">Copy All Scripts</span>
           </button>
         </div>
 
@@ -315,6 +341,7 @@ import DDLViewer from '@/components/ddl/DDLViewer.vue'
 import {
   Zap,
   ArrowRight,
+  ArrowLeft,
   AlertTriangle,
   Table,
   Layers,

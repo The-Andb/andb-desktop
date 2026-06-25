@@ -16,6 +16,7 @@ interface AppSchema {
     lastSelectedProjectId?: string
     aiEnabled: boolean
     safeMode?: boolean
+    strictColumnOrder?: boolean
     theme: 'light' | 'dark' | 'system'
     language: 'en' | 'vi'
     buttonStyle: 'full' | 'minimal' | 'icons'
@@ -263,6 +264,7 @@ export const storage = {
       lastSelectedProjectId: 'default',
       aiEnabled: true,
       safeMode: true,
+      strictColumnOrder: false,
       theme: 'system' as const,
 
       language: 'en' as const,
